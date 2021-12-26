@@ -101,7 +101,7 @@ function p = bootperm(data,group,nboot,bootfun,paropt)
   end
 
   % Define function to calculate maximum difference among groups
-  % H0: Data is exchangeable across all the groups labelled in g
+  % H0: Data is exchangeable across all the groups labelled in group
   func = @(data) maxdiff(data,group,bootfun,nvar);
   stat = func(data);
 
