@@ -10,7 +10,7 @@
 %  This function provides a bootstrap version of permutation tests for
 %  univariate (vector) or multivatiate (matrix) data [1]. The null 
 %  hypothesis (H0) is that for a given statistic defined by bootfun, 
-%  the data samples from different groups come from the same population. 
+%  the data samples (defined by groups) come from the same population. 
 %
 %  (Note that matrix input for data will mean that calculation of bootfun 
 %  will not be vectorized. When this is the case, the function will 
