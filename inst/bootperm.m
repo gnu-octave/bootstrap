@@ -11,6 +11,8 @@
 %  univariate (vector) or multivatiate (matrix) data [1]. The null 
 %  hypothesis (H0) is that for a given statistic defined by bootfun, 
 %  the data samples (defined by groups) come from the same population. 
+%  The method used for bootstrap is balanced resampling (unless 
+%  computations are accelerated by parallel processing. 
 %
 %  (Note that matrix input for data will mean that calculation of bootfun 
 %  will not be vectorized. When this is the case, the function will 
