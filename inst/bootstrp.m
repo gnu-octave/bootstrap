@@ -39,6 +39,9 @@
 %                   a parallel pool, else it will use the preferred number
 %                   of workers.
 %
+%  Note that bootstrap resampling is not balanced when operating in 
+%  parallel.
+%
 %  [bootstat,bootsam] = bootstrp(...) also returns bootidx, a matrix of
 %  indices from the bootstrap. Each column in bootsam corresponds
 %  to one bootstrap sample and contains the row indices of the values
