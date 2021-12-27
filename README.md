@@ -52,8 +52,7 @@ To install (or test) the statistics-bootstrap package at it's existing location 
 * `ibootp` calculates a two-tailed *p*-value for hypothesized value of the statistic using bootstrap
 * `iboottest` convenience function to perform one sample or paired-sample bootstrap tests (two-tailed)
 * `iboottest2` convenience function to perform two-sample, unpaired bootstrap test (two-tailed)
-* `bootperm` calculates a *p*-value for a one-sample bootstrap variant of the permutation test.
-* `bootperm2` calculates a *p*-value for a two-sample (unpaired) bootstrap variant of the permutation test.
+* `bootperm` calculates a *p*-value using a bootstrap variant of the permutation test comparing 2 or more (independent) samples (two-tailed) 
 * `bootmode` uses bootstrap to evaluate the likely number of real modes in a distribution
 * `plotboot` plots an overlay of a histogram, kernel density estimate and interval limits from bootstrap statistics
 
