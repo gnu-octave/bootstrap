@@ -12,7 +12,7 @@
 %  hypothesis (H0) is that for a given statistic defined by bootfun, 
 %  the data samples (defined by groups) come from the same population. 
 %  The method used for bootstrap is balanced resampling (unless 
-%  computations are accelerated by parallel processing. 
+%  computations are accelerated by parallel processing). 
 %
 %  (Note that matrix input for data will mean that calculation of bootfun 
 %  will not be vectorized. When this is the case, the function will 
@@ -22,7 +22,7 @@
 %  group is a vector the same size as y with unique numbers used as group 
 %  labels. If the number of groups (k) is 2, this is a 2-sample bootstrap
 %  permutation test. If k > 2, this is a bootstrap permutation test for
-%  k groups.
+%  k groups (like in one-way ANOVA)
 %   
 %  p = bootperm(data,group,nboot) sets the number of bootstrap resamples. 
 %  The default is 5000.
@@ -70,7 +70,7 @@
 %  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-function p = bootperm(data,group,nboot,bootfun,paropt)
+function [p, bootstat] = bootperm (data, group, nboot, bootfun, paropt)
 
   % Check and process bootperm input arguments
   nvar = size(data,2);
@@ -111,7 +111,7 @@ function p = bootperm(data,group,nboot,bootfun,paropt)
   bootstat = bootstrp(nboot,func,data,'Options',paropt);
 
   % Calculate p-value
-  p = sum(bootstat>stat)/nboot;
+  p = sum(bootstat>=stat)/nboot;
   if (p == 0)
     warning('p-value too small to calculate. Try increasing nboot.')
   end
