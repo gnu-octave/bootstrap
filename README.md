@@ -64,5 +64,4 @@ The Matlab Statistics and Machine Learning toolbox has functions also called `bo
 
 ## Development roadmap
 
-* Add function to param folder to calculate D statistic from KS-test (with input format suitable for bootperm, boottest and (i)bootci)  
-* Add ability to additionally set contrasts or specify posthoc tests when calling bootperm. 
+* Add function to param folder to calculate D statistic from KS-test (with input format suitable for bootnhst, iboottest(2) and (i)bootci)   
