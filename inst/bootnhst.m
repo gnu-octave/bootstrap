@@ -108,11 +108,16 @@ function [p, c, gnames] = bootnhst (data, group, ref, nboot, bootfun, paropt)
   if (nargin < 2)
     error('bootnhst requires atleast two input arguments');
   end
-  if size(group,2)>1
-    group = group.'; 
+  if ischar(group)
+    group = cellstr(group);
   end
-  if (numel(group)>1) && (size(data,1) ~= numel(group))
+  if (size(group,1)>1) && (size(data,1) ~= size(group,1))
     error('data and group must be vectors the same size')
+  end
+  if iscell(group)
+    if ~iscellstr(group)
+      group = cell2mat(group);
+    end
   end
   if (nargin < 3)
     ref = [];
@@ -140,7 +145,13 @@ function [p, c, gnames] = bootnhst (data, group, ref, nboot, bootfun, paropt)
   [gnames,~,g] = unique(group);
   gk = unique(g);
   k = numel(gk);
-  ref = gk(ismember(gnames,ref));
+  if ~isempty(ref)
+    if isnumeric(ref)
+      ref = gk(ismember(gnames,ref));
+    else
+      ref = gk(strcmp(gnames,ref));
+    end
+  end
 
   % Define function to calculate maximum difference among groups
   % H0: Data is exchangeable across all the groups labelled in group
@@ -208,7 +219,7 @@ function [p, c, gnames] = bootnhst (data, group, ref, nboot, bootfun, paropt)
     if (k > 2)
       disp (...
             sprintf (['\n',...
-                      'Post-hoc test p-values with FWER controlled by a single-step maxT procedure.\n',...
+                      'Post-hoc tests with FWER controlled by a single-step maxT procedure.\n',...
                       '-------------------------------------------------------------------------------\n',...
                       '|Reference # |     Test # |   Reference |       Test | Difference |     p-value\n',...
                       '|------------|------------|-------------|------------|------------|------------']));
