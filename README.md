@@ -66,3 +66,5 @@ The Matlab Statistics and Machine Learning toolbox has functions also called `bo
 
 * Add function to param folder to calculate D statistic from KS-test (with input format suitable for bootnhst, iboottest and (i)bootci) 
 * Add capability to specify nesting in bootnhst, which will use stratified bootstrap resampling 
+* Allow bootstrap to accept empty argument for bootfun (to enhance compatible behaviours with corresponding matlab function 
+* Create usage guide with examples of how to apply the package functions to different problems and scenarious 
