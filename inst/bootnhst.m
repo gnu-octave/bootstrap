@@ -283,7 +283,6 @@ function T = maxdiff(Y,g,ref,bootfun,nvar)
   % Calculate maximum difference test statistic (T) 
   % This statistic is simpler and more intuitive than calculating F 
   % or MSE, and makes it more straightforward to calculate post-tests
-
   if isempty(ref)
     % Maximum difference for all pairwise comparisons
     Z = sort(Z,1);
