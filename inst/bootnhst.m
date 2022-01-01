@@ -62,13 +62,17 @@
 %                   of workers.
 %
 %  [p, c] = bootnhst(data,group,...) also returns a 6 column matrix that
-%  summarises post-test results:
-%  column 1: reference group number
-%  column 2: test group number
-%  column 3: value of bootfun evaluated using data from reference group
-%  column 4: value of bootfun evaluated using data from test group
-%  column 5: columns 4 minus column 3
-%  column 6: p-value adjusted for multiple comparisons
+%  summarises post-hoc test results. The family-wise error rate is 
+%  simultaneously controlled since the null distribution for each test 
+%  represents the maximum test statistic from each bootstrap sample. The 
+%  test statistic is the difference between groups with respect to the 
+%  values calculated using bootfun.
+%    column 1: reference group number
+%    column 2: test group number
+%    column 3: value of bootfun evaluated using data from reference group
+%    column 4: value of bootfun evaluated using data from test group
+%    column 5: columns 4 minus column 3
+%    column 6: p-value adjusted for multiple comparisons
 %
 %  [p, c, gnames] = bootnhst(data,group,...) also returns the group names
 %  used in the group input argument. The index of gnames corresponds to the 
