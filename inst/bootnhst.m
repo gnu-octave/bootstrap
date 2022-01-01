@@ -280,7 +280,7 @@ function T = maxdiff(Y,g,ref,bootfun,nvar)
     Z(j,:) = feval(bootfun,Y(g==gk(j),:));
   end
 
-  % Calculate maximum difference statistic (T) 
+  % Calculate maximum difference test statistic (T) 
   % This statistic is simpler and more intuitive than calculating F 
   % or MSE, and makes it more straightforward to calculate post-tests
 
