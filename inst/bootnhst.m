@@ -257,4 +257,3 @@ function [p, c, gnames] = bootnhst (data, group, ref, nboot, bootfun, paropt)
   end
 
 end
-
