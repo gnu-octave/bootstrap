@@ -51,8 +51,8 @@ To install (or test) the statistics-bootstrap package at it's existing location 
 * `ibootci` calculates confidence intervals (calibrated) by iterated bootstrap resampling 
 * `ibootp` calculates a two-tailed *p*-value for hypothesized value of the statistic using bootstrap
 * `bootnhst` calculates *p*-values by bootstrap null-hypothesis significance testing (two-tailed). This function can be used to compare 2 or more (independent) samples but it cannot calculate confidence intervals.
-* `iboottest` is a convenience function that uses bootstrap to compute *p*-values and confidence intervals for the difference between two paired samples or between one sample and a population value (two-tailed)
-* `iboottest2` is a convenience function that uses bootstrap to compute *p*-values and confidence intervals for the difference between two independent (i.e. unpaired) samples. 
+* `iboottest` is a convenience function that uses `ibootci` and `ibootp` to compute confidence intervals and *p*-values for the difference between two paired samples or between one sample and a population value (two-tailed)
+* `iboottest2` is a convenience function that uses `ibootci` and `ibootp` to compute confidence intervals and *p*-values for the difference between two independent (i.e. unpaired) samples. 
 * `bootmode` uses bootstrap to evaluate the likely number of real modes in a distribution
 * `plotboot` plots an overlay of a histogram, kernel density estimate and interval limits from bootstrap statistics
 
