@@ -68,4 +68,4 @@ The Matlab Statistics and Machine Learning toolbox has functions also called `bo
 * Add capability to specify nesting in bootnhst, which will use stratified bootstrap resampling 
 * Allow bootstrap to accept empty argument for bootfun (to enhance compatible behaviours with corresponding matlab function 
 * Create usage guide with examples of how to apply the package functions to different problems and scenarious 
-* Create some compiled mex and oct files on various files to speed up computations. 
+* Create some compiled mex and oct files on various platforms (mac, pc and linux) to speed up computations. 
