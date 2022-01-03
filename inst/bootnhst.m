@@ -158,7 +158,6 @@ function [p, c, gnames] = bootnhst (data, group, ref, nboot, bootfun, paropt)
   end
 
   % Define function to calculate maximum difference among groups
-  % H0: Data is exchangeable across all the groups labelled in group
   func = @(data) maxdiff(data,g,ref,bootfun,nvar);
   t = func(data);
 
