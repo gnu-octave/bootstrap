@@ -1099,7 +1099,7 @@ function [ci,bootstat,S,calcurve,idx] = ibootci(argin1,argin2,varargin)
         se = SE;
         SE1 = bootstat{2};
       end
-      % Put standard errors for into second cell of bootstat output
+      % Put standard errors for second bootstrap into second cell of bootstat output
       bootstat{2} = SE1;
     end
     a = n^(-3/2) * se;
