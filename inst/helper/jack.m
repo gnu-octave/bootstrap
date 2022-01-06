@@ -52,14 +52,13 @@ function [SE, T, U] = jack (x, func, paropt, opt)
     elseif ~isempty(opt.clusters)
       % Prepare Cluster-Jackknife
       % Set whole clusters as primary sampling units
-      [g,idx] = sort(opt.clusters);
+      [~, idx] = sort(opt.clusters);
       [SSb, SSw, m, g, MSb, MSw, dk] = sse_calc (x, opt.clusters, nvar);
       l = 1;
       for v = 1:nvar
         x{v} = x{v}(idx);
         x{v} = mat2cell(x{v},sum(g));
       end
-      x
     else
       l = 1;
       % Prepare for Jackknife
@@ -95,7 +94,7 @@ function [SE, T, U] = jack (x, func, paropt, opt)
   if paropt.UseParallel && isoctave
 
     % Octave parallel computing
-    i = [1:m].';'test'
+    i = [1:m].';
     parfun = @(i) parjack (x, func, nvar, m, i, l);
     T = pararrayfun(paropt.nproc, parfun, i, 'UniformOutput',true);
 
