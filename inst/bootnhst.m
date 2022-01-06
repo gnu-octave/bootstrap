@@ -43,11 +43,10 @@
 %  p = bootnhst(data,group,nboot,bootfun) also sets the statistic calculated
 %  from the bootstrap samples. This can be a function handle or string
 %  corresponding to the function name. If empty, the default is @mean or 
-%  'mean'.
-%
-%  Since bootnhst calculates sampling variance using Tukey's jacknife, 
+%  'mean'. Since bootnhst calculates sampling variance using Tukey's jacknife, 
 %  bootfun must be a smooth function of the data. If a robust univariate 
-%  statistic like the median is required, use 'smoothmedian'.
+%  statistic like the median is required, use 'smoothmedian'. Setting 
+%  bootfun to 'robust' tells bootnhst to use @smoothmedian.
 %
 %  p = bootnhst(y,...,nboot,bootfun,paropt) specifies options that govern 
 %  if and how to perform bootstrap iterations using multiple processors 
@@ -84,10 +83,10 @@
 %  The q-ratio (analagous to a t-statistic) is computed using the 
 %  difference in bootfun evaluated for two groups divided by the  
 %  standard error of the difference (derived from the pooled sampling
-%  variance). Note that because the sampling variance is estimated using 
-%  Tukey's jackknife, bootnhst can be used to compare a wide variety of 
-%  statistics (not just the mean). To compare the q-ratio reported here 
-%  with Tukey's more traditional q-statistic, multiply it by sqrt(2). 
+%  variance). To compare the q-ratio reported here with Tukey's more 
+%  traditional q-statistic, multiply it by sqrt(2). Note that because 
+%  the sampling variance is estimated using Tukey's jackknife, bootnhst 
+%  can be used to compare a wide variety of statistics (not just the mean). 
 % 
 %  The columns of output argument c contain:
 %    column 1: reference group number
@@ -158,6 +157,13 @@ function [p, c, gnames] = bootnhst (data, group, ref, nboot, bootfun, paropt)
   end
   if (nargin < 5) || isempty(bootfun)
     bootfun = 'mean';
+  end
+  if strcmpi(bootfun,'robust')
+    if nvar == 1
+      bootfun = @smoothmedian;
+    else
+      error('the robust setting cannot be used for multivariate data')
+    end
   end
   if (nargin < 6) || isempty(paropt)
     paropt = struct;
