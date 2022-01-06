@@ -108,7 +108,7 @@
 %   [1] Efron and Tibshirani. Chapter 16 Hypothesis testing with the
 %        bootstrap in An introduction to the bootstrap (CRC Press, 1994)
 %
-%  bootnhst v1.0.0.0 (01/01/2022)
+%  bootnhst v1.1.0.0 (01/01/2022)
 %  Author: Andrew Charles Penn
 %  https://www.researchgate.net/profile/Andrew_Penn/
 %
