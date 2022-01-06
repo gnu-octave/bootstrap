@@ -64,6 +64,7 @@ The Matlab Statistics and Machine Learning toolbox has functions also called `bo
 
 ## Development roadmap
 
+* Add option to compute confidence intervals for posthoc comparisons with `bootnhst`  
 * Add function to param folder to calculate D statistic from KS-test (with input format suitable for `bootnhst`, `iboottest` and (`i`)`bootci`) 
 * Add the ability to perform stratified jackknife resampling in `jack` 
 * Allow bootstrap to accept empty argument for `bootfun` (to enhance compatible behaviours with corresponding matlab function) 
