@@ -11,12 +11,14 @@
 %  [p, c, gnames] = bootnhst(data,group,...)
 %  bootnhst(data,group,...);
 %
-%  This non-parametric bootstrap function is for null hypothesis (H0) 
-%  significance testing and can be used with univariate (vector) or 
-%  multivatiate (matrix) data [1]. These tests do not make the normality
-%  assumption of parametric statistical tests. Since data is bootstrapped
-%  under the null hypothesis, p-values are accurate without double/iterated 
-%  bootstrap.
+%  This non-parametric bootstrap function can be used for null hypothesis 
+%  (H0) significance testing with univariate (vector) or multivatiate 
+%  (matrix) data, to compare bootfun (default is the 'mean') evaluated on 
+%  independent groups/samples [1]. These tests do not make the normality  
+%  assumption of parametric statistical tests and the calculations of the
+%  pooled standard deviation (for studentization) accomodate for unequal 
+%  sample size. Since data is bootstrapped under the null hypothesis, 
+%  p-values are accurate without double/iterated bootstrap sampling.
 % 
 %  The specification of H0 for the overal hypothesis test depends on whether 
 %  a reference group is specified with the ref input argument.
