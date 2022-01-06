@@ -240,7 +240,7 @@ function [p, c, gnames] = bootnhst (data, group, ref, nboot, bootfun, paropt)
       c(j,2) = gk(j);
       c(j,4) = feval(bootfun,data(g==c(j,2),:));
       c(j,5) = c(j,4) - c(j,3);                  
-      c(j,6) = abs(c(i,5)) / sqrt(Var * (w(c(j,1)) + w(c(j,2))));
+      c(j,6) = abs(c(j,5)) / sqrt(Var * (w(c(j,1)) + w(c(j,2))));
       c(j,7) = sum(Q>=abs(c(j,6)))/nboot;
     end
     c(ref,:) = [];
