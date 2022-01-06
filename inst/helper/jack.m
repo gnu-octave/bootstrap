@@ -4,6 +4,14 @@ function [SE, T, U] = jack (x, func, paropt, opt)
 
   % Jackknife
 
+  % Check what type of variable x is
+  if ~iscell(x)
+    x = num2cell(x,1); % convert to cell array
+    matflag  = true;
+  else 
+    matflag = false;
+  end
+
   % Get basic info about data
   nvar = size(x,2);
   [m, n] = size(x{1});
@@ -21,6 +29,11 @@ function [SE, T, U] = jack (x, func, paropt, opt)
     opt.weights = ones(m,1);
     opt.blocksize = [];
     opt.clusters = [];
+    if matflag
+      opt.matflag  = 1;
+    else
+      opt.matflag = 0;
+    end
   end
   if nargout > 3
     error('Invalid number of output arguments');
@@ -39,12 +52,14 @@ function [SE, T, U] = jack (x, func, paropt, opt)
     elseif ~isempty(opt.clusters)
       % Prepare Cluster-Jackknife
       % Set whole clusters as primary sampling units
-      % Observations in clusters must be grouped together!!!
+      [g,idx] = sort(opt.clusters);
       [SSb, SSw, m, g, MSb, MSw, dk] = sse_calc (x, opt.clusters, nvar);
       l = 1;
       for v = 1:nvar
+        x{v} = x{v}(idx);
         x{v} = mat2cell(x{v},sum(g));
       end
+      x
     else
       l = 1;
       % Prepare for Jackknife
@@ -72,17 +87,20 @@ function [SE, T, U] = jack (x, func, paropt, opt)
   % Perform 'leave one out' procedure and calculate the variance(s)
   % of the test statistic.
   T = zeros(m,n);
-  i = [1:m].';
   try
     pool = gcp('nocreate');
   catch
     pool = [];
   end
   if paropt.UseParallel && isoctave
+
     % Octave parallel computing
+    i = [1:m].';'test'
     parfun = @(i) parjack (x, func, nvar, m, i, l);
     T = pararrayfun(paropt.nproc, parfun, i, 'UniformOutput',true);
+
   elseif (paropt.UseParallel || ~isempty(pool)) && ~isoctave
+
     % Matlab parallel computing
     parfor i = 1:m
       M = cell(1,nvar);
@@ -98,7 +116,9 @@ function [SE, T, U] = jack (x, func, paropt, opt)
       end
       M = [];
     end
+
   else
+
     % Octave or Matlab serial computing
     for i = 1:m
       M = cell(1,nvar);
@@ -114,14 +134,17 @@ function [SE, T, U] = jack (x, func, paropt, opt)
       end
       M = [];
     end
+
   end
+  
+  % Calculate influence function and sampling variance for func
+  % from the Jackknife leave-one-out statistics
   Tori = sum(w .* T, 1);
   Tori = Tori(ones(m, 1), :);
   Ti = (m * Tori - (m - l) * T) / l;
-  % Note that (Ti - Tori) / (m - l) == (T - Tori)
-  U = ((m - l) * (Ti - Tori) / (m - l));
-  Var = (l / (m - 1)) * sum(w .* (Ti - Tori).^2, 1);
-
+  % Note that (Ti - Tori) / (m - l) == (Tori - T)
+  U = (m - l) * (Tori - T);
+  Var = sum(w .* (U.^2)/(m - 1), 1);
 
   % Calculate standard error(s) of the functional parameter
   SE = sqrt(Var);
