@@ -40,7 +40,8 @@
 %
 %  p = bootnhst(data,group,nboot,bootfun) also sets the statistic calculated
 %  from the bootstrap samples. This can be a function handle or string
-%  corresponding to the function name. If empty, the default is @mean or 'mean'.
+%  corresponding to the function name. If empty, the default is @mean or 
+%  'mean'.
 %
 %  Since bootnhst calculates sampling variance using Tukey's jacknife, 
 %  bootfun must be a smooth function of the data. If a robust univariate 
