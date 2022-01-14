@@ -452,18 +452,18 @@ function [p, c, gnames, q, Q, bootsam] = bootnhst (data, group, ref, bootfun, nb
 
     % Plot graph of the difference in bootfun for each comparison with 95% confidence intervals
     figure;
-    nc = size(c,1);                             % Calculate number of comparisons to plot
-    plot([0;0],[0;nc+1]','k:');                 % Plot vertical dashed line at 0 effect
-    set(gca,'Ydir','reverse')                   % Flip y-axis direction
-    ylim([0.5,nc+0.5]);                             % Set y-axis limits
-    hold on                                     % Enable plotting new data on the same axis
+    nc = size(c,1);                               % Calculate number of comparisons to plot
+    plot([0;0],[0;nc+1]','k:');                   % Plot vertical dashed line at 0 effect
+    set(gca,'Ydir','reverse')                     % Flip y-axis direction
+    ylim([0.5,nc+0.5]);                           % Set y-axis limits
+    hold on                                       % Enable plotting new data on the same axis
     for i=1:nc
       if c(i,7) < 0.05
-        plot(c(i,5),i,'or','MarkerFace','r')    % Plot marker for the difference in bootfun 
-        plot([c(i,8),c(i,9)],i*ones(2,1),'r-')  % Plot line for each confidence interval 
+        plot(c(i,5),i,'or','MarkerFaceColor','r') % Plot marker for the difference in bootfun 
+        plot([c(i,8),c(i,9)],i*ones(2,1),'r-')    % Plot line for each confidence interval 
       else
-        plot(c(i,5),i,'ob','MarkerFace','b')    % Plot marker for the difference in bootfun 
-        plot([c(i,8),c(i,9)],i*ones(2,1),'b-')  % Plot line for each confidence interval 
+        plot(c(i,5),i,'ob','MarkerFaceColor','b') % Plot marker for the difference in bootfun 
+        plot([c(i,8),c(i,9)],i*ones(2,1),'b-')    % Plot line for each confidence interval 
       end
     end
     hold off

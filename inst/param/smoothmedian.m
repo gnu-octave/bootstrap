@@ -254,9 +254,10 @@ function [p, stderr] = smoothmedian(x,dim,Tol)
     xj = (x(j(q),:) - h) .*... 
              midrange(ones(1,l),:) +...
              centre(ones(1,l),:);   % backtransform data when recreating xj
+    tmp = p(ones(l,1),:);
     % Calculate standard error(s) for the computed value(s) of the smoothed median
-    v0 = (1/(m*(m-1))) * sum((((xi-p).^2+(xj-p).^2).^(-3/2) .* (xi-xj).^2));
-    v  = (1/(m*(m-1))) * sum(((xi+xj-2*p)./(((xi-p).^2+(xj-p).^2).^(0.5))).^2);
+    v0 = (1/(m*(m-1))) * sum((((xi-tmp).^2+(xj-tmp).^2).^(-3/2) .* (xi-xj).^2));
+    v  = (1/(m*(m-1))) * sum(((xi+xj-2*tmp)./(((xi-tmp).^2+(xj-tmp).^2).^(0.5))).^2);
     stderr = sqrt((v0.^(-2)) .* v / m);
     % Assign 0 to stderr for x columns with 0 variance 
     stderr(midrange==0) = 0;
