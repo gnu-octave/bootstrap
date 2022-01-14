@@ -300,7 +300,7 @@
 %    >> func = @(x) trimmean(x,50)
 %    >> ci = ibootci([5000 200],func,y);
 %
-%  ibootci v2.8.7.3 (10/05/2020)
+%  ibootci v2.8.7.4 (11/01/2022)
 %  Author: Andrew Charles Penn
 %  https://www.researchgate.net/profile/Andrew_Penn/
 %
@@ -545,11 +545,13 @@ function [ci,bootstat,S,calcurve,idx] = ibootci(argin1,argin2,varargin)
       catch
         error('Could not find bootsam')
       end
-      if size(data{1},1) ~= size(idx,1)
-        error('Dimensions of data and bootsam are inconsistent')
+      if ~isempty(idx)
+        if (size(data{1},1) ~= size(idx,1))
+          error('Dimensions of data and bootsam are inconsistent')
+        end
+        % Set nboot(1) according to the size of bootsam
+        nboot(1) = size(idx,2);
       end
-      % Set nboot(1) according to the size of bootsam
-      nboot(1) = size(idx,2);
     else
       idx = [];
     end
@@ -1116,7 +1118,7 @@ function [ci,bootstat,S,calcurve,idx] = ibootci(argin1,argin2,varargin)
     ci = [LL;UL];
 
   else
-
+ 
     % Calculate interval for percentile method
     [cdf,t1] = empcdf(T1,0);
     %UL = interp1(cdf,t1,m1,'linear','extrap');

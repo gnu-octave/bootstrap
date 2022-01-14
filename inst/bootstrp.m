@@ -2,18 +2,23 @@
 %
 %  Bootstrap sampling
 %
-%  bootstat = bootstrp(nboot,bootfun,...)
+%  bootstat = bootstrp(nboot,bootfun,d)
+%  bootstat = bootstrp(nboot,bootfun,d1,...,dN)
 %  bootstat = bootstrp(...,'Weights',weights)
 %  bootstat = bootstrp(...,'Options',paropt)
+%  bootstat = bootstrp(...,'bootsam',bootsam)
 %  [bootstat,bootsam] = bootstrp(...)
 %
-%  bootstat = bootstrp(nboot,bootfun,...) draws nboot bootstrap data
+%  bootstat = bootstrp(nboot,bootfun,d,...) draws nboot bootstrap data
 %  resamples and returns the statistic computed by bootfun in bootstat
 %  [1]. bootfun is a function handle (e.g. specified with @), or a
-%  string indicating the function name. The third and later input
-%  arguments are data (column vectors, or a matrix), that are used
-%  to create inputs for bootfun. The resampling method used throughout
-%  is balanced resampling [2].
+%  string indicating the function name. The third input argument is data 
+%  (column vector or a matrix), that is used to create inputs for bootfun. 
+%  The resampling method used throughout is balanced resampling [2].
+%
+%  bootstat = bootstrp(nboot,bootfun,d1,...,dN) is as above except that 
+%  the third and subsequent numeric input arguments are data vectors 
+%  that are used to create inputs for bootfun. 
 %
 %  bootstat = bootstrp(...,'Weights',weights) specifies observation
 %  weights. weights must be a vector of non-negative numbers. The
@@ -42,10 +47,15 @@
 %  Note that bootstrap resampling is not balanced when operating in 
 %  parallel.
 %
-%  [bootstat,bootsam] = bootstrp(...) also returns bootidx, a matrix of
-%  indices from the bootstrap. Each column in bootsam corresponds
-%  to one bootstrap sample and contains the row indices of the values
-%  drawn from the nonscalar data to create that sample.
+%  bootstat = bootstrp(...,'bootsam',bootsam) performs bootstrap 
+%  computations using the indices from bootsam for the bootstrap 
+%  (without the need for further resampling).
+%
+%  [bootstat,bootsam] = bootstrp(...) also returns bootsam, a  
+%  matrix of indices from the bootstrap. Each column in bootsam
+%  corresponds to one bootstrap sample and contains the row 
+%  indices of the values drawn from the nonscalar data to create 
+%  that sample.
 %
 %  Bibliography:
 %  [1] Efron, and Tibshirani (1993) An Introduction to the
@@ -55,7 +65,7 @@
 %  [3] Booth, Hall and Wood (1993) Balanced Importance Resampling
 %        for the Bootstrap. The Annals of Statistics. 21(1):286-298
 %
-%  bootstrp v2.8.6.0 (29/04/2020)
+%  bootstrp v2.8.7.0 (11/01/2022)
 %  Author: Andrew Charles Penn
 %  https://www.researchgate.net/profile/Andrew_Penn/
 %
@@ -91,6 +101,7 @@ function [bootstat,bootsam] = bootstrp(argin1,argin2,varargin)
 
   % Apply defaults
   weights = [];
+  bootsam = [];
   paropt = struct;
   paropt.UseParallel = false;
   paropt.nproc = nproc;
@@ -102,10 +113,12 @@ function [bootstat,bootsam] = bootstrp(argin1,argin2,varargin)
   narg = numel(argin3);
   if narg > 1
     while ischar(argin3{end-1})
-      if strcmpi(argin3{end-1},'weights')
+      if strcmpi(argin3{end-1},'Weights')
         weights = argin3{end};
-      elseif any(strcmpi({'options','option'},argin3{end-1}))
+      elseif any(strcmpi({'Options','Option'},argin3{end-1}))
         paropt = argin3{end};
+      elseif strcmpi(argin3{end-1},'bootsam')
+        bootsam = argin3{end};
       else
         error('unrecognised input argument to bootstrp')
       end
@@ -117,7 +130,7 @@ function [bootstat,bootsam] = bootstrp(argin1,argin2,varargin)
     end
   end
   data = argin3;
-
+  
   % Error checking
   if ~all(size(nboot) == [1,1])
     error('nboot must be a scalar value')
@@ -130,9 +143,9 @@ function [bootstat,bootsam] = bootstrp(argin1,argin2,varargin)
     pool = [];
   end
   if nargout > 1
-    [ci, bootstat, S, calcurve, bootsam] = ibootci (nboot, {bootfun, data{:}}, 'Weights', weights,'Options',paropt);
+    [ci, bootstat, S, calcurve, bootsam] = ibootci (nboot, {bootfun, data{:}}, 'Weights', weights,'Options',paropt,'bootsam',bootsam);
   else
-    [ci, bootstat, S, calcurve] = ibootci (nboot, {bootfun, data{:}}, 'Weights', weights,'Options',paropt);
+    [ci, bootstat, S, calcurve] = ibootci (nboot, {bootfun, data{:}}, 'Weights', weights,'Options',paropt,'bootsam',bootsam);
   end
   bootstat = bootstat.';
 

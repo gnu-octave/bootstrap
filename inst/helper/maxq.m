@@ -1,8 +1,8 @@
-function q = maxq (Y,g,ref,bootfun,nvar)
+function q = maxq (Y,g,ref,bootfun,nvar,excl)
 
   % Helper function file required for bootnhst
 
-  % Calculate maximum difference between bootfun output of all the groups
+  % Calculate maximum studentized difference between bootfun output of all the groups
 
   % Get size and of the data vector or matrix
   [m,n] = size(Y);
@@ -22,7 +22,8 @@ function q = maxq (Y,g,ref,bootfun,nvar)
   for j = 1:k
     nk(j) = sum(g==gk(j));
     d(j,:) = feval(bootfun,Y(g==gk(j),:));
-    Var(j,1) = ((nk(j)-1)/(N-k)) * jack(Y(g==gk(j),:), bootfun).^2;
+    se = jack(Y(g==gk(j),:), bootfun);
+    Var(j,1) = ((nk(j)-1)/(N-k)) * se.^2;
   end
   nk_bar = sum(nk.^2)./sum(nk); % mean weighted sample size
   Var = sum(Var.*nk/nk_bar);    % pooled sampling variance weighted by sample size
@@ -30,6 +31,16 @@ function q = maxq (Y,g,ref,bootfun,nvar)
   % Calculate weights to correct for unequal sample size  
   % when calculating standard error of the difference
   w = nk_bar./nk;
+
+  % Perform group exclusion
+  if excl
+    % do nothing
+    w(gk(end)) = NaN;
+    d(gk(end),:) = NaN;
+    l = 1;  % Number of groups to exclude
+  else 
+    l = 0;  % Number of groups to exclude
+  end
 
   % Calculate the q-ratio test statistic 
   if isempty(ref)
@@ -40,12 +51,12 @@ function q = maxq (Y,g,ref,bootfun,nvar)
     %
     % Bibliography:
     %  [1] https://en.wikipedia.org/wiki/Tukey%27s_range_test
-    %  [2] https://cdn.graphpad.com/faq/1688/file/1688MulitpleComparisonAlgorithms(1).pdf
+    %  [2] https://cdn.graphpad.com/faq/1688/file/MulitpleComparisonAlgorithmsPrism8.pdf
     %  [3] www.graphpad.com/guides/prism/latest/statistics/stat_the_methods_of_tukey_and_dunne.htm
     %
-    [d,i] = sort(d,1);
-    range = abs(d(k,:)-d(1,:));
-    q = range / sqrt(Var * (w(i(k)) + w(i(1))));
+    [d,i] = sort(d(1:end-l),1);
+    range = abs(d(k-l,:)-d(1,:));
+    q = range / sqrt(Var * (w(i(k-l)) + w(i(1))));
   else
     % Calculate Dunnett's q-ratio for maximum difference between  
     % bootfun for test vs. control samples
@@ -53,5 +64,5 @@ function q = maxq (Y,g,ref,bootfun,nvar)
     [range, i] = max(abs((d-ones(k,1)*d(ref,:))));
     q = range / sqrt(Var * (w(ref) + w(i)));
   end
-
+  
 end
