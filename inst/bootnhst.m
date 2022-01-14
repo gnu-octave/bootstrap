@@ -10,9 +10,9 @@
 %  p = bootnhst(DATA,GROUP,ref,bootfun,nboot,paropt,bootsam)
 %  [p,c] = bootnhst(DATA,GROUP,...)
 %  [p,c,gnames] = bootnhst(DATA,GROUP,...)
-%  [p,c,gnames,stat] = bootnhst(DATA,GROUP,...)
-%  [p,c,gnames,stat,bootstat] = bootnhst(DATA,GROUP,...)
-%  [p,c,gnames,stat,bootstat,bootsam] = bootnhst(DATA,GROUP,...)
+%  [p,c,gnames,stats] = bootnhst(DATA,GROUP,...)
+%  [p,c,gnames,stats,bootstat] = bootnhst(DATA,GROUP,...)
+%  [p,c,gnames,stats,bootstat,bootsam] = bootnhst(DATA,GROUP,...)
 %  bootnhst(DATA,GROUP,...);
 %
 %  This non-parametric bootstrap function can be used for null hypothesis 
@@ -133,13 +133,27 @@
 %  numbers used to identify GROUPs in columns 1 and 2 of the output argument
 %  c.
 %
-%  [p,c,gnames,stat] = bootnhst(DATA,GROUP,...) also returns the overall 
-%  test statistic calculated by bootfun
+%  [p,c,gnames,stats] = bootnhst(DATA,GROUP,...) also returns a structure 
+%  containing additional statistics. The stats structure contains the 
+%  following fields:
 %
-%  [p,c,gnames,stat,bootstat] = bootnhst(DATA,GROUP,...) also returns the 
+%   Var      - mean weighted sampling variance across the groups
+%   SE       - pooled standard error (i.e. Var^2)
+%   SED      - standard error of the difference (i.e. sqrt(2)*SE)
+%   Weights  - weights representing the contribution of each group to Var 
+%   stat     - omnibus test statistic (q) 
+%   nboot    - number of bootstrap resamples
+%   bootstat - test statistic computed for each bootstrap resample 
+%   groups   - bootfun for each group with lower and upper bootstrap-t
+%              confidence intervals, which have coverage such that they 
+%              overlap with eachother, (if the ref input argument is 
+%              'pairwise'), or with the reference group, at a FWER-
+%              controlled p-value of greater than 0.05.
+%
+%  [p,c,gnames,stats] = bootnhst(DATA,GROUP,...) also returns the 
 %  statistic computed by bootfun for each bootstrap resample.
 %
-%  [p,c,gnames,stat,bootstat,bootsam] = bootnhst(DATA,GROUP,...) also 
+%  [p,c,gnames,stats,bootsam] = bootnhst(DATA,GROUP,...) also 
 %  returns bootsam, a matrix of indices from the bootstrap. Each column 
 %  in bootsam corresponds to one bootstrap sample and contains the row 
 %  indices of the values drawn from the nonscalar data to create that 
@@ -174,7 +188,7 @@
 %  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-function [p, c, gnames, q, Q, bootsam] = bootnhst (data, group, ref, bootfun, nboot, paropt, bootsam)
+function [p, c, gnames, stats, bootsam] = bootnhst (data, group, ref, bootfun, nboot, paropt, bootsam)
 
   % Check and process bootnhst input arguments
   nvar = size(data,2);
@@ -185,7 +199,7 @@ function [p, c, gnames, q, Q, bootsam] = bootnhst (data, group, ref, bootfun, nb
     group = cellstr(group);
   end
   if (size(group,1)>1) && (size(data,1) ~= size(group,1))
-    error('data and group must be vectors the same size')
+    error('DATA and GROUP must have the same number of rows')
   end
   if iscell(group)
     if ~iscellstr(group)
@@ -308,10 +322,12 @@ function [p, c, gnames, q, Q, bootsam] = bootnhst (data, group, ref, bootfun, nb
   warning(state);
 
   % Calculate pooled (weighted mean) sampling variance using Tukey's jackknife
+  d = zeros(k,1);
   Var = zeros(k,1);
   nk = zeros(size(gk));
   for j = 1:k
     nk(j) = sum(g==gk(j));
+    d(j,:) = feval(bootfun,data(g==gk(j),:));
     se = jack(data(g==gk(j),:), bootfun);
     Var(j,1) = ((nk(j)-1)/(N-k)) * se.^2;
   end
@@ -375,8 +391,25 @@ function [p, c, gnames, q, Q, bootsam] = bootnhst (data, group, ref, bootfun, nb
   end
 
   % Calculate overall p-value
-  q = func(data); q = max(c(:,6));
+  q = func(data); 
   p = sum(Q>=q)/nboot;
+
+  % Prepare stats output structure
+  stats          = struct;
+  stats.Var      = Var;
+  stats.SE       = sqrt(Var);
+  stats.SED      = sqrt(2) * stats.SE;
+  stats.Weights  = w;
+  stats.stat     = q;
+  stats.nboot    = nboot;
+  stats.bootstat = Q;
+
+  % Calculate symmetrical bootstrap-t confidence intervals for bootfun for each group
+  % Confidence intervals touch at a FWER controlled p-value of 0.05
+  stats.groups = zeros(k,3);
+  stats.groups(:,1) = d;
+  stats.groups(:,2) = d - sqrt(Var/2) * interp1(cdf,QS,1-alpha,'linear');
+  stats.groups(:,3) = d + sqrt(Var/2) * interp1(cdf,QS,1-alpha,'linear');
 
   % Print output and plot graph with confidence intervals if no output arguments are requested
   cols = [1,2,5,6,7]; % columns in c that we want to print data for
