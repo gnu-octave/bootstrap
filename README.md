@@ -71,3 +71,5 @@ The Matlab Statistics and Machine Learning toolbox has functions also called `bo
 * Allow bootstrap to accept empty argument for `bootfun` (to enhance compatible behaviours with corresponding matlab function) 
 * Create usage guide with examples of how to apply the package functions to different problems and scenarios  
 * Create some compiled mex and oct files on various platforms (mac, pc and linux) to speed up computations. 
+* Create convenience function bootanovan as a wrapper for bootnhst  
+ 
