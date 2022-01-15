@@ -20,10 +20,11 @@
 %  (matrix) data, to compare bootfun (default is the 'mean') evaluated on 
 %  independent GROUPs (i.e. samples) [1]. These tests do not make the   
 %  normality assumption of parametric statistical tests and the calculations 
-%  of the weighted mean (pooled) standard error (for studentization)   
-%  accomodates for unequal sample size. Since DATA is bootstrapped under the 
-%  null hypothesis, the computed p-values and bootstrap-t confidence interval
-%  are accurate without double/iterated bootstrap sampling.
+%  of the weighted mean sampling variance and pooled standard error (for 
+%  studentization) accomodates for unequal sample size. Since DATA is 
+%  bootstrapped under the null hypothesis, the computed p-values and  
+%  bootstrap-t confidence interval are accurate without double/iterated 
+%  bootstrap sampling.
 % 
 %  The specification of H0 for the overall hypothesis test depends on whether 
 %  a reference GROUP is specified with the ref input argument.
@@ -110,8 +111,8 @@
 % 
 %  The q-ratio (analagous to a t-statistic) is computed using the 
 %  difference in bootfun evaluated for two GROUPs divided by the  
-%  standard error of the difference (derived from the pooled (weighted 
-%  mean) sampling variance). To compare the q-ratio reported here with 
+%  standard error of the difference (derived from the pooled, weighted 
+%  mean, sampling variance). To compare the q-ratio reported here with 
 %  Tukey's more traditional q-statistic, multiply it by sqrt(2). Note 
 %  that because the sampling variance is estimated using Tukey's 
 %  jackknife, bootnhst can be used to compare a wide variety of 
@@ -137,7 +138,7 @@
 %  containing additional statistics. The stats structure contains the 
 %  following fields:
 %
-%   Var      - mean weighted sampling variance across the groups
+%   Var      - weighted mean sampling variance across the groups
 %   SE       - pooled standard error (i.e. Var^2)
 %   SED      - standard error of the difference (i.e. sqrt(2)*SE)
 %   Weights  - weights representing the contribution of each group to Var 
@@ -331,7 +332,7 @@ function [p, c, gnames, stats, bootsam] = bootnhst (data, group, ref, bootfun, n
     se = jack(data(g==gk(j),:), bootfun);
     Var(j,1) = ((nk(j)-1)/(N-k)) * se.^2;
   end
-  nk_bar = sum(nk.^2)./sum(nk);  % mean weighted sample size
+  nk_bar = sum(nk.^2)./sum(nk);  % weighted mean sample size
   Var = sum(Var.*nk/nk_bar);     % pooled sampling variance weighted by sample size
 
   % Calculate weights to correct for unequal sample size  
@@ -408,8 +409,8 @@ function [p, c, gnames, stats, bootsam] = bootnhst (data, group, ref, bootfun, n
   % Confidence intervals touch at a FWER controlled p-value of 0.05
   stats.groups = zeros(k,3);
   stats.groups(:,1) = d;
-  stats.groups(:,2) = d - sqrt(Var/2) * interp1(cdf,QS,1-alpha,'linear');
-  stats.groups(:,3) = d + sqrt(Var/2) * interp1(cdf,QS,1-alpha,'linear');
+  stats.groups(:,2) = d - sqrt(w * Var/2) * interp1(cdf,QS,1-alpha,'linear');
+  stats.groups(:,3) = d + sqrt(w * Var/2) * interp1(cdf,QS,1-alpha,'linear');
 
   % Print output and plot graph with confidence intervals if no output arguments are requested
   cols = [1,2,5,6,7]; % columns in c that we want to print data for
