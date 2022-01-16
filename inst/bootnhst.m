@@ -7,10 +7,8 @@
 %  p = bootnhst(DATA,GROUP,ref,bootfun,nboot)
 %  p = bootnhst(DATA,GROUP,ref,bootfun,nboot)
 %  p = bootnhst(DATA,GROUP,ref,bootfun,nboot,paropt)
-%  p = bootnhst(DATA,GROUP,ref,bootfun,nboot,paropt,bootsam)
 %  [p,c] = bootnhst(DATA,GROUP,...)
 %  [p,c,stats] = bootnhst(DATA,GROUP,...)
-%  [p,c,stats,bootsam] = bootnhst(DATA,GROUP,...)
 %  bootnhst(DATA,GROUP,...);
 %
 %  This non-parametric bootstrap function can be used for null hypothesis 
@@ -88,10 +86,6 @@
 %                   workers should be predefined beforehand by starting
 %                   a parallel pool, else it will use the preferred number
 %                   of workers.
-%
-%  p = bootnhst(DATA,GROUP,ref,bootfun,nboot,paropt,bootsam) performs 
-%  bootstrap computations using the DATA row indices from bootsam for
-%  the bootstrap (without the need for further resampling).
 % 
 %  [p, c] = bootnhst(DATA,GROUP,...) also returns a 9 column matrix that
 %  summarises post hoc test results. The family-wise error rate is 
@@ -149,11 +143,6 @@
 %   nboot    - number of bootstrap resamples
 %   bootstat - test statistic computed for each bootstrap resample 
 %
-%  [p,c,stats,bootsam] = bootnhst(DATA,GROUP,...) also returns bootsam, 
-%  a matrix of indices from the bootstrap. Each column in bootsam 
-%  corresponds to one bootstrap sample and contains the row indices of 
-%  the values drawn from the nonscalar data to create that sample.
-%
 %  bootnhst(DATA,GROUP,...); performs the calculations as per above but 
 %  prints the columns 1, 2 and 5-7 of the results (c) in a pretty table.
 %  The differences between groups are also plot along with the symmetic
@@ -183,7 +172,7 @@
 %  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-function [p, c, stats, bootsam] = bootnhst (data, group, ref, bootfun, nboot, paropt, bootsam)
+function [p, c, stats] = bootnhst (data, group, ref, bootfun, nboot, paropt)
 
   % Check and process bootnhst input arguments
   nvar = size(data,2);
@@ -263,14 +252,11 @@ function [p, c, stats, bootsam] = bootnhst (data, group, ref, bootfun, nboot, pa
     end
     paropt.nproc = nproc;
   end
-  if nargin < 7
-    bootsam = [];
+  if nargout > 6
+    error('bootnhst only supports up to 6 input arguments')
   end
-  if nargout > 7
-    error('bootnhst only supports up to 7 input arguments')
-  end
-  if nargout > 4
-    error('bootnhst only supports up to 4 output arguments')
+  if nargout > 3
+    error('bootnhst only supports up to 3 output arguments')
   end
 
   % Group exclusion using NaN or Inf (excluded group becomes the last group in gnames and gk)
@@ -309,11 +295,7 @@ function [p, c, stats, bootsam] = bootnhst (data, group, ref, bootfun, nboot, pa
   % Perform resampling and calculate bootstrap statistics
   state = warning;
   warning off;    % silence warnings about non-vectorized bootfun
-  if nargout > 3
-    [Q, bootsam] = bootstrp (nboot,func,data,'Options',paropt,'bootsam',bootsam);
-  else
-    Q = bootstrp (nboot,func,data,'Options',paropt,'bootsam',bootsam);
-  end
+  Q = bootstrp (nboot,func,data,'Options',paropt);
   warning(state);
 
   % Calculate pooled (weighted mean) sampling variance using Tukey's jackknife
