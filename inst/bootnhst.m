@@ -9,10 +9,8 @@
 %  p = bootnhst(DATA,GROUP,ref,bootfun,nboot,paropt)
 %  p = bootnhst(DATA,GROUP,ref,bootfun,nboot,paropt,bootsam)
 %  [p,c] = bootnhst(DATA,GROUP,...)
-%  [p,c,gnames] = bootnhst(DATA,GROUP,...)
-%  [p,c,gnames,stats] = bootnhst(DATA,GROUP,...)
-%  [p,c,gnames,stats,bootstat] = bootnhst(DATA,GROUP,...)
-%  [p,c,gnames,stats,bootstat,bootsam] = bootnhst(DATA,GROUP,...)
+%  [p,c,stats] = bootnhst(DATA,GROUP,...)
+%  [p,c,stats,bootsam] = bootnhst(DATA,GROUP,...)
 %  bootnhst(DATA,GROUP,...);
 %
 %  This non-parametric bootstrap function can be used for null hypothesis 
@@ -20,8 +18,8 @@
 %  (matrix) data, to compare bootfun (default is the 'mean') evaluated on 
 %  independent GROUPs (i.e. samples) [1]. These tests do not make the   
 %  normality assumption of parametric statistical tests and the calculations 
-%  of the weighted mean sampling variance and pooled standard error (for 
-%  studentization) accomodates for unequal sample size. Since DATA is 
+%  of the weighted mean sampling variance (for studentization using a pooled 
+%  standard error) accomodates for unequal sample size. Since DATA is 
 %  bootstrapped under the null hypothesis, the computed p-values and  
 %  bootstrap-t confidence interval are accurate without double/iterated 
 %  bootstrap sampling.
@@ -41,14 +39,14 @@
 %  The method used for bootstrap is balanced resampling (unless computations 
 %  are accelerated by parallel processing). 
 %
-%  p = bootnhst(DATA,GROUP) is a k-sample bootstrap permutation test where 
-%  GROUP is a vector or cell array the same size as y containing numbers or 
-%  strings which denote GROUP labels. If the number of GROUPs (k) is 2, this 
-%  is a 2-sample test. If k > 2, this is test for k GROUPs (like in one-way 
-%  ANOVA layout). If GROUP is numeric and any GROUP is either assigned NaN
-%  or Inf, their respective DATA rows will be excluded from consideration in
-%  hypothesis testing but they will still contribute to the estimate of the 
-%  pooled (weighted mean) sampling variance.
+%  p = bootnhst(DATA,GROUP) is a k-sample bootstrap test where GROUP is a 
+%  vector or cell array the same number of rows as y and contains numbers 
+%  or strings which denote GROUP labels. If the number of GROUPs (k) is 2, 
+%  this is a 2-sample test. If k > 2, this is test for k GROUPs (like in 
+%  one-way ANOVA layout). If GROUP is numeric and any GROUP is either 
+%  assigned NaN or Inf, their respective DATA rows will be excluded from 
+%  consideration in hypothesis testing but they will still contribute to 
+%  the estimate of the pooled (weighted mean) sampling variance.
 %
 %  p = bootnhst(DATA,GROUP,ref) also sets the GROUP to use as the reference 
 %  GROUP for post hoc tests. For one-way ANOVA-like experimental designs this 
@@ -63,8 +61,8 @@
 %  is the mean of the means of each column (i.e. variates). Since bootnhst 
 %  calculates sampling variance using Tukey's jacknife, bootfun must be a 
 %  smooth function of the DATA. If a robust statistic like the median is 
-%  required, use 'smoothmedian'. Setting bootfun to 'robust' tells bootnhst 
-%  to use @smoothmedian (for univariate or multivariate DATA). 
+%  required, use 'robust', which uses a smoothed version of the median
+%  for univariate or multivariate DATA (see function help for smoothmedian).
 %
 %  p = bootnhst(DATA,GROUP,ref,bootfun,nboot) sets the number of bootstrap 
 %  resamples. Increasing nboot reduces the monte carlo error of the p-value 
@@ -105,9 +103,9 @@
 %  Difference (HSD) test. 
 %
 %  If the ref input argument is specified, then the resampling above 
-%  for treatment versus control is analagous to Dunnett's post hoc tests 
-%  (since the range of bootfun in the null distribution test statistics 
-%  is restricted to differences with the control GROUP).
+%  for treatment versus reference is analagous to Dunnett's post hoc  
+%  tests (since the range of bootfun in the null distribution test  
+%  statistics is restricted to differences with the reference GROUP).
 % 
 %  The q-ratio (analagous to a t-statistic) is computed using the 
 %  difference in bootfun evaluated for two GROUPs divided by the  
@@ -129,36 +127,32 @@
 %    column 8: LOWER bound of a 95% bootstrap-t confidence interval
 %    column 9: UPPER bound of a 95% bootstrap-t confidence interval
 %
-%  [p, c, gnames] = bootnhst(data,group,...) also returns the group names
-%  used in the GROUP input argument. The index of gnames corresponds to the 
-%  numbers used to identify GROUPs in columns 1 and 2 of the output argument
-%  c.
+%  [p,c] = bootnhst(data,group,...) also returns the group names used in 
+%  the GROUP input argument. The index of gnames corresponds to the 
+%  numbers used to identify GROUPs in columns 1 and 2 of the output 
+%  argument c.
 %
-%  [p,c,gnames,stats] = bootnhst(DATA,GROUP,...) also returns a structure 
+%  [p,c,stats] = bootnhst(DATA,GROUP,...) also returns a structure 
 %  containing additional statistics. The stats structure contains the 
 %  following fields:
 %
-%   Var      - weighted mean sampling variance across the groups
-%   SE       - pooled standard error (i.e. Var^2)
-%   SED      - standard error of the difference (i.e. sqrt(2)*SE)
-%   Weights  - weights representing the contribution of each group to Var 
+%   gnames   - group names used in the GROUP input argument. The index of 
+%              gnames corresponds to the numbers used to identify GROUPs
+%              in columns 1 and 2 of the output argument c
+%   ref      - reference group
+%   groups   - bootfun for each group with standard error, and lower and 
+%              upper bootstrap-t confidence intervals, which have coverage
+%              such that they overlap with eachother if the ref input
+%              argument is 'pairwise', or with the reference group, at a 
+%              FWER-controlled p-value of greater than 0.05.
 %   stat     - omnibus test statistic (q) 
 %   nboot    - number of bootstrap resamples
 %   bootstat - test statistic computed for each bootstrap resample 
-%   groups   - bootfun for each group with lower and upper bootstrap-t
-%              confidence intervals, which have coverage such that they 
-%              overlap with eachother, (if the ref input argument is 
-%              'pairwise'), or with the reference group, at a FWER-
-%              controlled p-value of greater than 0.05.
 %
-%  [p,c,gnames,stats] = bootnhst(DATA,GROUP,...) also returns the 
-%  statistic computed by bootfun for each bootstrap resample.
-%
-%  [p,c,gnames,stats,bootsam] = bootnhst(DATA,GROUP,...) also 
-%  returns bootsam, a matrix of indices from the bootstrap. Each column 
-%  in bootsam corresponds to one bootstrap sample and contains the row 
-%  indices of the values drawn from the nonscalar data to create that 
-%  sample.
+%  [p,c,stats,bootsam] = bootnhst(DATA,GROUP,...) also returns bootsam, 
+%  a matrix of indices from the bootstrap. Each column in bootsam 
+%  corresponds to one bootstrap sample and contains the row indices of 
+%  the values drawn from the nonscalar data to create that sample.
 %
 %  bootnhst(DATA,GROUP,...); performs the calculations as per above but 
 %  prints the columns 1, 2 and 5-7 of the results (c) in a pretty table.
@@ -170,7 +164,7 @@
 %   [1] Efron and Tibshirani. Chapter 16 Hypothesis testing with the
 %        bootstrap in An introduction to the bootstrap (CRC Press, 1994)
 %
-%  bootnhst v1.2.0.0 (11/01/2022)
+%  bootnhst v1.3.0.0 (16/01/2022)
 %  Author: Andrew Charles Penn
 %  https://www.researchgate.net/profile/Andrew_Penn/
 %
@@ -189,7 +183,7 @@
 %  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-function [p, c, gnames, stats, bootsam] = bootnhst (data, group, ref, bootfun, nboot, paropt, bootsam)
+function [p, c, stats, bootsam] = bootnhst (data, group, ref, bootfun, nboot, paropt, bootsam)
 
   % Check and process bootnhst input arguments
   nvar = size(data,2);
@@ -275,8 +269,8 @@ function [p, c, gnames, stats, bootsam] = bootnhst (data, group, ref, bootfun, n
   if nargout > 7
     error('bootnhst only supports up to 7 input arguments')
   end
-  if nargout > 6
-    error('bootnhst only supports up to 6 output arguments')
+  if nargout > 4
+    error('bootnhst only supports up to 4 output arguments')
   end
 
   % Group exclusion using NaN or Inf (excluded group becomes the last group in gnames and gk)
@@ -315,7 +309,7 @@ function [p, c, gnames, stats, bootsam] = bootnhst (data, group, ref, bootfun, n
   % Perform resampling and calculate bootstrap statistics
   state = warning;
   warning off;    % silence warnings about non-vectorized bootfun
-  if nargout > 5
+  if nargout > 3
     [Q, bootsam] = bootstrp (nboot,func,data,'Options',paropt,'bootsam',bootsam);
   else
     Q = bootstrp (nboot,func,data,'Options',paropt,'bootsam',bootsam);
@@ -323,14 +317,14 @@ function [p, c, gnames, stats, bootsam] = bootnhst (data, group, ref, bootfun, n
   warning(state);
 
   % Calculate pooled (weighted mean) sampling variance using Tukey's jackknife
-  d = zeros(k,1);
+  theta = zeros(k,1);
   Var = zeros(k,1);
   nk = zeros(size(gk));
   for j = 1:k
     nk(j) = sum(g==gk(j));
-    d(j,:) = feval(bootfun,data(g==gk(j),:));
-    se = jack(data(g==gk(j),:), bootfun);
-    Var(j,1) = ((nk(j)-1)/(N-k)) * se.^2;
+    theta(j,:) = feval(bootfun,data(g==gk(j),:));
+    SE = jack(data(g==gk(j),:), bootfun);
+    Var(j,1) = ((nk(j)-1)/(N-k)) * SE.^2;
   end
   nk_bar = sum(nk.^2)./sum(nk);  % weighted mean sample size
   Var = sum(Var.*nk/nk_bar);     % pooled sampling variance weighted by sample size
@@ -356,29 +350,29 @@ function [p, c, gnames, stats, bootsam] = bootnhst (data, group, ref, bootfun, n
     c = zeros(n,9);
     c(:,1:2) = M;
     for i = 1:n
-      c(i,3) = feval(bootfun,data(g==M(i,1),:));
-      c(i,4) = feval(bootfun,data(g==M(i,2),:));
+      c(i,3) = theta(c(i,1));
+      c(i,4) = theta(c(i,2));
       c(i,5) = c(i,4) - c(i,3);
-      sed = sqrt(Var * (w(c(i,1)) + w(c(i,2))));
-      c(i,6) = abs(c(i,5)) / sed;
-      c(i,7) = sum(Q>=abs(c(i,6)))/nboot;
-      c(i,8) = c(i,5) - sed * interp1(cdf,QS,1-alpha,'linear');
-      c(i,9) = c(i,5) + sed * interp1(cdf,QS,1-alpha,'linear');
+      SED = sqrt(Var * (w(c(i,1)) + w(c(i,2))));
+      c(i,6) = abs(c(i,5)) / SED;
+      c(i,7) = sum(Q>=c(i,6))/nboot;
+      c(i,8) = c(i,5) - SED * interp1(cdf,QS,1-alpha,'linear');
+      c(i,9) = c(i,5) + SED * interp1(cdf,QS,1-alpha,'linear');
     end
   else
     % Resampling version of Dunnett's test
     c = zeros(k,9);
     c(:,1) = ref;
-    c(:,3) = feval(bootfun,data(g==ref,:));
+    c(:,3) = theta(ref)
     for j = 1:k
       c(j,2) = gk(j);
-      c(j,4) = feval(bootfun,data(g==c(j,2),:));
+      c(j,4) = theta(c(j,2));
       c(j,5) = c(j,4) - c(j,3); 
-      sed = sqrt(Var * (w(c(j,1)) + w(c(j,2))));
-      c(j,6) = abs(c(j,5)) / sed;
-      c(j,7) = sum(Q>=abs(c(j,6)))/nboot;
-      c(j,8) = c(j,5) - sed * interp1(cdf,QS,1-alpha,'linear');
-      c(j,9) = c(j,5) + sed * interp1(cdf,QS,1-alpha,'linear');
+      SED = sqrt(Var * (w(c(j,1)) + w(c(j,2))));
+      c(j,6) = abs(c(j,5)) / SED;
+      c(j,7) = sum(Q>=c(j,6))/nboot;
+      c(j,8) = c(j,5) - SED * interp1(cdf,QS,1-alpha,'linear');
+      c(j,9) = c(j,5) + SED * interp1(cdf,QS,1-alpha,'linear');
     end
     c(ref,:) = [];
   end
@@ -396,21 +390,19 @@ function [p, c, gnames, stats, bootsam] = bootnhst (data, group, ref, bootfun, n
   p = sum(Q>=q)/nboot;
 
   % Prepare stats output structure
-  stats          = struct;
-  stats.Var      = Var;
-  stats.SE       = sqrt(Var);
-  stats.SED      = sqrt(2) * stats.SE;
-  stats.Weights  = w;
-  stats.stat     = q;
-  stats.nboot    = nboot;
+  % Include bootstrap-t confidence intervals for bootfun evaluated for each group
+  % These confidence intervals overlap at a FWER controlled p-value > 0.05
+  stats = struct;
+  stats.gnames = gnames;
+  stats.ref = ref;
+  stats.groups = zeros(k,4);
+  stats.groups(:,1) = theta;
+  stats.groups(:,2) = SE;
+  stats.groups(:,3) = theta - sqrt(Var/2) * interp1(cdf,QS,1-alpha,'linear');
+  stats.groups(:,4) = theta + sqrt(Var/2) * interp1(cdf,QS,1-alpha,'linear');
+  stats.stat = q;
+  stats.nboot = nboot;
   stats.bootstat = Q;
-
-  % Calculate symmetrical bootstrap-t confidence intervals for bootfun for each group
-  % Confidence intervals touch at a FWER controlled p-value of 0.05
-  stats.groups = zeros(k,3);
-  stats.groups(:,1) = d;
-  stats.groups(:,2) = d - sqrt(w * Var/2) * interp1(cdf,QS,1-alpha,'linear');
-  stats.groups(:,3) = d + sqrt(w * Var/2) * interp1(cdf,QS,1-alpha,'linear');
 
   % Print output and plot graph with confidence intervals if no output arguments are requested
   cols = [1,2,5,6,7]; % columns in c that we want to print data for
