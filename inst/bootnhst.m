@@ -134,11 +134,12 @@
 %              gnames corresponds to the numbers used to identify GROUPs
 %              in columns 1 and 2 of the output argument c
 %   ref      - reference group
-%   groups   - bootfun for each group with pooled standard error, and lower  
-%              and upper bootstrap-t confidence intervals, which have 
-%              coverage such that they overlap with eachother if the ref 
-%              input argument is 'pairwise', or with the reference group,  
-%              at a FWER-controlled p-value of greater than 0.05.
+%   groups   - bootfun for each group with sample size, standard error, 
+%              and lower and upper bootstrap-t confidence intervals, which  
+%              have coverage such that they overlap with eachother if the  
+%              ref input argument is 'pairwise', or with the reference   
+%              group, at a FWER-controlled p-value of greater than 0.05.
+%   Var      - weighted mean (pooled) sampling variance
 %   stat     - omnibus test statistic (q) 
 %   nboot    - number of bootstrap resamples
 %   bootstat - test statistic computed for each bootstrap resample 
@@ -380,9 +381,11 @@ function [p, c, stats] = bootnhst (data, group, ref, bootfun, nboot, paropt)
   stats.ref = ref;
   stats.groups = zeros(k,4);
   stats.groups(:,1) = theta;
-  stats.groups(:,2) = sqrt(Var);
-  stats.groups(:,3) = theta - sqrt(Var/2) * interp1(cdf,QS,1-alpha,'linear');
-  stats.groups(:,4) = theta + sqrt(Var/2) * interp1(cdf,QS,1-alpha,'linear');
+  stats.groups(:,2) = nk;
+  stats.groups(:,3) = SE;
+  stats.groups(:,4) = theta - sqrt(Var/2) * interp1(cdf,QS,1-alpha,'linear');
+  stats.groups(:,5) = theta + sqrt(Var/2) * interp1(cdf,QS,1-alpha,'linear');
+  stats.Var = Var;
   stats.stat = q;
   stats.nboot = nboot;
   stats.bootstat = Q;
