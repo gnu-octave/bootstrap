@@ -134,11 +134,11 @@
 %              gnames corresponds to the numbers used to identify GROUPs
 %              in columns 1 and 2 of the output argument c
 %   ref      - reference group
-%   groups   - bootfun for each group with standard error, and lower and 
-%              upper bootstrap-t confidence intervals, which have coverage
-%              such that they overlap with eachother if the ref input
-%              argument is 'pairwise', or with the reference group, at a 
-%              FWER-controlled p-value of greater than 0.05.
+%   groups   - bootfun for each group with pooled standard error, and lower  
+%              and upper bootstrap-t confidence intervals, which have 
+%              coverage such that they overlap with eachother if the ref 
+%              input argument is 'pairwise', or with the reference group,  
+%              at a FWER-controlled p-value of greater than 0.05.
 %   stat     - omnibus test statistic (q) 
 %   nboot    - number of bootstrap resamples
 %   bootstat - test statistic computed for each bootstrap resample 
@@ -153,7 +153,7 @@
 %   [1] Efron and Tibshirani. Chapter 16 Hypothesis testing with the
 %        bootstrap in An introduction to the bootstrap (CRC Press, 1994)
 %
-%  bootnhst v1.3.0.0 (16/01/2022)
+%  bootnhst v1.3.1.0 (17/01/2022)
 %  Author: Andrew Charles Penn
 %  https://www.researchgate.net/profile/Andrew_Penn/
 %
@@ -300,13 +300,14 @@ function [p, c, stats] = bootnhst (data, group, ref, bootfun, nboot, paropt)
 
   % Calculate pooled (weighted mean) sampling variance using Tukey's jackknife
   theta = zeros(k,1);
+  SE = zeros(k,1);
   Var = zeros(k,1);
   nk = zeros(size(gk));
   for j = 1:k
     nk(j) = sum(g==gk(j));
     theta(j,:) = feval(bootfun,data(g==gk(j),:));
-    SE = jack(data(g==gk(j),:), bootfun);
-    Var(j,1) = ((nk(j)-1)/(N-k)) * SE.^2;
+    SE(j,1) = jack(data(g==gk(j),:), bootfun);
+    Var(j,1) = ((nk(j)-1)/(N-k)) * SE(j).^2;
   end
   nk_bar = sum(nk.^2)./sum(nk);  % weighted mean sample size
   Var = sum(Var.*nk/nk_bar);     % pooled sampling variance weighted by sample size
@@ -379,7 +380,7 @@ function [p, c, stats] = bootnhst (data, group, ref, bootfun, nboot, paropt)
   stats.ref = ref;
   stats.groups = zeros(k,4);
   stats.groups(:,1) = theta;
-  stats.groups(:,2) = SE;
+  stats.groups(:,2) = sqrt(Var);
   stats.groups(:,3) = theta - sqrt(Var/2) * interp1(cdf,QS,1-alpha,'linear');
   stats.groups(:,4) = theta + sqrt(Var/2) * interp1(cdf,QS,1-alpha,'linear');
   stats.stat = q;
