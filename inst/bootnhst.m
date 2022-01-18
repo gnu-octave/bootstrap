@@ -56,11 +56,11 @@
 %  from the bootstrap samples. This can be a function handle or string
 %  corresponding to the function name. If empty, the default is @mean or 
 %  'mean'. If DATA is multivariate, bootfun is the grand mean, which is 
-%  is the mean of the means of each column (i.e. variates). Since bootnhst 
-%  calculates sampling variance using Tukey's jacknife, bootfun must be a 
-%  smooth function of the DATA. If a robust statistic like the median is 
-%  required, use 'robust', which uses a smoothed version of the median
-%  for univariate or multivariate DATA (see function help for smoothmedian).
+%  is the mean of the means of each column (i.e. variates). The standard 
+%  errors are estimated from 200 bootknife resamples [2]. If a robust   
+%  statistic for central location is required, setting bootfun to 'robust'  
+%  implements a smoothed version of the median (see function help for 
+%  smoothmedian).
 %
 %  p = bootnhst(DATA,GROUP,ref,bootfun,nboot) sets the number of bootstrap 
 %  resamples. Increasing nboot reduces the monte carlo error of the p-value 
@@ -106,8 +106,8 @@
 %  standard error of the difference (derived from the pooled, weighted 
 %  mean, sampling variance). To compare the q-ratio reported here with 
 %  Tukey's more traditional q-statistic, multiply it by sqrt(2). Note 
-%  that because the sampling variance is estimated using Tukey's 
-%  jackknife, bootnhst can be used to compare a wide variety of 
+%  that because unbiased sampling variance is estimated using bootknife 
+%  resampling [2], bootnhst can be used to compare a wide variety of 
 %  statistics (not just the mean). 
 % 
 %  The columns of output argument c contain:
@@ -153,6 +153,9 @@
 %   Bibliography:
 %   [1] Efron and Tibshirani. Chapter 16 Hypothesis testing with the
 %        bootstrap in An introduction to the bootstrap (CRC Press, 1994)
+%   [2] Hesterberg, Tim C. (2004), Unbiasing the Bootstrap - Bootknife-
+%        Sampling vs. Smoothing, Proceedings of the Section on Statistics 
+%        and the Environment, American Statistical Association, 2924-2930.
 %
 %  bootnhst v1.3.1.0 (17/01/2022)
 %  Author: Andrew Charles Penn
@@ -208,7 +211,7 @@ function [p, c, stats] = bootnhst (data, group, ref, bootfun, nboot, paropt)
     elseif all(bootfun(data) == smoothmedian(data))
       if nvar > 1
         % Grand smoothed median for multivariate data
-        bootfun = @(data) smoothmedian(smoothmedian(data))
+        bootfun = @(data) smoothmedian(smoothmedian(data));
       else
         bootfun = @smoothmedian;
       end
@@ -221,17 +224,17 @@ function [p, c, stats] = bootnhst (data, group, ref, bootfun, nboot, paropt)
         % Grand mean for multivariate data
         bootfun = @(data) mean(mean(data));
       else
-        bootfun = 'mean';
+        bootfun = @mean;
       end
     elseif any(strcmpi(bootfun,{'robust','smoothmedian'}))
       if nvar > 1
         % Grand smoothed median for multivariate data
-        bootfun = @(data) smoothmedian(smoothmedian(data))
+        bootfun = @(data) smoothmedian(smoothmedian(data));
       else
-        bootfun = 'smoothmedian';
+        bootfun = @smoothmedian;
       end
     elseif strcmpi(bootfun,'median')
-      error('bootfun cannot be the median, use ''robust'' instead.')
+      %error('bootfun cannot be the median, use ''robust'' instead.')
     end
   end
   if (nargin < 5) || isempty(nboot)
@@ -291,7 +294,7 @@ function [p, c, stats] = bootnhst (data, group, ref, bootfun, nboot, paropt)
   end
   
   % Define function to calculate maximum difference among groups
-  func = @(data) maxq(data,g,ref,bootfun,nvar,excl);
+  func = @(data) maxq(data,g,ref,bootfun,excl);
 
   % Perform resampling and calculate bootstrap statistics
   state = warning;
@@ -299,16 +302,32 @@ function [p, c, stats] = bootnhst (data, group, ref, bootfun, nboot, paropt)
   Q = bootstrp (nboot,func,data,'Options',paropt);
   warning(state);
 
-  % Calculate pooled (weighted mean) sampling variance using Tukey's jackknife
+  % Compute the estimate (theta) and it's pooled (weighted mean) sampling variance 
   theta = zeros(k,1);
   SE = zeros(k,1);
   Var = zeros(k,1);
+  B = 200;
+  t = zeros(B,1); 
   nk = zeros(size(gk));
   for j = 1:k
     nk(j) = sum(g==gk(j));
-    theta(j,:) = feval(bootfun,data(g==gk(j),:));
-    SE(j,1) = jack(data(g==gk(j),:), bootfun);
-    Var(j,1) = ((nk(j)-1)/(N-k)) * SE(j).^2;
+    theta(j) = feval(bootfun,data(g==gk(j),:));
+    % Compute unbiased estimate of the standard error by bootknife resampling
+    if nvar > 1
+      t = zeros(B,1); 
+      for b = 1:B
+        idx = 1+fix(rand(nk(j)-1,1)*nk(j));
+        tmp = data(g==gk(j),:);
+        t(b) = feval(bootfun,tmp(idx,:));
+      end
+    else
+      % Vectorized if data is univariate
+      idx = 1+fix(rand(nk(j)-1,B)*nk(j));
+      tmp = data(g==gk(j),:);
+      t = feval(bootfun,tmp(idx));
+    end
+    SE(j) = std(t); 
+    Var(j) = ((nk(j)-1)/(N-k)) * SE(j)^2;
   end
   nk_bar = sum(nk.^2)./sum(nk);  % weighted mean sample size
   Var = sum(Var.*nk/nk_bar);     % pooled sampling variance weighted by sample size
@@ -370,7 +389,7 @@ function [p, c, stats] = bootnhst (data, group, ref, bootfun, nboot, paropt)
   end
 
   % Calculate overall p-value
-  q = func(data); 
+  q = max(c(:,6));
   p = sum(Q>=q)/nboot;
 
   % Prepare stats output structure
