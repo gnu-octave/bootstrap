@@ -3,10 +3,10 @@
 %  Bootstrap null hypothesis significance test (NHST)
 %
 %  p = bootnhst(DATA,GROUP)
-%  p = bootnhst(DATA,GROUP,ref)
-%  p = bootnhst(DATA,GROUP,ref,bootfun,nboot)
-%  p = bootnhst(DATA,GROUP,ref,bootfun,nboot)
-%  p = bootnhst(DATA,GROUP,ref,bootfun,nboot,paropt)
+%  p = bootnhst(DATA,GROUP,bootfun)
+%  p = bootnhst(DATA,GROUP,bootfun,nboot)
+%  p = bootnhst(DATA,GROUP,bootfun,nboot,ref)
+%  p = bootnhst(DATA,GROUP,bootfun,nboot,ref,paropt)
 %  [p,c] = bootnhst(DATA,GROUP,...)
 %  [p,c,stats] = bootnhst(DATA,GROUP,...)
 %  bootnhst(DATA,GROUP,...);
@@ -46,13 +46,7 @@
 %  consideration in hypothesis testing but they will still contribute to 
 %  the estimate of the pooled (weighted mean) sampling variance.
 %
-%  p = bootnhst(DATA,GROUP,ref) also sets the GROUP to use as the reference 
-%  GROUP for post hoc tests. For one-way ANOVA-like experimental designs this 
-%  will usually be the control GROUP. If all pairwise comparisons are desired, 
-%  then set ref to 'pairwise' or leave empty. By default, pairwise comparisons 
-%  are computed for post hoc tests.
-%
-%  p = bootnhst(DATA,GROUP,ref,bootfun) also sets the statistic calculated
+%  p = bootnhst(DATA,GROUP,bootfun) also sets the statistic calculated
 %  from the bootstrap samples. This can be a function handle or string
 %  corresponding to the function name. If empty, the default is @mean or 
 %  'mean'. If DATA is multivariate, bootfun is the grand mean, which is 
@@ -62,15 +56,22 @@
 %  implements a smoothed version of the median (see function help for 
 %  smoothmedian).
 %
-%  p = bootnhst(DATA,GROUP,ref,bootfun,nboot) sets the number of bootstrap 
-%  resamples. Increasing nboot reduces the monte carlo error of the p-value 
-%  estimates but the calculations take longer to complete. When nboot is 
-%  empty or not provided, the default (and minimum allowable nboot to
-%  to compute two-tailed p-values down to 0.001) is 1000 - an error is 
-%  returned if the nboot provided by the user is lower than this.
+%  p = bootnhst(DATA,GROUP,bootfun,nboot) sets the number of bootstrap 
+%  resamples. Increasing nboot reduces the monte carlo error of the p-
+%  value estimates but the calculations take longer to complete. When 
+%  nboot is empty or not provided, the default (and minimum allowable 
+%  nboot to compute two-tailed p-values down to 0.001) is 1000 - an
+%  error is returned if the nboot provided by the user is lower than 
+%  this. 
 %
-%  p = bootnhst(DATA,GROUP,ref,bootfun,nboot,paropt) specifies options that 
-%  govern if and how to perform bootstrap iterations using multiple 
+%  p = bootnhst(DATA,GROUP,bootfun,nboot,ref) also sets the GROUP to  
+%  use as the reference GROUP for post hoc tests. For one-way ANOVA-like  
+%  experimental designs this will usually be the control GROUP. If all 
+%  pairwise comparisons are desired, then set ref to 'pairwise' or leave 
+%  empty. By default, pairwise comparisons are computed for post hoc tests.
+%
+%  p = bootnhst(DATA,GROUP,bootfun,nboot,ref,paropt) specifies options  
+%  that govern if and how to perform bootstrap iterations using multiple 
 %  processors (if the Parallel Computing Toolbox or Octave Forge package 
 %  is available). If empty, calculations are performed in serial.
 %
@@ -176,7 +177,7 @@
 %  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-function [p, c, stats] = bootnhst (data, group, ref, bootfun, nboot, paropt)
+function [p, c, stats] = bootnhst (data, group, bootfun, nboot, ref, paropt)
 
   % Check and process bootnhst input arguments
   nvar = size(data,2);
@@ -194,10 +195,7 @@ function [p, c, stats] = bootnhst (data, group, ref, bootfun, nboot, paropt)
       group = cell2mat(group);
     end
   end
-  if (nargin < 3) || strcmpi(ref,'pairwise')
-    ref = [];
-  end
-  if (nargin < 4) || isempty(bootfun)    
+  if (nargin < 3) || isempty(bootfun)    
     bootfun = @mean;
   end
   if isa(bootfun,'function_handle')
@@ -234,10 +232,10 @@ function [p, c, stats] = bootnhst (data, group, ref, bootfun, nboot, paropt)
         bootfun = @smoothmedian;
       end
     elseif strcmpi(bootfun,'median')
-      %error('bootfun cannot be the median, use ''robust'' instead.')
+      error('bootfun cannot be the median, use ''robust'' instead.')
     end
   end
-  if (nargin < 5) || isempty(nboot)
+  if (nargin < 4) || isempty(nboot)
     nboot = 1000;
   else 
     if nboot < 1000
@@ -246,6 +244,9 @@ function [p, c, stats] = bootnhst (data, group, ref, bootfun, nboot, paropt)
   end
   if any(size(nboot)>1)
     error('nboot must be scalar. bootnhst is not compatible with bootstrap iteration')
+  end
+  if (nargin < 5) || strcmpi(ref,'pairwise')
+    ref = [];
   end
   if (nargin < 6) || isempty(paropt)
     paropt = struct;
