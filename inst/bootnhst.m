@@ -41,10 +41,8 @@
 %  vector or cell array the same number of rows as y and contains numbers 
 %  or strings which denote GROUP labels. If the number of GROUPs (k) is 2, 
 %  this is a 2-sample test. If k > 2, this is test for k GROUPs (like in 
-%  one-way ANOVA layout). If GROUP is numeric and any GROUP is either 
-%  assigned NaN or Inf, their respective DATA rows will be excluded from 
-%  consideration in hypothesis testing but they will still contribute to 
-%  the estimate of the pooled (weighted mean) sampling variance.
+%  one-way ANOVA layout). If GROUP is numeric and any GROUP is assigned 
+%  NaN then their respective DATA rows will be excluded from analysis.
 %
 %  p = bootnhst(DATA,GROUP,bootfun) also sets the statistic calculated
 %  from the bootstrap samples. This can be a function handle or string
@@ -264,20 +262,12 @@ function [p, c, stats] = bootnhst (data, group, bootfun, nboot, ref, paropt)
     error('bootnhst only supports up to 3 output arguments')
   end
 
-  % Group exclusion using NaN or Inf (excluded group becomes the last group in gnames and gk)
-  excl = false;
+  % Group exclusion using NaN 
   if isnumeric(group)
     if any(isnan(group))
-      % Exclude any group numbers that are NaN from the test but still have them
-      % contribute to the calculation of the pooled (weighted mean) sampling variance
-      excl = true;
       % Convert NaN to inf so that they are recognised as a single unique value
-      group(isnan(group)) = inf;
-    end
-    if any(isinf(group))
-      % Exclude any group numbers that are Inf from the test but still have them
-      % contribute to the calculation of the pooled (weighted mean) sampling variance
-      excl = true; 
+      data(isnan(group),:) = [];
+      group(isnan(group)) = [];
     end
   end
 
@@ -295,7 +285,7 @@ function [p, c, stats] = bootnhst (data, group, bootfun, nboot, ref, paropt)
   end
   
   % Define function to calculate maximum difference among groups
-  func = @(data) maxq(data,g,ref,bootfun,excl);
+  func = @(data) maxq(data,g,bootfun,ref);
 
   % Perform resampling and calculate bootstrap statistics
   state = warning;
@@ -380,14 +370,6 @@ function [p, c, stats] = bootnhst (data, group, bootfun, nboot, ref, paropt)
     end
     c(ref,:) = [];
   end
-  if excl
-    l = 1;              % Number of groups to exclude
-    o = sum(c(:,2)==k); % Number of comparisons to exclude
-    c(c(:,2)==k,:)=[];  % Remove comparisons from comparison matrix
-  else 
-    l = 0;              % Number of groups to exclude
-    o = 0;              % Number of comparisons to exclude
-  end
 
   % Calculate overall p-value
   q = max(c(:,6));
@@ -435,7 +417,7 @@ function [p, c, stats] = bootnhst (data, group, bootfun, nboot, ref, paropt)
                       '| Comparison |  Reference # |       Test # |  Difference | q-ratio |  p-value|\n',...
                       '|------------|--------------|--------------|-------------|---------|---------|\n']);
       if isempty(ref)
-        for i = 1:n-o
+        for i = 1:n
           tmp = num2cell(c(i,cols));
           if (c(i,7) < 0.001)
             tmp(end) = [];
@@ -452,7 +434,7 @@ function [p, c, stats] = bootnhst (data, group, bootfun, nboot, ref, paropt)
           end
         end
       else
-        for j = 1:k-1-l
+        for j = 1:k-1
           tmp = num2cell(c(j,cols));
           if (c(j,7) < 0.001)
             tmp(end) = [];
@@ -476,7 +458,7 @@ function [p, c, stats] = bootnhst (data, group, bootfun, nboot, ref, paropt)
       if ~iscellstr(gnames)
         gnames = cellstr(num2str(gnames));
       end
-      for j = 1:k-l
+      for j = 1:k
         fprintf ('| %10u | %61s |\n',gk(j),gnames{j});
       end
       fprintf ('\n')

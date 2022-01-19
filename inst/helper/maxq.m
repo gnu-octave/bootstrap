@@ -1,4 +1,4 @@
-function q = maxq (Y,g,ref,bootfun,excl)
+function q = maxq (Y,g,bootfun,ref)
 
   % Helper function file required for bootnhst
 
@@ -46,16 +46,6 @@ function q = maxq (Y,g,ref,bootfun,excl)
   % when calculating standard error of the difference
   w = nk_bar./nk;
 
-  % Perform group exclusion
-  if excl
-    % do nothing
-    w(gk(end)) = NaN;
-    theta(gk(end),:) = NaN;
-    l = 1;  % Number of groups to exclude
-  else 
-    l = 0;  % Number of groups to exclude
-  end
-
   % Calculate the q-ratio test statistic 
   if isempty(ref)
     % Calculate Tukey's q-ratio for maximum difference between  
@@ -68,9 +58,9 @@ function q = maxq (Y,g,ref,bootfun,excl)
     %  [2] https://cdn.graphpad.com/faq/1688/file/MulitpleComparisonAlgorithmsPrism8.pdf
     %  [3] www.graphpad.com/guides/prism/latest/statistics/stat_the_methods_of_tukey_and_dunne.htm
     %
-    [theta,i] = sort(theta(1:end-l),1);
-    range = abs(theta(k-l) - theta(1));
-    q = range / sqrt(Var * (w(i(k-l)) + w(i(1))));
+    [theta,i] = sort(theta,1);
+    range = abs(theta(k) - theta(1));
+    q = range / sqrt(Var * (w(i(k)) + w(i(1))));
   else
     % Calculate Dunnett's q-ratio for maximum difference between  
     % bootfun for test vs. control samples
