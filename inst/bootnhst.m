@@ -265,7 +265,6 @@ function [p, c, stats] = bootnhst (data, group, bootfun, nboot, ref, paropt)
   % Group exclusion using NaN 
   if isnumeric(group)
     if any(isnan(group))
-      % Convert NaN to inf so that they are recognised as a single unique value
       data(isnan(group),:) = [];
       group(isnan(group)) = [];
     end
