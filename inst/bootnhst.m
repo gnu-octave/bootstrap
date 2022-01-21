@@ -1,6 +1,6 @@
 %  Function File: bootnhst
 %
-%  Bootstrap null hypothesis significance test (NHST)
+%  Bootstrap null hypothesis significance tests (NHST)
 %
 %  p = bootnhst(DATA,GROUP)
 %  p = bootnhst(DATA,GROUP,bootfun)
