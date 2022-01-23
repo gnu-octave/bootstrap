@@ -48,8 +48,8 @@ function q = maxq (Y,g,bootfun,ref)
 
   % Calculate the q-ratio test statistic 
   if isempty(ref)
-    % Calculate Tukey's q-ratio for maximum difference between  
-    % bootfun for all sample pairwise comparisons
+    % Calculate Tukey's q-ratio for maximum difference between bootfun 
+    % for all sample pairwise comparisons
     %
     % Note that Tukey's q-ratio here does not have the sqrt(2) factor. 
     %
@@ -57,16 +57,15 @@ function q = maxq (Y,g,bootfun,ref)
     %  [1] https://en.wikipedia.org/wiki/Tukey%27s_range_test
     %  [2] https://cdn.graphpad.com/faq/1688/file/MulitpleComparisonAlgorithmsPrism8.pdf
     %  [3] www.graphpad.com/guides/prism/latest/statistics/stat_the_methods_of_tukey_and_dunne.htm
-    %
-    [theta,i] = sort(theta,1);
-    range = abs(theta(k) - theta(1));
-    q = range / sqrt(Var * (w(i(k)) + w(i(1))));
+    idx = logical(triu(ones(k,k),1));
+    i = (1:k)' * ones(1,k);
+    j = ones(k,1) * (1:k);
+    q = max(abs(theta(i(idx)) - theta(j(idx))) ./ sqrt(Var * (w(i(idx)) + w(j(idx)))));;
   else
     % Calculate Dunnett's q-ratio for maximum difference between  
     % bootfun for test vs. control samples
     % Dunnett's q-ratio is similar to Student's t-statistic
-    [range, i] = max(abs((theta - ones(k,1) * theta(ref))));
-    q = range / sqrt(Var * (w(ref) + w(i)));
+    q = max(abs((theta - theta(ref))) ./ sqrt(Var * (w + w(ref))));
   end
   
 end
