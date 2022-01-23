@@ -1,6 +1,6 @@
 name: statistics-bootstrap
-version: 3.0.3
-date: 2022-01-06
+version: 3.2.1
+date: 2022-01-23
 author: Andrew Penn <andy.c.penn@gmail.com>
 maintainer: Andrew Penn <andy.c.penn@gmail.com>
 title: A statistics package with a variety of bootstrap resampling tools
@@ -11,4 +11,4 @@ Description: This package of functions can be used to estimate
  improve the accuracy of bootstrap statistics for small samples 
  and samples with complex dependence structures.
 License: GPLv3+
-depends: octave (>= 3.6.0)
+depends: octave (>= 3.6.0), statistics (>= 1.0.0)
