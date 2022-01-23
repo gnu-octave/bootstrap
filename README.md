@@ -64,12 +64,10 @@ The Matlab Statistics and Machine Learning toolbox has functions also called `bo
 
 ## Development roadmap
  
-* Add option to vectorise jacknife calculations in `bootnhst` and `maxq`  
 * Create a simple and efficient progress bar for the functions in this package  
 * Add function to param folder to calculate D statistic from KS-test (with input format suitable for `bootnhst`, `iboottest` and (`i`)`bootci`) 
 * Add the ability to perform stratified jackknife resampling in `jack` 
 * Allow bootstrap to accept empty argument for `bootfun` (to enhance compatible behaviours with corresponding matlab function) 
 * Create usage guide with examples of how to apply the package functions to different problems and scenarios  
 * Create some compiled mex and oct files on various platforms (mac, pc and linux) to speed up computations. 
-* Create convenience function `bootanovan` as a wrapper for `bootnhst`  
  
