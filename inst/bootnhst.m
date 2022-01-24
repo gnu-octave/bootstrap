@@ -22,7 +22,7 @@
 %  Since DATA is bootstrapped under the null hypothesis, the computed p-
 %  values and bootstrap-t confidence interval are accurate without double/
 %  iterated bootstrap sampling and, as for a permutation test, bootnhst 
-%  assumes exchangeability amoung the groups.
+%  assumes exchangeability among the groups under the null hypothesis.
 % 
 %  The specification of H0 for the overall hypothesis test depends on whether 
 %  a reference GROUP is specified with the ref input argument.
