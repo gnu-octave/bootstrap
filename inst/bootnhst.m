@@ -17,10 +17,12 @@
 %  independent GROUPs (i.e. samples) [1]. These tests do not make the   
 %  normality assumption of parametric statistical tests and the calculations 
 %  of the weighted mean sampling variance (for studentization using a pooled 
-%  standard error) accomodates for unequal sample size. Since DATA is 
-%  bootstrapped under the null hypothesis, the computed p-values and  
-%  bootstrap-t confidence interval are accurate without double/iterated 
-%  bootstrap sampling.
+%  standard error) accomodates for unequal sample size and give bootnhst 
+%  more statistical power (compared to not pooling the sampling variance). 
+%  Since DATA is bootstrapped under the null hypothesis, the computed p-
+%  values and bootstrap-t confidence interval are accurate without double/
+%  iterated bootstrap sampling and, as for a permutation test, bootnhst 
+%  assumes exchangeability amoung the groups.
 % 
 %  The specification of H0 for the overall hypothesis test depends on whether 
 %  a reference GROUP is specified with the ref input argument.

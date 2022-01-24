@@ -1,6 +1,6 @@
 %  Function File: bootanovan
 %
-%  Bootstrap N-way ANOVA (fixed effects)
+%  Bootstrap N-way ANOVA
 %
 %  p = bootanovan(DATA,GROUP)
 %  p = bootanovan(DATA,GROUP)
@@ -13,8 +13,17 @@
 %  bootanovan requires anovan from either the Statistics package in 
 %  Octave or the Statistics and Machine Learning Toolbox in Matlab. 
 %
-%  Note that the calculation in Octave's anovan function do not work
-%  unless there is replication for each combination of factor levels. 
+%  Note that the resampling strategy used depends on whether this
+%  function is run in Octave or Matlab. In Octave, the data is 
+%  resampled with replacement assuming exchangeability between 
+%  the groups across all the factors, which is valid for the sorts 
+%  of models that Octave anovan can support. In Matlab, the model 
+%  residuals are resampled with replacement making it valid for a  
+%  broader range of models (e.g. nesting, random effects, continuos 
+%  predictors).
+%
+%  Note that the anovan calculations in Octave do not work unless
+%  there is replication for each combination of factor levels. 
 %
 %  p = bootanovan(DATA,GROUP,nboot) sets the number of bootstrap 
 %  resamples. Increasing nboot reduces the monte carlo error of the p-
@@ -39,7 +48,7 @@
 % 
 %  [p,F] = bootnhst(DATA,GROUP,...) also returns the F-statistics
 %
-%  bootanovan v1.0.0.0 (21/01/2022)
+%  bootanovan v1.1.0.0 (24/01/2022)
 %  Author: Andrew Charles Penn
 %  https://www.researchgate.net/profile/Andrew_Penn/
 %
@@ -61,7 +70,7 @@
 function [p, F, FDIST] = bootanovan (data, group, nboot, varargin)
 
   % Check if running in Octave (otherwise Matab)
-  octflag = isoctave;
+  matflag = ~isoctave;
 
   % Check for dependency anovan
   if ~exist('anovan')
@@ -98,20 +107,15 @@ function [p, F, FDIST] = bootanovan (data, group, nboot, varargin)
   else 
     options = varargin;
   end
-  if ~octflag
+  if matflag
+    % Set default sum-of-squares type to II for consistency with Octave
     if ~any(strcmpi(options,'sstype'))
       % Make default sstype 2 if not Octave
       options = cat(2,options,'sstype',2);
     end 
-  end
-  if any(strcmpi(options,'nested'))
-    error('bootanovan does not support nested relationships')
-  end
-  if any(strcmpi(options,'random'))
-    error('bootanovan does not support random factors')
-  end
-  if any(strcmpi(options,'continuous'))
-    error('bootanovan does not support continuous predictors')
+    % Get model residuals
+    [~,~,stats] = anovan(data,group,'display','off',options{:});
+    resid = stats.resid;
   end
   if nargout > 3
     error('bootanovan only supports up to 3 output arguments')
@@ -133,12 +137,18 @@ function [p, F, FDIST] = bootanovan (data, group, nboot, varargin)
       idx(i) = j;
       c(j) = c(j)-1;
     end
-    FDIST{h} = feval('anovan_wrapper',data(idx),group,octflag,options);
+    if matflag
+      % MATLAB: Resample model residuals since it is valid for a broader range of models
+      FDIST{h} = feval('anovan_wrapper',resid(idx),group,matflag,options);
+    else
+      % OCTAVE: Resample raw data
+      FDIST{h} = feval('anovan_wrapper',data(idx),group,matflag,options);
+    end
   end
   FDIST = cell2mat(FDIST);
 
   % Calculate ANOVA F-statistics
-  F = feval('anovan_wrapper',data,group,octflag,options);
+  F = feval('anovan_wrapper',data,group,matflag,options);
 
   % Calculate p-values
   p = sum (FDIST >= F (1:end,ones(1,nboot)),2) / nboot;
@@ -149,15 +159,15 @@ function [p, F, FDIST] = bootanovan (data, group, nboot, varargin)
  
 end
 
-function  F = anovan_wrapper (y, g, octflag, options)
+function  F = anovan_wrapper (y, g, matflag, options)
   
-  if octflag
-    % Octave anovan
-    [~,F] = anovan(y,g,options{:});
-  else
+  if matflag
     % Matlab anovan
     [~,tbl] = anovan(y,g,'display','off',options{:});
     F = cell2mat(tbl(2:end,6)); 
+  else
+    % Octave anovan
+    [~,F] = anovan(y,g,options{:});
   end
 
 end
