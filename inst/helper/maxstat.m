@@ -1,12 +1,16 @@
-function q = maxq (Y,g,bootfun,ref)
+function [q, t] = maxstat (Y, g, nboot, bootfun, ref, clusters)
 
   % Helper function file required for bootnhst
 
-  % Calculate maximum studentized difference between bootfun output of all the groups
+  % Calculate maximum studentized difference for bootfun output between groups
 
   % Get size and of the data vector or matrix
   [m,nvar] = size(Y);
-  N = size(g,1);
+  if isempty(clusters)
+    N = size(g,1);
+  else
+    N = numel(unique(clusters));
+  end
 
   % Calculate the number (k) of unique groups
   gk = unique(g);
@@ -16,28 +20,39 @@ function q = maxq (Y,g,bootfun,ref)
   theta = zeros(k,1);
   SE = zeros(k,1);
   Var = zeros(k,1);
-  B = 200;
-  t = zeros(B,1); 
+  t = zeros(nboot,1); 
   nk = zeros(size(gk));
   for j = 1:k
-    nk(j) = sum(g==gk(j));
     theta(j) = feval(bootfun,Y(g==gk(j),:));
-    % Compute unbiased estimate of the standard error by bootknife resampling
-    if nvar > 1
-      t = zeros(B,1); 
-      for b = 1:B
-        idx = 1+fix(rand(nk(j)-1,1)*nk(j));
-        tmp = Y(g==gk(j),:);
-        t(b) = feval(bootfun,tmp(idx,:));
-      end
+    if ~isempty(clusters)
+      % Compute unbiased estimate of the standard error by cluster-jackknife resampling
+      opt = struct;
+      opt.clusters = clusters(g==gk(j));
+      nk(j) = numel(unique(opt.clusters));
+      SE(j) = jack (Y(g==gk(j),:), bootfun, [], opt);
     else
-      % Vectorized if data is univariate
-      idx = 1+fix(rand(nk(j)-1,B)*nk(j));
-      tmp = Y(g==gk(j),:);
+      % Compute unbiased estimate of the standard error by bootknife resampling
+      % Bootknife resampling involves less computation than Jackknife when sample sizes get larger
+      nk(j) = sum(g==gk(j));
+      if nvar > 1
+        t = zeros(nboot,1); 
+        for b = 1:nboot
+          idx = 1+fix(rand(nk(j)-1,1)*nk(j));
+          tmp = Y(g==gk(j),:);
+          t(b) = feval(bootfun,tmp(idx,:));
+        end
+      else
+        % Vectorized if data is univariate
+        idx = 1+fix(rand(nk(j)-1,nboot)*nk(j));
+        tmp = Y(g==gk(j),:);
       t = feval(bootfun,tmp(idx));
+      end
+      SE(j) = std(t);
     end
-    SE(j) = std(t);
     Var(j) = ((nk(j)-1)/(N-k)) * SE(j)^2;
+  end
+  if any(nk <= 1)
+    error('the number of observations or clusters per group must be greater than 1')
   end
   nk_bar = sum(nk.^2)./sum(nk);  % weighted mean sample size
   Var = sum(Var.*nk/nk_bar);     % pooled sampling variance weighted by sample size
@@ -60,12 +75,12 @@ function q = maxq (Y,g,bootfun,ref)
     idx = logical(triu(ones(k,k),1));
     i = (1:k)' * ones(1,k);
     j = ones(k,1) * (1:k);
-    q = max(abs(theta(i(idx)) - theta(j(idx))) ./ sqrt(Var * (w(i(idx)) + w(j(idx)))));;
+    t = abs(theta(i(idx)) - theta(j(idx))) ./ sqrt(Var * (w(i(idx)) + w(j(idx))));;
   else
     % Calculate Dunnett's q-ratio for maximum difference between  
     % bootfun for test vs. control samples
-    % Dunnett's q-ratio is similar to Student's t-statistic
-    q = max(abs((theta - theta(ref))) ./ sqrt(Var * (w + w(ref))));
+    t = abs((theta - theta(ref))) ./ sqrt(Var * (w + w(ref)));
   end
+  q = max(t);
   
 end

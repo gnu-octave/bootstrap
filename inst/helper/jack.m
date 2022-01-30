@@ -7,9 +7,11 @@ function [SE, T, U] = jack (x, func, paropt, opt)
   % Check what type of variable x is
   if ~iscell(x)
     x = num2cell(x,1); % convert to cell array
-    matflag  = true;
+    matflag = true;
+    opt.matflag = matflag;
   else 
     matflag = false;
+    opt.matflag = matflag;
   end
 
   % Get basic info about data
@@ -19,21 +21,16 @@ function [SE, T, U] = jack (x, func, paropt, opt)
   if nargin < 2
     error('Invalid number of input arguments');
   end
-  if nargin < 3
+  if nargin < 3 || isempty(paropt)
     paropt = struct;
     paropt.UseParallel = false;
     paropt.nproc = 1;
   end
-  if nargin < 4
+  if nargin < 4 || isempty(opt)
     opt = struct;
-    opt.weights = ones(m,1);
+    opt.weights = [];
     opt.blocksize = [];
     opt.clusters = [];
-    if matflag
-      opt.matflag  = 1;
-    else
-      opt.matflag = 0;
-    end
   end
   if nargout > 3
     error('Invalid number of output arguments');
@@ -41,7 +38,7 @@ function [SE, T, U] = jack (x, func, paropt, opt)
 
   % Prepare data for resampling
   if nargin > 3
-    if ~isempty(opt.blocksize)
+    if isfield(opt,'blocksize') && ~isempty(opt.blocksize)
       % Prepare for Block-Jackknife
       % Pad data (circular)
       % Overlapping blocks of size l will be primary sampling unit
@@ -49,11 +46,11 @@ function [SE, T, U] = jack (x, func, paropt, opt)
       for v = 1:nvar
         x{v} = num2cell(cat(1,x{v},x{v}(1:l-1)));  % for circular blocks
       end
-    elseif ~isempty(opt.clusters)
+    elseif isfield(opt,'clusters') && ~isempty(opt.clusters)
       % Prepare Cluster-Jackknife
       % Set whole clusters as primary sampling units
       [~, idx] = sort(opt.clusters);
-      [SSb, SSw, m, g, MSb, MSw, dk] = sse_calc (x, opt.clusters, nvar);
+      [~, ~, m, g] = sse_calc (x, opt.clusters, nvar);
       l = 1;
       for v = 1:nvar
         x{v} = x{v}(idx);
@@ -67,10 +64,14 @@ function [SE, T, U] = jack (x, func, paropt, opt)
         x{v} = num2cell(x{v});
       end
     end
-    % Prepare weights
-    if any(diff(opt.weights)) && isempty(opt.clusters)
-      w = opt.weights/sum(opt.weights);
-    else
+    if isfield(opt,'weights') && ~isempty(opt.weights)
+      % Prepare weights
+      if any(diff(opt.weights)) && isempty(opt.clusters)
+        w = opt.weights/sum(opt.weights);
+      else
+        w = 1/m .* ones(m,1);
+      end
+    else 
       w = 1/m .* ones(m,1);
     end
   else

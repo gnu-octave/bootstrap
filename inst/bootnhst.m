@@ -3,26 +3,31 @@
 %  Bootstrap null hypothesis significance tests (NHST)
 %
 %  p = bootnhst(DATA,GROUP)
-%  p = bootnhst(DATA,GROUP,bootfun)
-%  p = bootnhst(DATA,GROUP,bootfun,nboot)
-%  p = bootnhst(DATA,GROUP,bootfun,nboot,ref)
-%  p = bootnhst(DATA,GROUP,bootfun,nboot,ref,paropt)
+%  p = bootnhst(DATA,GROUP)
+%  p = bootnhst(...,'bootfun',bootfun)
+%  p = bootnhst(...,'nboot',nboot)
+%  p = bootnhst(...,'ref',ref)
+%  p = bootnhst(...,'cluster',clusters)
+%  p = bootnhst(...,'Options',paropt)
 %  [p,c] = bootnhst(DATA,GROUP,...)
 %  [p,c,stats] = bootnhst(DATA,GROUP,...)
 %  bootnhst(DATA,GROUP,...);
 %
-%  This non-parametric bootstrap function can be used for null hypothesis 
-%  (H0) significance testing with univariate (vector) or multivatiate 
-%  (matrix) data, to compare bootfun (default is the 'mean') evaluated on 
-%  independent GROUPs (i.e. samples) [1]. These tests do not make the   
-%  normality assumption of parametric statistical tests and the calculations 
-%  of the weighted mean sampling variance (for studentization using a pooled 
-%  standard error) accomodates for unequal sample size and give bootnhst 
-%  more statistical power (compared to not pooling the sampling variance). 
-%  Since DATA is bootstrapped under the null hypothesis, the computed p-
-%  values and bootstrap-t confidence interval are accurate without double/
-%  iterated bootstrap sampling and, as for a permutation test, bootnhst 
-%  assumes exchangeability among the groups under the null hypothesis.
+%  This non-parametric (or semi-parametric) bootstrap function can be used 
+%  for null hypothesis (H0) significance testing with univariate (vector) 
+%  or multivatiate (matrix) data, to compare bootfun (default is the 'mean') 
+%  evaluated on independent GROUPs (i.e. samples) [1]. This function is
+%  appropriate for posthoc comparisons among a family of hypothesis tests.
+%
+%  The tests conducted by bootnhst do not make the normality assumption 
+%  of parametric statistical tests and the calculations of the weighted mean 
+%  sampling variance (for studentization using a pooled standard error) 
+%  accomodates for unequal sample size and gives bootnhst more statistical 
+%  power (compared to not pooling the sampling variance). Since DATA across 
+%  the GROUPs is resampled, as for a permutatiion test, bootnhst assumes 
+%  exchangeability among the groups under the null hypothesis. Note that 
+%  this function will return an error if any GROUP is not represented by 
+%  more than one data row.
 % 
 %  The specification of H0 for the overall hypothesis test depends on whether 
 %  a reference GROUP is specified with the ref input argument.
@@ -46,34 +51,47 @@
 %  one-way ANOVA layout). If GROUP is numeric and any GROUP is assigned 
 %  NaN then their respective DATA rows will be excluded from analysis.
 %
-%  p = bootnhst(DATA,GROUP,bootfun) also sets the statistic calculated
+%  p = bootnhst(...,'bootfun',bootfun) sets the statistic calculated
 %  from the bootstrap samples. This can be a function handle or string
-%  corresponding to the function name. If empty, the default is @mean or 
+%  corresponding to the function name. The calculation of bootfun on the
+%  data must return a scalar value. If empty, the default is @mean or 
 %  'mean'. If DATA is multivariate, bootfun is the grand mean, which is 
 %  is the mean of the means of each column (i.e. variates). The standard 
-%  errors are estimated from 200 bootknife resamples [2]. If a robust   
-%  statistic for central location is required, setting bootfun to 'robust'  
-%  implements a smoothed version of the median (see function help for 
-%  smoothmedian).
+%  errors are estimated from 200 bootknife resamples [2], or cluster-
+%  jacknife if clusters are specified. If a robust statistic for central 
+%  location is required, setting bootfun to 'robust' implements a smoothed 
+%  version of the median (see function help for smoothmedian).
 %
-%  p = bootnhst(DATA,GROUP,bootfun,nboot) sets the number of bootstrap 
-%  resamples. Increasing nboot reduces the monte carlo error of the p-
-%  value estimates but the calculations take longer to complete. When 
-%  nboot is empty or not provided, the default (and minimum allowable 
-%  nboot to compute two-tailed p-values down to 0.001) is 1000 - an
-%  error is returned if the nboot provided by the user is lower than 
-%  this. 
+%  p = bootnhst(...,'nboot',nboot) sets the number of bootstrap resamples.
+%  Increasing nboot reduces the monte carlo error of the p-value estimates 
+%  but the calculations take longer to complete. When nboot is empty or not 
+%  provided, the default (and minimum allowable nboot to compute two-tailed 
+%  p-values down to 0.001) is 1000 - an error is returned if the nboot 
+%  provided by the user is lower than this. 
 %
-%  p = bootnhst(DATA,GROUP,bootfun,nboot,ref) also sets the GROUP to  
-%  use as the reference GROUP for post hoc tests. For one-way ANOVA-like  
-%  experimental designs this will usually be the control GROUP. If all 
-%  pairwise comparisons are desired, then set ref to 'pairwise' or leave 
-%  empty. By default, pairwise comparisons are computed for post hoc tests.
+%  p = bootnhst(...,'ref',ref) also sets the GROUP to use as the reference 
+%  GROUP for post hoc tests. For one-way ANOVA-like experimental designs 
+%  or family of tests, this will usually be a control GROUP. If all pairwise 
+%  comparisons are desired, then set ref to 'pairwise' or leave empty. By 
+%  default, pairwise comparisons are computed for post hoc tests.
 %
-%  p = bootnhst(DATA,GROUP,bootfun,nboot,ref,paropt) specifies options  
-%  that govern if and how to perform bootstrap iterations using multiple 
-%  processors (if the Parallel Computing Toolbox or Octave Forge package 
-%  is available). If empty, calculations are performed in serial.
+%  p = bootnhst(...,'cluster',clusters) specifies a column vector of numeric 
+%  identifiers with the same number of rows as DATA. The identifiers should 
+%  indicate cluster membership of the data rows. Clusters are resampled by 
+%  two-stage bootstrap resampling of residuals with shrinkage correction 
+%  (see bootstrp help for more information). Because specifying clusters 
+%  causes bootnhst to resample residuals, the bootstrap becomes semi-
+%  parametric.The clusters input argument can be used to accomodate for a 
+%  single level of nesting in heirarchical data structures. This resampling 
+%  stategy is appropriate when the family of tests has a split plot design 
+%  layout. If left empty, this argument is ignored. This function will 
+%  return an error if any GROUP is not represented by more than one cluster, 
+%  but there is no restriction on the number of data rows in any cluster.
+%
+%  p = bootnhst(...,'Options',paropt) specifies options that govern if and 
+%  how to perform bootstrap iterations using multiple processors (if the 
+%  Parallel Computing Toolbox or Octave Forge package is available). If 
+%  empty, calculations are performed in serial.
 %
 %  paropt argument is a structure with the following recognised fields:
 %
@@ -143,6 +161,7 @@
 %   Var      - weighted mean (pooled) sampling variance
 %   stat     - omnibus test statistic (q) 
 %   nboot    - number of bootstrap resamples
+%   clusters - vector of numeric identifiers indicating cluster membership
 %   bootstat - test statistic computed for each bootstrap resample 
 %
 %  bootnhst(DATA,GROUP,...); performs the calculations as per above but 
@@ -158,7 +177,7 @@
 %        Sampling vs. Smoothing, Proceedings of the Section on Statistics 
 %        and the Environment, American Statistical Association, 2924-2930.
 %
-%  bootnhst v1.3.1.0 (17/01/2022)
+%  bootnhst v1.5.0.0 (26/01/2022)
 %  Author: Andrew Charles Penn
 %  https://www.researchgate.net/profile/Andrew_Penn/
 %
@@ -177,8 +196,53 @@
 %  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-function [p, c, stats] = bootnhst (data, group, bootfun, nboot, ref, paropt)
+function [p, c, stats] = bootnhst (data, group, varargin)
 
+  % Apply defaults
+  bootfun = 'mean';
+  nboot = [1000,200];
+  ref = [];
+  alpha = 0.05;
+  strata = [];
+  clusters = [];
+  blocksize = [];
+  paropt = struct;
+  paropt.UseParallel = false;
+  % Initialise nproc if it doesn't exist
+  if ~exist('nproc','builtin')
+    nproc = 1;
+  end
+  paropt.nproc = nproc;
+
+  % Fetch extra input arguments
+  argin3 = varargin;
+  narg = numel(argin3);
+  if narg > 1
+    while ischar(argin3{end-1})
+      if strcmpi(argin3{end-1},'bootfun')
+        bootfun = argin3{end};
+      elseif strcmpi(argin3{end-1},'nboot')
+        nboot = argin3{end};
+      elseif strcmpi(argin3{end-1},'ref')
+        ref = argin3{end};
+      elseif any(strcmpi({'Options','Option'},argin3{end-1}))
+        paropt = argin3{end};
+      elseif strcmpi(argin3{end-1},'alpha')
+        alpha = argin3{end};
+      elseif any(strcmpi(argin3{end-1},{'cluster','clusters'}))
+        clusters = argin3{end};
+      else
+        error('unrecognised input argument to bootstrp')
+      end
+      argin3 = {argin3{1:end-2}};
+      narg = numel(argin3);
+      if narg < 1
+        break
+      end
+    end
+  end
+
+  % Error checking
   % Check and process bootnhst input arguments
   nvar = size(data,2);
   if (nargin < 2)
@@ -195,9 +259,6 @@ function [p, c, stats] = bootnhst (data, group, bootfun, nboot, ref, paropt)
       group = cell2mat(group);
     end
   end
-  if (nargin < 3) || isempty(bootfun)    
-    bootfun = @mean;
-  end
   if isa(bootfun,'function_handle')
     if all(bootfun(data) == mean(data))
       if nvar > 1
@@ -207,7 +268,7 @@ function [p, c, stats] = bootnhst (data, group, bootfun, nboot, ref, paropt)
         bootfun = @mean;
       end
     elseif all(bootfun(data) == smoothmedian(data))
-      if nvar > 1
+      if nvar > 1 
         % Grand smoothed median for multivariate data
         bootfun = @(data) smoothmedian(smoothmedian(data));
       else
@@ -235,30 +296,29 @@ function [p, c, stats] = bootnhst (data, group, bootfun, nboot, ref, paropt)
       error('bootfun cannot be the median, use ''robust'' instead.')
     end
   end
-  if (nargin < 4) || isempty(nboot)
-    nboot = 1000;
-  else 
-    if nboot < 1000
-      error('the minimum allowable value of nboot is 1000')
-    end
+  if ~isa(nboot,'numeric')
+    error('nboot must be numeric');
   end
-  if any(size(nboot)>1)
-    error('nboot must be scalar. bootnhst is not compatible with bootstrap iteration')
+  if any(nboot~=abs(fix(nboot)))
+    error('nboot must contain positive integers')
   end
-  if (nargin < 5) || strcmpi(ref,'pairwise')
+  if numel(nboot) > 2
+    error('the vector nboot cannot have length > 2')
+  elseif numel(nboot) < 2
+    % set default number of bootknife samples;
+    nboot = cat(2,nboot,200);
+  end
+  if nboot(1) < 1000
+    error('the minimum allowable value of nboot is 1000')
+  end 
+  if ~isempty(ref) && strcmpi(ref,'pairwise')
     ref = [];
   end
-  if (nargin < 6) || isempty(paropt)
-    paropt = struct;
-    paropt.UseParallel = false;
-    % Initialise nproc if it doesn't exist
-    if ~exist('nproc','builtin')
-      nproc = 1;
+  if ~isempty(clusters)
+    if (size(clusters,2) > 1) || (size(clusters,1) ~= size(data,1))
+      error('clusters must be a column vactor with the same number of rows as DATA')
     end
-    paropt.nproc = nproc;
-  end
-  if nargout > 6
-    error('bootnhst only supports up to 6 input arguments')
+    opt = struct;
   end
   if nargout > 3
     error('bootnhst only supports up to 3 output arguments')
@@ -274,7 +334,11 @@ function [p, c, stats] = bootnhst (data, group, bootfun, nboot, ref, paropt)
 
   % Assign non-zero numbers to group labels
   [gnames,~,g] = unique(group);
-  N = size(g,1);
+  if isempty(clusters)
+    N = size(g,1);
+  else
+    N = numel(unique(clusters));
+  end
   gk = unique(g);
   k = numel(gk);
   if ~isempty(ref)
@@ -286,40 +350,51 @@ function [p, c, stats] = bootnhst (data, group, bootfun, nboot, ref, paropt)
   end
   
   % Define function to calculate maximum difference among groups
-  func = @(data) maxq(data,g,bootfun,ref);
+  func = @(data) maxstat(data,g,nboot(2),bootfun,ref,clusters);
 
   % Perform resampling and calculate bootstrap statistics
   state = warning;
   warning off;    % silence warnings about non-vectorized bootfun
-  Q = bootstrp (nboot,func,data,'Options',paropt);
+  Q = bootstrp (nboot(1),func,data,'cluster',clusters,'Options',paropt);
   warning(state);
 
   % Compute the estimate (theta) and it's pooled (weighted mean) sampling variance 
   theta = zeros(k,1);
   SE = zeros(k,1);
   Var = zeros(k,1);
-  B = 200;
-  t = zeros(B,1); 
+  t = zeros(nboot(2),1);
   nk = zeros(size(gk));
   for j = 1:k
-    nk(j) = sum(g==gk(j));
     theta(j) = feval(bootfun,data(g==gk(j),:));
-    % Compute unbiased estimate of the standard error by bootknife resampling
-    if nvar > 1
-      t = zeros(B,1); 
-      for b = 1:B
-        idx = 1+fix(rand(nk(j)-1,1)*nk(j));
-        tmp = data(g==gk(j),:);
-        t(b) = feval(bootfun,tmp(idx,:));
-      end
+    if ~isempty(clusters)
+      % Compute unbiased estimate of the standard error by cluster-jackknife resampling
+      opt = struct;
+      opt.clusters = clusters(g==gk(j));
+      nk(j) = numel(unique(opt.clusters));
+      SE(j) = jack (data(g==gk(j),:), bootfun, [], opt);
     else
-      % Vectorized if data is univariate
-      idx = 1+fix(rand(nk(j)-1,B)*nk(j));
-      tmp = data(g==gk(j),:);
-      t = feval(bootfun,tmp(idx));
+      % Compute unbiased estimate of the standard error by bootknife resampling
+      % Bootknife resampling involves less computation than Jackknife when sample sizes get larger
+      nk(j) = sum(g==gk(j));
+      if nvar > 1
+        t = zeros(nboot(2),1); 
+        for b = 1:nboot(2)
+          idx = 1+fix(rand(nk(j)-1,1)*nk(j));
+          tmp = data(g==gk(j),:);
+          t(b) = feval(bootfun,tmp(idx,:));
+        end
+      else
+        % Vectorized if data is univariate
+        idx = 1+fix(rand(nk(j)-1,nboot(2))*nk(j));
+        tmp = data(g==gk(j),:);
+        t = feval(bootfun,tmp(idx));
+      end
+      SE(j) = std(t);
     end
-    SE(j) = std(t); 
     Var(j) = ((nk(j)-1)/(N-k)) * SE(j)^2;
+  end
+  if any(nk <= 1)
+    error('the number of observations or clusters per group must be greater than 1')
   end
   nk_bar = sum(nk.^2)./sum(nk);  % weighted mean sample size
   Var = sum(Var.*nk/nk_bar);     % pooled sampling variance weighted by sample size
@@ -329,7 +404,6 @@ function [p, c, stats] = bootnhst (data, group, bootfun, nboot, ref, paropt)
   w = nk_bar./nk;
 
   % Prepare to make symmetrical bootstrap-t confidence intervals
-  alpha = 0.05;
   [cdf,QS] = empcdf(Q,0);
            
   % Calculate p-values for comparisons adjusted to simultaneously control the FWER
@@ -350,7 +424,7 @@ function [p, c, stats] = bootnhst (data, group, bootfun, nboot, ref, paropt)
       c(i,5) = c(i,4) - c(i,3);
       SED = sqrt(Var * (w(c(i,1)) + w(c(i,2))));
       c(i,6) = abs(c(i,5)) / SED;
-      c(i,7) = sum(Q>=c(i,6))/nboot;
+      c(i,7) = sum(Q>=c(i,6))/nboot(1);
       c(i,8) = c(i,5) - SED * interp1(cdf,QS,1-alpha,'linear');
       c(i,9) = c(i,5) + SED * interp1(cdf,QS,1-alpha,'linear');
     end
@@ -358,14 +432,14 @@ function [p, c, stats] = bootnhst (data, group, bootfun, nboot, ref, paropt)
     % Resampling version of Dunnett's test
     c = zeros(k,9);
     c(:,1) = ref;
-    c(:,3) = theta(ref)
+    c(:,3) = theta(ref);
     for j = 1:k
       c(j,2) = gk(j);
       c(j,4) = theta(c(j,2));
       c(j,5) = c(j,4) - c(j,3); 
       SED = sqrt(Var * (w(c(j,1)) + w(c(j,2))));
       c(j,6) = abs(c(j,5)) / SED;
-      c(j,7) = sum(Q>=c(j,6))/nboot;
+      c(j,7) = sum(Q>=c(j,6))/nboot(1);
       c(j,8) = c(j,5) - SED * interp1(cdf,QS,1-alpha,'linear');
       c(j,9) = c(j,5) + SED * interp1(cdf,QS,1-alpha,'linear');
     end
@@ -374,7 +448,7 @@ function [p, c, stats] = bootnhst (data, group, bootfun, nboot, ref, paropt)
 
   % Calculate overall p-value
   q = max(c(:,6));
-  p = sum(Q>=q)/nboot;
+  p = sum(Q>=q)/nboot(1);
 
   % Prepare stats output structure
   % Include bootstrap-t confidence intervals for bootfun evaluated for each group
@@ -391,6 +465,7 @@ function [p, c, stats] = bootnhst (data, group, bootfun, nboot, ref, paropt)
   stats.Var = Var;
   stats.stat = q;
   stats.nboot = nboot;
+  stats.clusters = clusters;
   stats.bootstat = Q;
 
   % Print output and plot graph with confidence intervals if no output arguments are requested
@@ -465,7 +540,7 @@ function [p, c, stats] = bootnhst (data, group, bootfun, nboot, ref, paropt)
       fprintf ('\n')
     end
 
-    % Plot graph of the difference in bootfun for each comparison with 95% confidence intervals
+    % Plot graph of the difference in bootfun for each comparison with 100*(1-alpha)% confidence intervals
     figure;
     nc = size(c,1);                               % Calculate number of comparisons to plot
     plot([0;0],[0;nc+1]','k:');                   % Plot vertical dashed line at 0 effect
@@ -482,7 +557,7 @@ function [p, c, stats] = bootnhst (data, group, bootfun, nboot, ref, paropt)
       end
     end
     hold off
-    xlabel('95% bootstrap-t confidence interval for the difference');
+    xlabel(sprintf('%g%% bootstrap-t confidence interval for the difference',100*(1-alpha)));
     ylabel('Comparison number (Test - Reference)');   
 
   end

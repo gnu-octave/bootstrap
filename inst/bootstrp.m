@@ -5,6 +5,9 @@
 %  bootstat = bootstrp(nboot,bootfun,d)
 %  bootstat = bootstrp(nboot,bootfun,d1,...,dN)
 %  bootstat = bootstrp(...,'Weights',weights)
+%  bootstat = bootstrp(...,'strata',strata)
+%  bootstat = bootstrp(...,'cluster',clusters)
+%  bootstat = bootstrp(...,'block',blocksize)
 %  bootstat = bootstrp(...,'Options',paropt)
 %  bootstat = bootstrp(...,'bootsam',bootsam)
 %  [bootstat,bootsam] = bootstrp(...)
@@ -26,6 +29,28 @@
 %  non-scalar input argument(s) to bootfun. The weights are used as
 %  bootstrap sampling probabilities. Balanced resampling is extended
 %  to resampling with weights [3].
+%
+%  ci = ibootci(nboot,{bootfun,...},...,'strata',strata) specifies a
+%  vector containing numeric identifiers of strata. The dimensions of
+%  strata must be equal to that of the non-scalar input arguments to
+%  bootfun. Bootstrap resampling is stratified so that every stratum is
+%  represented in each bootstrap test statistic [4]. If weights are also
+%  provided then they are within-stratum weights; the weighting of
+%  individual strata depends on their respective sample size.
+%
+%  ci = ibootci(nboot,{bootfun,...},...,'cluster',clusters) specifies 
+%  a column vector (or matrix) of numeric identifiers with the same 
+%  number of rows as the data. The identifiers should indicate cluster 
+%  membership of the data rows. Whereas strata are fixed, clusters are 
+%  resampled. This is achieved by two-stage bootstrap resampling of 
+%  residuals with shrinkage correction [4,5,6]. If a matrix is provided 
+%  defining additional levels of subsampling in a hierarchical data  
+%  model, then level two cluster means are computed and resampled.
+%
+%  ci = ibootci(nboot,{bootfun,...},...,'block',blocksize) specifies
+%  a positive integer defining the block length for block bootstrapping
+%  data with serial dependence (e.g. stationary time series). The
+%  algorithm uses circular, overlapping blocks. 
 %
 %  bootstat = bootstrp(...,'Options',paropt) specifies options that 
 %  govern if and how to perform bootstrap iterations using multiple 
@@ -64,6 +89,14 @@
 %        Biometrika, 73: 555-66
 %  [3] Booth, Hall and Wood (1993) Balanced Importance Resampling
 %        for the Bootstrap. The Annals of Statistics. 21(1):286-298
+%  [4] Davison and Hinkley (1997) Bootstrap Methods and their
+%        application. Chapter 3: pg 97-100
+%  [5] Gomes et al. (2012) Developing appropriate methods for cost-
+%        effectiveness analysis of cluster randomized trials.
+%        Medical Decision Making. 32(2): 350-361
+%  [6] Ng, Grieve and Carpenter (2013) Two-stage nonparametric
+%        bootstrap sampling with shrinkage correction for clustered
+%        data. The Stata Journal. 13(1): 141-164
 %
 %  bootstrp v2.8.7.0 (11/01/2022)
 %  Author: Andrew Charles Penn
@@ -100,10 +133,18 @@ function [bootstat,bootsam] = bootstrp(argin1,argin2,varargin)
   end
 
   % Apply defaults
+  bootfun = @mean;
   weights = [];
   bootsam = [];
+  strata = [];
+  clusters = [];
+  blocksize = [];
   paropt = struct;
   paropt.UseParallel = false;
+  % Initialise nproc if it doesn't exist
+  if ~exist('nproc','builtin')
+    nproc = 1;
+  end
   paropt.nproc = nproc;
 
   % Assign input arguments to function variables
@@ -119,6 +160,12 @@ function [bootstat,bootsam] = bootstrp(argin1,argin2,varargin)
         paropt = argin3{end};
       elseif strcmpi(argin3{end-1},'bootsam')
         bootsam = argin3{end};
+      elseif any(strcmpi(argin3{end-1},{'strata','stratum','stratified'}))
+        strata = argin3{end};
+      elseif any(strcmpi(argin3{end-1},{'cluster','clusters'}))
+        clusters = argin3{end};
+      elseif any(strcmpi(argin3{end-1},{'block','blocks','blocksize'}))
+        blocksize = argin3{end};
       else
         error('unrecognised input argument to bootstrp')
       end
@@ -143,9 +190,21 @@ function [bootstat,bootsam] = bootstrp(argin1,argin2,varargin)
     pool = [];
   end
   if nargout > 1
-    [ci, bootstat, S, calcurve, bootsam] = ibootci (nboot, {bootfun, data{:}}, 'Weights', weights,'Options',paropt,'bootsam',bootsam);
+    [ci, bootstat, S, calcurve, bootsam] = ibootci (nboot, {bootfun, data{:}},...
+                                                    'Weights', weights,...
+                                                    'Options',paropt,...
+                                                    'bootsam',bootsam,...
+                                                    'strata',strata,...
+                                                    'cluster',clusters,...
+                                                    'block',blocksize);
   else
-    [ci, bootstat, S, calcurve] = ibootci (nboot, {bootfun, data{:}}, 'Weights', weights,'Options',paropt,'bootsam',bootsam);
+    [ci, bootstat, S, calcurve] = ibootci (nboot, {bootfun, data{:}},...
+                                           'Weights', weights,...
+                                           'Options',paropt,...
+                                           'bootsam',bootsam,...
+                                           'strata',strata,...
+                                           'cluster',clusters,...
+                                           'block',blocksize);
   end
   bootstat = bootstat.';
 

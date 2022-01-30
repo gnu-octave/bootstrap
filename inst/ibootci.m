@@ -90,15 +90,17 @@
 %  provided then they are within-stratum weights; the weighting of
 %  individual strata depends on their respective sample size.
 %
-%  ci = ibootci(nboot,{bootfun,...},...,'cluster',clusters) specifies
-%  a vector containing numeric identifiers for clusters. Whereas strata
-%  are fixed, clusters are resampled. This is achieved by two-stage
-%  bootstrap resampling of residuals with shrinkage correction [5,8,9].
-%  If a matrix is provided defining additional levels of subsampling in
-%  a hierarchical data model, then level two cluster means are computed
-%  and resampled. This option is not compatible with bootstrap iteration
-%  or bootstrap-t intervals. Coverage was only confirmed for intervals of
-%  the mean of clustered univariate data.
+%  ci = ibootci(nboot,{bootfun,...},...,'cluster',clusters) specifies 
+%  a column vector (or matrix) of numeric identifiers with the same 
+%  number of rows as the data. The identifiers should indicate cluster 
+%  membership of the data rows. Whereas strata are fixed, clusters are 
+%  resampled. This is achieved by two-stage bootstrap resampling of 
+%  residuals with shrinkage correction [5,8,9]. If a matrix is provided 
+%  defining additional levels of subsampling in a hierarchical data  
+%  model, then level two cluster means are computed and resampled. This 
+%  option is not compatible with bootstrap iteration or bootstrap-t 
+%  intervals. Coverage was only confirmed for intervals of the mean of 
+%  clustered univariate data.
 %
 %  ci = ibootci(nboot,{bootfun,...},...,'block',blocksize) specifies
 %  a positive integer defining the block length for block bootstrapping
