@@ -1,6 +1,6 @@
 function [q, t] = maxstat (Y, g, nboot, bootfun, ref, clusters)
 
-  % Helper function file required for bootnhst
+  % Helper function file required for ibootnhst
 
   % Calculate maximum studentized difference for bootfun output between groups
 
@@ -30,6 +30,10 @@ function [q, t] = maxstat (Y, g, nboot, bootfun, ref, clusters)
       opt.clusters = clusters(g==gk(j));
       nk(j) = numel(unique(opt.clusters));
       SE(j) = jack (Y(g==gk(j),:), bootfun, [], opt);
+    elseif (nboot == 0)
+      % If requested, compute unbiased estimates of the standard error using jackknife resampling
+      nk(j) = sum(g==gk(j));
+      SE(j) = jack (Y(g==gk(j),:), bootfun);
     else
       % Compute unbiased estimate of the standard error by bootknife resampling
       % Bootknife resampling involves less computation than Jackknife when sample sizes get larger
@@ -63,7 +67,7 @@ function [q, t] = maxstat (Y, g, nboot, bootfun, ref, clusters)
 
   % Calculate the q-ratio test statistic 
   if isempty(ref)
-    % Calculate Tukey's q-ratio for maximum difference between bootfun 
+    % Calculate Tukey-Kramer q-ratio for maximum studentized difference between bootfun 
     % for all sample pairwise comparisons
     %
     % Note that Tukey's q-ratio here does not have the sqrt(2) factor. 
@@ -77,8 +81,8 @@ function [q, t] = maxstat (Y, g, nboot, bootfun, ref, clusters)
     j = ones(k,1) * (1:k);
     t = abs(theta(i(idx)) - theta(j(idx))) ./ sqrt(Var * (w(i(idx)) + w(j(idx))));;
   else
-    % Calculate Dunnett's q-ratio for maximum difference between  
-    % bootfun for test vs. control samples
+    % Calculate Dunnett's q-ratio for maximum difference between bootfun for
+    % test vs. control samples
     t = abs((theta - theta(ref))) ./ sqrt(Var * (w + w(ref)));
   end
   q = max(t);

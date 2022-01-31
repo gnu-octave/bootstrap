@@ -746,16 +746,16 @@ function [ci,bootstat,S,calcurve,idx] = ibootci(argin1,argin2,varargin)
     if ~isa(bootfun,'function_handle')
       error('bootfun must be a function name or function handle');
     end
-    try
+    %try
       if matflag > 0
         temp = list2mat(data{:});
         T0 = feval(bootfun,temp);
       else
         T0 = feval(bootfun,data{:});
       end
-    catch
-      error('An error occurred while trying to evaluate bootfun with the input data');
-    end
+    %catch
+    %  error('An error occurred while trying to evaluate bootfun with the input data');
+    %end
     if isinf(T0) || isnan(T0)
       error('bootfun returns a NaN or Inf')
     end

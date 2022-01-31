@@ -1,31 +1,32 @@
-%  Function File: bootnhst
+%  Function File: ibootnhst
 %
 %  Bootstrap null hypothesis significance tests (NHST)
 %
-%  p = bootnhst(DATA,GROUP)
-%  p = bootnhst(DATA,GROUP)
-%  p = bootnhst(...,'bootfun',bootfun)
-%  p = bootnhst(...,'nboot',nboot)
-%  p = bootnhst(...,'ref',ref)
-%  p = bootnhst(...,'cluster',clusters)
-%  p = bootnhst(...,'Options',paropt)
-%  p = bootnhst(...,'alpha',alpha)
-%  [p,c] = bootnhst(DATA,GROUP,...)
-%  [p,c,stats] = bootnhst(DATA,GROUP,...)
-%  bootnhst(DATA,GROUP,...);
+%  p = ibootnhst(DATA,GROUP)
+%  p = ibootnhst(DATA,GROUP)
+%  p = ibootnhst(...,'bootfun',bootfun)
+%  p = ibootnhst(...,'nboot',nboot)
+%  p = ibootnhst(...,'ref',ref)
+%  p = ibootnhst(...,'cluster',clusters)
+%  p = ibootnhst(...,'Options',paropt)
+%  p = ibootnhst(...,'alpha',alpha)
+%  [p,c] = ibootnhst(DATA,GROUP,...)
+%  [p,c,stats] = ibootnhst(DATA,GROUP,...)
+%  ibootnhst(DATA,GROUP,...);
 %
 %  This non-parametric (or semi-parametric) bootstrap function can be used 
 %  for null hypothesis (H0) significance testing with univariate (vector) 
 %  or multivatiate (matrix) data, to compare bootfun (default is the 'mean') 
 %  evaluated on independent GROUPs (i.e. samples) [1]. This function is
-%  appropriate for posthoc comparisons among a family of hypothesis tests.
+%  appropriate for post hoc comparisons among a family of hypothesis tests
+%  or for comparing groups in a one-way layout.
 %
-%  The tests conducted by bootnhst do not make the normality assumption 
+%  The tests conducted by ibootnhst do not make the normality assumption 
 %  of parametric statistical tests and the calculations of the weighted mean 
 %  sampling variance (for studentization using a pooled standard error) 
-%  accomodates for unequal sample size and gives bootnhst more statistical 
+%  accomodates for unequal sample size and gives ibootnhst more statistical 
 %  power (compared to not pooling the sampling variance). Since DATA across 
-%  the GROUPs is resampled, as for a permutatiion test, bootnhst assumes 
+%  the GROUPs is resampled, as for a permutatiion test, ibootnhst assumes 
 %  exchangeability among the groups under the null hypothesis. Note that 
 %  this function will return an error if any GROUP is not represented by 
 %  more than one data row.
@@ -45,51 +46,56 @@
 %  The method used for bootstrap is balanced resampling (unless computations 
 %  are accelerated by parallel processing). 
 %
-%  p = bootnhst(DATA,GROUP) is a k-sample bootstrap test where GROUP is a 
+%  p = ibootnhst(DATA,GROUP) is a k-sample bootstrap test where GROUP is a 
 %  vector or cell array the same number of rows as y and contains numbers 
 %  or strings which denote GROUP labels. If the number of GROUPs (k) is 2, 
 %  this is a 2-sample test. If k > 2, this is test for k GROUPs (like in 
-%  one-way ANOVA layout). If GROUP is numeric and any GROUP is assigned 
-%  NaN then their respective DATA rows will be excluded from analysis.
+%  one-way layout). If GROUP is numeric and any GROUP is assigned NaN
+%  then their respective DATA rows will be excluded from analysis.
 %
-%  p = bootnhst(...,'bootfun',bootfun) sets the statistic calculated
+%  p = ibootnhst(...,'bootfun',bootfun) sets the statistic calculated
 %  from the bootstrap samples. This can be a function handle or string
 %  corresponding to the function name. The calculation of bootfun on the
 %  data must return a scalar value. If empty, the default is @mean or 
 %  'mean'. If DATA is multivariate, bootfun is the grand mean, which is 
 %  is the mean of the means of each column (i.e. variates). The standard 
-%  errors are estimated from 200 bootknife resamples [2], or cluster-
-%  jacknife if clusters are specified. If a robust statistic for central 
-%  location is required, setting bootfun to 'robust' implements a smoothed 
-%  version of the median (see function help for smoothmedian).
+%  errors are estimated by bootknife [2], jacknife, or cluster-jacknife. 
+%  If a robust statistic for central location is required, setting bootfun 
+%  to 'robust' implements a smoothed version of the median (see function 
+%  help for smoothmedian).
 %
-%  p = bootnhst(...,'nboot',nboot) sets the number of bootstrap resamples.
-%  Increasing nboot reduces the monte carlo error of the p-value estimates 
-%  but the calculations take longer to complete. When nboot is empty or not 
-%  provided, the default (and minimum allowable nboot to compute two-tailed 
-%  p-values down to 0.001) is 1000 - an error is returned if the nboot 
-%  provided by the user is lower than this. 
+%  p = ibootnhst(...,'nboot',nboot) is a vector of upto two positive  
+%  integers indicating the number of replicate samples for the first  
+%  (bootstrap) and second (bootknife) levels of iterated resampling. The 
+%  default value of nboot is [1000,1000]. Increasing the values of nboot 
+%  reduce the monte carlo error of the p-value (and confidence interval)  
+%  estimates but the calculations take longer to complete. If nboot(2) is 
+%  zero (or if cluster bootstrap is requested) then ibootnhst calculates  
+%  standard errors for studentization using jacknife resampling instead.
 %
-%  p = bootnhst(...,'ref',ref) also sets the GROUP to use as the reference 
+%  p = ibootnhst(...,'ref',ref) also sets the GROUP to use as the reference 
 %  GROUP for post hoc tests. For a one-way experimental design or family of 
 %  tests, this will usually be a control GROUP. If all pairwise comparisons 
 %  are desired, then set ref to 'pairwise' or leave empty. By default, 
 %  pairwise comparisons are computed for post hoc tests.
 %
-%  p = bootnhst(...,'cluster',clusters) specifies a column vector of numeric 
+%  p = ibootnhst(...,'cluster',clusters) specifies a column vector of numeric 
 %  identifiers with the same number of rows as DATA. The identifiers should 
 %  indicate cluster membership of the data rows. Clusters are resampled by 
 %  two-stage bootstrap resampling of residuals with shrinkage correction 
 %  (see bootstrp help for more information). Because specifying clusters 
-%  causes bootnhst to resample residuals, the bootstrap becomes semi-
-%  parametric.The clusters input argument can be used to accomodate for a 
+%  causes ibootnhst to resample residuals, the bootstrap becomes semi-
+%  parametric. The clusters input argument can be used to accomodate for a 
 %  single level of nesting in heirarchical data structures. This resampling 
 %  stategy is appropriate when the family of tests has a split plot design 
 %  layout. If left empty, this argument is ignored. This function will 
 %  return an error if any GROUP is not represented by more than one cluster, 
 %  but there is no restriction on the number of data rows in any cluster.
+%  Note that the value in nboot(2) is ignored since specifying cluster 
+%  identifiers enforces cluster-jackknife to compute standard errors and
+%  studentized test statistics.
 %
-%  p = bootnhst(...,'Options',paropt) specifies options that govern if and 
+%  p = ibootnhst(...,'Options',paropt) specifies options that govern if and 
 %  how to perform bootstrap iterations using multiple processors (if the 
 %  Parallel Computing Toolbox or Octave Forge package is available). If 
 %  empty, calculations are performed in serial.
@@ -107,22 +113,22 @@
 %                   a parallel pool, else it will use the preferred number
 %                   of workers.
 % 
-%  p = bootnhst(...,'alpha',alpha) specifies the two-tailed significance 
+%  p = ibootnhst(...,'alpha',alpha) specifies the two-tailed significance 
 %  level for confidence interval coverage of 0 (in c) or interval overlap 
 %  (in stats.groups).
 %
-%  [p, c] = bootnhst(DATA,GROUP,...) also returns a 9 column matrix that
+%  [p, c] = ibootnhst(DATA,GROUP,...) also returns a 9 column matrix that
 %  summarises post hoc test results. The family-wise error rate is 
 %  simultaneously controlled since the null distribution for each test 
-%  represents the studentized range statistic. 
+%  represents the maximum studentized test statistic of the resamples. 
 %
-%  If the ref input argument is empty, the resampling procedure above 
-%  for pairwise comparisons is analagous to Tukey's Honest Significance 
-%  Difference (HSD) test. 
+%  If the ref input argument is empty, the resampling procedure  
+%  above for pairwise comparisons is analagous to the Tukey-Kramer  
+%  Honest Significance Difference (HSD) test. 
 %
 %  If the ref input argument is specified, then the resampling above 
 %  for treatment versus reference is analagous to Dunnett's post hoc  
-%  tests (since the range of bootfun in the null distribution test  
+%  tests (since the range of bootfun in the null distribution of test  
 %  statistics is restricted to differences with the reference GROUP).
 % 
 %  The q-ratio (analagous to a t-statistic) is computed using the 
@@ -131,7 +137,7 @@
 %  mean, sampling variance). To compare the q-ratio reported here with 
 %  Tukey's more traditional q-statistic, multiply it by sqrt(2). Note 
 %  that because unbiased sampling variance is estimated using bootknife 
-%  resampling [2], bootnhst can be used to compare a wide variety of 
+%  resampling [2], ibootnhst can be used to compare a wide variety of 
 %  statistics (not just the mean). 
 % 
 %  The columns of output argument c contain:
@@ -145,12 +151,12 @@
 %    column 8: LOWER bound of the bootstrap-t confidence interval
 %    column 9: UPPER bound of the bootstrap-t confidence interval
 %
-%  [p,c] = bootnhst(data,group,...) also returns the group names used in 
+%  [p,c] = ibootnhst(data,group,...) also returns the group names used in 
 %  the GROUP input argument. The index of gnames corresponds to the 
 %  numbers used to identify GROUPs in columns 1 and 2 of the output 
 %  argument c.
 %
-%  [p,c,stats] = bootnhst(DATA,GROUP,...) also returns a structure 
+%  [p,c,stats] = ibootnhst(DATA,GROUP,...) also returns a structure 
 %  containing additional statistics. The stats structure contains the 
 %  following fields:
 %
@@ -171,7 +177,7 @@
 %   clusters - vector of numeric identifiers indicating cluster membership
 %   bootstat - test statistic computed for each bootstrap resample 
 %
-%  bootnhst(DATA,GROUP,...); performs the calculations as per above but 
+%  ibootnhst(DATA,GROUP,...); performs the calculations as per above but 
 %  prints the columns 1, 2 and 5-7 of the results (c) in a pretty table.
 %  The differences between groups are also plot along with the symmetic
 %  95% bootstrap-t confidence intervals (adjusted to control the FWER).
@@ -184,7 +190,7 @@
 %        Sampling vs. Smoothing, Proceedings of the Section on Statistics 
 %        and the Environment, American Statistical Association, 2924-2930.
 %
-%  bootnhst v1.5.0.0 (26/01/2022)
+%  ibootnhst v1.5.1.0 (31/01/2022)
 %  Author: Andrew Charles Penn
 %  https://www.researchgate.net/profile/Andrew_Penn/
 %
@@ -203,16 +209,17 @@
 %  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-function [p, c, stats] = bootnhst (data, group, varargin)
+function [p, c, stats] = ibootnhst (data, group, varargin)
 
   % Apply defaults
   bootfun = 'mean';
-  nboot = [1000,200];
+  nboot = [1000,1000];
   ref = [];
   alpha = 0.05;
   strata = [];
   clusters = [];
   blocksize = [];
+  dim = 1;
   paropt = struct;
   paropt.UseParallel = false;
   % Initialise nproc if it doesn't exist
@@ -236,6 +243,8 @@ function [p, c, stats] = bootnhst (data, group, varargin)
         paropt = argin3{end};
       elseif strcmpi(argin3{end-1},'alpha')
         alpha = argin3{end};
+      elseif strcmpi(argin3{end-1},'dim')
+        dim = argin3{end};
       elseif any(strcmpi(argin3{end-1},{'cluster','clusters'}))
         clusters = argin3{end};
       else
@@ -250,10 +259,10 @@ function [p, c, stats] = bootnhst (data, group, varargin)
   end
 
   % Error checking
-  % Check and process bootnhst input arguments
+  % Check and process ibootnhst input arguments
   nvar = size(data,2);
   if (nargin < 2)
-    error('bootnhst requires atleast two input arguments');
+    error('ibootnhst requires atleast two input arguments');
   end
   if ischar(group)
     group = cellstr(group);
@@ -270,14 +279,14 @@ function [p, c, stats] = bootnhst (data, group, varargin)
     if all(bootfun(data) == mean(data))
       if nvar > 1
         % Grand mean for multivariate data
-        bootfun = @(data) mean(mean(data));
+        bootfun = @(data) mean(mean(data,dim));
       else
         bootfun = @mean;
       end
     elseif all(bootfun(data) == smoothmedian(data))
       if nvar > 1 
         % Grand smoothed median for multivariate data
-        bootfun = @(data) smoothmedian(smoothmedian(data));
+        bootfun = @(data) smoothmedian(smoothmedian(data,dim));
       else
         bootfun = @smoothmedian;
       end
@@ -288,14 +297,14 @@ function [p, c, stats] = bootnhst (data, group, varargin)
     if strcmpi(bootfun,'mean') 
       if nvar > 1
         % Grand mean for multivariate data
-        bootfun = @(data) mean(mean(data));
+        bootfun = @(data) mean(mean(data,dim));
       else
         bootfun = @mean;
       end
     elseif any(strcmpi(bootfun,{'robust','smoothmedian'}))
       if nvar > 1
         % Grand smoothed median for multivariate data
-        bootfun = @(data) smoothmedian(smoothmedian(data));
+        bootfun = @(data) smoothmedian(smoothmedian(data,dim));
       else
         bootfun = @smoothmedian;
       end
@@ -313,13 +322,19 @@ function [p, c, stats] = bootnhst (data, group, varargin)
     error('the vector nboot cannot have length > 2')
   elseif numel(nboot) < 2
     % set default number of bootknife samples;
-    nboot = cat(2,nboot,200);
+    nboot = cat(2,nboot,1000);
   end
   if nboot(1) < 1000
-    error('the minimum allowable value of nboot is 1000')
+    error('the minimum allowable value of nboot(1) is 1000')
   end 
   if ~isempty(ref) && strcmpi(ref,'pairwise')
     ref = [];
+  end
+  if ~isa(dim,'numeric')
+    error('dim must be numeric');
+  end
+  if (dim ~= 1) && (dim ~= 2)
+    error('dim must be either 1 or 2');
   end
   if ~isempty(clusters)
     if (size(clusters,2) > 1) || (size(clusters,1) ~= size(data,1))
@@ -328,7 +343,7 @@ function [p, c, stats] = bootnhst (data, group, varargin)
     opt = struct;
   end
   if nargout > 3
-    error('bootnhst only supports up to 3 output arguments')
+    error('ibootnhst only supports up to 3 output arguments')
   end
 
   % Group exclusion using NaN 
@@ -379,6 +394,10 @@ function [p, c, stats] = bootnhst (data, group, varargin)
       opt.clusters = clusters(g==gk(j));
       nk(j) = numel(unique(opt.clusters));
       SE(j) = jack (data(g==gk(j),:), bootfun, [], opt);
+    elseif (nboot(2) == 0)
+      % If requested, compute unbiased estimates of the standard error using jackknife resampling
+      nk(j) = sum(g==gk(j));
+      SE(j) = jack (data(g==gk(j),:), bootfun);
     else
       % Compute unbiased estimate of the standard error by bootknife resampling
       % Bootknife resampling involves less computation than Jackknife when sample sizes get larger
@@ -415,7 +434,7 @@ function [p, c, stats] = bootnhst (data, group, varargin)
 
   % Calculate p-values for comparisons adjusted to simultaneously control the FWER
   if isempty(ref)
-    % Resampling version of Tukey's test
+    % Resampling version of Tukey-Kramer HSD test
     % Note that Tukey's q-ratio here does not have the sqrt(2) factor. 
     A = ones(k,1)*gk';
     B = tril(gk*ones(1,k),-1);
