@@ -9,6 +9,7 @@
 %  p = bootnhst(...,'ref',ref)
 %  p = bootnhst(...,'cluster',clusters)
 %  p = bootnhst(...,'Options',paropt)
+%  p = bootnhst(...,'alpha',alpha)
 %  [p,c] = bootnhst(DATA,GROUP,...)
 %  [p,c,stats] = bootnhst(DATA,GROUP,...)
 %  bootnhst(DATA,GROUP,...);
@@ -70,10 +71,10 @@
 %  provided by the user is lower than this. 
 %
 %  p = bootnhst(...,'ref',ref) also sets the GROUP to use as the reference 
-%  GROUP for post hoc tests. For one-way ANOVA-like experimental designs 
-%  or family of tests, this will usually be a control GROUP. If all pairwise 
-%  comparisons are desired, then set ref to 'pairwise' or leave empty. By 
-%  default, pairwise comparisons are computed for post hoc tests.
+%  GROUP for post hoc tests. For a one-way experimental design or family of 
+%  tests, this will usually be a control GROUP. If all pairwise comparisons 
+%  are desired, then set ref to 'pairwise' or leave empty. By default, 
+%  pairwise comparisons are computed for post hoc tests.
 %
 %  p = bootnhst(...,'cluster',clusters) specifies a column vector of numeric 
 %  identifiers with the same number of rows as DATA. The identifiers should 
@@ -106,6 +107,10 @@
 %                   a parallel pool, else it will use the preferred number
 %                   of workers.
 % 
+%  p = bootnhst(...,'alpha',alpha) specifies the two-tailed significance 
+%  level for confidence interval coverage of 0 (in c) or interval overlap 
+%  (in stats.groups).
+%
 %  [p, c] = bootnhst(DATA,GROUP,...) also returns a 9 column matrix that
 %  summarises post hoc test results. The family-wise error rate is 
 %  simultaneously controlled since the null distribution for each test 
@@ -137,8 +142,8 @@
 %    column 5: columns 4 minus column 3
 %    column 6: q-ratio
 %    column 7: p-value
-%    column 8: LOWER bound of a 95% bootstrap-t confidence interval
-%    column 9: UPPER bound of a 95% bootstrap-t confidence interval
+%    column 8: LOWER bound of the bootstrap-t confidence interval
+%    column 9: UPPER bound of the bootstrap-t confidence interval
 %
 %  [p,c] = bootnhst(data,group,...) also returns the group names used in 
 %  the GROUP input argument. The index of gnames corresponds to the 
@@ -157,10 +162,12 @@
 %              and lower and upper bootstrap-t confidence intervals, which  
 %              have coverage such that they overlap with eachother if the  
 %              ref input argument is 'pairwise', or with the reference   
-%              group, at a FWER-controlled p-value of greater than 0.05.
+%              group, at a FWER-controlled p-value of greater than alpha.
 %   Var      - weighted mean (pooled) sampling variance
 %   stat     - omnibus test statistic (q) 
 %   nboot    - number of bootstrap resamples
+%   alpha    - two-tailed significance level for the confidence interval 
+%              coverage of 0 (in c) or interval overlap (in stats.groups)
 %   clusters - vector of numeric identifiers indicating cluster membership
 %   bootstat - test statistic computed for each bootstrap resample 
 %
@@ -405,7 +412,7 @@ function [p, c, stats] = bootnhst (data, group, varargin)
 
   % Prepare to make symmetrical bootstrap-t confidence intervals
   [cdf,QS] = empcdf(Q,0);
-           
+
   % Calculate p-values for comparisons adjusted to simultaneously control the FWER
   if isempty(ref)
     % Resampling version of Tukey's test
@@ -424,7 +431,11 @@ function [p, c, stats] = bootnhst (data, group, varargin)
       c(i,5) = c(i,4) - c(i,3);
       SED = sqrt(Var * (w(c(i,1)) + w(c(i,2))));
       c(i,6) = abs(c(i,5)) / SED;
-      c(i,7) = sum(Q>=c(i,6))/nboot(1);
+      if (c(i,6) < QS(1))
+        c(i,7) = interp1(QS,1-cdf,c(i,6),'linear',1);
+      else
+        c(i,7) = interp1(QS,1-cdf,c(i,6),'linear',0);
+      end
       c(i,8) = c(i,5) - SED * interp1(cdf,QS,1-alpha,'linear');
       c(i,9) = c(i,5) + SED * interp1(cdf,QS,1-alpha,'linear');
     end
@@ -439,7 +450,11 @@ function [p, c, stats] = bootnhst (data, group, varargin)
       c(j,5) = c(j,4) - c(j,3); 
       SED = sqrt(Var * (w(c(j,1)) + w(c(j,2))));
       c(j,6) = abs(c(j,5)) / SED;
-      c(j,7) = sum(Q>=c(j,6))/nboot(1);
+      if (c(j,6) < QS(1))
+        c(j,7) = interp1(QS,1-cdf,c(j,6),'linear',1);
+      else
+        c(j,7) = interp1(QS,1-cdf,c(j,6),'linear',0);
+      end
       c(j,8) = c(j,5) - SED * interp1(cdf,QS,1-alpha,'linear');
       c(j,9) = c(j,5) + SED * interp1(cdf,QS,1-alpha,'linear');
     end
@@ -452,19 +467,20 @@ function [p, c, stats] = bootnhst (data, group, varargin)
 
   % Prepare stats output structure
   % Include bootstrap-t confidence intervals for bootfun evaluated for each group
-  % These confidence intervals overlap at a FWER controlled p-value > 0.05
+  % Within a small margin of error, these confidence intervals overlap at a FWER controlled p-value > 0.05
   stats = struct;
   stats.gnames = gnames;
   stats.ref = ref;
-  stats.groups = zeros(k,4);
+  stats.groups = zeros(k,5);
   stats.groups(:,1) = theta;
   stats.groups(:,2) = nk;
   stats.groups(:,3) = SE;
-  stats.groups(:,4) = theta - sqrt(Var/2) * interp1(cdf,QS,1-alpha,'linear');
-  stats.groups(:,5) = theta + sqrt(Var/2) * interp1(cdf,QS,1-alpha,'linear');
+  stats.groups(:,4) = theta - sqrt((0.5*(w+1)).*Var/2) * interp1(cdf,QS,1-alpha,'linear');
+  stats.groups(:,5) = theta + sqrt((0.5*(w+1)).*Var/2) * interp1(cdf,QS,1-alpha,'linear');
   stats.Var = Var;
   stats.stat = q;
   stats.nboot = nboot;
+  stats.alpha = alpha;
   stats.clusters = clusters;
   stats.bootstat = Q;
 

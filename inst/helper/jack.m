@@ -4,21 +4,7 @@ function [SE, T, U] = jack (x, func, paropt, opt)
 
   % Jackknife
 
-  % Check what type of variable x is
-  if ~iscell(x)
-    x = num2cell(x,1); % convert to cell array
-    matflag = true;
-    opt.matflag = matflag;
-  else 
-    matflag = false;
-    opt.matflag = matflag;
-  end
-
-  % Get basic info about data
-  nvar = size(x,2);
-  [m, n] = size(x{1});
-
-  if nargin < 2
+   if nargin < 2
     error('Invalid number of input arguments');
   end
   if nargin < 3 || isempty(paropt)
@@ -35,6 +21,20 @@ function [SE, T, U] = jack (x, func, paropt, opt)
   if nargout > 3
     error('Invalid number of output arguments');
   end
+  
+  % Check what type of variable x is
+  if ~iscell(x)
+    x = num2cell(x,1); % convert to cell array
+    matflag = true;
+    opt.matflag = matflag;
+  else 
+    matflag = false;
+    opt.matflag = matflag;
+  end
+  
+  % Get basic info about data
+  nvar = size(x,2);
+  [m, n] = size(x{1});
 
   % Prepare data for resampling
   if nargin > 3
@@ -83,7 +83,7 @@ function [SE, T, U] = jack (x, func, paropt, opt)
     end
     w = 1/m .* ones(m,1);
   end
-
+  
   % Perform 'leave one out' procedure and calculate the variance(s)
   % of the test statistic.
   T = zeros(m,n);
