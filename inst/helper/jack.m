@@ -4,7 +4,7 @@ function [SE, T, U] = jack (x, func, paropt, opt)
 
   % Jackknife
 
-   if nargin < 2
+  if nargin < 2
     error('Invalid number of input arguments');
   end
   if nargin < 3 || isempty(paropt)
@@ -18,6 +18,13 @@ function [SE, T, U] = jack (x, func, paropt, opt)
     opt.blocksize = [];
     opt.clusters = [];
   end
+  if isfield(opt,'matflag')
+    % Update func for matrix data input argument
+    if opt.matflag
+      func = @(varargin) func(list2mat(varargin{:}));
+    end
+  end
+
   if nargout > 3
     error('Invalid number of output arguments');
   end
@@ -25,10 +32,10 @@ function [SE, T, U] = jack (x, func, paropt, opt)
   % Check what type of variable x is
   if ~iscell(x)
     x = num2cell(x,1); % convert to cell array
-    matflag = true;
+    matflag = 1;
     opt.matflag = matflag;
   else 
-    matflag = false;
+    matflag = 0;
     opt.matflag = matflag;
   end
   
