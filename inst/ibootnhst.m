@@ -121,7 +121,9 @@
 %  p = ibootnhst(...,'dim',dim) specifies which dimension to average over
 %  the data first when DATA is a matrix. dim can take values of 1 or 2. 
 %  Note that while setting dim can affect the result when bootfun is the 
-%  median, both values give the same result when bootfun is the mean.
+%  median, both values give the same result when bootfun is the mean (i.e.
+%  for the grand mean). This name-value pair is only used if bootfun is 
+%  'mean', 'median', 'smoothmedian', or 'robust'.
 %
 %  [p, c] = ibootnhst(DATA,GROUP,...) also returns a 9 column matrix that
 %  summarises post hoc test results. The family-wise error rate is 
