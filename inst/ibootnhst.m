@@ -10,6 +10,7 @@
 %  p = ibootnhst(...,'cluster',clusters)
 %  p = ibootnhst(...,'Options',paropt)
 %  p = ibootnhst(...,'alpha',alpha)
+%  p = ibootnhst(...,'dim',dim)
 %  [p,c] = ibootnhst(DATA,GROUP,...)
 %  [p,c,stats] = ibootnhst(DATA,GROUP,...)
 %  ibootnhst(DATA,GROUP,...);
@@ -117,6 +118,11 @@
 %  level for confidence interval coverage of 0 (in c) or interval overlap 
 %  (in stats.groups).
 %
+%  p = ibootnhst(...,'dim',dim) specifies which dimension to average over
+%  the data first when DATA is a matrix. dim can take values of 1 or 2. 
+%  Note that while setting dim can affect the result when bootfun is the 
+%  median, both values give the same result when bootfun is the mean.
+%
 %  [p, c] = ibootnhst(DATA,GROUP,...) also returns a 9 column matrix that
 %  summarises post hoc test results. The family-wise error rate is 
 %  simultaneously controlled since the null distribution for each test 
@@ -183,6 +189,46 @@
 %  95% bootstrap-t confidence intervals (adjusted to control the FWER).
 %  Markers and error bars are red if p < 0.05 or blue if p > 0.05.
 %
+%  EXAMPLE USAGE:
+%   >> y = [111.39 110.21  89.21  76.64  95.35  90.97  62.78;
+%           112.93  60.36  92.29  59.54  98.93  97.03  79.65;
+%            85.24 109.63  64.93  75.69  95.28  57.41  75.83;
+%           111.96 103.40  75.49  76.69  77.95  93.32  78.70];
+%   >> g = [1 2 3 4 5 6 7;
+%           1 2 3 4 5 6 7;
+%           1 2 3 4 5 6 7;
+%           1 2 3 4 5 6 7];
+%   >> ibootnhst (y(:),g(:),'ref',1)
+%
+% Summary of bootstrap null hypothesis (H0) significance test(s)
+% ******************************************************************************
+% H0: Groups of data are all sampled from the same population as data in ref
+% 
+% Overall test p-value: 0.017 
+% ------------------------------------------------------------------------------
+% 
+% POST HOC TESTS (with simultaneous control of the FWER)
+% ------------------------------------------------------------------------------
+% | Comparison |  Reference # |       Test # |  Difference | q-ratio |  p-value|
+% |------------|--------------|--------------|-------------|---------|---------|
+% |          1 |            1 |            2 |   -9.48e+00 |   0.927 |   0.845 |
+% |          2 |            1 |            3 |   -2.49e+01 |   2.434 |   0.105 |
+% |          3 |            1 |            4 |   -3.32e+01 |   3.250 |   0.018 |*
+% |          4 |            1 |            5 |   -1.35e+01 |   1.320 |   0.616 |
+% |          5 |            1 |            6 |   -2.07e+01 |   2.023 |   0.206 |
+% |          6 |            1 |            7 |   -3.11e+01 |   3.044 |   0.027 |*
+% 
+% ------------------------------------------------------------------------------
+% |    GROUP # |                                                         GROUP |
+% |------------|---------------------------------------------------------------|
+% |          1 |                                                             1 |
+% |          2 |                                                             2 |
+% |          3 |                                                             3 |
+% |          4 |                                                             4 |
+% |          5 |                                                             5 |
+% |          6 |                                                             6 |
+% |          7 |                                                             7 |
+%
 %   Bibliography:
 %   [1] Efron and Tibshirani. Chapter 16 Hypothesis testing with the
 %        bootstrap in An introduction to the bootstrap (CRC Press, 1994)
@@ -190,7 +236,7 @@
 %        Sampling vs. Smoothing, Proceedings of the Section on Statistics 
 %        and the Environment, American Statistical Association, 2924-2930.
 %
-%  ibootnhst v1.5.1.0 (31/01/2022)
+%  ibootnhst v1.5.2.0 (01/02/2022)
 %  Author: Andrew Charles Penn
 %  https://www.researchgate.net/profile/Andrew_Penn/
 %
@@ -275,6 +321,21 @@ function [p, c, stats] = ibootnhst (data, group, varargin)
       group = cell2mat(group);
     end
   end
+  if ~isa(nboot,'numeric')
+    error('nboot must be numeric');
+  end
+  if any(nboot~=abs(fix(nboot)))
+    error('nboot must contain positive integers')
+  end
+  if numel(nboot) > 2
+    error('the vector nboot cannot have length > 2')
+  elseif numel(nboot) < 2
+    % set default number of bootknife samples;
+    nboot = cat(2,nboot,1000);
+  end
+  if nboot(1) < 1000
+    error('the minimum allowable value of nboot(1) is 1000')
+  end 
   if isa(bootfun,'function_handle')
     if all(bootfun(data) == mean(data))
       if nvar > 1
@@ -291,7 +352,18 @@ function [p, c, stats] = ibootnhst (data, group, varargin)
         bootfun = @smoothmedian;
       end
     elseif all(bootfun(data) == median(data))
-      error('bootfun cannot be the median, use ''robust'' instead.')
+      if (nboot(2) == 0)
+        error('jacknife resampling cannot be used to calculate standard errors of the median')
+      end
+      if ~isempty(clusters)
+        error('cluster-jacknife resampling cannot be used to calculate standard errors of the median')
+      end
+      if nvar > 1 
+        % Grand median for multivariate data
+        bootfun = @(data) median(median(data,dim));
+      else
+        bootfun = @median;
+      end  
     end
   elseif isa(bootfun,'char')
     if strcmpi(bootfun,'mean') 
@@ -309,24 +381,20 @@ function [p, c, stats] = ibootnhst (data, group, varargin)
         bootfun = @smoothmedian;
       end
     elseif strcmpi(bootfun,'median')
-      error('bootfun cannot be the median, use ''robust'' instead.')
+      if (nboot(2) == 0)
+        error('jacknife resampling cannot be used to calculate standard errors of the median')
+      end
+      if ~isempty(clusters)
+        error('cluster-jacknife resampling cannot be used to calculate standard errors of the median')
+      end
+      if nvar > 1 
+        % Grand median for multivariate data
+        bootfun = @(data) median(median(data,dim));
+      else
+        bootfun = @median;
+      end 
     end
   end
-  if ~isa(nboot,'numeric')
-    error('nboot must be numeric');
-  end
-  if any(nboot~=abs(fix(nboot)))
-    error('nboot must contain positive integers')
-  end
-  if numel(nboot) > 2
-    error('the vector nboot cannot have length > 2')
-  elseif numel(nboot) < 2
-    % set default number of bootknife samples;
-    nboot = cat(2,nboot,1000);
-  end
-  if nboot(1) < 1000
-    error('the minimum allowable value of nboot(1) is 1000')
-  end 
   if ~isempty(ref) && strcmpi(ref,'pairwise')
     ref = [];
   end
