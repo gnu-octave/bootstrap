@@ -1,6 +1,6 @@
 name: statistics-bootstrap
-version: 3.3.4
-date: 2022-01-31
+version: 3.3.5
+date: 2022-02-01
 author: Andrew Penn <andy.c.penn@gmail.com>
 maintainer: Andrew Penn <andy.c.penn@gmail.com>
 title: A statistics package with a variety of bootstrap resampling tools
