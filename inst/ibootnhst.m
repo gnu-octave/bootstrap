@@ -52,7 +52,9 @@
 %  or strings which denote GROUP labels. If the number of GROUPs (k) is 2, 
 %  this is a 2-sample test. If k > 2, this is test for k GROUPs (like in 
 %  one-way layout). If GROUP is numeric and any GROUP is assigned NaN
-%  then their respective DATA rows will be excluded from analysis.
+%  then their respective DATA rows will be excluded from analysis. Note 
+%  that p-value will be truncated at the resolution limit by determined
+%  by the number of bootstrap replicates, specifically 1/nboot(1).
 %
 %  p = ibootnhst(...,'bootfun',bootfun) sets the statistic calculated
 %  from the bootstrap samples. This can be a function handle or string
@@ -159,6 +161,10 @@
 %    column 8: LOWER bound of the bootstrap-t confidence interval
 %    column 9: UPPER bound of the bootstrap-t confidence interval
 %
+%  As above for the p output argument, p-values in column 6 will be 
+%  truncated at the resolution limit by determined by the number of 
+%  bootstrap replicates, specifically 1/nboot(1).
+%
 %  [p,c] = ibootnhst(data,group,...) also returns the group names used in 
 %  the GROUP input argument. The index of gnames corresponds to the 
 %  numbers used to identify GROUPs in columns 1 and 2 of the output 
@@ -192,6 +198,7 @@
 %  Markers and error bars are red if p < 0.05 or blue if p > 0.05.
 %
 %  EXAMPLE USAGE:
+%
 %   >> y = [111.39 110.21  89.21  76.64  95.35  90.97  62.78;
 %           112.93  60.36  92.29  59.54  98.93  97.03  79.65;
 %            85.24 109.63  64.93  75.69  95.28  57.41  75.83;
@@ -502,6 +509,9 @@ function [p, c, stats] = ibootnhst (data, group, varargin)
   % Prepare to make symmetrical bootstrap-t confidence intervals
   [cdf,QS] = empcdf(Q,0);
 
+  % Compute resolution limit of the p-values as determined by resampling with nboot(1) resamples
+  res = 1/nboot(1);
+
   % Calculate p-values for comparisons adjusted to simultaneously control the FWER
   if isempty(ref)
     % Resampling version of Tukey-Kramer HSD test
@@ -523,7 +533,7 @@ function [p, c, stats] = ibootnhst (data, group, varargin)
       if (c(i,6) < QS(1))
         c(i,7) = interp1(QS,1-cdf,c(i,6),'linear',1);
       else
-        c(i,7) = interp1(QS,1-cdf,c(i,6),'linear',0);
+        c(i,7) = interp1(QS,1-cdf,c(i,6),'linear',res);
       end
       c(i,8) = c(i,5) - SED * interp1(cdf,QS,1-alpha,'linear');
       c(i,9) = c(i,5) + SED * interp1(cdf,QS,1-alpha,'linear');
@@ -542,7 +552,7 @@ function [p, c, stats] = ibootnhst (data, group, varargin)
       if (c(j,6) < QS(1))
         c(j,7) = interp1(QS,1-cdf,c(j,6),'linear',1);
       else
-        c(j,7) = interp1(QS,1-cdf,c(j,6),'linear',0);
+        c(j,7) = interp1(QS,1-cdf,c(j,6),'linear',res);
       end
       c(j,8) = c(j,5) - SED * interp1(cdf,QS,1-alpha,'linear');
       c(j,9) = c(j,5) + SED * interp1(cdf,QS,1-alpha,'linear');
@@ -550,9 +560,9 @@ function [p, c, stats] = ibootnhst (data, group, varargin)
     c(ref,:) = [];
   end
 
-  % Calculate overall p-value
+  % Calculate (maximum) test statistic and (minimum) p-value for the omnibus test
   q = max(c(:,6));
-  p = sum(Q>=q)/nboot(1);
+  p = min(c(:,7));
 
   % Prepare stats output structure
   % Include bootstrap-t confidence intervals for bootfun evaluated for each group
