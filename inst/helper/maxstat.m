@@ -1,15 +1,22 @@
-function [q, t] = maxstat (Y, g, nboot, bootfun, ref, clusters)
+function maxT = maxstat (Y, g, nboot, bootfun, ref, clusters, strata)
 
   % Helper function file required for ibootnhst
 
-  % Calculate maximum studentized difference for bootfun output between groups
+  % Calculate maximum test statistic
 
   % Get size and of the data vector or matrix
   [m,nvar] = size(Y);
+
+  % Get data structure information
   if isempty(clusters)
     N = size(g,1);
   else
     N = numel(unique(clusters));
+  end
+  if isempty(strata)
+    l = 1;
+  else
+    l = numel(unique(strata)); % number of strata
   end
 
   % Calculate the number (k) of unique groups
@@ -49,11 +56,11 @@ function [q, t] = maxstat (Y, g, nboot, bootfun, ref, clusters)
         % Vectorized if data is univariate
         idx = 1+fix(rand(nk(j)-1,nboot)*nk(j));
         tmp = Y(g==gk(j),:);
-      t = feval(bootfun,tmp(idx));
+        t = feval(bootfun,tmp(idx));
       end
       SE(j) = std(t);
     end
-    Var(j) = ((nk(j)-1)/(N-k)) * SE(j)^2;
+    Var(j) = ((nk(j)-1)/(N-k-(l-1))) * SE(j)^2;
   end
   if any(nk <= 1)
     error('the number of observations or clusters per group must be greater than 1')
@@ -65,12 +72,9 @@ function [q, t] = maxstat (Y, g, nboot, bootfun, ref, clusters)
   % when calculating standard error of the difference
   w = nk_bar./nk;
 
-  % Calculate the q-ratio test statistic 
+  % Calculate the maximum test statistic 
   if isempty(ref)
-    % Calculate Tukey-Kramer q-ratio for maximum studentized difference between bootfun 
-    % for all sample pairwise comparisons
-    %
-    % Note that Tukey's q-ratio here does not have the sqrt(2) factor. 
+    % Calculate Tukey-Kramer test statistic (without sqrt(2) factor)
     %
     % Bibliography:
     %  [1] https://en.wikipedia.org/wiki/Tukey%27s_range_test
@@ -81,10 +85,9 @@ function [q, t] = maxstat (Y, g, nboot, bootfun, ref, clusters)
     j = ones(k,1) * (1:k);
     t = abs(theta(i(idx)) - theta(j(idx))) ./ sqrt(Var * (w(i(idx)) + w(j(idx))));;
   else
-    % Calculate Dunnett's q-ratio for maximum difference between bootfun for
-    % test vs. control samples
+    % Calculate Dunnett's test statistic 
     t = abs((theta - theta(ref))) ./ sqrt(Var * (w + w(ref)));
   end
-  q = max(t);
+  maxT = max(t);
   
 end

@@ -33,4 +33,10 @@ function [F, x] = empcdf (y, c)
     F = [0;F;1];
   end
 
+  % Remove impossible values
+  F(isnan(x)) = [];
+  x(isnan(x)) = [];
+  F(isinf(x)) = [];
+  x(isinf(x)) = [];
+
 end

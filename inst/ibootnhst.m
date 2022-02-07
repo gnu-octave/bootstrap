@@ -1,37 +1,93 @@
 %  Function File: ibootnhst
 %
-%  Bootstrap null hypothesis significance tests (NHST)
+%  Bootstrap null hypothesis significance test(s) (NHST)
 %
-%  p = ibootnhst(DATA,GROUP)
-%  p = ibootnhst(DATA,GROUP)
-%  p = ibootnhst(...,'bootfun',bootfun)
-%  p = ibootnhst(...,'nboot',nboot)
-%  p = ibootnhst(...,'ref',ref)
-%  p = ibootnhst(...,'cluster',clusters)
-%  p = ibootnhst(...,'Options',paropt)
-%  p = ibootnhst(...,'alpha',alpha)
+%  ibootnhst(DATA,GROUP,...);
+%  ibootnhst(DATA,GROUP);
+%  ibootnhst(DATA,GROUP);
+%  ibootnhst(...,'bootfun',bootfun);
+%  ibootnhst(...,'nboot',nboot);
+%  ibootnhst(...,'ref',ref);
+%  ibootnhst(...,'cluster',clusters);
+%  ibootnhst(...,'strata',strata);
+%  ibootnhst(...,'Options',paropt);
+%  ibootnhst(...,'alpha',alpha);
 %  p = ibootnhst(...,'dim',dim)
 %  [p,c] = ibootnhst(DATA,GROUP,...)
 %  [p,c,stats] = ibootnhst(DATA,GROUP,...)
-%  ibootnhst(DATA,GROUP,...);
 %
-%  This non-parametric (or semi-parametric) bootstrap function can be used 
-%  for null hypothesis (H0) significance testing with univariate (vector) 
-%  or multivatiate (matrix) data, to compare bootfun (default is the 'mean') 
-%  evaluated on independent GROUPs (i.e. samples) [1]. This function is
-%  appropriate for post hoc comparisons among a family of hypothesis tests
-%  or for comparing groups in a one-way layout.
+%  This function uses non-parametric (or semi-parametric) bootstrap for 
+%  null hypothesis (H0) significance testing on univariate (vector) or
+%  multivatiate (matrix) DATA, to compare bootfun (default is the 'mean') 
+%  evaluated on independent or dependent GROUPs (i.e. samples) [1]. This 
+%  function is appropriate for post hoc comparisons among a family of 
+%  hypothesis tests and comparing groups. The family-wise error rate 
+%  (FWER) of pairwise comparisons, or comparisons to a reference group, is
+%  controlled by the single-step maxT procedure on bootstrap resamples.
+%  Thus, depending on the comparisons requested using the ref input   
+%  argument, the p-value adjustments are essentially bootstrap versions of 
+%  either Tukey-Kramer's or Dunnett's tests. Unlike these tests though, 
+%  ibootnhst does not make the normality assumption. Since DATA across the 
+%  GROUPs are resampled, as for a permutatiion test, ibootnhst assumes  
+%  exchangeability among the groups under the null hypothesis. The method 
+%  used for bootstrap is balanced resampling (unless computations are 
+%  accelerated by parallel processing). Note that this function will return 
+%  an error if any GROUP label is not represented by more than one data row. 
 %
-%  The tests conducted by ibootnhst do not make the normality assumption 
-%  of parametric statistical tests and the calculations of the weighted mean 
-%  sampling variance (for studentization using a pooled standard error) 
-%  accomodates for unequal sample size and gives ibootnhst more statistical 
-%  power (compared to not pooling the sampling variance). Since DATA across 
-%  the GROUPs is resampled, as for a permutatiion test, ibootnhst assumes 
-%  exchangeability among the groups under the null hypothesis. Note that 
-%  this function will return an error if any GROUP is not represented by 
-%  more than one data row.
-% 
+%  ibootnhst(DATA,GROUP) performs a k-sample bootstrap test where DATA is 
+%  a column vector or matrix, and GROUP is a vector or cell array the same 
+%  number of rows as DATA. GROUP contains numbers or strings which denote 
+%  GROUP labels. If the number of GROUPs (k) is 2, this is a 2-sample test. 
+%  If k > 2, this is test for k GROUPs (like in one-way layout). If GROUP 
+%  is numeric and any GROUP is assigned NaN then their respective DATA rows 
+%  will be omitted from analysis. Likewise, any rows of DATA containing an
+%  NaN will be omitted. If no output arguments are requested, the test 
+%  statistics and multiplicity-adjusted p-values for both the overall 
+%  hypothesis test, and the post hoc tests for comparison between the 
+%  GROUPs, are returned in a pretty table. The differences between GROUPs 
+%  are also plot along with the symmetic 100*(1-alpha)% bootstrap-t 
+%  confidence intervals (also adjusted to control the FWER). Markers and 
+%  error bars are red if p < .05 or blue if p > .05. The default alpha 
+%  level is 0.05, which produces 95% confidence intervals.
+%
+%  ibootnhst(...,'bootfun',bootfun) sets the statistic calculated from
+%  the bootstrap samples. This can be a function handle or string
+%  corresponding to the function name. The calculation of bootfun on 
+%  the DATA must return a scalar value. If empty, the default is @mean  
+%  or 'mean'. If DATA is multivariate, bootfun is the grand mean, which  
+%  is the mean of the means of each column (i.e. variates). The standard 
+%  errors are estimated by bootknife [2], jacknife, or cluster-jacknife. 
+%  If a robust statistic for central location is required, setting bootfun 
+%  to 'robust' implements a smoothed version of the median (see function 
+%  help for smoothmedian). Note that if bootfun is not the mean, the 
+%  t-statistics returned by this function will not be comparable with 
+%  tabulated values.
+%
+%  ibootnhst(...,'nboot',nboot) is a vector of upto two positive integers
+%  indicating the number of replicate samples for the first (bootstrap) 
+%  and second (bootknife) levels of iterated resampling. The default
+%  value of nboot is [1000,1000]. Increasing the values of nboot reduce
+%  the monte carlo error of the p-value (and confidence interval)  
+%  estimates but the calculations take longer to complete. If nboot(2) is 
+%  zero (or if cluster bootstrap is requested) then ibootnhst calculates  
+%  standard errors for studentization using jacknife resampling instead.
+%
+%  ibootnhst(...,'ref',ref) also sets the GROUP to use as the reference 
+%  GROUP for post hoc tests. For a one-way experimental design or family of 
+%  tests, this will usually be a control GROUP. If all pairwise comparisons 
+%  are desired, then set ref to 'pairwise' or leave empty. By default, 
+%  pairwise comparisons are computed for post hoc tests.
+%
+%  If the ref input argument is empty, the resampling procedure for 
+%  pairwise comparisons produces p-value adjustments analagous to the 
+%  Tukey-Kramer Honest Significance Difference (HSD) test. 
+%
+%  If the ref input argument is specified, then the resampling procedure 
+%  for treatment versus reference produces p-value adjustments analagous 
+%  to Dunnett's post hoc tests (since the range of bootfun in the null 
+%  distribution of test statistics is restricted to differences with 
+%  the reference GROUP).
+%
 %  The specification of H0 for the overall hypothesis test depends on whether 
 %  a reference GROUP is specified with the ref input argument.
 %
@@ -44,45 +100,7 @@
 %        the GROUP ref with respect to the parameter defined by bootfun (which   
 %        by default is the mean).  
 %
-%  The method used for bootstrap is balanced resampling (unless computations 
-%  are accelerated by parallel processing). 
-%
-%  p = ibootnhst(DATA,GROUP) is a k-sample bootstrap test where GROUP is a 
-%  vector or cell array the same number of rows as y and contains numbers 
-%  or strings which denote GROUP labels. If the number of GROUPs (k) is 2, 
-%  this is a 2-sample test. If k > 2, this is test for k GROUPs (like in 
-%  one-way layout). If GROUP is numeric and any GROUP is assigned NaN
-%  then their respective DATA rows will be excluded from analysis. Note 
-%  that p-value will be truncated at the resolution limit by determined
-%  by the number of bootstrap replicates, specifically 1/nboot(1).
-%
-%  p = ibootnhst(...,'bootfun',bootfun) sets the statistic calculated
-%  from the bootstrap samples. This can be a function handle or string
-%  corresponding to the function name. The calculation of bootfun on the
-%  data must return a scalar value. If empty, the default is @mean or 
-%  'mean'. If DATA is multivariate, bootfun is the grand mean, which is 
-%  is the mean of the means of each column (i.e. variates). The standard 
-%  errors are estimated by bootknife [2], jacknife, or cluster-jacknife. 
-%  If a robust statistic for central location is required, setting bootfun 
-%  to 'robust' implements a smoothed version of the median (see function 
-%  help for smoothmedian).
-%
-%  p = ibootnhst(...,'nboot',nboot) is a vector of upto two positive  
-%  integers indicating the number of replicate samples for the first  
-%  (bootstrap) and second (bootknife) levels of iterated resampling. The 
-%  default value of nboot is [1000,1000]. Increasing the values of nboot 
-%  reduce the monte carlo error of the p-value (and confidence interval)  
-%  estimates but the calculations take longer to complete. If nboot(2) is 
-%  zero (or if cluster bootstrap is requested) then ibootnhst calculates  
-%  standard errors for studentization using jacknife resampling instead.
-%
-%  p = ibootnhst(...,'ref',ref) also sets the GROUP to use as the reference 
-%  GROUP for post hoc tests. For a one-way experimental design or family of 
-%  tests, this will usually be a control GROUP. If all pairwise comparisons 
-%  are desired, then set ref to 'pairwise' or leave empty. By default, 
-%  pairwise comparisons are computed for post hoc tests.
-%
-%  p = ibootnhst(...,'cluster',clusters) specifies a column vector of numeric 
+%  ibootnhst(...,'cluster',clusters) specifies a column vector of numeric 
 %  identifiers with the same number of rows as DATA. The identifiers should 
 %  indicate cluster membership of the data rows. Clusters are resampled by 
 %  two-stage bootstrap resampling of residuals with shrinkage correction 
@@ -90,15 +108,23 @@
 %  causes ibootnhst to resample residuals, the bootstrap becomes semi-
 %  parametric. The clusters input argument can be used to accomodate for a 
 %  single level of nesting in heirarchical data structures. This resampling 
-%  stategy is appropriate when the family of tests has a split plot design 
-%  layout. If left empty, this argument is ignored. This function will 
+%  strategy is appropriate when the family of tests has a split plot design 
+%  layout, like in a nested 1-way anova. See end of this help for an example.  
+%  If left clusters is empty, this argument is ignored. This function will 
 %  return an error if any GROUP is not represented by more than one cluster, 
-%  but there is no restriction on the number of data rows in any cluster.
-%  Note that the value in nboot(2) is ignored since specifying cluster 
-%  identifiers enforces cluster-jackknife to compute standard errors and
-%  studentized test statistics.
+%  but there is no restriction on the number of data rows in any cluster. Note 
+%  that the value in nboot(2) is ignored since specifying cluster identifiers 
+%  enforces cluster-jackknife to compute standard errors and studentized test 
+%  statistics.
 %
-%  p = ibootnhst(...,'Options',paropt) specifies options that govern if and 
+%  ibootnhst(...,'strata',strata) specifies a column vector of numeric 
+%  identifiers with the same number of rows as DATA. The identifiers should 
+%  indicate stratum membership of the data rows. Stratified resampling 
+%  imposes restrictions on the exchangeability of data that is resampled.
+%  This resampling strategy is appropriate when the family of tests has
+%  a one-way repeated measures layout. See end of this help for an example.
+%
+%  ibootnhst(...,'Options',paropt) specifies options that govern if and 
 %  how to perform bootstrap iterations using multiple processors (if the 
 %  Parallel Computing Toolbox or Octave Forge package is available). If 
 %  empty, calculations are performed in serial.
@@ -116,39 +142,28 @@
 %                   a parallel pool, else it will use the preferred number
 %                   of workers.
 % 
-%  p = ibootnhst(...,'alpha',alpha) specifies the two-tailed significance 
-%  level for confidence interval coverage of 0 (in c) or interval overlap 
-%  (in stats.groups).
+%  ibootnhst(...,'alpha',alpha) specifies the two-tailed significance level
+%  for confidence interval coverage of 0 (in c) or interval overlap (in 
+%  stats.groups).
 %
-%  p = ibootnhst(...,'dim',dim) specifies which dimension to average over
-%  the data first when DATA is a matrix. dim can take values of 1 or 2. 
-%  Note that while setting dim can affect the result when bootfun is the 
-%  median, both values give the same result when bootfun is the mean (i.e.
-%  for the grand mean). This name-value pair is only used if bootfun is 
-%  'mean', 'median', 'smoothmedian', or 'robust'.
+%  ibootnhst(...,'dim',dim) specifies which dimension to average over the
+%  DATA first when DATA is a matrix. dim can take values of 1 or 2. Note
+%  that while setting dim can affect the result when bootfun is the median,
+%  both values give the same result when bootfun is the mean (i.e. for the
+%  grand mean). This name-value pair is only used if bootfun is 'mean', 
+%  'median', 'smoothmedian', or 'robust'.
+%
+%  p = ibootnhst(DATA,GROUP) returns a single p-value for the overall,
+%  omnibus hypothesis test and represents the multiplicity-adjusted p-value 
+%  for the maximum t-statistic from the set of comparisons (relevant to the 
+%  test of the overall null hypothesis, see below). Note that the p-value 
+%  returned will be truncated at the resolution limit determined by the 
+%  number of bootstrap replicates, specifically 1/nboot(1). 
 %
 %  [p, c] = ibootnhst(DATA,GROUP,...) also returns a 9 column matrix that
 %  summarises post hoc test results. The family-wise error rate is 
 %  simultaneously controlled since the null distribution for each test 
 %  represents the maximum studentized test statistic of the resamples. 
-%
-%  If the ref input argument is empty, the resampling procedure  
-%  above for pairwise comparisons is analagous to the Tukey-Kramer  
-%  Honest Significance Difference (HSD) test. 
-%
-%  If the ref input argument is specified, then the resampling above 
-%  for treatment versus reference is analagous to Dunnett's post hoc  
-%  tests (since the range of bootfun in the null distribution of test  
-%  statistics is restricted to differences with the reference GROUP).
-% 
-%  The q-ratio (analagous to a t-statistic) is computed using the 
-%  difference in bootfun evaluated for two GROUPs divided by the  
-%  standard error of the difference (derived from the pooled, weighted 
-%  mean, sampling variance). To compare the q-ratio reported here with 
-%  Tukey's more traditional q-statistic, multiply it by sqrt(2). Note 
-%  that because unbiased sampling variance is estimated using bootknife 
-%  resampling [2], ibootnhst can be used to compare a wide variety of 
-%  statistics (not just the mean). 
 % 
 %  The columns of output argument c contain:
 %    column 1: reference GROUP number
@@ -156,19 +171,14 @@
 %    column 3: value of bootfun evaluated using reference GROUP DATA
 %    column 4: value of bootfun evaluated using test GROUP DATA
 %    column 5: columns 4 minus column 3
-%    column 6: q-ratio
-%    column 7: p-value
+%    column 6: t-ratio
+%    column 7: p-adj 
 %    column 8: LOWER bound of the bootstrap-t confidence interval
 %    column 9: UPPER bound of the bootstrap-t confidence interval
 %
-%  As above for the p output argument, p-values in column 6 will be 
-%  truncated at the resolution limit by determined by the number of 
-%  bootstrap replicates, specifically 1/nboot(1).
-%
-%  [p,c] = ibootnhst(data,group,...) also returns the group names used in 
-%  the GROUP input argument. The index of gnames corresponds to the 
-%  numbers used to identify GROUPs in columns 1 and 2 of the output 
-%  argument c.
+%  Note that the p-values returned in column 7 and the length of 
+%  the confidence interval limits returned columns 8 and 9 are 
+%  corrected/adjusted to control the FWER.
 %
 %  [p,c,stats] = ibootnhst(DATA,GROUP,...) also returns a structure 
 %  containing additional statistics. The stats structure contains the 
@@ -178,26 +188,28 @@
 %              gnames corresponds to the numbers used to identify GROUPs
 %              in columns 1 and 2 of the output argument c
 %   ref      - reference group
-%   groups   - bootfun for each group with sample size, standard error, 
-%              and lower and upper bootstrap-t confidence intervals, which  
-%              have coverage such that they overlap with eachother if the  
-%              ref input argument is 'pairwise', or with the reference   
-%              group, at a FWER-controlled p-value of greater than alpha.
+%   groups   - group number and bootfun for each group with sample size, 
+%              standard error, and lower and upper bootstrap-t confidence 
+%              intervals, which have coverage such that they overlap with 
+%              eachother if the ref input argument is 'pairwise', or with 
+%              the reference group, at a FWER-controlled p-value of greater 
+%              than alpha.
 %   Var      - weighted mean (pooled) sampling variance
-%   stat     - omnibus test statistic (q) 
+%   maxT     - omnibus test statistic (maxT) 
+%   df       - degrees of freedom
 %   nboot    - number of bootstrap resamples
 %   alpha    - two-tailed significance level for the confidence interval 
 %              coverage of 0 (in c) or interval overlap (in stats.groups)
 %   clusters - vector of numeric identifiers indicating cluster membership
 %   bootstat - test statistic computed for each bootstrap resample 
 %
-%  ibootnhst(DATA,GROUP,...); performs the calculations as per above but 
-%  prints the columns 1, 2 and 5-7 of the results (c) in a pretty table.
-%  The differences between groups are also plot along with the symmetic
-%  95% bootstrap-t confidence intervals (adjusted to control the FWER).
-%  Markers and error bars are red if p < 0.05 or blue if p > 0.05.
 %
-%  EXAMPLE USAGE:
+%  Many examples of using ibootnhst to analyse data obtained from a 
+%  variety of experimental designs:
+%
+%
+%  EXAMPLE 1: 
+%  ONE-WAY ANOVA WITH EQUAL SAMPLE SIZES: Treatment vs. Control (1)
 %
 %   >> y = [111.39 110.21  89.21  76.64  95.35  90.97  62.78;
 %           112.93  60.36  92.29  59.54  98.93  97.03  79.65;
@@ -207,28 +219,31 @@
 %           1 2 3 4 5 6 7;
 %           1 2 3 4 5 6 7;
 %           1 2 3 4 5 6 7];
-%   >> ibootnhst (y(:),g(:),'ref',1)
+%   >> ibootnhst (y(:),g(:),'ref',1);
 %
 % Summary of bootstrap null hypothesis (H0) significance test(s)
 % ******************************************************************************
+% Overall hypothesis test from single-step maxT procedure
 % H0: Groups of data are all sampled from the same population as data in ref
 % 
-% Overall test p-value: 0.017 
+% Maximum t(21) = 3.25, p-adj = .018 
 % ------------------------------------------------------------------------------
 % 
-% POST HOC TESTS (with simultaneous control of the FWER)
+% POST HOC TESTS with control of the FWER by the single-step maxT procedure
 % ------------------------------------------------------------------------------
-% | Comparison |  Reference # |       Test # |  Difference | q-ratio |  p-value|
+% | Comparison |  Reference # |       Test # |  Difference |    t(df)|   p-adj |
 % |------------|--------------|--------------|-------------|---------|---------|
-% |          1 |            1 |            2 |   -9.48e+00 |   0.927 |   0.845 |
-% |          2 |            1 |            3 |   -2.49e+01 |   2.434 |   0.105 |
-% |          3 |            1 |            4 |   -3.32e+01 |   3.250 |   0.018 |*
-% |          4 |            1 |            5 |   -1.35e+01 |   1.320 |   0.616 |
-% |          5 |            1 |            6 |   -2.07e+01 |   2.023 |   0.206 |
-% |          6 |            1 |            7 |   -3.11e+01 |   3.044 |   0.027 |*
+% |          1 |            1 |            2 |   -9.48e+00 |    0.93 |    .845 |
+% |          2 |            1 |            3 |   -2.49e+01 |    2.43 |    .105 |
+% |          3 |            1 |            4 |   -3.32e+01 |    3.25 |    .018 |*
+% |          4 |            1 |            5 |   -1.35e+01 |    1.32 |    .616 |
+% |          5 |            1 |            6 |   -2.07e+01 |    2.02 |    .206 |
+% |          6 |            1 |            7 |   -3.11e+01 |    3.04 |    .027 |*
+% 
+% Where degrees of freedom (df) = 21
 % 
 % ------------------------------------------------------------------------------
-% |    GROUP # |                                                         GROUP |
+% |    GROUP # |                                                   GROUP label |
 % |------------|---------------------------------------------------------------|
 % |          1 |                                                             1 |
 % |          2 |                                                             2 |
@@ -238,6 +253,381 @@
 % |          6 |                                                             6 |
 % |          7 |                                                             7 |
 %
+%
+%  EXAMPLE 2A:
+%  COMPARISON OF TWO INDEPENDENT GROUPS WITH UNEQUAL SAMPLE SIZES 
+%  (analagous to Student's t-test)
+%
+%   >> y =    [54       43
+%              23       34
+%              45       65
+%              54       77
+%              45       46
+%             NaN       65]
+%   >> g = {'male' 'female'
+%           'male' 'female'
+%           'male' 'female'
+%           'male' 'female'
+%           'male' 'female'
+%           'male' 'female'}
+%   >> ibootnhst (y(:),g(:),'ref','male');
+%
+% Summary of bootstrap null hypothesis (H0) significance test(s)
+% ******************************************************************************
+% Overall hypothesis test from single-step maxT procedure
+% H0: Groups of data are all sampled from the same population
+%
+% Maximum t(9) = 1.18, p-adj = .293 
+% ------------------------------------------------------------------------------
+%
+%  EXAMPLE 2B:
+%  ONE-WAY ANOVA WITH UNEQUAL SAMPLE SIZES: pairwise comparisons (the 'ref' default)
+%
+%   >> y = [54  87  45
+%           23  98  39
+%           45  64  51
+%           54  77  49
+%           45  89  50
+%           47 NaN  55];
+%   >> g = [ 1   2   3
+%            1   2   3
+%            1   2   3 
+%            1   2   3
+%            1   2   3
+%            1   2   3];
+%   >> ibootnhst (y(:),g(:));
+%
+% Summary of bootstrap null hypothesis (H0) significance test(s)
+% ******************************************************************************
+% Overall hypothesis test from single-step maxT procedure
+% H0: Groups of data are all sampled from the same population
+% 
+% Maximum t(14) = 6.19, p-adj = <.001 
+% ------------------------------------------------------------------------------
+% 
+% POST HOC TESTS with control of the FWER by the single-step maxT procedure
+% ------------------------------------------------------------------------------
+% | Comparison |  Reference # |       Test # |  Difference |    t(df)|   p-adj |
+% |------------|--------------|--------------|-------------|---------|---------|
+% |          1 |            1 |            2 |   +3.83e+01 |    6.19 |   <.001 |***
+% |          2 |            1 |            3 |   +3.50e+00 |    0.59 |    .838 |
+% |          3 |            2 |            3 |   -3.48e+01 |    5.63 |   <.001 |***
+% 
+% Where degrees of freedom (df) = 14
+% 
+% ------------------------------------------------------------------------------
+% |    GROUP # |                                                   GROUP label |
+% |------------|---------------------------------------------------------------|
+% |          1 |                                                             1 |
+% |          2 |                                                             2 |
+% |          3 |                                                             3 |
+%
+%
+%  EXAMPLE 3: 
+%  NESTED ONE-WAY ANOVA: pairwise comparisons
+%
+%   >> y =        [28   32   27   25   26   25   21   19   18
+%                  26   27   25   24   28   26   19   18   20
+%                  27   28   29   27   29   24   17   23   19
+%                  31   29   27   23   27   23   20   20   18];
+%   >> g =        [ 1    1    1    2    2    2    3    3    3
+%                   1    1    1    2    2    2    3    3    3
+%                   1    1    1    2    2    2    3    3    3
+%                   1    1    1    2    2    2    3    3    3];
+%   >> clusters = [ 1    2    3    4    5    6    7    8    9
+%                   1    2    3    4    5    6    7    8    9
+%                   1    2    3    4    5    6    7    8    9
+%                   1    2    3    4    5    6    7    8    9];
+%   >> ibootnhst(y(:),g(:),'cluster',clusters(:));
+%
+% Summary of bootstrap null hypothesis (H0) significance test(s)
+% ******************************************************************************
+% Overall hypothesis test from single-step maxT procedure
+% H0: Groups of data are all sampled from the same population
+% 
+% Maximum t(6) = 9.01, p-adj = .003 
+% ------------------------------------------------------------------------------
+% 
+% POST HOC TESTS with control of the FWER by the single-step maxT procedure
+% ------------------------------------------------------------------------------
+% | Comparison |  Reference # |       Test # |  Difference |    t(df)|   p-adj |
+% |------------|--------------|--------------|-------------|---------|---------|
+% |          1 |            1 |            2 |   -2.42e+00 |    2.51 |    .109 |
+% |          2 |            1 |            3 |   -8.67e+00 |    9.01 |    .003 |**
+% |          3 |            2 |            3 |   -6.25e+00 |    6.50 |    .006 |**
+% 
+% Where degrees of freedom (df) = 6
+% 
+% ------------------------------------------------------------------------------
+% |    GROUP # |                                                   GROUP label |
+% |------------|---------------------------------------------------------------|
+% |          1 |                                                             1 |
+% |          2 |                                                             2 |
+% |          3 |                                                             3 |
+%
+%
+%  EXAMPLE 4A: 
+%  COMPARISON OF TWO DEPENDENT GROUPS 
+%  (analagous to paired t-test)
+%
+%   >> y =      [4.5  5.6
+%                3.7  6.4
+%                5.3  6.4
+%                5.4  6.0
+%                3.9  5.7];
+%   >> g =      [  1    2
+%                  1    2
+%                  1    2
+%                  1    2
+%                  1    2];
+%   >> strata = [  1    1
+%                  2    2
+%                  3    3
+%                  4    4
+%                  5    5];
+%   >> % Center the data at row mean for within-subjects comparisons
+%   >> z = bsxfun(@minus,y,mean(y,2));
+%   >> ibootnhst (z(:),g(:),'strata',strata(:));   
+%
+% Summary of bootstrap null hypothesis (H0) significance test(s)
+% ******************************************************************************
+% Overall hypothesis test from single-step maxT procedure
+% H0: Groups of data are all sampled from the same population
+%
+% Maximum t(4) = 4.01, p-adj = <.001 
+% ------------------------------------------------------------------------------
+%
+%
+%  EXAMPLE 4B:
+%  ONE-WAY REPEATED MEASURES ANOVA: pairwise comparisons  
+%
+%   >> y =      [54 43 78 111
+%                23 34 37 41
+%                45 65 99 78
+%                31 33 36 35
+%                15 25 30 26];
+%   >> g =      [ 1  2  3  4
+%                 1  2  3  4
+%                 1  2  3  4
+%                 1  2  3  4
+%                 1  2  3  4];
+%   >> % Set restrictions of exchangeability to within-subjects using stratified resampling
+%   >> strata = [ 1  1  1  1
+%                 2  2  2  2
+%                 3  3  3  3
+%                 4  4  4  4 
+%                 5  5  5  5];
+%   >> % Center the data at row mean for within-subjects comparisons
+%   >> z = bsxfun(@minus,y,mean(y,2));
+%   >> ibootnhst (z(:),g(:),'strata',strata(:));
+%
+% Summary of bootstrap null hypothesis (H0) significance test(s)
+% ******************************************************************************
+% Overall hypothesis test from single-step maxT procedure
+% H0: Groups of data are all sampled from the same population
+% 
+% Maximum t(12) = 2.81, p-adj = .063 
+% ------------------------------------------------------------------------------
+% 
+% POST HOC TESTS with control of the FWER by the single-step maxT procedure
+% ------------------------------------------------------------------------------
+% | Comparison |  Reference # |       Test # |  Difference |    t(df)|   p-adj |
+% |------------|--------------|--------------|-------------|---------|---------|
+% |          1 |            1 |            2 |   +6.40e+00 |    0.73 |    .774 |
+% |          2 |            1 |            3 |   +2.24e+01 |    2.56 |    .082 |
+% |          3 |            1 |            4 |   +2.46e+01 |    2.81 |    .063 |
+% |          4 |            2 |            3 |   +1.60e+01 |    1.83 |    .213 |
+% |          5 |            2 |            4 |   +1.82e+01 |    2.08 |    .160 |
+% |          6 |            3 |            4 |   +2.20e+00 |    0.25 |    .981 |
+% 
+% Where degrees of freedom (df) = 12
+% 
+% ------------------------------------------------------------------------------
+% |    GROUP # |                                                   GROUP label |
+% |------------|---------------------------------------------------------------|
+% |          1 |                                                             1 |
+% |          2 |                                                             2 |
+% |          3 |                                                             3 |
+% |          4 |                                                             4 |
+%
+% 
+%  EXAMPLE 5: 
+%  MANOVA or TWO-WAY REPEATED MEASURES ANOVA: pairwise comparisons
+%
+%   >> y = [34  54
+%           65  91
+%           12  13
+%           35  29
+%           55  79
+%           99 121];
+%   >> g = [1
+%           1
+%           2
+%           2
+%           3
+%           3];
+%   >> ibootnhst (y,g);
+%
+% Summary of bootstrap null hypothesis (H0) significance test(s)
+% ******************************************************************************
+% Overall hypothesis test from single-step maxT procedure
+% H0: Groups of data are all sampled from the same population
+% 
+% Maximum t(3) = 2.79, p-adj = .151 
+% ------------------------------------------------------------------------------
+% 
+% POST HOC TESTS with control of the FWER by the single-step maxT procedure
+% ------------------------------------------------------------------------------
+% | Comparison |  Reference # |       Test # |  Difference |    t(df)|   p-adj |
+% |------------|--------------|--------------|-------------|---------|---------|
+% |          1 |            1 |            2 |   -3.88e+01 |    1.63 |    .361 |
+% |          2 |            1 |            3 |   +2.75e+01 |    1.16 |    .544 |
+% |          3 |            2 |            3 |   +6.62e+01 |    2.79 |    .151 |
+% 
+% Where degrees of freedom (df) = 3
+% 
+% ------------------------------------------------------------------------------
+% |    GROUP # |                                                   GROUP label |
+% |------------|---------------------------------------------------------------|
+% |          1 |                                                             1 |
+% |          2 |                                                             2 |
+% |          3 |                                                             3 |
+%
+%  EXAMPLE 6A: 
+%  MANOVA or TWO-WAY REPEATED MEASURES ANOVA: comparing 2 groups
+%   >> y = [34    35    78    54    42
+%           65    67   111    98    89
+%           39    41   167   143   136
+%           65    54   211   178   146];
+%   >> g = [ 1
+%            1
+%            2
+%            2];
+%   >> ibootnhst (y,g);
+%
+% Summary of bootstrap null hypothesis (H0) significance test(s)
+% ******************************************************************************
+% Overall hypothesis test from single-step maxT procedure
+% H0: Groups of data are all sampled from the same population
+% 
+% Maximum t(2) = 2.24, p-adj = .146 
+% ------------------------------------------------------------------------------
+% 
+%
+%  EXAMPLE 6B: 
+%  TWO-WAY REPEATED MEASURES ANOVA: SIMPLE EFFECTS
+%   >> y =      [ 34    35    78    54    42
+%                 65    67   111    98    89
+%                 39    41   167   143   136
+%                 65    54   211   178   146];
+%   >> g =      [  1     2     3     4     5
+%                  1     2     3     4     5 
+%                NaN   NaN   NaN   NaN   NaN
+%                NaN   NaN   NaN   NaN   NaN];
+%    >> strata = [  1     1     1     1     1
+%                   2     2     2     2     2
+%                   3     3     3     3     3
+%                   4     4     4     4     4];
+%   >> % Center the data at row mean for within-subjects comparisons
+%   >> z = bsxfun(@minus,y,mean(y,2));
+%   >> ibootnhst (z(:),g(:),'strata',strata(:),'ref',1,'nboot',[1000,0]);
+%
+% Summary of bootstrap null hypothesis (H0) significance test(s)
+% ******************************************************************************
+% Overall hypothesis test from single-step maxT procedure
+% H0: Groups of data are all sampled from the same population as data in ref
+% 
+% Maximum t(4) = 8.48, p-adj = .004 
+% ------------------------------------------------------------------------------
+% 
+% POST HOC TESTS with control of the FWER by the single-step maxT procedure
+% ------------------------------------------------------------------------------
+% | Comparison |  Reference # |       Test # |  Difference |    t(df)|   p-adj |
+% |------------|--------------|--------------|-------------|---------|---------|
+% |          1 |            1 |            2 |   +1.50e+00 |    0.28 |    .995 |
+% |          2 |            1 |            3 |   +4.50e+01 |    8.48 |    .004 |**
+% |          3 |            1 |            4 |   +2.65e+01 |    4.99 |    .016 |*
+% |          4 |            1 |            5 |   +1.60e+01 |    3.02 |    .082 |
+% 
+% Where degrees of freedom (df) = 4
+% 
+% ------------------------------------------------------------------------------
+% |    GROUP # |                                                   GROUP label |
+% |------------|---------------------------------------------------------------|
+% |          1 |                                                             1 |
+% |          2 |                                                             2 |
+% |          3 |                                                             3 |
+% |          4 |                                                             4 |
+% |          5 |                                                             5 |
+% 
+%   >> g =      [NaN   NaN   NaN   NaN   NaN
+%                NaN   NaN   NaN   NaN   NaN
+%                  1     2     3     4     5
+%                  1     2     3     4     5 ];
+%   >> ibootnhst (z(:),g(:),'strata',strata(:),'ref',1,'nboot',[1000,0]);
+%
+% Summary of bootstrap null hypothesis (H0) significance test(s)
+% ******************************************************************************
+% Overall hypothesis test from single-step maxT procedure
+% H0: Groups of data are all sampled from the same population as data in ref
+%
+% Maximum t(4) = 13.46, p-adj = .003 
+% ------------------------------------------------------------------------------
+%
+% POST HOC TESTS with control of the FWER by the single-step maxT procedure
+% ------------------------------------------------------------------------------
+% | Comparison |  Reference # |       Test # |  Difference |    t(df)|   p-adj |
+% |------------|--------------|--------------|-------------|---------|---------|
+% |          1 |            1 |            2 |   -4.50e+00 |    0.44 |    .965 |
+% |          2 |            1 |            3 |   +1.37e+02 |   13.46 |    .003 |**
+% |          3 |            1 |            4 |   +1.08e+02 |   10.66 |    .006 |**
+% |          4 |            1 |            5 |   +8.90e+01 |    8.74 |    .011 |*
+%
+% Where degrees of freedom (df) = 4
+%
+% ------------------------------------------------------------------------------
+% |    GROUP # |                                                   GROUP label |
+% |------------|---------------------------------------------------------------|
+% |          1 |                                                             1 |
+% |          2 |                                                             2 |
+% |          3 |                                                             3 |
+% |          4 |                                                             4 |
+% |          5 |                                                             5 |
+%
+% Note that the simple (main) effects analyses here will only pool the variance   
+% within each level of the main effect (not across all levels of the main effect)
+%
+%
+%  EXAMPLE 7: 
+%  TWO-WAY ANOVA: SIMPLE EFFECTS
+%
+%   >> y = [  34  36  41 NaN  43  98  87  95  99  88
+%             23  19  26  29  25  32  29  26  33 30];
+%   >> g = [   1   1   1   1   1   2   2   2   2   2 
+%            NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN]; 
+%   >> ibootnhst (y(:),g(:));
+%
+% Summary of bootstrap null hypothesis (H0) significance test(s)
+% ******************************************************************************
+% Overall hypothesis test from single-step maxT procedure
+% H0: Groups of data are all sampled from the same population
+%
+% Maximum t(7) = 16.16, p-adj = .007 
+% ------------------------------------------------------------------------------
+%    
+%   >> g = [ NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN
+%              1   1   1   1   1   2   2   2   2   2];
+%   >> ibootnhst (y(:),g(:));
+%    
+% Summary of bootstrap null hypothesis (H0) significance test(s)
+% ******************************************************************************
+% Overall hypothesis test from single-step maxT procedure
+% H0: Groups of data are all sampled from the same population
+%
+% Maximum t(8) = 2.72, p-adj = .024 
+% ------------------------------------------------------------------------------
+%
+%
 %   Bibliography:
 %   [1] Efron and Tibshirani. Chapter 16 Hypothesis testing with the
 %        bootstrap in An introduction to the bootstrap (CRC Press, 1994)
@@ -245,7 +635,7 @@
 %        Sampling vs. Smoothing, Proceedings of the Section on Statistics 
 %        and the Environment, American Statistical Association, 2924-2930.
 %
-%  ibootnhst v1.5.2.0 (01/02/2022)
+%  ibootnhst v1.6.0.0 (06/02/2022)
 %  Author: Andrew Charles Penn
 %  https://www.researchgate.net/profile/Andrew_Penn/
 %
@@ -273,7 +663,6 @@ function [p, c, stats] = ibootnhst (data, group, varargin)
   alpha = 0.05;
   strata = [];
   clusters = [];
-  blocksize = [];
   dim = 1;
   paropt = struct;
   paropt.UseParallel = false;
@@ -302,8 +691,10 @@ function [p, c, stats] = ibootnhst (data, group, varargin)
         dim = argin3{end};
       elseif any(strcmpi(argin3{end-1},{'cluster','clusters'}))
         clusters = argin3{end};
+      elseif any(strcmpi(argin3{end-1},{'strata','stratum','stratified'}))
+        strata = argin3{end};
       else
-        error('unrecognised input argument to bootstrp')
+        error('unrecognised input argument to ibootnhst')
       end
       argin3 = {argin3{1:end-2}};
       narg = numel(argin3);
@@ -419,25 +810,44 @@ function [p, c, stats] = ibootnhst (data, group, varargin)
     end
     opt = struct;
   end
+  if ~isempty(strata)
+    if (size(strata,2) > 1) || (size(strata,1) ~= size(data,1))
+      error('strata must be a column vactor with the same number of rows as DATA')
+    end
+  end
+  if ~isempty(strata) && ~isempty(clusters)
+    error('strata and cluster options cannot be used together')
+  end
   if nargout > 3
     error('ibootnhst only supports up to 3 output arguments')
   end
 
-  % Group exclusion using NaN 
+  % Data or group exclusion using NaN 
   if isnumeric(group)
     if any(isnan(group))
       data(isnan(group),:) = [];
+      if ~isempty(clusters)
+        clusters(isnan(group)) = [];
+      end
+      if ~isempty(strata)
+        strata(isnan(group)) = [];
+      end
       group(isnan(group)) = [];
     end
+  end
+  if any(any(isnan([data]),2))
+    group(any(isnan([data]),2)) = [];
+    if ~isempty(clusters)
+      clusters(any(isnan([data]),2)) = [];
+    end
+    if ~isempty(strata)
+      strata(any(isnan([data]),2)) = [];
+    end
+    data(any(isnan([data]),2),:) = [];
   end
 
   % Assign non-zero numbers to group labels
   [gnames,~,g] = unique(group);
-  if isempty(clusters)
-    N = size(g,1);
-  else
-    N = numel(unique(clusters));
-  end
   gk = unique(g);
   k = numel(gk);
   if ~isempty(ref)
@@ -447,14 +857,26 @@ function [p, c, stats] = ibootnhst (data, group, varargin)
       ref = gk(strcmp(gnames,ref));
     end
   end
+            
+  % Get data structure information
+  if isempty(clusters)
+    N = size(g,1);
+  else
+    N = numel(unique(clusters));
+  end
+  if isempty(strata)
+    l = 1;
+  else
+    l = numel(unique(strata)); % number of strata
+  end
   
-  % Define function to calculate maximum difference among groups
-  func = @(data) maxstat(data,g,nboot(2),bootfun,ref,clusters);
+  % Define a function to calculate maxT
+  func = @(data) maxstat(data,g,nboot(2),bootfun,ref,clusters,strata);
 
   % Perform resampling and calculate bootstrap statistics
-  state = warning;
+  state = warning; 
   warning off;    % silence warnings about non-vectorized bootfun
-  Q = bootstrp (nboot(1),func,data,'cluster',clusters,'Options',paropt);
+  Q = bootstrp (nboot(1),func,data,'cluster',clusters,'strata',strata,'Options',paropt);
   warning(state);
 
   % Compute the estimate (theta) and it's pooled (weighted mean) sampling variance 
@@ -494,13 +916,14 @@ function [p, c, stats] = ibootnhst (data, group, varargin)
       end
       SE(j) = std(t);
     end
-    Var(j) = ((nk(j)-1)/(N-k)) * SE(j)^2;
+    Var(j) = ((nk(j)-1)/(N-k-(l-1))) * SE(j)^2;
   end
   if any(nk <= 1)
     error('the number of observations or clusters per group must be greater than 1')
   end
   nk_bar = sum(nk.^2)./sum(nk);  % weighted mean sample size
   Var = sum(Var.*nk/nk_bar);     % pooled sampling variance weighted by sample size
+  df = sum(nk)-k-(l-1);          % degrees of freedom
 
   % Calculate weights to correct for unequal sample size  
   % when calculating standard error of the difference
@@ -514,8 +937,7 @@ function [p, c, stats] = ibootnhst (data, group, varargin)
 
   % Calculate p-values for comparisons adjusted to simultaneously control the FWER
   if isempty(ref)
-    % Resampling version of Tukey-Kramer HSD test
-    % Note that Tukey's q-ratio here does not have the sqrt(2) factor. 
+    % Single-step maxT procedure for pairwise comparisons is a resampling version of Tukey-Kramer HSD test
     A = ones(k,1)*gk';
     B = tril(gk*ones(1,k),-1);
     M = [A(:) B(:)];
@@ -539,7 +961,7 @@ function [p, c, stats] = ibootnhst (data, group, varargin)
       c(i,9) = c(i,5) + SED * interp1(cdf,QS,1-alpha,'linear');
     end
   else
-    % Resampling version of Dunnett's test
+    % Single-step maxT procedure for treatment vs control comparisons is a resampling version of Dunnett's test
     c = zeros(k,9);
     c(:,1) = ref;
     c(:,3) = theta(ref);
@@ -561,7 +983,7 @@ function [p, c, stats] = ibootnhst (data, group, varargin)
   end
 
   % Calculate (maximum) test statistic and (minimum) p-value for the omnibus test
-  q = max(c(:,6));
+  maxT = max(c(:,6));
   p = min(c(:,7));
 
   % Prepare stats output structure
@@ -571,13 +993,16 @@ function [p, c, stats] = ibootnhst (data, group, varargin)
   stats.gnames = gnames;
   stats.ref = ref;
   stats.groups = zeros(k,5);
-  stats.groups(:,1) = theta;
-  stats.groups(:,2) = nk;
-  stats.groups(:,3) = SE;
-  stats.groups(:,4) = theta - sqrt((0.5*(w+1)).*Var/2) * interp1(cdf,QS,1-alpha,'linear');
-  stats.groups(:,5) = theta + sqrt((0.5*(w+1)).*Var/2) * interp1(cdf,QS,1-alpha,'linear');
+  stats.groups = zeros(k,5);
+  stats.groups(:,1) = gk;
+  stats.groups(:,2) = theta;
+  stats.groups(:,3) = nk;
+  stats.groups(:,4) = SE;
+  stats.groups(:,5) = theta - sqrt((0.5*(w+1)).*Var/2) * interp1(cdf,QS,1-alpha,'linear');
+  stats.groups(:,6) = theta + sqrt((0.5*(w+1)).*Var/2) * interp1(cdf,QS,1-alpha,'linear');
   stats.Var = Var;
-  stats.stat = q;
+  stats.maxT = maxT;
+  stats.df = df;
   stats.nboot = nboot;
   stats.alpha = alpha;
   stats.clusters = clusters;
@@ -590,31 +1015,40 @@ function [p, c, stats] = ibootnhst (data, group, varargin)
                     'Summary of bootstrap null hypothesis (H0) significance test(s)\n',...
                     '******************************************************************************\n']);
     if isempty(ref)
-      fprintf ('H0: Groups of data are all sampled from the same population\n\n');
+      fprintf (['Overall hypothesis test from single-step maxT procedure\n',...
+               'H0: Groups of data are all sampled from the same population\n\n']);
     else
-      fprintf ('H0: Groups of data are all sampled from the same population as data in ref\n\n');
+      fprintf (['Overall hypothesis test from single-step maxT procedure\n',...
+               'H0: Groups of data are all sampled from the same population as data in ref\n\n']);
     end
-    if (p < 0.001)
-      fprintf (['Overall test p-value: <0.001 \n',...
-                '------------------------------------------------------------------------------\n']);
+    if (p <= 0.001)
+      fprintf (['Maximum t(%u) = %.2f, p-adj = <.001 \n',...
+                '------------------------------------------------------------------------------\n'],[df,maxT]);
+    elseif (p > 0.999)
+      fprintf (['Maximum t(%u) = %.2f, p-adj = 1.000 \n',...
+          '------------------------------------------------------------------------------\n'],[df,maxT]);
     else
-      fprintf (['Overall test p-value: %.3f \n',...
-                '------------------------------------------------------------------------------\n'],p);
+      fprintf (['Maximum t(%u) = %.2f, p-adj = .%03u \n',...
+                '------------------------------------------------------------------------------\n'],[df,maxT,round(p*1000)]);
     end
     if size(c,1) > 1
       fprintf (['\n',...
-                      'POST HOC TESTS (with simultaneous control of the FWER)\n',...
-                      '------------------------------------------------------------------------------\n',...
-                      '| Comparison |  Reference # |       Test # |  Difference | q-ratio |  p-value|\n',...
-                      '|------------|--------------|--------------|-------------|---------|---------|\n']);
+                'POST HOC TESTS with control of the FWER by the single-step maxT procedure\n',...
+                '------------------------------------------------------------------------------\n',...
+                '| Comparison |  Reference # |       Test # |  Difference |    t(df)|   p-adj |\n',...
+                '|------------|--------------|--------------|-------------|---------|---------|\n']);
       if isempty(ref)
         for i = 1:n
           tmp = num2cell(c(i,cols));
-          if (c(i,7) < 0.001)
+          tmp{end} = round(tmp{end} * 1000);
+          if (c(i,7) <= 0.001)
             tmp(end) = [];
-            fprintf ('| %10u | %12u | %12u | %+11.2e | %7.3f |  <0.001 |***\n',i,tmp{:});
+            fprintf ('| %10u | %12u | %12u | %+11.2e | %7.2f |   <.001 |***\n',i,tmp{:});
+          elseif (c(i,7) > 0.999)
+            tmp(end) = [];
+            fprintf ('| %10u | %12u | %12u | %+11.2e | %7.2f |   1.000 |\n',i,tmp{:});
           else
-            fprintf ('| %10u | %12u | %12u | %+11.2e | %7.3f |   %.3f |',i,tmp{:});
+            fprintf ('| %10u | %12u | %12u | %+11.2e | %7.2f |    .%03u |',i,tmp{:});
             if c(i,7) < 0.01
               fprintf('**\n')
             elseif c(i,7) < 0.05
@@ -627,11 +1061,15 @@ function [p, c, stats] = ibootnhst (data, group, varargin)
       else
         for j = 1:k-1
           tmp = num2cell(c(j,cols));
-          if (c(j,7) < 0.001)
+          tmp{end} = round(tmp{end} * 1000);
+          if (c(j,7) <= 0.001)
             tmp(end) = [];
-            fprintf ('| %10u | %12u | %12u | %+11.2e | %7.3f |  <0.001 |***\n',j,tmp{:});
+            fprintf ('| %10u | %12u | %12u | %+11.2e | %7.2f |   <.001 |***\n',j,tmp{:});
+          elseif (c(j,7) > 0.999)
+            tmp(end) = [];
+            fprintf ('| %10u | %12u | %12u | %+11.2e | %7.2f |   1.000 |\n',j,tmp{:});
           else
-            fprintf ('| %10u | %12u | %12u | %+11.2e | %7.3f |   %.3f |',j,tmp{:});
+            fprintf ('| %10u | %12u | %12u | %+11.2e | %7.2f |    .%03u |',j,tmp{:});
             if c(j,7) < 0.01
               fprintf('**\n')
             elseif c(j,7) < 0.05
@@ -642,9 +1080,10 @@ function [p, c, stats] = ibootnhst (data, group, varargin)
           end
         end
       end
+      fprintf('\nWhere degrees of freedom (df) = %u\n',df)
       fprintf (['\n',...
                 '------------------------------------------------------------------------------\n',...
-                '|    GROUP # |                                                         GROUP |\n',...
+                '|    GROUP # |                                                   GROUP label |\n',...
                 '|------------|---------------------------------------------------------------|\n']);
       if ~iscellstr(gnames)
         gnames = cellstr(num2str(gnames));

@@ -759,7 +759,7 @@ function [ci,bootstat,S,calcurve,idx] = ibootci(argin1,argin2,varargin)
     %catch
     %  error('An error occurred while trying to evaluate bootfun with the input data');
     %end
-    if isinf(T0) || isnan(T0)
+    if any(isinf(T0)) || any(isnan(T0))
       error('bootfun returns a NaN or Inf')
     end
     if max(size(T0))>1
