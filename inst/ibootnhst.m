@@ -812,7 +812,7 @@ function [p, c, stats] = ibootnhst (data, group, varargin)
   end
   if ~isempty(strata)
     if (size(strata,2) > 1) || (size(strata,1) ~= size(data,1))
-      error('strata must be a column vactor with the same number of rows as DATA')
+      error('strata must be a column vector with the same number of rows as DATA')
     end
   end
   if ~isempty(strata) && ~isempty(clusters)
