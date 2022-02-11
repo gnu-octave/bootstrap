@@ -8,8 +8,8 @@
 %  ibootnhst(...,'bootfun',bootfun);
 %  ibootnhst(...,'nboot',nboot);
 %  ibootnhst(...,'ref',ref);
-%  ibootnhst(...,'cluster',clusters);
-%  ibootnhst(...,'strata',strata);
+%  ibootnhst(...,'block',blocks);
+%  ibootnhst(...,'nested',clusters);
 %  ibootnhst(...,'Options',paropt);
 %  ibootnhst(...,'alpha',alpha);
 %  p = ibootnhst(...,'dim',dim)
@@ -21,9 +21,9 @@
 %  multivatiate (matrix) DATA, to compare bootfun (default is the 'mean') 
 %  evaluated on independent or dependent GROUPs (i.e. samples) [1]. This 
 %  function is appropriate for post hoc comparisons among a family of 
-%  hypothesis tests and comparing groups. The family-wise error rate 
-%  (FWER) of pairwise comparisons, or comparisons to a reference group, is
-%  controlled by the single-step maxT procedure on bootstrap resamples.
+%  hypothesis tests and comparing groups. The family-wise error rates 
+%  (FWER) of pairwise comparisons, or comparisons to a reference group,
+%  are controlled by the single-step maxT procedure on bootstrap resamples.
 %  Thus, depending on the comparisons requested using the ref input   
 %  argument, the p-value adjustments are essentially bootstrap versions of 
 %  either Tukey-Kramer's or Dunnett's tests. Unlike these tests though, 
@@ -67,10 +67,14 @@
 %  indicating the number of replicate samples for the first (bootstrap) 
 %  and second (bootknife) levels of iterated resampling. The default
 %  value of nboot is [1000,1000]. Increasing the values of nboot reduce
-%  the monte carlo error of the p-value (and confidence interval)  
+%  the monte carlo error of the p-value (and confidence interval)
 %  estimates but the calculations take longer to complete. If nboot(2) is 
-%  zero (or if cluster bootstrap is requested) then ibootnhst calculates  
-%  standard errors for studentization using jacknife resampling instead.
+%  zero (or if a hierarchical data structure is defined with 'nested') 
+%  then ibootnhst calculates standard errors for studentization using 
+%  jackknife resampling instead. Since jackknife resampling is not random,
+%  setting nboot(2) to 0 can also reduce monte carlo error but jackknife
+%  is only suitable where bootfun is a smooth function of the data (e.g.
+%  'mean' or 'smoothmedian').
 %
 %  ibootnhst(...,'ref',ref) also sets the GROUP to use as the reference 
 %  GROUP for post hoc tests. For a one-way experimental design or family of 
@@ -100,29 +104,35 @@
 %        the GROUP ref with respect to the parameter defined by bootfun (which   
 %        by default is the mean).  
 %
-%  ibootnhst(...,'cluster',clusters) specifies a column vector of numeric 
+%  ibootnhst(...,'block',blocks) specifies a column vector of numeric 
 %  identifiers with the same number of rows as DATA. The identifiers should 
-%  indicate cluster membership of the data rows. Clusters are resampled by 
-%  two-stage bootstrap resampling of residuals with shrinkage correction 
-%  (see bootstrp help for more information). Because specifying clusters 
-%  causes ibootnhst to resample residuals, the bootstrap becomes semi-
-%  parametric. The clusters input argument can be used to accomodate for a 
-%  single level of nesting in heirarchical data structures. This resampling 
-%  strategy is appropriate when the family of tests has a split plot design 
-%  layout, like in a nested 1-way anova. See end of this help for an example.  
-%  If left clusters is empty, this argument is ignored. This function will 
-%  return an error if any GROUP is not represented by more than one cluster, 
-%  but there is no restriction on the number of data rows in any cluster. Note 
-%  that the value in nboot(2) is ignored since specifying cluster identifiers 
-%  enforces cluster-jackknife to compute standard errors and studentized test 
-%  statistics.
+%  indicate block membership of the data rows. Data in a data block are 
+%  centered and the resampling is stratified to impose restrictions on the
+%  exchangeability of data to within blocks. Since the data must be centered
+%  using bootfun, this feature only supports the following values for bootfun:
+%  'mean', 'median', 'pseudomedian', 'smoothmedian' (or 'robust'). This option
+%  is appropriate when the family of tests has a randomized block design or
+%  one-way repeated measures layout. See end of this help for an example. The
+%  'block' option here should not be confused with the block option in ibootci.
 %
-%  ibootnhst(...,'strata',strata) specifies a column vector of numeric 
+%  ibootnhst(...,'nested',clusters) specifies a column vector of numeric 
 %  identifiers with the same number of rows as DATA. The identifiers should 
-%  indicate stratum membership of the data rows. Stratified resampling 
-%  imposes restrictions on the exchangeability of data that is resampled.
-%  This resampling strategy is appropriate when the family of tests has
-%  a one-way repeated measures layout. See end of this help for an example.
+%  indicate subgroups (a.k.a clusters) of the data rows nested within the 
+%  GROUPs. The clusters are resampled by two-stage bootstrap resampling of 
+%  residuals with shrinkage correction (see bootstrp help for more 
+%  information). For multivariate data, the residuals are calculated as the 
+%  difference of the data values from the column-wise mean vector. Because 
+%  specifying clusters causes ibootnhst to resample residuals, the bootstrap 
+%  becomes semi-parametric. The clusters input argument can be used to 
+%  accomodate for a single level of nesting in heirarchical data structures. 
+%  This resampling strategy is appropriate when the family of tests has a  
+%  split plot design layout, and is a bootstrap version of a nested 1-way  
+%  ANOVA. See end of this help for an example of this application. This  
+%  function will return an error if any GROUP is not represented by more than
+%  one cluster, but there is no restriction on the number of data rows in any 
+%  cluster. Note that the value in nboot(2) is ignored since specifying 
+%  cluster identifiers enforces cluster-jackknife to compute standard errors 
+%  and studentized test statistics. If empty, this argument is ignored. 
 %
 %  ibootnhst(...,'Options',paropt) specifies options that govern if and 
 %  how to perform bootstrap iterations using multiple processors (if the 
@@ -200,6 +210,7 @@
 %   nboot    - number of bootstrap resamples
 %   alpha    - two-tailed significance level for the confidence interval 
 %              coverage of 0 (in c) or interval overlap (in stats.groups)
+%   blocks   - vector of numeric identifiers indicating block membership.
 %   clusters - vector of numeric identifiers indicating cluster membership
 %   bootstat - test statistic computed for each bootstrap resample 
 %
@@ -338,7 +349,7 @@
 %                   1    2    3    4    5    6    7    8    9
 %                   1    2    3    4    5    6    7    8    9
 %                   1    2    3    4    5    6    7    8    9];
-%   >> ibootnhst(y(:),g(:),'cluster',clusters(:));
+%   >> ibootnhst(y(:),g(:),'nested',clusters(:));
 %
 % Summary of bootstrap null hypothesis (H0) significance test(s)
 % ******************************************************************************
@@ -380,14 +391,12 @@
 %                  1    2
 %                  1    2
 %                  1    2];
-%   >> strata = [  1    1
+%   >> blocks = [  1    1
 %                  2    2
 %                  3    3
 %                  4    4
 %                  5    5];
-%   >> % Center the data at row mean for within-subjects comparisons
-%   >> z = bsxfun(@minus,y,mean(y,2));
-%   >> ibootnhst (z(:),g(:),'strata',strata(:));   
+%   >> ibootnhst (y(:),g(:),'block',blocks(:));   
 %
 % Summary of bootstrap null hypothesis (H0) significance test(s)
 % ******************************************************************************
@@ -411,15 +420,12 @@
 %                 1  2  3  4
 %                 1  2  3  4
 %                 1  2  3  4];
-%   >> % Set restrictions of exchangeability to within-subjects using stratified resampling
-%   >> strata = [ 1  1  1  1
+%   >> blocks = [ 1  1  1  1
 %                 2  2  2  2
 %                 3  3  3  3
 %                 4  4  4  4 
 %                 5  5  5  5];
-%   >> % Center the data at row mean for within-subjects comparisons
-%   >> z = bsxfun(@minus,y,mean(y,2));
-%   >> ibootnhst (z(:),g(:),'strata',strata(:));
+%   >> ibootnhst (y(:),g(:),'block',blocks(:));
 %
 % Summary of bootstrap null hypothesis (H0) significance test(s)
 % ******************************************************************************
@@ -524,13 +530,11 @@
 %                  1     2     3     4     5 
 %                NaN   NaN   NaN   NaN   NaN
 %                NaN   NaN   NaN   NaN   NaN];
-%    >> strata = [  1     1     1     1     1
+%    >> blocks = [  1     1     1     1     1
 %                   2     2     2     2     2
 %                   3     3     3     3     3
 %                   4     4     4     4     4];
-%   >> % Center the data at row mean for within-subjects comparisons
-%   >> z = bsxfun(@minus,y,mean(y,2));
-%   >> ibootnhst (z(:),g(:),'strata',strata(:),'ref',1,'nboot',[1000,0]);
+%   >> ibootnhst (y(:),g(:),'block',blocks(:),'ref',1,'nboot',[1000,0]);
 %
 % Summary of bootstrap null hypothesis (H0) significance test(s)
 % ******************************************************************************
@@ -564,7 +568,7 @@
 %                NaN   NaN   NaN   NaN   NaN
 %                  1     2     3     4     5
 %                  1     2     3     4     5 ];
-%   >> ibootnhst (z(:),g(:),'strata',strata(:),'ref',1,'nboot',[1000,0]);
+%   >> ibootnhst (y(:),g(:),'block',blocks(:),'ref',1,'nboot',[1000,0]);
 %
 % Summary of bootstrap null hypothesis (H0) significance test(s)
 % ******************************************************************************
@@ -635,7 +639,7 @@
 %        Sampling vs. Smoothing, Proceedings of the Section on Statistics 
 %        and the Environment, American Statistical Association, 2924-2930.
 %
-%  ibootnhst v1.6.0.0 (06/02/2022)
+%  ibootnhst v1.7.0.0 (11/02/2022)
 %  Author: Andrew Charles Penn
 %  https://www.researchgate.net/profile/Andrew_Penn/
 %
@@ -689,9 +693,9 @@ function [p, c, stats] = ibootnhst (data, group, varargin)
         alpha = argin3{end};
       elseif strcmpi(argin3{end-1},'dim')
         dim = argin3{end};
-      elseif any(strcmpi(argin3{end-1},{'cluster','clusters'}))
+      elseif any(strcmpi(argin3{end-1},{'cluster','clusters','clustered','nested','nests','nesting'}))
         clusters = argin3{end};
-      elseif any(strcmpi(argin3{end-1},{'strata','stratum','stratified'}))
+      elseif any(strcmpi(argin3{end-1},{'block','blocks','stratum','strata','stratified'}))
         strata = argin3{end};
       else
         error('unrecognised input argument to ibootnhst')
@@ -780,6 +784,19 @@ function [p, c, stats] = ibootnhst (data, group, varargin)
       else
         bootfun = @smoothmedian;
       end
+      if ~isempty(clusters)
+        fprintf('\nNote: Switching to parametric resampling. Cluster resampling here uses residuals from the column-wise mean vector.')
+      end
+    elseif strcmpi(bootfun,'pseudomedian') 
+      if nvar > 1
+        % Grand pseudomedian for multivariate data
+        bootfun = @(data) pseudomedian(pseudomean(data,dim));
+      else
+        bootfun = @pseudomedian;
+      end
+      if ~isempty(clusters)
+        fprintf('\nNote: Switching to parametric resampling. Cluster resampling here uses residuals from the column-wise mean vector.')
+      end
     elseif strcmpi(bootfun,'median')
       if (nboot(2) == 0)
         error('jacknife resampling cannot be used to calculate standard errors of the median')
@@ -792,9 +809,20 @@ function [p, c, stats] = ibootnhst (data, group, varargin)
         bootfun = @(data) median(median(data,dim));
       else
         bootfun = @median;
-      end 
+      end
+      if ~isempty(clusters)
+        fprintf('\nNote: Switching to parametric resampling. Cluster resampling here uses residuals from the column-wise mean vector.')
+      end
+    else
+      if ~isempty(strata)
+        error('bootfun is not (and must be) a recognised location parameter for the center of the data distribution.')
+      end
+      if ~isempty(clusters)
+        fprintf('\nNote: Switching to parametric resampling. Cluster resampling here uses residuals from the column-wise mean vector.')
+      end
     end
   end
+
   if ~isempty(ref) && strcmpi(ref,'pairwise')
     ref = [];
   end
@@ -806,7 +834,7 @@ function [p, c, stats] = ibootnhst (data, group, varargin)
   end
   if ~isempty(clusters)
     if (size(clusters,2) > 1) || (size(clusters,1) ~= size(data,1))
-      error('clusters must be a column vactor with the same number of rows as DATA')
+      error('clusters must be a column vector with the same number of rows as DATA')
     end
     opt = struct;
   end
@@ -869,7 +897,16 @@ function [p, c, stats] = ibootnhst (data, group, varargin)
   else
     l = numel(unique(strata)); % number of strata
   end
-  
+ 
+  % If applicable, center each stratum on stratum (grand) mean 
+  % Note that the bootstrap becomes semiparametric
+  if ~isempty(strata)
+    sk = unique(strata);
+    for i=1:l
+      data(strata==sk(i),:) = data(strata==sk(i),:) - feval(bootfun, feval(bootfun,data(strata==sk(i),:),2) ,1);
+    end
+  end
+
   % Define a function to calculate maxT
   func = @(data) maxstat(data,g,nboot(2),bootfun,ref,clusters,strata);
 
@@ -1005,6 +1042,7 @@ function [p, c, stats] = ibootnhst (data, group, varargin)
   stats.df = df;
   stats.nboot = nboot;
   stats.alpha = alpha;
+  stats.blocks = strata;
   stats.clusters = clusters;
   stats.bootstat = Q;
 
