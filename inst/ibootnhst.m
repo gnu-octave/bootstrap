@@ -109,11 +109,13 @@
 %  indicate block membership of the data rows. Data in a data block are 
 %  centered and the resampling is stratified to impose restrictions on the
 %  exchangeability of data to within blocks. Since the data must be centered
-%  using bootfun, this feature only supports the following values for bootfun:
-%  'mean', 'median', 'pseudomedian', 'smoothmedian' (or 'robust'). This option
-%  is appropriate when the family of tests has a randomized block design or
-%  one-way repeated measures layout. See end of this help for an example. The
-%  'block' option here should not be confused with the block option in ibootci.
+%  using bootfun, this feature only supports location parameters, of which
+%  ibootnhst currently supports the following L-estimators ('mean', 'median', 
+%  'pseudomedian') and M-estimators ('smoothmedian', a.k.a. 'robust') for 
+%  bootfun. This option is appropriate when the family of tests has a randomized 
+%  block design or one-way repeated measures layout. See end of this help for an 
+%  example. The 'block' option here should not be confused with the block option
+%  in ibootci.
 %
 %  ibootnhst(...,'nested',clusters) specifies a column vector of numeric 
 %  identifiers with the same number of rows as DATA. The identifiers should 
