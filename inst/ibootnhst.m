@@ -530,10 +530,10 @@
 %                  1     2     3     4     5 
 %                NaN   NaN   NaN   NaN   NaN
 %                NaN   NaN   NaN   NaN   NaN];
-%    >> blocks = [  1     1     1     1     1
-%                   2     2     2     2     2
-%                   3     3     3     3     3
-%                   4     4     4     4     4];
+%   >> blocks = [  1     1     1     1     1
+%                  2     2     2     2     2
+%                  3     3     3     3     3
+%                  4     4     4     4     4];
 %   >> ibootnhst (y(:),g(:),'block',blocks(:),'ref',1,'nboot',[1000,0]);
 %
 % Summary of bootstrap null hypothesis (H0) significance test(s)
