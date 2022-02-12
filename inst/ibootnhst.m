@@ -110,12 +110,11 @@
 %  centered and the resampling is stratified to impose restrictions on the
 %  exchangeability of data to within blocks. Since the data must be centered
 %  using bootfun, this feature only supports location parameters, of which
-%  ibootnhst currently supports the following L-estimators ('mean', 'median', 
-%  'pseudomedian') and M-estimators ('smoothmedian', a.k.a. 'robust') for 
-%  bootfun. This option is appropriate when the family of tests has a randomized 
-%  block design or one-way repeated measures layout. See end of this help for an 
-%  example. The 'block' option here should not be confused with the block option
-%  in ibootci.
+%  ibootnhst currently supports the 'mean' or 'smoothmedian' (a.k.a. 
+%  'robust') for bootfun. This option is appropriate when the family of 
+%  tests has a randomized block design or one-way repeated measures layout. 
+%  See end of this help for an example. N.B. The 'block' option here should 
+%  not be confused with the block option in ibootci.
 %
 %  ibootnhst(...,'nested',clusters) specifies a column vector of numeric 
 %  identifiers with the same number of rows as DATA. The identifiers should 
@@ -163,7 +162,7 @@
 %  that while setting dim can affect the result when bootfun is the median,
 %  both values give the same result when bootfun is the mean (i.e. for the
 %  grand mean). This name-value pair is only used if bootfun is 'mean', 
-%  'median', 'smoothmedian', or 'robust'.
+%  or 'smoothmedian' (or 'robust').
 %
 %  p = ibootnhst(DATA,GROUP) returns a single p-value for the overall,
 %  omnibus hypothesis test and represents the multiplicity-adjusted p-value 
@@ -757,19 +756,6 @@ function [p, c, stats] = ibootnhst (data, group, varargin)
       else
         bootfun = @smoothmedian;
       end
-    elseif all(bootfun(data) == median(data))
-      if (nboot(2) == 0)
-        error('jacknife resampling cannot be used to calculate standard errors of the median')
-      end
-      if ~isempty(clusters)
-        error('cluster-jacknife resampling cannot be used to calculate standard errors of the median')
-      end
-      if nvar > 1 
-        % Grand median for multivariate data
-        bootfun = @(data) median(median(data,dim));
-      else
-        bootfun = @median;
-      end  
     end
   elseif isa(bootfun,'char')
     if strcmpi(bootfun,'mean') 
@@ -789,38 +775,12 @@ function [p, c, stats] = ibootnhst (data, group, varargin)
       if ~isempty(clusters)
         fprintf('\nNote: Switching to parametric resampling. Cluster resampling here uses residuals from the column-wise mean vector.')
       end
-    elseif strcmpi(bootfun,'pseudomedian') 
-      if nvar > 1
-        % Grand pseudomedian for multivariate data
-        bootfun = @(data) pseudomedian(pseudomean(data,dim));
-      else
-        bootfun = @pseudomedian;
-      end
-      if ~isempty(clusters)
-        fprintf('\nNote: Switching to parametric resampling. Cluster resampling here uses residuals from the column-wise mean vector.')
-      end
-    elseif strcmpi(bootfun,'median')
-      if (nboot(2) == 0)
-        error('jacknife resampling cannot be used to calculate standard errors of the median')
-      end
-      if ~isempty(clusters)
-        error('cluster-jacknife resampling cannot be used to calculate standard errors of the median')
-      end
-      if nvar > 1 
-        % Grand median for multivariate data
-        bootfun = @(data) median(median(data,dim));
-      else
-        bootfun = @median;
-      end
-      if ~isempty(clusters)
-        fprintf('\nNote: Switching to parametric resampling. Cluster resampling here uses residuals from the column-wise mean vector.')
-      end
     else
       if ~isempty(strata)
-        error('bootfun is not (and must be) a recognised location parameter for the center of the data distribution.')
+        error('bootfun must be ''mean'' or ''robust'' to set blocking factors.')
       end
       if ~isempty(clusters)
-        fprintf('\nNote: Switching to parametric resampling. Cluster resampling here uses residuals from the column-wise mean vector.')
+        fprintf('\nSwitching to parametric resampling. Cluster resampling here uses residuals from the column-wise mean vector.')
       end
     end
   end
