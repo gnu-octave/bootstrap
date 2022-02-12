@@ -5,14 +5,8 @@ function [mu, Z, K, g] = clustmean (x, clusters, nvar)
   % Calculates shrunken cluster means and residuals for cluster bootstrap
   % See also bootclust function below
 
-  % Center and scale data
-  z = cell(1,nvar);
-  for v = 1:nvar
-    z{v} = (x{v} - mean(x{v})) / std(x{v});
-  end
-
-  % Calculate sum-of-squared error components
-  [SSb, SSw, K, g] = sse_calc (z, clusters, nvar);
+  % Calculate sum-of-squared error components and number of clusters
+  [SSb, SSw, K, g] = sse_calc (x, clusters, nvar);
   SSb = sum(SSb);
   SSw = sum(SSw);
 
