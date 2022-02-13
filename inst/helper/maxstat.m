@@ -30,18 +30,38 @@ function maxT = maxstat (Y, g, nboot, bootfun, ref, clusters, strata)
   t = zeros(nboot,1); 
   nk = zeros(size(gk));
   for j = 1:k
-    theta(j) = feval(bootfun,Y(g==gk(j),:));
     if ~isempty(clusters)
+      theta(j) = feval(bootfun,Y(g==gk(j),:));
       % Compute unbiased estimate of the standard error by cluster-jackknife resampling
       opt = struct;
       opt.clusters = clusters(g==gk(j));
       nk(j) = numel(unique(opt.clusters));
       SE(j) = jack (Y(g==gk(j),:), bootfun, [], opt);
+    elseif strcmpi(bootfun,'mean')
+      theta(j) = feval(bootfun,Y(g==gk(j),:));
+      % If data is univariate and bootfun is simply the mean, calculate standard error without resampling
+      nk(j) = sum(g==gk(j));
+      SE(j) = std(Y(g==gk(j),:))/sqrt(nk(j));
+    elseif strcmpi(bootfun,'smoothmedian')
+      nk(j) = sum(g==gk(j));
+      %if nk(j) < 10
+      %  % Compute unbiased standard error of the smoothed median using jackknife resampling
+      %  % Jackknife estimates of the standard error are more reliable (and computationally 
+      %  % feasible) when sample size is small
+      %  theta(j) = feval(bootfun,Y(g==gk(j),:));
+      %  SE(j) = jack(Y(g==gk(j),:), bootfun);
+      %else
+        % Compute unbiased standard error of the smoothed median without resampling.
+        % These are suffiently accurate when sample size is >= 10
+        [theta(j),SE(j)] = feval(bootfun,Y(g==gk(j),:));
+      %end
     elseif (nboot == 0)
+      theta(j) = feval(bootfun,Y(g==gk(j),:));
       % If requested, compute unbiased estimates of the standard error using jackknife resampling
       nk(j) = sum(g==gk(j));
       SE(j) = jack (Y(g==gk(j),:), bootfun);
     else
+      theta(j) = feval(bootfun,Y(g==gk(j),:));
       % Compute unbiased estimate of the standard error by bootknife resampling
       % Bootknife resampling involves less computation than Jackknife when sample sizes get larger
       nk(j) = sum(g==gk(j));

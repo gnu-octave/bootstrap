@@ -8,9 +8,9 @@
 %  ibootnhst(...,'bootfun',bootfun);
 %  ibootnhst(...,'nboot',nboot);
 %  ibootnhst(...,'ref',ref);
-%  ibootnhst(...,'block',blocks);
-%  ibootnhst(...,'nested',clusters);
-%  ibootnhst(...,'Options',paropt);
+%  ibootnhst(...,'block',blocks);    % for bootfun 'mean' or 'robust' only
+%  ibootnhst(...,'nested',clusters); % for bootfun 'mean' or 'robust' only
+%  ibootnhst(...,'Options',paropt);  
 %  ibootnhst(...,'alpha',alpha);
 %  p = ibootnhst(...,'dim',dim)
 %  [p,c] = ibootnhst(DATA,GROUP,...)
@@ -53,28 +53,34 @@
 %  ibootnhst(...,'bootfun',bootfun) sets the statistic calculated from
 %  the bootstrap samples. This can be a function handle or string
 %  corresponding to the function name. The calculation of bootfun on 
-%  the DATA must return a scalar value. If empty, the default is @mean  
-%  or 'mean'. If DATA is multivariate, bootfun is the grand mean, which  
-%  is the mean of the means of each column (i.e. variates). The standard 
-%  errors are estimated by bootknife [2], jacknife, or cluster-jacknife. 
-%  If a robust statistic for central location is required, setting bootfun 
-%  to 'robust' implements a smoothed version of the median (see function 
-%  help for smoothmedian). Note that if bootfun is not the mean, the 
-%  t-statistics returned by this function will not be comparable with 
+%  the each GROUP of DATA must return a scalar value. If empty, the 
+%  default is @mean or 'mean'. If empty and DATA is multivariate, 
+%  bootfun is the grand mean, which is the mean of the means of each 
+%  column (i.e. variates). If a robust statistic for central location 
+%  is required, setting bootfun to 'robust' sets ibootnhst to use a 
+%  smoothed version of the median (see function help for smoothmedian). 
+%  Usually, if bootfun is not 'mean' or 'robust', or data is multivariate, 
+%  the standard errors are estimated by bootknife [2], jackknife, or 
+%  cluster-jackknife. An exception is if bootfun is set to 'robust' and 
+%  the GROUP sample size is < 10, in which case ibootnhst to will compute 
+%  standard errors using jaccknife. Note that if bootfun is not the mean, 
+%  the t-statistics  returned by this function will not be comparable with 
 %  tabulated values.
 %
 %  ibootnhst(...,'nboot',nboot) is a vector of upto two positive integers
 %  indicating the number of replicate samples for the first (bootstrap) 
 %  and second (bootknife) levels of iterated resampling. The default
 %  value of nboot is [1000,1000]. Increasing the values of nboot reduce
-%  the monte carlo error of the p-value (and confidence interval)
+%  the Monte Carlo error of the p-value (and confidence interval)
 %  estimates but the calculations take longer to complete. If nboot(2) is 
 %  zero (or if a hierarchical data structure is defined with 'nested') 
 %  then ibootnhst calculates standard errors for studentization using 
 %  jackknife resampling instead. Since jackknife resampling is not random,
-%  setting nboot(2) to 0 can also reduce monte carlo error but jackknife
-%  is only suitable where bootfun is a smooth function of the data (e.g.
-%  'mean' or 'smoothmedian').
+%  setting nboot(2) to 0 can also reduce Monte Carlo error but jackknife
+%  is only suitable where bootfun is a smooth function of the data. Note 
+%  that nboot(2) is ignored if data is univariate and bootfun is 'mean' 
+%  or 'robust' - standard errors are then calculated without resampling 
+%  (or using jackknife for 'robust' if the GROUP sample size is < 10).
 %
 %  ibootnhst(...,'ref',ref) also sets the GROUP to use as the reference 
 %  GROUP for post hoc tests. For a one-way experimental design or family of 
@@ -110,11 +116,9 @@
 %  centered and the resampling is stratified to impose restrictions on the
 %  exchangeability of data to within blocks. Since the data must be centered
 %  using bootfun, this feature only supports location parameters, of which
-%  ibootnhst currently supports the 'mean' or 'smoothmedian' (a.k.a. 
-%  'robust') for bootfun. This option is appropriate when the family of 
-%  tests has a randomized block design or one-way repeated measures layout. 
-%  See end of this help for an example. N.B. The 'block' option here should 
-%  not be confused with the block option in ibootci.
+%  ibootnhst supports bootfun being either 'mean' or 'robust'. This option
+%  is appropriate when the family of tests has a randomized block design or
+%  one-way repeated measures layout. See end of this help for an example.
 %
 %  ibootnhst(...,'nested',clusters) specifies a column vector of numeric 
 %  identifiers with the same number of rows as DATA. The identifiers should 
@@ -126,14 +130,16 @@
 %  specifying clusters causes ibootnhst to resample residuals, the bootstrap 
 %  becomes semi-parametric. The clusters input argument can be used to 
 %  accomodate for a single level of nesting in heirarchical data structures. 
-%  This resampling strategy is appropriate when the family of tests has a  
-%  split plot design layout, and is a bootstrap version of a nested 1-way  
-%  ANOVA. See end of this help for an example of this application. This  
-%  function will return an error if any GROUP is not represented by more than
-%  one cluster, but there is no restriction on the number of data rows in any 
-%  cluster. Note that the value in nboot(2) is ignored since specifying 
-%  cluster identifiers enforces cluster-jackknife to compute standard errors 
-%  and studentized test statistics. If empty, this argument is ignored. 
+%  Since the bootstrap becomes semiparametric, this feature only supports 
+%  location parameters, of which ibootnhst supports bootfun being either 
+%  'mean' or 'robust'. This resampling strategy is appropriate when the 
+%  family of tests has a split plot design layout, and is a bootstrap 
+%  version of a nested 1-way ANOVA. See end of this help for an example of 
+%  this application. This function will return an error if any GROUP is not
+%  represented by more than one cluster, but there is no restriction on the 
+%  number of data rows in any cluster. Note that the value in nboot(2) is 
+%  ignored since specifying cluster identifiers enforces cluster-jackknife 
+%  to compute standard errors. If empty, this argument is ignored. 
 %
 %  ibootnhst(...,'Options',paropt) specifies options that govern if and 
 %  how to perform bootstrap iterations using multiple processors (if the 
@@ -158,11 +164,7 @@
 %  stats.groups).
 %
 %  ibootnhst(...,'dim',dim) specifies which dimension to average over the
-%  DATA first when DATA is a matrix. dim can take values of 1 or 2. Note
-%  that while setting dim can affect the result when bootfun is the median,
-%  both values give the same result when bootfun is the mean (i.e. for the
-%  grand mean). This name-value pair is only used if bootfun is 'mean', 
-%  or 'smoothmedian' (or 'robust').
+%  DATA first when DATA is a matrix. dim can take values of 1 or 2. 
 %
 %  p = ibootnhst(DATA,GROUP) returns a single p-value for the overall,
 %  omnibus hypothesis test and represents the multiplicity-adjusted p-value 
@@ -220,7 +222,7 @@
 %  variety of experimental designs:
 %
 %
-%  EXAMPLE 1: 
+%  EXAMPLE 1A: 
 %  ONE-WAY ANOVA WITH EQUAL SAMPLE SIZES: Treatment vs. Control (1)
 %
 %   >> y = [111.39 110.21  89.21  76.64  95.35  90.97  62.78;
@@ -238,19 +240,64 @@
 % Overall hypothesis test from single-step maxT procedure
 % H0: Groups of data are all sampled from the same population as data in ref
 % 
-% Maximum t(21) = 3.25, p-adj = .018 
+% Maximum t(21) = 3.24, p-adj = .017 
 % ------------------------------------------------------------------------------
 % 
 % POST HOC TESTS with control of the FWER by the single-step maxT procedure
 % ------------------------------------------------------------------------------
 % | Comparison |  Reference # |       Test # |  Difference |    t(df)|   p-adj |
 % |------------|--------------|--------------|-------------|---------|---------|
-% |          1 |            1 |            2 |   -9.48e+00 |    0.93 |    .845 |
-% |          2 |            1 |            3 |   -2.49e+01 |    2.43 |    .105 |
-% |          3 |            1 |            4 |   -3.32e+01 |    3.25 |    .018 |*
-% |          4 |            1 |            5 |   -1.35e+01 |    1.32 |    .616 |
-% |          5 |            1 |            6 |   -2.07e+01 |    2.02 |    .206 |
-% |          6 |            1 |            7 |   -3.11e+01 |    3.04 |    .027 |*
+% |          1 |            1 |            2 |   -9.48e+00 |    0.93 |    .859 |
+% |          2 |            1 |            3 |   -2.49e+01 |    2.43 |    .085 |
+% |          3 |            1 |            4 |   -3.32e+01 |    3.24 |    .017 |*
+% |          4 |            1 |            5 |   -1.35e+01 |    1.32 |    .586 |
+% |          5 |            1 |            6 |   -2.07e+01 |    2.02 |    .207 |
+% |          6 |            1 |            7 |   -3.11e+01 |    3.04 |    .025 |*
+% 
+% Where degrees of freedom (df) = 21
+% 
+% ------------------------------------------------------------------------------
+% |    GROUP # |                                                   GROUP label |
+% |------------|---------------------------------------------------------------|
+% |          1 |                                                             1 |
+% |          2 |                                                             2 |
+% |          3 |                                                             3 |
+% |          4 |                                                             4 |
+% |          5 |                                                             5 |
+% |          6 |                                                             6 |
+% |          7 |                                                             7 |
+%
+%  EXAMPLE 1B: 
+%  ONE-WAY ANOVA WITH EQUAL SAMPLE SIZES: Treatment vs. Control (1)
+%
+%   >> y = [111.39 110.21  89.21  76.64  95.35  90.97  62.78;
+%           112.93  60.36  92.29  59.54  98.93  97.03  79.65;
+%            85.24 109.63  64.93  75.69  95.28  57.41  75.83;
+%           111.96 103.40  75.49  76.69  77.95  93.32  78.70];
+%   >> g = [1 2 3 4 5 6 7;
+%           1 2 3 4 5 6 7;
+%           1 2 3 4 5 6 7;
+%           1 2 3 4 5 6 7];
+%   >> ibootnhst (y(:),g(:),'ref',1,'bootfun','robust');
+%
+% Summary of bootstrap null hypothesis (H0) significance test(s)
+% ******************************************************************************
+% Overall hypothesis test from single-step maxT procedure
+% H0: Groups of data are all sampled from the same population as data in ref
+% 
+% Maximum t(21) = 4.20, p-adj = .012 
+% ------------------------------------------------------------------------------
+% 
+% POST HOC TESTS with control of the FWER by the single-step maxT procedure
+% ------------------------------------------------------------------------------
+% | Comparison |  Reference # |       Test # |  Difference |    t(df)|   p-adj |
+% |------------|--------------|--------------|-------------|---------|---------|
+% |          1 |            1 |            2 |   -7.39e+00 |    0.87 |    .893 |
+% |          2 |            1 |            3 |   -3.02e+01 |    3.57 |    .029 |*
+% |          3 |            1 |            4 |   -3.55e+01 |    4.20 |    .012 |*
+% |          4 |            1 |            5 |   -1.64e+01 |    1.94 |    .319 |
+% |          5 |            1 |            6 |   -1.95e+01 |    2.30 |    .190 |
+% |          6 |            1 |            7 |   -3.49e+01 |    4.13 |    .013 |*
 % 
 % Where degrees of freedom (df) = 21
 % 
@@ -287,9 +334,9 @@
 % Summary of bootstrap null hypothesis (H0) significance test(s)
 % ******************************************************************************
 % Overall hypothesis test from single-step maxT procedure
-% H0: Groups of data are all sampled from the same population
+% H0: Groups of data are all sampled from the same population as data in ref
 %
-% Maximum t(9) = 1.18, p-adj = .293 
+% Maximum t(9) = 1.20, p-adj = .255 
 % ------------------------------------------------------------------------------
 %
 %  EXAMPLE 2B:
@@ -313,27 +360,26 @@
 % ******************************************************************************
 % Overall hypothesis test from single-step maxT procedure
 % H0: Groups of data are all sampled from the same population
-% 
-% Maximum t(14) = 6.19, p-adj = <.001 
+%
+% Maximum t(14) = 6.17, p-adj = .002 
 % ------------------------------------------------------------------------------
-% 
+%
 % POST HOC TESTS with control of the FWER by the single-step maxT procedure
 % ------------------------------------------------------------------------------
 % | Comparison |  Reference # |       Test # |  Difference |    t(df)|   p-adj |
 % |------------|--------------|--------------|-------------|---------|---------|
-% |          1 |            1 |            2 |   +3.83e+01 |    6.19 |   <.001 |***
-% |          2 |            1 |            3 |   +3.50e+00 |    0.59 |    .838 |
-% |          3 |            2 |            3 |   -3.48e+01 |    5.63 |   <.001 |***
-% 
+% |          1 |            1 |            2 |   +3.83e+01 |    6.17 |    .002 |**
+% |          2 |            1 |            3 |   +3.50e+00 |    0.59 |    .830 |
+% |          3 |            2 |            3 |   -3.48e+01 |    5.60 |    .002 |**
+%
 % Where degrees of freedom (df) = 14
-% 
+%
 % ------------------------------------------------------------------------------
 % |    GROUP # |                                                   GROUP label |
 % |------------|---------------------------------------------------------------|
 % |          1 |                                                             1 |
 % |          2 |                                                             2 |
 % |          3 |                                                             3 |
-%
 %
 %  EXAMPLE 3: 
 %  NESTED ONE-WAY ANOVA: pairwise comparisons
@@ -404,7 +450,7 @@
 % Overall hypothesis test from single-step maxT procedure
 % H0: Groups of data are all sampled from the same population
 %
-% Maximum t(4) = 4.01, p-adj = <.001 
+% Maximum t(4) = 4.01, p-adj = <.003 
 % ------------------------------------------------------------------------------
 %
 %
@@ -432,21 +478,21 @@
 % ******************************************************************************
 % Overall hypothesis test from single-step maxT procedure
 % H0: Groups of data are all sampled from the same population
-% 
-% Maximum t(12) = 2.81, p-adj = .063 
+%
+% Maximum t(12) = 2.75, p-adj = .072 
 % ------------------------------------------------------------------------------
-% 
+%
 % POST HOC TESTS with control of the FWER by the single-step maxT procedure
 % ------------------------------------------------------------------------------
 % | Comparison |  Reference # |       Test # |  Difference |    t(df)|   p-adj |
 % |------------|--------------|--------------|-------------|---------|---------|
-% |          1 |            1 |            2 |   +6.40e+00 |    0.73 |    .774 |
-% |          2 |            1 |            3 |   +2.24e+01 |    2.56 |    .082 |
-% |          3 |            1 |            4 |   +2.46e+01 |    2.81 |    .063 |
-% |          4 |            2 |            3 |   +1.60e+01 |    1.83 |    .213 |
-% |          5 |            2 |            4 |   +1.82e+01 |    2.08 |    .160 |
-% |          6 |            3 |            4 |   +2.20e+00 |    0.25 |    .981 |
-% 
+% |          1 |            1 |            2 |   +6.40e+00 |    0.71 |    .831 |
+% |          2 |            1 |            3 |   +2.24e+01 |    2.50 |    .100 |
+% |          3 |            1 |            4 |   +2.46e+01 |    2.75 |    .072 |
+% |          4 |            2 |            3 |   +1.60e+01 |    1.79 |    .228 |
+% |          5 |            2 |            4 |   +1.82e+01 |    2.03 |    .178 |
+% |          6 |            3 |            4 |   +2.20e+00 |    0.25 |    .993 |
+%
 % Where degrees of freedom (df) = 12
 % 
 % ------------------------------------------------------------------------------
@@ -535,7 +581,7 @@
 %                  2     2     2     2     2
 %                  3     3     3     3     3
 %                  4     4     4     4     4];
-%   >> ibootnhst (y(:),g(:),'block',blocks(:),'ref',1,'nboot',[1000,0]);
+%   >> ibootnhst (y(:),g(:),'block',blocks(:),'ref',1);
 %
 % Summary of bootstrap null hypothesis (H0) significance test(s)
 % ******************************************************************************
@@ -569,7 +615,7 @@
 %                NaN   NaN   NaN   NaN   NaN
 %                  1     2     3     4     5
 %                  1     2     3     4     5 ];
-%   >> ibootnhst (y(:),g(:),'block',blocks(:),'ref',1,'nboot',[1000,0]);
+%   >> ibootnhst (y(:),g(:),'block',blocks(:),'ref',1);
 %
 % Summary of bootstrap null hypothesis (H0) significance test(s)
 % ******************************************************************************
@@ -617,7 +663,7 @@
 % Overall hypothesis test from single-step maxT procedure
 % H0: Groups of data are all sampled from the same population
 %
-% Maximum t(7) = 16.16, p-adj = .007 
+% Maximum t(7) = 16.22, p-adj = .002
 % ------------------------------------------------------------------------------
 %    
 %   >> g = [ NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN
@@ -629,7 +675,7 @@
 % Overall hypothesis test from single-step maxT procedure
 % H0: Groups of data are all sampled from the same population
 %
-% Maximum t(8) = 2.72, p-adj = .024 
+% Maximum t(8) = 2.71, p-adj = .040
 % ------------------------------------------------------------------------------
 %
 %
@@ -640,7 +686,7 @@
 %        Sampling vs. Smoothing, Proceedings of the Section on Statistics 
 %        and the Environment, American Statistical Association, 2924-2930.
 %
-%  ibootnhst v1.7.0.0 (11/02/2022)
+%  ibootnhst v1.8.0.0 (13/02/2022)
 %  Author: Andrew Charles Penn
 %  https://www.researchgate.net/profile/Andrew_Penn/
 %
@@ -747,14 +793,14 @@ function [p, c, stats] = ibootnhst (data, group, varargin)
         % Grand mean for multivariate data
         bootfun = @(data) mean(mean(data,dim));
       else
-        bootfun = @mean;
+        bootfun = 'mean';
       end
     elseif all(bootfun(data) == smoothmedian(data))
       if nvar > 1 
         % Grand smoothed median for multivariate data
         bootfun = @(data) smoothmedian(smoothmedian(data,dim));
       else
-        bootfun = @smoothmedian;
+        bootfun = 'smoothmedian';
       end
     end
   elseif isa(bootfun,'char')
@@ -763,24 +809,21 @@ function [p, c, stats] = ibootnhst (data, group, varargin)
         % Grand mean for multivariate data
         bootfun = @(data) mean(mean(data,dim));
       else
-        bootfun = @mean;
+        bootfun = 'mean';
       end
     elseif any(strcmpi(bootfun,{'robust','smoothmedian'}))
       if nvar > 1
         % Grand smoothed median for multivariate data
         bootfun = @(data) smoothmedian(smoothmedian(data,dim));
       else
-        bootfun = @smoothmedian;
-      end
-      if ~isempty(clusters)
-        fprintf('\nNote: Switching to parametric resampling. Cluster resampling here uses residuals from the column-wise mean vector.')
+        bootfun = 'smoothmedian';
       end
     else
       if ~isempty(strata)
-        error('bootfun must be ''mean'' or ''robust'' to set blocking factors.')
+        error('bootfun must be ''mean'' or ''robust'' for block or repeated measures designs.')
       end
       if ~isempty(clusters)
-        fprintf('\nSwitching to parametric resampling. Cluster resampling here uses residuals from the column-wise mean vector.')
+        error('bootfun must be ''mean'' or ''robust'' for nested designs.')
       end
     end
   end
@@ -860,7 +903,7 @@ function [p, c, stats] = ibootnhst (data, group, varargin)
     l = numel(unique(strata)); % number of strata
   end
  
-  % If applicable, center each stratum on stratum (grand) mean 
+  % If applicable, center each stratum on stratum (grand) mean or smoothed median 
   % Note that the bootstrap becomes semiparametric
   if ~isempty(strata)
     sk = unique(strata);
@@ -885,18 +928,38 @@ function [p, c, stats] = ibootnhst (data, group, varargin)
   t = zeros(nboot(2),1);
   nk = zeros(size(gk));
   for j = 1:k
-    theta(j) = feval(bootfun,data(g==gk(j),:));
     if ~isempty(clusters)
+      theta(j) = feval(bootfun,data(g==gk(j),:));
       % Compute unbiased estimate of the standard error by cluster-jackknife resampling
       opt = struct;
       opt.clusters = clusters(g==gk(j));
       nk(j) = numel(unique(opt.clusters));
-      SE(j) = jack (data(g==gk(j),:), bootfun, [], opt);
+      SE(j) = jack(data(g==gk(j),:), bootfun, [], opt);
+    elseif strcmpi(bootfun,'mean')
+      theta(j) = feval(bootfun,data(g==gk(j),:));
+      % If data is univariate and bootfun is simply the mean, calculate standard error without resampling
+      nk(j) = sum(g==gk(j));
+      SE(j) = std(data(g==gk(j),:))/sqrt(nk(j));
+    elseif strcmpi(bootfun,'smoothmedian')
+      nk(j) = sum(g==gk(j));
+      %if nk(j) < 10
+      %  % Compute unbiased standard error of the smoothed median using jackknife resampling
+      %  % Jackknife estimates of the standard error are more reliable (and computationally 
+      %  % feasible) when sample size is small
+      %  theta(j) = feval(bootfun,data(g==gk(j),:));
+      %  SE(j) = jack(data(g==gk(j),:), bootfun);
+      %else
+        % Compute unbiased standard error of the smoothed median without resampling.
+        % These are suffiently accurate when sample size is >= 10
+        [theta(j),SE(j)] = feval(bootfun,data(g==gk(j),:));
+      %end
     elseif (nboot(2) == 0)
+      theta(j) = feval(bootfun,data(g==gk(j),:));
       % If requested, compute unbiased estimates of the standard error using jackknife resampling
       nk(j) = sum(g==gk(j));
-      SE(j) = jack (data(g==gk(j),:), bootfun);
+      SE(j) = jack(data(g==gk(j),:), bootfun);
     else
+      theta(j) = feval(bootfun,data(g==gk(j),:));
       % Compute unbiased estimate of the standard error by bootknife resampling
       % Bootknife resampling involves less computation than Jackknife when sample sizes get larger
       nk(j) = sum(g==gk(j));
