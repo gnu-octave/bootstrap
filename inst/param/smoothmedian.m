@@ -6,16 +6,30 @@
 %  [p, stderr]  = smoothmedian (...)
 %
 %  If x is a vector, find the univariate smoothed median (p) of x.
-%
 %  If x is a matrix, compute the univariate smoothed median value
 %  for each column and return them in a row vector.  If the optional
 %  argument dim is given, operate along this dimension. Arrays of
-%  more than two dimensions are not currently supported. 
+%  more than two dimensions are not currently supported. Standard 
+%  errors of the smoothed median can also be estimated by requesting 
+%  the second output argument. This function gracefully handles 
+%  NaN and Inf values by returning the ordinary median (and NaN 
+%  for the standard error) for any columns (if dim is 1) or rows 
+%  (if dim is 2) of x that contains them.
+%
+%  The smoothed median is a slighted smoothed version of the 
+%  ordinary median and is an M-estimator that is both robust 
+%  efficient:
+%
+%  | Asymptotic            | Mean |    Median  |    Median  |
+%  | properties            |      | (smoothed) | (ordinary) |
+%  |-----------------------|------|------------|------------|
+%  | Breakdown point       | 0.00 |      0.341 |      0.500 |
+%  | Pitman efficacy       | 1.00 |      0.865 |      0.637 |
 %
 %  Smoothing the median is achieved by minimizing the following
 %  objective function:
 %
-%        S (p) = sum {(x(i) - p).^2 + (x(j) - p).^2} .^ 0.5
+%        S (p) = sum ((x(i) - p).^2 + (x(j) - p).^2) .^ 0.5
 %               i < j
 % 
 %  where i and j refers to the indices of the Cartesian product 
@@ -25,8 +39,10 @@
 %
 %  With the ordinary median as the initial value of p, this function
 %  minimizes the objective function by finding the root of the first
-%  derivative using a Newton-Bisection hybrid algorithm. By default,
-%  the tolerance (Tol) for the first derivative is set to 1e-03.
+%  derivative using a fast, but reliable, Newton-Bisection hybrid 
+%  algorithm. The tolerance (Tol) is the maximum value of the first 
+%  derivative that is acceptable to break from optimization. The
+%  default value of Tol is 1e-03.
 %
 %  The smoothing works by slightly reducing the breakdown point
 %  of the median. Bootstrap confidence intervals using the smoothed
@@ -41,18 +57,11 @@
 %  probability density function. Since the calculations are accelerated
 %  by vectorization, this algorithm has space complexity O(n^2) along 
 %  dimension dim, thus it is best-suited for small-to-medium sample
-%  sizes, which would benefit most from smoothing. 
-%  
-%  Standard errors of the smoothed median can also be estimated  
-%  by requesting the second output argument. Note that the standard 
-%  errors are quick and dirty estimates calculated from the first 
-%  and second derivatives of the objective function. More reliable  
-%  estimates of the standard error can be obtained by bootstrap
-%  or jackknife resampling.
-%
-%  This function gracefully handles NaN and Inf values by returning
-%  the ordinary median (and NaN for the standard error) for any 
-%  columns of x that contains them.
+%  sizes, which would benefit most from smoothing. The computed 
+%  estimates of the standard errors of the smoothed median are 
+%  accurate when sample size is 10 or more; for sample sizes less
+%  than this we recommend calculating standard errors using Tukey's 
+%  leave-one-out jackknife instead.
 %
 %  Bibliography:
 %  [1] Brown, Hall and Young (2001) The smoothed median and the
@@ -62,7 +71,7 @@
 %  recent versions of Octave (v3.2.4 on Debian 6 Linux 2.6.32) and
 %  Matlab (v6.5.0 and v7.4.0 on Windows XP).
 %
-%  smoothmedian v1.5.0 (16/12/2021)
+%  smoothmedian v1.6.0 (13/02/2022)
 %  Author: Andrew Charles Penn
 %  https://www.researchgate.net/profile/Andrew_Penn/
 %
@@ -159,7 +168,7 @@ function [p, stderr] = smoothmedian(x,dim,Tol)
   % Offset xi and xj by +/- h, where h is small enough to avoid
   % encountering stationary points when calculating function
   % derivatives for the Newton steps.
-  h = 4.2819e-06;      % sqrt(0.5*eps^(2/3))
+  h = 0.05;
   xi = xi+h;
   xj = xj-h;
 
@@ -255,8 +264,17 @@ function [p, stderr] = smoothmedian(x,dim,Tol)
              midrange(ones(1,l),:) +...
              centre(ones(1,l),:);   % backtransform data when recreating xj
     tmp = p(ones(l,1),:);
+    % Calculate second derivatives:
+    %% Analytical solution (unstable)
+    %U = sum((((xi-tmp).^2+(xj-tmp).^2).^(-3/2) .* (xi-xj).^2));
+    % Numerical solution (more stable)
+    r = 0.5 * 1/l * sum((xi-tmp).^2+(xj-tmp).^2).^0.5; % set optimal half-step size
+    T = @(p,r) sum((2*(p+r)-(xi+xj))./((xi-(p+r)).^2 + (xj-(p+r)).^2).^0.5);
+    T0 = T(tmp,-r); 
+    T1 = T(tmp,+r);
+    U = (T1-T0)./(2*r);
     % Calculate standard error(s) for the computed value(s) of the smoothed median
-    v0 = (1/(m*(m-1))) * sum((((xi-tmp).^2+(xj-tmp).^2).^(-3/2) .* (xi-xj).^2));
+    v0 = (1/(m*(m-1))) * U;
     v  = (1/(m*(m-1))) * sum(((xi+xj-2*tmp)./(((xi-tmp).^2+(xj-tmp).^2).^(0.5))).^2);
     stderr = sqrt((v0.^(-2)) .* v / m);
     % Assign 0 to stderr for x columns with 0 variance 
