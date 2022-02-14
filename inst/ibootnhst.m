@@ -64,7 +64,7 @@
 %  cluster-jackknife. An exception is if bootfun is set to 'robust' and 
 %  the GROUP sample size is < 10, in which case ibootnhst to will compute 
 %  standard errors using jaccknife. Note that if bootfun is not the mean, 
-%  the t-statistics  returned by this function will not be comparable with 
+%  the t-statistics returned by this function will not be comparable with 
 %  tabulated values.
 %
 %  ibootnhst(...,'nboot',nboot) is a vector of upto two positive integers
