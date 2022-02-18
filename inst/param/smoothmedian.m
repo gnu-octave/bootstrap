@@ -1,32 +1,45 @@
 %  Function file: smoothmedian
 %
+%  Function file: smoothmedian
+%
 %  [p]  = smoothmedian (x)
 %  [p]  = smoothmedian (x, dim)
 %  [p]  = smoothmedian (x, dim, Tol)
 %  [p, stderr]  = smoothmedian (...)
 %
 %  If x is a vector, find the univariate smoothed median (p) of x.
-%
 %  If x is a matrix, compute the univariate smoothed median value
 %  for each column and return them in a row vector.  If the optional
 %  argument dim is given, operate along this dimension. Arrays of
 %  more than two dimensions are not currently supported. 
 %
+%  The smoothed median is a slightly smoothed version of the 
+%  ordinary median and is an M-estimator that is both robust 
+%  efficient:
+%
+%  | Asymptotic            | Mean |    Median  |    Median  |
+%  | properties            |      | (smoothed) | (ordinary) |
+%  |-----------------------|------|------------|------------|
+%  | Breakdown point       | 0.00 |      0.341 |      0.500 |
+%  | Pitman efficacy       | 1.00 |      0.865 |      0.637 |
+%
 %  Smoothing the median is achieved by minimizing the following
 %  objective function:
 %
-%        S (p) = sum {(x(i) - p).^2 + (x(j) - p).^2} .^ 0.5
+%        S (p) = sum ((x(i) - p).^2 + (x(j) - p).^2) .^ 0.5
 %               i < j
 % 
 %  where i and j refers to the indices of the Cartesian product 
 %  of each column of x with itself. No smoothing is carried out
 %  when data columns contain one or more NaN or Inf elements.
-%  Where this is the case, the ordinary medisn is returned.
+%  Where this is the case, the ordinary median is returned.
 %
 %  With the ordinary median as the initial value of p, this function
-%  minimizes the objective function by finding the root of the first
-%  derivative using a Newton-Bisection hybrid algorithm. By default,
-%  the tolerance (Tol) for the first derivative is set to 1e-03.
+%  minimizes the above objective function by finding the root of the 
+%  first derivative using a fast, but reliable, Newton-Bisection  
+%  hybrid algorithm. The tolerance (Tol) is the maximum value of the  
+%  first derivative that is acceptable to break from optimization. 
+%  The default value of Tol is 1e-03.
 %
 %  The smoothing works by slightly reducing the breakdown point
 %  of the median. Bootstrap confidence intervals using the smoothed
@@ -41,7 +54,7 @@
 %  probability density function. Since the calculations are accelerated
 %  by vectorization, this algorithm has space complexity O(n^2) along 
 %  dimension dim, thus it is best-suited for small-to-medium sample
-%  sizes, which would benefit most from smoothing. 
+%  sizes, which would benefit most from smoothing.
 %  
 %  Standard errors of the smoothed median can also be estimated  
 %  by requesting the second output argument. Note that the standard 
@@ -49,10 +62,6 @@
 %  and second derivatives of the objective function. More reliable  
 %  estimates of the standard error can be obtained by bootstrap
 %  or jackknife resampling.
-%
-%  This function gracefully handles NaN and Inf values by returning
-%  the ordinary median (and NaN for the standard error) for any 
-%  columns of x that contains them.
 %
 %  Bibliography:
 %  [1] Brown, Hall and Young (2001) The smoothed median and the
@@ -62,7 +71,7 @@
 %  recent versions of Octave (v3.2.4 on Debian 6 Linux 2.6.32) and
 %  Matlab (v6.5.0 and v7.4.0 on Windows XP).
 %
-%  smoothmedian v1.5.0 (16/12/2021)
+%  smoothmedian v1.6.0 (16/12/2021)
 %  Author: Andrew Charles Penn
 %  https://www.researchgate.net/profile/Andrew_Penn/
 %
