@@ -36,11 +36,11 @@ function maxT = maxstat (Y, g, nboot, bootfun, ref, clusters, strata)
       opt = struct;
       opt.clusters = clusters(g==gk(j));
       nk(j) = numel(unique(opt.clusters));
-      SE(j) = jack (Y(g==gk(j),:), bootfun, [], opt);
+      SE(j) = jack(Y(g==gk(j),:), bootfun, [], opt);
     elseif (nboot == 0)
       % If requested, compute unbiased estimates of the standard error using jackknife resampling
       nk(j) = sum(g==gk(j));
-      SE(j) = jack (Y(g==gk(j),:), bootfun);
+      SE(j) = jack(Y(g==gk(j),:), bootfun);
     else
       % Compute unbiased estimate of the standard error by bootknife resampling
       % Bootknife resampling involves less computation than Jackknife when sample sizes get larger
