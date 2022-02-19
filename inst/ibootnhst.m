@@ -8,8 +8,8 @@
 %  ibootnhst(...,'bootfun',bootfun);
 %  ibootnhst(...,'nboot',nboot);
 %  ibootnhst(...,'ref',ref);
-%  ibootnhst(...,'block',blocks);
-%  ibootnhst(...,'nested',clusters);
+%  ibootnhst(...,'block',blocks);    % for bootfun 'mean' or 'robust' only
+%  ibootnhst(...,'nested',clusters); % for bootfun 'mean' or 'robust' only
 %  ibootnhst(...,'Options',paropt);
 %  ibootnhst(...,'alpha',alpha);
 %  p = ibootnhst(...,'dim',dim)
@@ -74,7 +74,7 @@
 %  jackknife resampling instead. Since jackknife resampling is not random,
 %  setting nboot(2) to 0 can also reduce monte carlo error but jackknife
 %  is only suitable where bootfun is a smooth function of the data (e.g.
-%  'mean' or 'smoothmedian').
+%  'mean' or 'smoothmedian', a.k.a. 'robust').
 %
 %  ibootnhst(...,'ref',ref) also sets the GROUP to use as the reference 
 %  GROUP for post hoc tests. For a one-way experimental design or family of 
@@ -109,8 +109,8 @@
 %  indicate block membership of the data rows. Data in a data block are 
 %  centered and the resampling is stratified to impose restrictions on the
 %  exchangeability of data to within blocks. Since the data must be centered
-%  using bootfun, this feature only supports the following values for bootfun:
-%  'mean', 'median', 'pseudomedian', 'smoothmedian' (or 'robust'). This option
+%  using bootfun, this feature only supports location parameters, of which
+%  ibootnhst supports bootfun being either 'mean' or 'robust'. This option
 %  is appropriate when the family of tests has a randomized block design or
 %  one-way repeated measures layout. See end of this help for an example. The
 %  'block' option here should not be confused with the block option in ibootci.
@@ -125,14 +125,16 @@
 %  specifying clusters causes ibootnhst to resample residuals, the bootstrap 
 %  becomes semi-parametric. The clusters input argument can be used to 
 %  accomodate for a single level of nesting in heirarchical data structures. 
-%  This resampling strategy is appropriate when the family of tests has a  
-%  split plot design layout, and is a bootstrap version of a nested 1-way  
-%  ANOVA. See end of this help for an example of this application. This  
-%  function will return an error if any GROUP is not represented by more than
-%  one cluster, but there is no restriction on the number of data rows in any 
-%  cluster. Note that the value in nboot(2) is ignored since specifying 
-%  cluster identifiers enforces cluster-jackknife to compute standard errors 
-%  and studentized test statistics. If empty, this argument is ignored. 
+%  Since the bootstrap becomes semiparametric, this feature only supports 
+%  location parameters, of which ibootnhst supports bootfun being either 
+%  'mean' or 'robust'. This resampling strategy is appropriate when the 
+%  family of tests has a split plot design layout, and is a bootstrap 
+%  version of a nested 1-way ANOVA. See end of this help for an example of 
+%  this application. This function will return an error if any GROUP is not
+%  represented by more than one cluster, but there is no restriction on the 
+%  number of data rows in any cluster. Note that the value in nboot(2) is 
+%  ignored since specifying cluster identifiers enforces cluster-jackknife 
+%  to compute standard errors. If empty, this argument is ignored. 
 %
 %  ibootnhst(...,'Options',paropt) specifies options that govern if and 
 %  how to perform bootstrap iterations using multiple processors (if the 
@@ -219,7 +221,7 @@
 %  variety of experimental designs:
 %
 %
-%  EXAMPLE 1: 
+%  EXAMPLE 1A: 
 %  ONE-WAY ANOVA WITH EQUAL SAMPLE SIZES: Treatment vs. Control (1)
 %
 %   >> y = [111.39 110.21  89.21  76.64  95.35  90.97  62.78;
@@ -264,6 +266,50 @@
 % |          6 |                                                             6 |
 % |          7 |                                                             7 |
 %
+%  EXAMPLE 1B: 
+%  ROBUST ONE-WAY ANOVA WITH EQUAL SAMPLE SIZES: Treatment vs. Control (1)
+%
+%   >> y = [111.39 110.21  89.21  76.64  95.35  90.97  62.78;
+%           112.93  60.36  92.29  59.54  98.93  97.03  79.65;
+%            85.24 109.63  64.93  75.69  95.28  57.41  75.83;
+%           111.96 103.40  75.49  76.69  77.95  93.32  78.70];
+%   >> g = [1 2 3 4 5 6 7;
+%           1 2 3 4 5 6 7;
+%           1 2 3 4 5 6 7;
+%           1 2 3 4 5 6 7];
+%   >> ibootnhst (y(:),g(:),'ref',1,'bootfun','robust');
+%
+% Summary of bootstrap null hypothesis (H0) significance test(s)
+% ******************************************************************************
+% Overall hypothesis test from single-step maxT procedure
+% H0: Groups of data are all sampled from the same population as data in ref
+% 
+% Maximum t(21) = 3.14, p-adj = .023 
+% ------------------------------------------------------------------------------
+% 
+% POST HOC TESTS with control of the FWER by the single-step maxT procedure
+% ------------------------------------------------------------------------------
+% | Comparison |  Reference # |       Test # |  Difference |    t(df)|   p-adj |
+% |------------|--------------|--------------|-------------|---------|---------|
+% |          1 |            1 |            2 |   -6.66e+00 |    0.59 |    .974 |
+% |          2 |            1 |            3 |   -3.02e+01 |    2.66 |    .069 |
+% |          3 |            1 |            4 |   -3.56e+01 |    3.14 |    .023 |*
+% |          4 |            1 |            5 |   -1.62e+01 |    1.43 |    .562 |
+% |          5 |            1 |            6 |   -2.00e+01 |    1.76 |    .373 |
+% |          6 |            1 |            7 |   -3.49e+01 |    3.07 |    .025 |*
+% 
+% Where degrees of freedom (df) = 21
+% 
+% ------------------------------------------------------------------------------
+% |    GROUP # |                                                   GROUP label |
+% |------------|---------------------------------------------------------------|
+% |          1 |                                                             1 |
+% |          2 |                                                             2 |
+% |          3 |                                                             3 |
+% |          4 |                                                             4 |
+% |          5 |                                                             5 |
+% |          6 |                                                             6 |
+% |          7 |                                                             7 |
 %
 %  EXAMPLE 2A:
 %  COMPARISON OF TWO INDEPENDENT GROUPS WITH UNEQUAL SAMPLE SIZES 
@@ -639,7 +685,7 @@
 %        Sampling vs. Smoothing, Proceedings of the Section on Statistics 
 %        and the Environment, American Statistical Association, 2924-2930.
 %
-%  ibootnhst v1.7.0.0 (11/02/2022)
+%  ibootnhst v1.7.1.0 (19/02/2022)
 %  Author: Andrew Charles Penn
 %  https://www.researchgate.net/profile/Andrew_Penn/
 %
@@ -755,19 +801,13 @@ function [p, c, stats] = ibootnhst (data, group, varargin)
       else
         bootfun = @smoothmedian;
       end
-    elseif all(bootfun(data) == median(data))
-      if (nboot(2) == 0)
-        error('jacknife resampling cannot be used to calculate standard errors of the median')
+    else
+      if ~isempty(strata)
+        error('bootfun must be ''mean'' or ''robust'' for block or repeated measures designs.')
       end
       if ~isempty(clusters)
-        error('cluster-jacknife resampling cannot be used to calculate standard errors of the median')
+        error('bootfun must be ''mean'' or ''robust'' for nested designs.')
       end
-      if nvar > 1 
-        % Grand median for multivariate data
-        bootfun = @(data) median(median(data,dim));
-      else
-        bootfun = @median;
-      end  
     end
   elseif isa(bootfun,'char')
     if strcmpi(bootfun,'mean') 
@@ -784,41 +824,12 @@ function [p, c, stats] = ibootnhst (data, group, varargin)
       else
         bootfun = @smoothmedian;
       end
-      if ~isempty(clusters)
-        fprintf('\nNote: Switching to parametric resampling. Cluster resampling here uses residuals from the column-wise mean vector.')
-      end
-    elseif strcmpi(bootfun,'pseudomedian') 
-      if nvar > 1
-        % Grand pseudomedian for multivariate data
-        bootfun = @(data) pseudomedian(pseudomean(data,dim));
-      else
-        bootfun = @pseudomedian;
-      end
-      if ~isempty(clusters)
-        fprintf('\nNote: Switching to parametric resampling. Cluster resampling here uses residuals from the column-wise mean vector.')
-      end
-    elseif strcmpi(bootfun,'median')
-      if (nboot(2) == 0)
-        error('jacknife resampling cannot be used to calculate standard errors of the median')
-      end
-      if ~isempty(clusters)
-        error('cluster-jacknife resampling cannot be used to calculate standard errors of the median')
-      end
-      if nvar > 1 
-        % Grand median for multivariate data
-        bootfun = @(data) median(median(data,dim));
-      else
-        bootfun = @median;
-      end
-      if ~isempty(clusters)
-        fprintf('\nNote: Switching to parametric resampling. Cluster resampling here uses residuals from the column-wise mean vector.')
-      end
     else
       if ~isempty(strata)
-        error('bootfun is not (and must be) a recognised location parameter for the center of the data distribution.')
+        error('bootfun must be ''mean'' or ''robust'' for block or repeated measures designs.')
       end
       if ~isempty(clusters)
-        fprintf('\nNote: Switching to parametric resampling. Cluster resampling here uses residuals from the column-wise mean vector.')
+        error('bootfun must be ''mean'' or ''robust'' for nested designs.')
       end
     end
   end
@@ -898,7 +909,7 @@ function [p, c, stats] = ibootnhst (data, group, varargin)
     l = numel(unique(strata)); % number of strata
   end
  
-  % If applicable, center each stratum on stratum (grand) mean 
+  % If applicable, center each stratum on it's respective (grand) mean or smoothed median 
   % Note that the bootstrap becomes semiparametric
   if ~isempty(strata)
     sk = unique(strata);
