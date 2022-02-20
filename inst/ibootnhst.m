@@ -56,7 +56,7 @@
 %  the DATA must return a scalar value. If empty, the default is @mean  
 %  or 'mean'. If DATA is multivariate, bootfun is the grand mean, which  
 %  is the mean of the means of each column (i.e. variates). The standard 
-%  errors are estimated by bootstrap, jacknife, or cluster-jacknife. 
+%  errors are estimated by bootknife [2], jacknife, or cluster-jacknife. 
 %  If a robust statistic for central location is required, setting bootfun 
 %  to 'robust' implements a smoothed version of the median (see function 
 %  help for smoothmedian). Note that if bootfun is not the mean, the 
@@ -64,17 +64,17 @@
 %  tabulated values.
 %
 %  ibootnhst(...,'nboot',nboot) is a vector of upto two positive integers
-%  indicating the number of replicate samples for the first and second 
-%  levels of iterated bootstrap resampling. The default value of nboot 
-%  is [1000,1000]. Increasing the values of nboot reduce the monte carlo 
-%  error of the p-value (and confidence interval) estimates but the 
-%  calculations take longer to complete. If nboot(2) is zero (or if a
-%  hierarchical data structure is defined with 'nested') then ibootnhst
-%  calculates standard errors for studentization using jackknife resampling
-%  instead. Since jackknife resampling is not random, setting nboot(2) to 0 
-%  can also reduce monte carlo error but jackknife is only suitable where 
-%  bootfun is a smooth function of the data (e.g. 'mean' or 'smoothmedian',
-%  a.k.a. 'robust').
+%  indicating the number of replicate samples for the first (bootstrap) 
+%  and second (bootknife) levels of iterated resampling. The default
+%  value of nboot is [1000,1000]. Increasing the values of nboot reduce
+%  the monte carlo error of the p-value (and confidence interval)
+%  estimates but the calculations take longer to complete. If nboot(2) is 
+%  zero (or if a hierarchical data structure is defined with 'nested') 
+%  then ibootnhst calculates standard errors for studentization using 
+%  jackknife resampling instead. Since jackknife resampling is not random,
+%  setting nboot(2) to 0 can also reduce monte carlo error but jackknife
+%  is only suitable where bootfun is a smooth function of the data (e.g.
+%  'mean' or 'smoothmedian', a.k.a. 'robust').
 %
 %  ibootnhst(...,'ref',ref) also sets the GROUP to use as the reference 
 %  GROUP for post hoc tests. For a one-way experimental design or family of 
@@ -681,8 +681,11 @@
 %   Bibliography:
 %   [1] Efron and Tibshirani. Chapter 16 Hypothesis testing with the
 %        bootstrap in An introduction to the bootstrap (CRC Press, 1994)
+%   [2] Hesterberg, Tim C. (2004), Unbiasing the Bootstrap - Bootknife-
+%        Sampling vs. Smoothing, Proceedings of the Section on Statistics 
+%        and the Environment, American Statistical Association, 2924-2930.
 %
-%  ibootnhst v1.7.2.0 (20/02/2022)
+%  ibootnhst v1.7.1.0 (19/02/2022)
 %  Author: Andrew Charles Penn
 %  https://www.researchgate.net/profile/Andrew_Penn/
 %
@@ -777,8 +780,8 @@ function [p, c, stats] = ibootnhst (data, group, varargin)
   if numel(nboot) > 2
     error('the vector nboot cannot have length > 2')
   elseif numel(nboot) < 2
-    % set nboot(2) to 0 if the argument provided to nboot is scalar
-    nboot = cat(2,nboot,0);
+    % set default number of bootknife samples;
+    nboot = cat(2,nboot,1000);
   end
   if nboot(1) < 1000
     error('the minimum allowable value of nboot(1) is 1000')
@@ -928,6 +931,7 @@ function [p, c, stats] = ibootnhst (data, group, varargin)
   theta = zeros(k,1);
   SE = zeros(k,1);
   Var = zeros(k,1);
+  t = zeros(nboot(2),1);
   nk = zeros(size(gk));
   for j = 1:k
     theta(j) = feval(bootfun,data(g==gk(j),:));
@@ -942,22 +946,20 @@ function [p, c, stats] = ibootnhst (data, group, varargin)
       nk(j) = sum(g==gk(j));
       SE(j) = jack(data(g==gk(j),:), bootfun);
     else
-      % Compute estimate of the standard error by balanced bootstrap resampling
-      % Bootstrap resampling can involve less computation than Jackknife when sample sizes get larger
+      % Compute unbiased estimate of the standard error by bootknife resampling
+      % Bootknife resampling involves less computation than Jackknife when sample sizes get larger
       nk(j) = sum(g==gk(j));
       if nvar > 1
         t = zeros(nboot(2),1); 
-        nB = nk(j) * nboot(2);
-        idx = reshape(randperm(nB, nB), nk(j), nboot(2));
         for b = 1:nboot(2)
+          idx = 1+fix(rand(nk(j)-1,1)*nk(j));
           tmp = data(g==gk(j),:);
-          t(b) = feval(bootfun,tmp(idx(:,b),:));
+          t(b) = feval(bootfun,tmp(idx,:));
         end
       else
         % Vectorized if data is univariate
-        nB = nk(j) * nboot(2);
-        idx = reshape(randperm(nB, nB), nk(j), nboot(2));
-        tmp = data(g==gk(j),:) * ones(1,nboot(2));
+        idx = 1+fix(rand(nk(j)-1,nboot(2))*nk(j));
+        tmp = data(g==gk(j),:);
         t = feval(bootfun,tmp(idx));
       end
       SE(j) = std(t);
