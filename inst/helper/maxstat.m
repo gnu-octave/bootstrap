@@ -27,7 +27,6 @@ function maxT = maxstat (Y, g, nboot, bootfun, ref, clusters, strata)
   theta = zeros(k,1);
   SE = zeros(k,1);
   Var = zeros(k,1);
-  t = zeros(nboot,1); 
   nk = zeros(size(gk));
   for j = 1:k
     theta(j) = feval(bootfun,Y(g==gk(j),:));
@@ -42,23 +41,25 @@ function maxT = maxstat (Y, g, nboot, bootfun, ref, clusters, strata)
       nk(j) = sum(g==gk(j));
       SE(j) = jack(Y(g==gk(j),:), bootfun);
     else
-      % Compute unbiased estimate of the standard error by bootknife resampling
-      % Bootknife resampling involves less computation than Jackknife when sample sizes get larger
+      % Compute estimate of the standard error by balanced bootstrap resampling
+      % Bootstrap resampling can involve less computation than Jackknife when sample sizes get larger
       nk(j) = sum(g==gk(j));
       if nvar > 1
-        t = zeros(nboot,1); 
+        t = zeros(nboot,1);
+        nB = nk(j) * nboot;
+        idx = reshape(randperm(nB, nB), nk(j), nboot);
         for b = 1:nboot
-          idx = 1+fix(rand(nk(j)-1,1)*nk(j));
           tmp = Y(g==gk(j),:);
-          t(b) = feval(bootfun,tmp(idx,:));
+          t(b) = feval(bootfun,tmp(idx(:,b),:));
         end
       else
         % Vectorized if data is univariate
-        idx = 1+fix(rand(nk(j)-1,nboot)*nk(j));
-        tmp = Y(g==gk(j),:);
+        nB = nk(j) * nboot;
+        idx = reshape(randperm(nB, nB), nk(j), nboot);
+        tmp = Y(g==gk(j),:) * ones(1, nboot);
         t = feval(bootfun,tmp(idx));
       end
-      SE(j) = std(t);
+      SE(j) = std(t);  
     end
     Var(j) = ((nk(j)-1)/(N-k-(l-1))) * SE(j)^2;
   end
