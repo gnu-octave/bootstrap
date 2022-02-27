@@ -101,5 +101,5 @@ function T = bootknife (nboot, bootfun, varargin)
   if ~matflag && (nvar == 1)
     T = feval(bootfun,X{:});
   end
-
+  
 end
