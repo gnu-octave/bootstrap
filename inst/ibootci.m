@@ -737,9 +737,9 @@ function [ci,bootstat,S,calcurve,idx] = ibootci(argin1,argin2,varargin)
       if ~all(size(weights) == [n,1])
         error('The weights vector is not the same dimensions as the data');
       end
-    end
-    if any(weights<0)
-      error('Weights must be a vector of non-negative numbers')
+      if any(weights<0)
+        error('Weights must be a vector of non-negative numbers')
+      end
     end
     % Evaluate bootfun
     if ischar(bootfun)

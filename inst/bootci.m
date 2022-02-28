@@ -57,13 +57,13 @@
 %  handle. stderr takes the same arguments as bootfun and returns the
 %  standard error of the statistic computed by bootfun.
 %
-%  ci = bootci(nboot,{bootfun,...},...,'weights',weights) specifies
+%  ci = bootci(nboot,{bootfun,...},...,'Weights',weights) specifies
 %  observation weights. weights must be a vector of non-negative numbers.
 %  The length of weights must be equal to first dimension of the non-
 %  scalar input argument(s) to bootfun. Balanced resampling is extended
 %  to resampling with weights [6], which are used as bootstrap sampling
-%  probabilities. Note that weights are not implemented for Studentized-
-%  type intervals.
+%  probabilities. Note that weights are not currently implemented for 
+%  Studentized-type intervals.
 %
 %  ci = bootci(nboot,{bootfun,...},...,'Options',paropt) specifies
 %  options that govern if and how to perform bootstrap and jacknife

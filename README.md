@@ -46,7 +46,8 @@ To install (or test) the statistics-bootstrap package at it's existing location 
 
 ### Functions
 
-* `bootstrp` performs bootstrap resampling 
+* `bootstrp` performs (balanced) bootstrap resampling 
+* `bootknife` performs (balanced) bootknife resampling 
 * `bootci` calculates confidence intervals using bootstrap resampling
 * `ibootci` calculates confidence intervals (calibrated) by iterated bootstrap resampling 
 * `ibootp` calculates a two-tailed *p*-value for hypothesized value of the statistic using bootstrap
