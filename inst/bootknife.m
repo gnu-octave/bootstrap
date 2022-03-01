@@ -18,7 +18,7 @@
 %  a matrix), that is used to create inputs for bootfun. The resampling 
 %  method used is balanced resampling [2]. This function is particularly
 %  useful if the intention is to use bootstat to calculate a standard  
-%  error for bootfun on the data, when the size of the data set is small.
+%  error for bootfun on the data, when the size of the dataset is small.
 %
 %  bootstat = bootknife(nboot,bootfun,d1,...,dN) is as above except that 
 %  the third and subsequent numeric input arguments are data vectors 
