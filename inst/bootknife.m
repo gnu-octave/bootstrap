@@ -5,6 +5,7 @@
 %  bootstat = bootknife(nboot,bootfun,d)
 %  bootstat = bootknife(nboot,bootfun,d1,...,dN)
 %  bootstat = bootknife(...,'Weights',weights)
+%  [bootstat,bootsam] = bootknife(...)
 %
 %  bootstat = bootknife(nboot,bootfun,d,...) draws nboot bootknife data
 %  resamples and returns the statistic computed by bootfun in bootstat.
@@ -24,12 +25,17 @@
 %  the third and subsequent numeric input arguments are data vectors 
 %  that are used to create inputs for bootfun. 
 %
-%  bootstat = bootstrp(...,'Weights',weights) specifies observation
+%  bootstat = bootknife(...,'Weights',weights) specifies observation
 %  weights. weights must be a vector of non-negative numbers. The
 %  length of weights must be equal to first dimension of the
 %  non-scalar input argument(s) to bootfun. The weights are used as
 %  bootstrap sampling probabilities. Balanced resampling is extended
 %  to resampling with weights.
+%
+%  [bootstat,bootsam] = bootknife(...) also returns bootsam, a  
+%  matrix of indices for bootknife sampling. Each column in bootsam
+%  corresponds to one bootknife sample and contains the row 
+%  indices of the values to draw from the nonscalar data argument.
 %
 %  Bibliography:
 %  [1] Hesterberg T.C. (2004) Unbiasing the Bootstrap—Bootknife Sampling 
@@ -38,7 +44,7 @@
 %  [2] Davison et al. (1986) Efficient Bootstrap Simulation.
 %        Biometrika, 73: 555-66
 %
-%  bootknife v1.0.1.0 (28/02/2022)
+%  bootknife v1.1.0.0 (02/03/2022)
 %  Author: Andrew Charles Penn
 %  https://www.researchgate.net/profile/Andrew_Penn/
 %
@@ -57,7 +63,7 @@
 %  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-function bootstat = bootknife (nboot, bootfun, varargin)
+function [bootstat,idx] = bootknife (nboot, bootfun, varargin)
   
   % Error checking
   if nargin < 3
@@ -96,7 +102,7 @@ function bootstat = bootknife (nboot, bootfun, varargin)
   else
     matflag = 0;
   end 
-  
+
   % Check name-value pairs for errors
   if isempty(weights)
     w = ones(n,1);
@@ -120,7 +126,11 @@ function bootstat = bootknife (nboot, bootfun, varargin)
   N = n * B;
   bootstat = zeros(1, B);
   X = cell(1, nvar);
-  idx = zeros(n, 1);
+  if nargout > 1
+    idx = zeros(n, B);
+  else
+    idx = zeros(n, 1);
+  end
   c = w * B;
 
   % Perform balanced bootknife resampling
@@ -128,6 +138,7 @@ function bootstat = bootknife (nboot, bootfun, varargin)
   %    Gleason, J.R. (1988) Algorithms for Balanced Bootstrap Simulations. 
   %    The American Statistician. Vol. 42, No. 4 pp. 263-266
   for h = 1:B
+    % Choose which rows of the data data to sample
     r = h - fix((h-1)/n) * n;
     for i = 1:n
       d = c;   
@@ -136,21 +147,31 @@ function bootstat = bootknife (nboot, bootfun, varargin)
         d = c;
       end
       j = sum((rand(1) >= cumsum(d./sum(d)))) + 1;
-      idx(i, 1) = j;
+      if nargout > 1
+        idx(i, h) = j;
+      else
+        idx(i, 1) = j;
+      end
       c(j) = c(j) - 1;
     end
-    for v = 1:nvar
-      X{v}(:,h) = x{v}(idx);
-    end
-    % Function evaluations performed in a Matlab loop
+    % Perform data sampling
     if matflag || (nvar > 1)
       for v = 1:nvar
-        X{v} = x{v}(idx);
+        if nargout > 1
+          X{v} = x{v}(idx(:,h));
+        else
+          X{v} = x{v}(idx);
+        end
       end
+      % Function evaluations performed in a Matlab loop
       bootstat(h) = feval(bootfun,X{:});
     else
       for v = 1:nvar
-        X{v}(:,h) = x{v}(idx);
+        if nargout > 1
+          X{v}(:,h) = x{v}(idx(:,h));
+        else
+          X{v}(:,h) = x{v}(idx);
+        end
       end
     end
   end
