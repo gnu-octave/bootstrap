@@ -79,8 +79,7 @@
 %  [bootstat,bootsam] = bootstrp(...) also returns bootsam, a  
 %  matrix of indices from the bootstrap. Each column in bootsam
 %  corresponds to one bootstrap sample and contains the row 
-%  indices of the values drawn from the nonscalar data to create 
-%  that sample.
+%  indices of the values to draw from the nonscalar data argument.
 %
 %  Bibliography:
 %  [1] Efron, and Tibshirani (1993) An Introduction to the
