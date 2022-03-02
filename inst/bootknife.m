@@ -35,7 +35,8 @@
 %  [bootstat,bootsam] = bootknife(...) also returns bootsam, a  
 %  matrix of indices for bootknife sampling. Each column in bootsam
 %  corresponds to one bootknife sample and contains the row 
-%  indices of the values to draw from the nonscalar data argument.
+%  indices of the values drawn from the nonscalar data argument 
+%  to create that sample.
 %
 %  Bibliography:
 %  [1] Hesterberg T.C. (2004) Unbiasing the Bootstrap—Bootknife Sampling 
@@ -127,9 +128,9 @@ function [bootstat,idx] = bootknife (nboot, bootfun, varargin)
   bootstat = zeros(1, B);
   X = cell(1, nvar);
   if nargout > 1
-    idx = zeros(n, B);
+    idx = zeros(n,B);
   else
-    idx = zeros(n, 1);
+    idx = zeros(n,1);
   end
   c = w * B;
 
@@ -138,7 +139,7 @@ function [bootstat,idx] = bootknife (nboot, bootfun, varargin)
   %    Gleason, J.R. (1988) Algorithms for Balanced Bootstrap Simulations. 
   %    The American Statistician. Vol. 42, No. 4 pp. 263-266
   for h = 1:B
-    % Choose which rows of the data data to sample
+    % Choose which rows of the data to sample
     r = h - fix((h-1)/n) * n;
     for i = 1:n
       d = c;   
@@ -148,9 +149,9 @@ function [bootstat,idx] = bootknife (nboot, bootfun, varargin)
       end
       j = sum((rand(1) >= cumsum(d./sum(d)))) + 1;
       if nargout > 1
-        idx(i, h) = j;
+        idx(i,h) = j;
       else
-        idx(i, 1) = j;
+        idx(i,1) = j;
       end
       c(j) = c(j) - 1;
     end
