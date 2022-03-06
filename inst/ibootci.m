@@ -496,13 +496,13 @@ function [ci,bootstat,S,calcurve,idx] = ibootci(argin1,argin2,varargin)
       weights = [];
     end
     if ~isempty(strata)
+      if strcmpi(type,'bca')
+        error('ibootci cannot compute BCa intervals for stratified bootstrap')
+      end
       try
         strata = options{strata};
       catch
         strata = [];
-      end
-      if strcmpi(type,'bca')
-        error('ibootci cannot compute BCa intervals for stratified samples')
       end
     else
       strata = [];
@@ -520,6 +520,9 @@ function [ci,bootstat,S,calcurve,idx] = ibootci(argin1,argin2,varargin)
       clusters = [];
     end
     if ~isempty(blocksize)
+      if strcmpi(type,'bca')
+        error('ibootci cannot compute BCa intervals for block bootstrap')
+      end
       try
         blocksize = options{blocksize};
       catch
