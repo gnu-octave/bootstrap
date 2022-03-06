@@ -46,13 +46,8 @@ function [SE, T, U] = jack (x, func, paropt, opt)
   % Prepare data for resampling
   if nargin > 3
     if isfield(opt,'blocksize') && ~isempty(opt.blocksize)
-      % Prepare for Block-Jackknife
-      % Pad data (circular)
-      % Overlapping blocks of size l will be primary sampling unit
-      l = opt.blocksize;
-      for v = 1:nvar
-        x{v} = num2cell(cat(1,x{v},x{v}(1:l-1)));  % for circular blocks
-      end
+      % Block-jackknife resampling not yet supported
+      error('block resampling not implemented yet for jackknife')
     elseif isfield(opt,'clusters') && ~isempty(opt.clusters)
       % Prepare Cluster-Jackknife
       % Set whole clusters as primary sampling units
