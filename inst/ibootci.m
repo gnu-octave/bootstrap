@@ -930,7 +930,7 @@ function [ci,bootstat,S,calcurve,idx] = ibootci(argin1,argin2,varargin)
       end
       if strcmpi(blocksize,'auto')
         % Set block length
-        blocksize = max(1,round(n^(1/3)));
+        blocksize = fix(n^(1/3))+1; % in the order of n^(1/3); round up to the nearest integer
       end
       data = split_blocks(data,n,blocksize);
       bootfun = @(varargin) auxfun(bootfun,S.nvar,varargin);
