@@ -298,7 +298,7 @@
 %    >> func = @(x) trimmean(x,50)
 %    >> ci = ibootci([5000 200],func,y);
 %
-%  ibootci v2.8.7.4 (11/01/2022)
+%  ibootci v2.8.8.0 (14/03/2022)
 %  Author: Andrew Charles Penn
 %  https://www.researchgate.net/profile/Andrew_Penn/
 %
