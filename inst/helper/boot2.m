@@ -11,7 +11,7 @@ function [U, T2] = boot2 (X1, nboot, n, nvar, bootfun, T0, g, S, opt)
   % Prepare for block resampling (if applicable)
   if ~isempty(blocksize)
     x1 = cat_blocks(S.nvar,X1{:});
-    blocksize = fix(blocksize/2);
+    blocksize = max(fix(blocksize/2),1);
     X1 = split_blocks(x1,opt.blocksize,blocksize);
     nvar = S.nvar * blocksize;
     g = ones(n,1);
