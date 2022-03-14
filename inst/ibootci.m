@@ -1112,8 +1112,11 @@ function [ci,bootstat,S,calcurve,idx] = ibootci(argin1,argin2,varargin)
       % Put standard errors for second bootstrap into second cell of bootstat output
       bootstat{2} = SE1;
     end
-    a = n^(-3/2) * se;
-
+    if ~isempty(blocksize)
+      a = 0;  % no additive constant for block bootstrap
+    else
+      a = n^(-3/2) * se;
+    end
 
     % Calculate Studentized statistics
     ridx = isnan(T1); T1(ridx)=[]; SE1(ridx)=[];
