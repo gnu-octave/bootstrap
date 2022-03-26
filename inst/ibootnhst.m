@@ -28,7 +28,7 @@
 %  argument, the p-value adjustments are essentially bootstrap versions of 
 %  either Tukey-Kramer's or Dunnett's tests. Unlike these tests though, 
 %  ibootnhst does not make the normality assumption. Since DATA across the 
-%  GROUPs are resampled, as for a permutatiion test, ibootnhst assumes  
+%  GROUPs are resampled, as for a permutation test, ibootnhst assumes  
 %  exchangeability among the groups under the null hypothesis. The sampling 
 %  method used for bootstrap and bootknife is balanced, unless computations 
 %  are accelerated by parallel processing, in which case bootstrap sampling 
