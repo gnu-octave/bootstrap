@@ -882,15 +882,8 @@ function [ci,bootstat,S,calcurve,idx] = ibootci(argin1,argin2,varargin)
       D = diag(sqrt(diag(bandwidth))).'; % standard deviations
       R = inv(D) * bandwidth * inv(D);   % correlation matrix
       bandwidth = diag(D).';             % set standard deviation as bandwidth
-      % Calculate degrees of freedom
-      if numel(S.n)>1
-        df = S.n(1)-S.n(2);
-      else
-        df = S.n(1) - 1;
-      end
     else
       R = [];
-      df = [];
     end
 
     % Convert alpha to coverage level (decimal format)
@@ -941,7 +934,6 @@ function [ci,bootstat,S,calcurve,idx] = ibootci(argin1,argin2,varargin)
     opt.blocksize = blocksize;
     opt.bandwidth = bandwidth;
     opt.R = R;
-    opt.df = df;
     opt.stderr = stderr;
     opt.runmode = runmode;
     opt.paropt = paropt;

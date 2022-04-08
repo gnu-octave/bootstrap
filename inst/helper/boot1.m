@@ -8,7 +8,6 @@ function [T1, T2, U, idx] = boot1 (x, nboot, n, nvar, bootfun, T0, S, opt)
   blocksize = opt.blocksize;
   bandwidth = opt.bandwidth;
   R = opt.R;
-  df = opt.df;
   stderr = opt.stderr;
   runmode = opt.runmode;
   paropt = opt.paropt;
@@ -46,18 +45,18 @@ function [T1, T2, U, idx] = boot1 (x, nboot, n, nvar, bootfun, T0, S, opt)
   if ~isempty(strata)
     % Get strata IDs
     gid = unique(strata);  % strata ID
-    K = numel(gid);    % number of strata
+    K = numel(gid);        % number of strata
     % Create strata matrix
     g = zeros(n,K);
     for k = 1:K
       g(:,k) = (strata == gid(k));
     end
     % Get strata sample and bootstrap sample set dimensions
-    nk = sum(g).';   % strata sample sizes
-    ck = cumsum(nk); % cumulative sum of strata sample sizes
-    ik = [1;ck];   % strata boundaries
-    Nk = nk*B;     % size of strata bootstrap sample set
-    Ck = cumsum(Nk); % cumulative sum of strata bootstrap sample set sizes
+    nk = sum(g).';         % strata sample sizes
+    ck = cumsum(nk);       % cumulative sum of strata sample sizes
+    ik = [1;ck];           % strata boundaries
+    Nk = nk*B;             % size of strata bootstrap sample set
+    Ck = cumsum(Nk);       % cumulative sum of strata bootstrap sample set sizes
   else
     ck = n;
     g = ones(n,1);

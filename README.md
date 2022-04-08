@@ -64,6 +64,8 @@ At the Octave command prompt, type `help function-name` for more information abo
 
 The Matlab Statistics and Machine Learning toolbox has functions also called `bootstrp` and `bootci`. The same-named functions in the statistics-bootstrap package have almost identical usage to the Matlab functions from the Statistics and Machine Learning toolbox. Be aware though that Matlab's own `bootci` function has a couple of errors, namely in the calculation of the bias for `cper` and `bca` intervals, and in the calculation of `stud` intervals. We recommend using the statistics-bootstrap package function `bootci`, or better it's function `ibootci` for the calculation of calibrated bootstrap confidence intervals. The 'i' prefix to the bootstrap function name indicates that the functions have capabilities to calculate calibrated bootstrap statistics confidence intervals or *p*-values by iterated (a.k.a. double) bootstrap.
 
+Be aware that that many of the bootstrap functions in this package are deterministic through the setting of a random seed on each function call. This will be a problem if testing the bootstrap functions in simulations that depend on generating samples using Matlab's or Octave's random number generator. The solution is to set `UseParallel` in the `paropt` structure input argument to `True`, which disables the resetting of the random number generator.
+
 ## Development roadmap
  
 * Create a simple and efficient progress bar for the functions in this package  

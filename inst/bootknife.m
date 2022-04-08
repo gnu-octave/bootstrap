@@ -5,6 +5,7 @@
 %  bootstat = bootknife(nboot,bootfun,d)
 %  bootstat = bootknife(nboot,bootfun,d1,...,dN)
 %  bootstat = bootknife(...,'Weights',weights)
+%  bootstat = bootknife(...,'Smooth',boolean)
 %  [bootstat,bootsam] = bootknife(...)
 %
 %  bootstat = bootknife(nboot,bootfun,d,...) draws nboot bootknife data
@@ -31,6 +32,15 @@
 %  non-scalar input argument(s) to bootfun. The weights are used as
 %  bootstrap sampling probabilities. Balanced resampling is extended
 %  to resampling with weights.
+%
+%  bootstat = bootknife(...,'Smooth',boolean) specifies whether to 
+%  smooth the bootknife distribution by adding additive random Gaussian  
+%  noise. Since smoothing is applied directly to the bootknife statistics, 
+%  this smoothing algorithm is appropriate for any function of the data. 
+%  The amount of smoothing is inversely related to the sample size and  
+%  can only improve coverage in the tails of the bootknife distribution. 
+%  Inflation of the sampling variance is prevented by including a 
+%  shrinkage correction procedure. 
 %
 %  [bootstat,bootsam] = bootknife(...) also returns bootsam, a  
 %  matrix of indices for bootknife sampling. Each column in bootsam
@@ -73,6 +83,7 @@ function [bootstat,idx] = bootknife (nboot, bootfun, varargin)
 
   % Set defaults
   weights = [];
+  smooth = false;
 
   % Assign input arguments to function variables
   argin3 = varargin;
@@ -81,6 +92,8 @@ function [bootstat,idx] = bootknife (nboot, bootfun, varargin)
     while ischar(argin3{end-1})
       if strcmpi(argin3{end-1},'Weights')
         weights = argin3{end};
+      elseif strcmpi(argin3{end-1},'Smooth')
+        smooth = argin3{end};
       else
         error('unrecognised input argument to bootstrp')
       end
@@ -176,9 +189,17 @@ function [bootstat,idx] = bootknife (nboot, bootfun, varargin)
       end
     end
   end
-  % Vectorized function evaluations on bootstrap data samples
+  % Vectorized function evaluations on bootknife data samples
   if ~matflag && (nvar == 1)
     bootstat = feval(bootfun,X{:});
   end
   
+  % Smooth the bootknife distribution
+  if smooth
+    mu = mean(bootstat);
+    SE = std(bootstat);
+    noise = randn(1,nboot) * SE;
+    bootstat = ((bootstat - mu) * sqrt(1 - 1/n) + noise * sqrt(1/n)) + mu;
+  end
+
 end

@@ -10,7 +10,6 @@ function bootout = parboot (x, X1, nboot, n, nvar, bootfun, T0, g, S, opt, w, ck
   blocksize = opt.blocksize;
   bandwidth = opt.bandwidth;
   R = opt.R;
-  df = opt.df;
   stderr = opt.stderr;
   runmode = opt.runmode;
 
