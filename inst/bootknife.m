@@ -38,9 +38,9 @@
 %  noise. Since smoothing is applied directly to the bootknife statistics, 
 %  this smoothing algorithm is appropriate for any function of the data. 
 %  The amount of smoothing is inversely related to the sample size and  
-%  can only improve coverage in the tails of the bootknife distribution. 
-%  Inflation of the sampling variance is prevented by including a 
-%  shrinkage correction procedure. 
+%  may affect interval length, but less so coverage, in the tails of the 
+%  bootknife distribution. Inflation of the sampling variance is 
+%  prevented by including a shrinkage correction procedure. 
 %
 %  [bootstat,bootsam] = bootknife(...) also returns bootsam, a  
 %  matrix of indices for bootknife sampling. Each column in bootsam
