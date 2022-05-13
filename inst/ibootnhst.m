@@ -958,7 +958,7 @@ function [p, c, stats] = ibootnhst (data, group, varargin)
       % Compute unbiased estimate of the standard error by balanced bootknife resampling
       % Bootknife resampling involves less computation than Jackknife when sample sizes get larger
       nk(j) = sum(g==gk(j));
-      t = bootknife(nboot(1), bootfun, data(g==gk(j),:));
+      [~,t] = bootknife([nboot(1),0], bootfun, data(g==gk(j),:));
       SE(j) = std(t);
     end
     Var(j) = ((nk(j)-1)/(N-k-(l-1))) * SE(j)^2;
