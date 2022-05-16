@@ -2,15 +2,15 @@
 %
 %  Bootknife resampling  
 %
-%  This function takes a data sample (of n rows) and uses bootstrap 
-%  techniques to calculate a bias-corrected parameter estimate, a 
-%  standard error, and 95% confidence intervals. Specifically, the method 
-%  uses bootknife resampling, which involves creating leave-one-out 
-%  jackknife samples of size n - 1 and then drawing samples of size n with 
-%  replacement from the jackknife samples [1]. The resampling of data rows 
-%  is balanced in order to reduce Monte Carlo error [2]. By default, the 
-%  algorithm uses a double bootstrap procedure to improve the accuracy of 
-%  estimates for small-medium sample sizes [3].
+%  This function takes a data sample (containin n rows) and uses bootstrap 
+%  to calculate a bias-corrected parameter estimate, a standard error, 
+%  and 95% confidence intervals. Specifically, the method uses bootknife 
+%  resampling, which involves creating leave-one-out jackknife samples of 
+%  size n - 1 and then drawing samples of size n with replacement from the 
+%  jackknife samples [1]. The resampling of data rows is balanced in order 
+%  to reduce Monte Carlo error [2,3]. By default, the algorithm uses a  
+%  double bootstrap procedure to improve the accuracy of estimates for 
+%  small-to-medium sample sizes [4-6].
 %
 %  stats = bootknife(data)
 %  stats = bootknife(data,nboot)
@@ -25,13 +25,13 @@
 %  stats = bootknife(data) resamples from the rows of a data sample (column 
 %  vector or a matrix) and returns a column vector which, from top-to-
 %  bottom, contains the bootstrap bias-corrected estimate of the population 
-%  mean, the bootstrap standard error of the mean, and calibrated 95% 
-%  percentile bootstrap confidence intervals (lower and upper limits). 
+%  mean [5,6], the bootstrap standard error of the mean, and calibrated 95% 
+%  percentile bootstrap confidence intervals (lower and upper limits) [4]. 
 %  Double bootstrap is used to improve the accuracy of the returned 
 %  statistics, with the default number of outer (first) and inner (second) 
 %  bootknife resamples being 2000 and 200 respectively. For confidence 
 %  intervals, this is achieved by calibrating the lower and upper interval 
-%  ends to have tail probabilities of 2.5% and 97.5% [3]. 
+%  ends to have tail probabilities of 2.5% and 97.5% [4]. 
 %
 %  stats = bootknife(data,nboot) also specifies the number of bootknife 
 %  samples. nboot can be a scalar, or vector of upto two positive integers. 
@@ -45,10 +45,13 @@
 %  of resamples in the second bootstrap (to reduce the computational 
 %  expense of the double bootstrap) since the algorithm uses linear 
 %  interpolation to achieve near asymptotic calibration of confidence 
-%  intervals [3]. Setting the second element of nboot to 0 enforces a 
-%  single bootstrap procedure. Generally this is not recommended, although 
-%  it can be useful if the purpose is just to get a quick, unbiased  
-%  estimate of the bootstrap standard error.
+%  intervals [3]. 
+%    Setting the second element of nboot to 0 enforces a single bootstrap 
+%  procedure. This can be useful if the purpose is just to get a quick, 
+%  unbiased estimate of the bootstrap standard error by bootknife 
+%  resampling. However, NaN will be returned for the confidence interval 
+%  limits because uncalibrated percentile confidence intervals from a 
+%  single bootstrap are considered too inaccurate.
 %
 %  stats = bootknife(data,nboot,bootfun) also specifies bootfun, a function 
 %  handle (e.g. specified with @) or a string indicating the name of the 
@@ -84,9 +87,16 @@
 %        Environment. Alexandria, VA: American Statistical Association.
 %  [2] Davison et al. (1986) Efficient Bootstrap Simulation.
 %        Biometrika, 73: 555-66
-%  [3] Hall, Lee and Young (2000) Importance of interpolation when
+%  [3] Gleason, J.R. (1988) Algorithms for Balanced Bootstrap Simulations. 
+%        The American Statistician. Vol. 42, No. 4 pp. 263-266
+%  [4] Hall, Lee and Young (2000) Importance of interpolation when
 %        constructing double-bootstrap confidence intervals. Journal
 %        of the Royal Statistical Society. Series B. 62(3): 479-491
+%  [5] Ouysee, R. (2011) Computationally efficient approximation for 
+%        the double bootstrap mean bias correction. Economics Bulletin, 
+%        AccessEcon, vol. 31(3), pages 2388-2403.
+%  [6] Davison A.C. and Hinkley D.V (1997) Bootstrap Methods And Their 
+%        Application. Chapter 3, pg. 104
 %
 %  bootknife v1.3.0.0 (16/05/2022)
 %  Author: Andrew Charles Penn
@@ -177,9 +187,6 @@ function [stats, T1, idx] = bootknife (x, nboot, bootfun, alpha, strata)
   stats = zeros(4,1);
 
   % Perform balanced bootknife resampling
-  % Octave or Matlab serial/vectorized computing
-  %    Gleason, J.R. (1988) Algorithms for Balanced Bootstrap Simulations. 
-  %    The American Statistician. Vol. 42, No. 4 pp. 263-266
   if ~isempty(strata)
     % Get strata IDs
     gid = unique(strata);  % strata ID
@@ -239,9 +246,6 @@ function [stats, T1, idx] = bootknife (x, nboot, bootfun, alpha, strata)
       V(b) = var(T2,1);
     end
     % Double bootstrap bias estimation
-    % References: 
-    %  Ouysee (2011) Economics Bulletin
-    %  Davison A.C. and Hinkley D.V (1997) Chapter 3 pg. 104
     bias = mean(T1) - T0 - mean(M - T1);
     % Double bootstrap standard error
     se = sqrt(var(T1,1)^2 / mean(V));
@@ -258,12 +262,9 @@ function [stats, T1, idx] = bootknife (x, nboot, bootfun, alpha, strata)
     bias = mean(T1) - T0;
     % Bootstrap standard error
     se = std(T1,1);
-    if ~isempty(alpha)
-      % Percentile bootstrap confidence intervals
-      ci = quantile (T1, [alpha/2, 1-alpha/2]);
-    else
-      ci = nan(1,2);
-    end
+    % (Uncalibrated) percentile confidence intervals are inaccurate and 
+    % so we don't calculate them when a single bootstrap is requested
+    ci = nan(1,2);
   end
   
   % Prepare output
