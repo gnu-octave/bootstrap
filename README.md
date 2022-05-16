@@ -47,7 +47,7 @@ To install (or test) the statistics-bootstrap package at it's existing location 
 ### Functions
 
 * `bootstrp` performs (balanced) bootstrap resampling 
-* `bootknife` performs (balanced) bootknife resampling 
+* `bootknife` performs (balanced) bootknife resampling and uses double bootstrap to calculate bias-corrected parameter estimates, standard error and confidence intervals. This functional supports stratified resampling.
 * `bootci` calculates confidence intervals using bootstrap resampling
 * `ibootci` calculates confidence intervals (calibrated) by iterated bootstrap resampling 
 * `ibootp` calculates a two-tailed *p*-value for hypothesized value of the statistic using bootstrap
