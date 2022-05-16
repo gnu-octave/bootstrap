@@ -2,72 +2,78 @@
 %
 %  Bootknife resampling  
 %
-%  The function uses a variant of bootstrap called bootknife sampling, 
-%  which involves creating leave-one-out jackknife samples of size n - 1 
-%  and then drawing samples of size n with replacement from the jackknife 
-%  samples [1]. The resampling of data values is balanced to reduce Monte 
-%  Carlo error [2]. By default, the algorithm uses double bootstrap to
-%  provide an accurate bias-corrected parameter estimate, standard error,
-%  and 95% confidence intervals.
+%  This function takes a data sample (of n rows) and uses bootstrap 
+%  methodology to calculate a bias-corrected parameter estimate, a 
+%  standard error, and 95% confidence intervals. Specifically, the method 
+%  uses bootknife resampling, which involves creating leave-one-out 
+%  jackknife samples of size n - 1 and then drawing samples of size n with 
+%  replacement from the jackknife samples [1]. The resampling of data rows 
+%  is balanced in order to reduce Monte Carlo error [2]. By default, the 
+%  algorithm uses a double bootstrap procedure to improve the accuracy of 
+%  estimates for small-medium sample sizes [3].
 %
-%  stats = bootknife(nboot,bootfun,d1,...,dN)
-%  ... = bootknife(...,'alpha',alpha)
-%  ... = bootknife(...,'Strata',strata)
+%  stats = bootknife(data)
+%  stats = bootknife(data,nboot)
+%  stats = bootknife(data,nboot,bootfun)
+%  stats = bootknife(data,nboot,bootfun,alpha)
+%  stats = bootknife(data,nboot,bootfun,alpha,strata)
+%  stats = bootknife(data,[2000,200],@mean,0.05,[])    % Default values
 %  [stats,bootstat] = bootknife(...)
 %  [stats,bootstat] = bootknife(...)
 %  [stats,bootstat,bootsam] = bootknife(...)
 %
-%  stats = bootknife(nboot,bootfun,d) draws nboot bootknife resamples from
-%  rows of data and computes the statistic defined by bootfun to
-%  approximate the sampling distribution, correct the statistic for bias, 
-%  and estimate standard errors and confidence intervals.
+%  stats = bootknife(data) resamples from the rows of a data sample (column 
+%  vector or a matrix) and returns a column vector which, from top-to-
+%  bottom, contains the bootstrap bias-corrected estimate of the population 
+%  mean, the bootstrap standard error of the mean, and calibrated 95% 
+%  percentile bootstrap confidence intervals (lower and upper limits). 
+%  Double bootstrap is used to improve the accuracy of the returned 
+%  statistics, with the default number of outer (first) and inner (second) 
+%  bootknife resamples being 2000 and 200 respectively. For confidence 
+%  intervals, this is achieved by calibrating the lower and upper interval 
+%  ends to have tail probabilities of 2.5% and 97.5%. 
 %
-%  nboot is a scalar, or vector of upto two positive integers indicating
-%  the number of replicate samples for the first and second bootstraps.
-%  By default, nboot is [2000,200], which implements double bootstrap. If 
-%  nboot provided is scalar, the default number of resamples in the second 
-%  bootstrap is 200. We can get away with a lower number of resamples in 
-%  the second bootstrap (to reduce the computational expense of the double 
-%  bootstrap) since linear interpolation is used to achieve near asymptotic 
-%  calibration of confidence intervals [3].
+%  stats = bootknife(data,nboot) also specifies the number of bootknife 
+%  samples. nboot can be a scalar, or vector of upto two positive integers. 
+%  By default, nboot is [2000,200], which implements double bootstrap with 
+%  the 2000 outer (first) and 200 inner (second) bootknife resamples. If 
+%  nboot provided is scalar, the value of nboot corresponds to the number 
+%  of outer (first) bootknife resamples, and the default number of second
+%  second bootstrap resamples (200) applies. Note that one can get away 
+%  with a lower number of resamples in the second bootstrap (to reduce the 
+%  computational expense of the double bootstrap) since the algorithm uses
+%  linear interpolation to achieve near asymptotic calibration of 
+%  confidence intervals [3]. Setting the second element of nboot to 0
+%  enforces a single bootstrap procedure. Generally this is not recommened,
+%  althoug it can be useful if the purpose is to get a quick, unbiased
+%  estimate of the bootstrap standard error using b
 %
-%  bootfun is a function handle (e.g. specified with @), or a string 
-%  indicating the function name. 
-%  
-%  The third input argument is data (column vector or a matrix), that is 
-%  used to create inputs for bootfun. 
-%  
-%  The first output argument returns a row vector containing:
-%    1) The bias-corrected statistic
-%    2) The bootstrap standard error
-%    3) Lower limit of the 95% bootstrap confidence interval
-%    4) Upper limit of the 95% bootstrap confidence interval
+%  stats = bootknife(data,nboot,bootfun) also specifies bootfun, a function 
+%  handle (e.g. specified with @) or a string indicating the name of the 
+%  function to apply to the data (and each bootknife resample). The default
+%  value of bootfun is 'mean'.
 %
-%  stats = bootknife(nboot,bootfun,d1,...,dN) is as above except that 
-%  the third and subsequent numeric input arguments are data vectors 
-%  that are used to create inputs for bootfun. 
+%  stats = bootknife(data,nboot,bootfun,alpha) where alpha sets the lower 
+%  and upper confidence interval ends to be 100 * (alpha/2)% and 100 * 
+%  (1-alpha/2)% respectively. Central coverage of the intervals is thus 
+%  100*(1-alpha)%. alpha should be a scalar value between 0 and 1. Default
+%  is 0.05.
 %
-%  ... = bootknife(nboot,{bootfun,...},...,'strata',strata) specifies a
-%  vector containing numeric identifiers of strata. The dimensions of
-%  strata must be equal to that of the non-scalar input arguments to
-%  bootfun. Bootstrap resampling is stratified so that every stratum is
-%  represented in each bootstrap test statistic.
+%  stats = bootknife(data,nboot,bootfun,alpha,strata) also sets strata, 
+%  which are numeric identifiers that define the grouping of the data rows
+%  for stratified bootknife resampling. strata should be a column vector 
+%  the same number of rows as the data. When resampling is stratified, 
+%  the groups (or stata) of data are equally represented across the 
+%  bootknife resamples.
 %
-%  ... = bootknife(nboot,bootfun,...,'alpha',alpha) computes the
-%  iterated bootstrap confidence interval of the statistic defined by the
-%  function bootfun with lower and uppper interval ends calibrated to 
-%  100 * alpha/2 and 100 * (1-alpha)/2 %, where alpha is a scalar
-%  value between 0 and 1. The default value of alpha is 0.05 corresponding 
-%  to intervals with a coverage of 95% confidence.
+%  [stats,bootstat] = bootknife(...) also returns bootstat, a vector of
+%  statistics calculated over the (first or outer level of) bootknife 
+%  resamples. 
 %
-%  [stats,bootstat] = bootknife(...) also returns bootstat, a vector 
-%  bootstrap statistics for the (first level of) bootknife resampling. 
-%
-%  [stats,bootstat,bootsam] = bootknife(...) also returns bootsam, a  
-%  matrix of indices for bootknife sampling. Each column in bootsam
-%  corresponds to one bootknife sample and contains the row 
-%  indices of the values drawn from the nonscalar data argument 
-%  to create that sample.
+%  [stats,bootstat,bootsam] = bootknife(...) also returns bootsam, the  
+%  matrix of indices used for bootknife resampling. Each column in bootsam
+%  corresponds to one bootknife sample and contains the row indices of the 
+%  values drawn from the nonscalar data argument to create that sample.
 %
 %  Bibliography:
 %  [1] Hesterberg T.C. (2004) Unbiasing the Bootstrap—Bootknife Sampling 
@@ -98,42 +104,29 @@
 %  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-function [stats, T1, idx] = bootknife (nboot, bootfun, varargin)
+function [stats, T1, idx] = bootknife (x, nboot, bootfun, alpha, strata)
   
   % Error checking
-  if nargin < 3
-    error('not enough input argumemnts')
+  if nargin < 1
+    error('data must be provided')
   end
 
   % Set defaults
-  alpha = 0.05;
-  strata = [];
-  
-  % Assign input arguments to function variables
-  argin3 = varargin;
-  narg = numel(argin3);
-  if narg > 1
-    while ischar(argin3{end-1})
-      if strcmpi(argin3{end-1},'alpha')
-        alpha = argin3{end};   
-      elseif strcmpi(argin3{end-1},'strata')
-        strata = argin3{end};   
-      else
-        error('unrecognised input argument to bootstrp')
-      end
-      argin3 = {argin3{1:end-2}};
-      narg = numel(argin3);
-      if narg < 3
-        break
-      end
-    end
+  if nargin < 2
+    nboot = [2000,200];
   end
-  x = argin3;
+  if nargin < 3
+    bootfun = 'mean';
+  end
+  if nargin < 4
+    alpha = 0.05;
+  end
+  if nargin < 5
+    strata = [];
+  end
 
-  % Determine properies of data
-  nvar = numel(x);
-  sz = size(x{1});
-  n = sz(1);
+  % Determine properties of the data (x)
+  n = size(x,1);
 
   % Initialize
   B = nboot(1);
@@ -143,12 +136,9 @@ function [stats, T1, idx] = bootknife (nboot, bootfun, varargin)
     C = 200;
   end
   T1 = zeros(1, B);
-  U = zeros(1, B);
-  M = zeros(1, B);
-  V = zeros(1, B);
-  X = cell(1, nvar);
   idx = zeros(n,B);
   c = ones(n,1) * B;
+  stats = zeros(4,1);
 
   % Perform balanced bootknife resampling
   % Octave or Matlab serial/vectorized computing
@@ -159,48 +149,46 @@ function [stats, T1, idx] = bootknife (nboot, bootfun, varargin)
     gid = unique(strata);  % strata ID
     K = numel(gid);        % number of strata
     % Create strata matrix
-    g = zeros(n,K);
+    g = false(n,K);
     for k = 1:K
       g(:,k) = (strata == gid(k));
-      [~, ~, idx(g(:,k),:)] = bootknife (B, bootfun, x{:}(g(:,k),:));
-    end
-    % Perform data sampling
-    for v = 1:nvar
-      X{v} = x{v}(idx);
-    end
-    for b = 1:B
-      T1(b) = feval(bootfun,X{:}(:,b));
+      [~, ~, idx(g(:,k),:)] = bootknife (x(g(:,k),:),[B,0], bootfun);
+      rows = find (g(:,k));
+      idx(g(:,k),:) = rows(idx(g(:,k),:));
     end
   else
     for b = 1:B
       % Choose which rows of the data to sample
-      r = b - fix((b-1)/n) * n;
+      r = b - fix ((b-1)/n) * n;
       for i = 1:n
         d = c;   
         d(r) = 0;
         if ~sum(d)
           d = c;
         end
-        j = sum((rand(1) >= cumsum(d./sum(d)))) + 1;
+        j = sum((rand(1) >= cumsum (d./sum(d)))) + 1;
         idx(i,b) = j;
         c(j) = c(j) - 1;
       end 
-      % Perform data sampling
-      for v = 1:nvar
-        X{v} = x{v}(idx(:,b));
-      end
-      % Function evaluation on bootknife sample
-      T1(b) = feval(bootfun,X{:}); 
     end
   end
-  
+  for b = 1:B
+    % Perform data sampling
+    X = x(idx(:,b),:);
+    % Function evaluation on bootknife sample
+    T1(b) = feval (bootfun,X);
+  end
+ 
   % Calculate the bootstrap standard error, bias and confidence intervals 
   % Bootstrap standard error estimation
-  T0 = bootfun(x{:});
+  T0 = feval (bootfun,x);
   if C > 0
+    U = zeros (1, B);
+    M = zeros (1, B);
+    V = zeros (1, B);
     % Iterated bootstrap resampling for greater accuracy
     for b = 1:B
-      [~,T2] = bootknife ([C,0], bootfun, x{:}(idx(:,b)));
+      [~,T2] = bootknife (x(idx(:,b),:),[C,0], bootfun, alpha, strata);
       % Use quick interpolation to find the probability that T2 <= T0
       I = (T2<=T0);
       u = sum(I);
@@ -208,7 +196,7 @@ function [stats, T1, idx] = bootknife (nboot, bootfun, varargin)
                         min([max(T2), min(T2(~I))])],...
                        [u; min(u+1,C)] / C,...
                        T0);
-      if isnan(U(i))
+      if isnan(U(b))
         U(b) = u / C;
       end
       M(b) = mean(T2);
