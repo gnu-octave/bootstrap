@@ -45,7 +45,7 @@ function maxT = maxstat (Y, g, nboot, bootfun, ref, clusters, strata)
       % Compute unbiased estimate of the standard error by balanced bootknife resampling
       % Bootknife resampling involves less computation than Jackknife when sample sizes get larger
       nk(j) = sum(g==gk(j));
-      stats = bootknife(Y(g==gk(j),:),[nboot,0],bootfun);
+      stats = bootknife(Y(g==gk(j),:),[nboot,0],bootfun,[]);
       SE(j) = stats(2);
     end
     Var(j) = ((nk(j)-1)/(N-k-(l-1))) * SE(j)^2;

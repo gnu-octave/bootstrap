@@ -3,7 +3,7 @@
 %  Bootknife resampling  
 %
 %  This function takes a data sample (of n rows) and uses bootstrap 
-%  methodology to calculate a bias-corrected parameter estimate, a 
+%  techniques to calculate a bias-corrected parameter estimate, a 
 %  standard error, and 95% confidence intervals. Specifically, the method 
 %  uses bootknife resampling, which involves creating leave-one-out 
 %  jackknife samples of size n - 1 and then drawing samples of size n with 
@@ -31,7 +31,7 @@
 %  statistics, with the default number of outer (first) and inner (second) 
 %  bootknife resamples being 2000 and 200 respectively. For confidence 
 %  intervals, this is achieved by calibrating the lower and upper interval 
-%  ends to have tail probabilities of 2.5% and 97.5%. 
+%  ends to have tail probabilities of 2.5% and 97.5% [3]. 
 %
 %  stats = bootknife(data,nboot) also specifies the number of bootknife 
 %  samples. nboot can be a scalar, or vector of upto two positive integers. 
@@ -59,7 +59,8 @@
 %  and upper confidence interval ends to be 100 * (alpha/2)% and 100 * 
 %  (1-alpha/2)% respectively. Central coverage of the intervals is thus 
 %  100*(1-alpha)%. alpha should be a scalar value between 0 and 1. Default
-%  is 0.05.
+%  is 0.05. If alpha is empty, NaN is returned for the confidence interval
+%  ends.
 %
 %  stats = bootknife(data,nboot,bootfun,alpha,strata) also sets strata, 
 %  which are numeric identifiers that define the grouping of the data rows
@@ -113,18 +114,51 @@ function [stats, T1, idx] = bootknife (x, nboot, bootfun, alpha, strata)
     error('data must be provided')
   end
 
-  % Set defaults
+  % Set defaults or check for errors
   if nargin < 2
     nboot = [2000,200];
+  else
+    if isempty(nboot)
+      nboot = [2000,200];
+    else
+      if ~isa(nboot,'numeric')
+        error('nboot must be numeric');
+      end
+      if any(nboot~=abs(fix(nboot)))
+        error('nboot must contain positive integers')
+      end    
+      if numel(nboot)>3
+        error('nboot cannot contain more than 2 values')
+      end
+    end
   end
   if nargin < 3
-    bootfun = 'mean';
+    bootfun = @mean;
+  else
+    if ischar(bootfun)
+      % Convert character string of a function name to a function handle
+      bootfun = str2func(bootfun);
+    end
+    if ~isa(bootfun,'function_handle')
+      error('bootfun must be a function name or function handle');
+    end
   end
   if nargin < 4
     alpha = 0.05;
+  elseif ~isempty(alpha) 
+    if ~isa(alpha,'numeric') || numel(alpha)~=1
+      error('alpha must be a numeric scalar value');
+    end
+    if (alpha <= 0) || (alpha >= 1)
+      error('alpha must be a value between 0 and 1');
+    end
   end
   if nargin < 5
     strata = [];
+  elseif ~isempty(alpha) 
+    if size(strata,1) ~= size(x,1)
+      error('strata must be a column vector with the same number of rows as the data')
+    end
   end
 
   % Determine properties of the data (x)
@@ -154,7 +188,7 @@ function [stats, T1, idx] = bootknife (x, nboot, bootfun, alpha, strata)
     g = false(n,K);
     for k = 1:K
       g(:,k) = (strata == gid(k));
-      [~, ~, idx(g(:,k),:)] = bootknife (x(g(:,k),:),[B,0], bootfun);
+      [~, ~, idx(g(:,k),:)] = bootknife (x(g(:,k),:),[B,0], bootfun, []);
       rows = find (g(:,k));
       idx(g(:,k),:) = rows(idx(g(:,k),:));
     end
@@ -190,7 +224,7 @@ function [stats, T1, idx] = bootknife (x, nboot, bootfun, alpha, strata)
     V = zeros (1, B);
     % Iterated bootstrap resampling for greater accuracy
     for b = 1:B
-      [~,T2] = bootknife (x(idx(:,b),:),[C,0], bootfun, alpha, strata);
+      [~,T2] = bootknife (x(idx(:,b),:),[C,0], bootfun, [], strata);
       % Use quick interpolation to find the probability that T2 <= T0
       I = (T2<=T0);
       u = sum(I);
@@ -205,21 +239,31 @@ function [stats, T1, idx] = bootknife (x, nboot, bootfun, alpha, strata)
       V(b) = var(T2,1);
     end
     % Double bootstrap bias estimation
-    % See Ouysee (2011) Economics Bulletin
+    % References: 
+    %  Ouysee (2011) Economics Bulletin
+    %  Davison A.C. and Hinkley D.V (1997) Chapter 3 pg. 104
     bias = mean(T1) - T0 - mean(M - T1);
     % Double bootstrap standard error
     se = sqrt(var(T1,1)^2 / mean(V));
-    % Calibrate tail probabilities to half of alpha
-    l = quantile (U, [alpha/2, 1-alpha/2]);
-    % Calibrated percentile bootstrap confidence intervals
-    ci = quantile (T1, l);
+    if ~isempty(alpha)
+      % Calibrate tail probabilities to half of alpha
+      l = quantile (U, [alpha/2, 1-alpha/2]);
+      % Calibrated percentile bootstrap confidence intervals
+      ci = quantile (T1, l);
+    else
+      ci = nan(1,2);
+    end
   else
     % Bootstrap bias estimation
     bias = mean(T1) - T0;
     % Bootstrap standard error
     se = std(T1,1);
-    % Percentile bootstrap confidence intervals
-    ci = quantile (T1, [alpha/2, 1-alpha/2]);
+    if ~isempty(alpha)
+      % Percentile bootstrap confidence intervals
+      ci = quantile (T1, [alpha/2, 1-alpha/2]);
+    else
+      ci = nan(1,2);
+    end
   end
   
   % Prepare output
