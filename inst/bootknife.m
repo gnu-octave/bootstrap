@@ -36,17 +36,19 @@
 %  stats = bootknife(data,nboot) also specifies the number of bootknife 
 %  samples. nboot can be a scalar, or vector of upto two positive integers. 
 %  By default, nboot is [2000,200], which implements double bootstrap with 
-%  the 2000 outer (first) and 200 inner (second) bootknife resamples. If 
-%  nboot provided is scalar, the value of nboot corresponds to the number 
-%  of outer (first) bootknife resamples, and the default number of second
-%  second bootstrap resamples (200) applies. Note that one can get away 
-%  with a lower number of resamples in the second bootstrap (to reduce the 
-%  computational expense of the double bootstrap) since the algorithm uses
-%  linear interpolation to achieve near asymptotic calibration of 
-%  confidence intervals [3]. Setting the second element of nboot to 0
-%  enforces a single bootstrap procedure. Generally this is not recommened,
-%  althoug it can be useful if the purpose is to get a quick, unbiased
-%  estimate of the bootstrap standard error using b
+%  the 2000 outer (first) and 200 inner (second) bootknife resamples. 
+%  Larger number of resamples are recommended to reduce the Monte Carlo 
+%  error, particularly of confidence intervals. If nboot provided is 
+%  scalar, the value of nboot corresponds to the number of outer (first) 
+%  bootknife resamples, and the default number of second bootstrap 
+%  resamples (200) applies. Note that one can get away with a lower number 
+%  of resamples in the second bootstrap (to reduce the computational 
+%  expense of the double bootstrap) since the algorithm uses linear 
+%  interpolation to achieve near asymptotic calibration of confidence 
+%  intervals [3]. Setting the second element of nboot to 0 enforces a 
+%  single bootstrap procedure. Generally this is not recommended, although 
+%  it can be useful if the purpose is just to get a quick, unbiased  
+%  estimate of the bootstrap standard error.
 %
 %  stats = bootknife(data,nboot,bootfun) also specifies bootfun, a function 
 %  handle (e.g. specified with @) or a string indicating the name of the 
