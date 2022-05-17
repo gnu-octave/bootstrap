@@ -716,6 +716,7 @@ function [p, c, stats] = ibootnhst (data, group, varargin)
   strata = [];
   clusters = [];
   dim = 1;
+  DisplayOpt = false;
   paropt = struct;
   paropt.UseParallel = false;
   % Initialise nproc if it doesn't exist
@@ -741,6 +742,8 @@ function [p, c, stats] = ibootnhst (data, group, varargin)
         alpha = argin3{end};
       elseif strcmpi(argin3{end-1},'dim')
         dim = argin3{end};
+      elseif strcmpi(argin3{end-1},'DisplayOpt')
+        DisplayOpt = argin3{end};
       elseif any(strcmpi(argin3{end-1},{'cluster','clusters','clustered','nested','nests','nesting'}))
         clusters = argin3{end};
       elseif any(strcmpi(argin3{end-1},{'block','blocks','stratum','strata','stratified'}))
@@ -1056,7 +1059,7 @@ function [p, c, stats] = ibootnhst (data, group, varargin)
 
   % Print output and plot graph with confidence intervals if no output arguments are requested
   cols = [1,2,5,6,7]; % columns in c that we want to print data for
-  if (nargout == 0)
+  if (nargout == 0) || (DisplayOpt == true)
     fprintf (['\n',...
                     'Summary of bootstrap null hypothesis (H0) significance test(s)\n',...
                     '******************************************************************************\n']);
