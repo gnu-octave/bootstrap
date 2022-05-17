@@ -54,9 +54,15 @@
 %  single bootstrap are considered too inaccurate.
 %
 %  stats = bootknife(data,nboot,bootfun) also specifies bootfun, a function 
-%  handle (e.g. specified with @) or a string indicating the name of the 
-%  function to apply to the data (and each bootknife resample). The default
-%  value of bootfun is 'mean'.
+%  handle (e.g. specified with @), a string indicating the name of the 
+%  function to apply to the data (and each bootknife resample), or a cell 
+%  array where the first element is the string or fuction handle and other 
+%  elements being arguments for that function. Note that the function must 
+%  take data for the first input argument for this to work. The default 
+%  value of bootfun is 'mean'. Note that bootfun MUST calculate a statistic
+%  representative of the empirical distribution of the data, it should NOT 
+%  be an estimate of the equivalent population parameter. For example, for 
+%  the variance, set bootfun to {@var,1}, not @var or {@var,0}.
 %
 %  stats = bootknife(data,nboot,bootfun,alpha) where alpha sets the lower 
 %  and upper confidence interval ends to be 100 * (alpha/2)% and 100 * 
@@ -146,6 +152,11 @@ function [stats, T1, idx] = bootknife (x, nboot, bootfun, alpha, strata)
   if nargin < 3
     bootfun = @mean;
   else
+    if iscell(bootfun)
+      func = bootfun{1};
+      args = bootfun(2:end);
+      bootfun = @(x) feval(func, x, args{:});
+    end
     if ischar (bootfun)
       % Convert character string of a function name to a function handle
       bootfun = str2func (bootfun);
@@ -248,7 +259,7 @@ function [stats, T1, idx] = bootknife (x, nboot, bootfun, alpha, strata)
     % Double bootstrap bias estimation
     b = mean (T1) - T0;
     c = mean (M) - 2 * mean (T1) + T0;
-    bias = b-c;
+    bias = b - c;
     % Double bootstrap standard error
     se = sqrt (var (T1, 1)^2 / mean (V));
     if ~isempty(alpha)
