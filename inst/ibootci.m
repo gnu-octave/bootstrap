@@ -1026,10 +1026,13 @@ function [ci,bootstat,S,calcurve,idx] = ibootci(argin1,argin2,varargin)
   % Calculate statistics for the first bootstrap sample set
   if C>0
     % Double bootstrap bias estimation
+    % See Davison and Hinkley (1997) pg 103-107
     % See Ouysee (2011) Economics Bulletin
     b = nanfun(@mean,T1) - T0;
-    c = mean(nanfun(@mean,T2) - T1);
+    c = mean(nanfun(@mean,T2)) - 2 * nanfun(@mean,T1) + T0;
     bias = b-c;
+    % Double bootstrap multiplicative correction of the variance
+    SE = sqrt(nanfun(@var,T1)^2 / mean(nanfun(@var,T2)));
     % Double bootstrap multiplicative correction of the variance
     SE = sqrt(nanfun(@var,T1)^2 / mean(nanfun(@var,T2)));
   else
