@@ -219,6 +219,9 @@
 %   clusters - vector of numeric identifiers indicating cluster membership
 %   bootstat - test statistic computed for each bootstrap resample 
 %
+%  [...] = ibootnhst(...,'DisplayOpt',logical) a logical value (true or 
+%  false) is used to specify whether to display and graph the results in 
+%  addition to creating the output arguments. The default is true.
 %
 %  Many examples of using ibootnhst to analyse data obtained from a 
 %  variety of experimental designs:
@@ -716,7 +719,7 @@ function [p, c, stats] = ibootnhst (data, group, varargin)
   strata = [];
   clusters = [];
   dim = 1;
-  DisplayOpt = false;
+  DisplayOpt = true;
   paropt = struct;
   paropt.UseParallel = false;
   % Initialise nproc if it doesn't exist
