@@ -9,15 +9,19 @@
 %  jackknife samples of size n - 1 and then drawing samples of size n with 
 %  replacement from the jackknife samples. The resampling of data rows is 
 %  balanced in order to reduce Monte Carlo error [2,3]. By default, the 
-%  algorithm uses a double bootstrap procedure to improve the accuracy of 
-%  estimates for small-to-medium sample sizes [4-6].
+%  bootstrap confidence intervals are bias-corrected and accelerated (BCa) 
+%  [7]. BCa intervals are fast to compute and have reasonable coverage when
+%  combined with bootknife resampling as it is here [1], but it may not  
+%  have the intended coverage when sample size gets very small. If double
+%  bootstrap is requested, the algorithm uses calibration to improve the 
+%  accuracy of estimates for small-to-medium sample sizes [4-6]. 
 %
 %  stats = bootknife(data)
 %  stats = bootknife(data,nboot)
 %  stats = bootknife(data,nboot,bootfun)
 %  stats = bootknife(data,nboot,bootfun,alpha)
 %  stats = bootknife(data,nboot,bootfun,alpha,strata)
-%  stats = bootknife(data,[2000,200],@mean,0.05,[])    % Default values
+%  stats = bootknife(data,[2000,0],@mean,0.05,[])     % Default values
 %  [stats,bootstat] = bootknife(...)
 %  [stats,bootstat] = bootknife(...)
 %  [stats,bootstat,bootsam] = bootknife(...)
@@ -25,33 +29,27 @@
 %  stats = bootknife(data) resamples from the rows of a data sample (column 
 %  vector or a matrix) and returns a column vector, which from top-to-
 %  bottom contains the bootstrap bias-corrected estimate of the population 
-%  mean [5,6], the bootstrap standard error of the mean, and calibrated 95% 
-%  percentile bootstrap confidence intervals (lower and upper limits) [4]. 
-%  Double bootstrap is used to improve the accuracy of the returned 
-%  statistics, with the default number of outer (first) and inner (second) 
-%  bootknife resamples being 2000 and 200 respectively. For confidence 
-%  intervals, this is achieved by calibrating the lower and upper interval 
-%  ends to have tail probabilities of 2.5% and 97.5% [4]. 
+%  mean [5,6], the bootstrap standard error of the mean, and 95% bias-
+%  corrected and accelerated (BCa) bootstrap confidence intervals [7]. 
 %
 %  stats = bootknife(data,nboot) also specifies the number of bootknife 
 %  samples. nboot can be a scalar, or vector of upto two positive integers. 
-%  By default, nboot is [2000,200], which implements double bootstrap with 
-%  the 2000 outer (first) and 200 inner (second) bootknife resamples. 
-%  Larger number of resamples are recommended to reduce the Monte Carlo 
-%  error, particularly of confidence intervals. If nboot provided is 
-%  scalar, the value of nboot corresponds to the number of outer (first) 
-%  bootknife resamples, and the default number of second bootstrap 
-%  resamples (200) applies. Note that one can get away with a lower number 
-%  of resamples in the second bootstrap (to reduce the computational 
-%  expense of the double bootstrap) since the algorithm uses linear 
-%  interpolation to achieve near asymptotic calibration of confidence 
-%  intervals [3]. 
-%    Setting the second element of nboot to 0 enforces a single bootstrap 
-%  procedure. This can be useful if the purpose is just to get a quick, 
-%  unbiased estimate of the bootstrap standard error by bootknife 
-%  resampling. However, NaN will be returned for the confidence interval 
-%  limits because uncalibrated percentile confidence intervals from a 
-%  single bootstrap are considered too inaccurate.
+%  By default, nboot is [2000,0], which implements a single bootstrap with 
+%  the 2000 resamples. Larger number of resamples are recommended to reduce 
+%  the Monte Carlo error, particularly for confidence intervals. If the 
+%  second element of nboot is > 0, then the first and second elements of 
+%  nboot correspond to the number of outer (first) and inner (second) 
+%  bootknife resamples respectively. Double bootstrap is used to improve 
+%  the accuracy of the all of the returned statistics. For confidence 
+%  intervals, this is achieved by calibrating the lower and upper interval 
+%  ends to have tail probabilities of 2.5% and 97.5% [4]. Note that one can 
+%  get away with a lower number of resamples (e.g. [2000,200] in the second 
+%  bootstrap (to reduce the computational expense of the double bootstrap) 
+%  since the algorithm uses linear interpolation to achieve near asymptotic 
+%  calibration of confidence intervals [3]. The confidence intervals 
+%  calculated (with either single or double bootstrap) are transformation 
+%  invariant and second order accurate. The double bootstrap returns
+%  calibrated percentile intervals.
 %
 %  stats = bootknife(data,nboot,bootfun) also specifies bootfun, a function 
 %  handle (e.g. specified with @), a string indicating the name of the 
@@ -62,7 +60,8 @@
 %  calculate a statistic representative of the finite data sample, it 
 %  should NOT be an estimate of a population parameter. For example, for 
 %  the variance, set bootfun to {@var,1}, not @var or {@var,0}. The default 
-%  value of bootfun is 'mean'. 
+%  value of bootfun is 'mean'. Smooth functions of the data are preferable,
+%  (e.g. use smoothmedian function instead of ordinary median)
 %
 %  stats = bootknife(data,nboot,bootfun,alpha) where alpha sets the lower 
 %  and upper confidence interval ends to be 100 * (alpha/2)% and 100 * 
@@ -77,7 +76,10 @@
 %  the same number of rows as the data. When resampling is stratified, 
 %  the groups (or stata) of data are equally represented across the 
 %  bootknife resamples. If this input argument is not specified or is 
-%  empty, no stratification of resampling is performed. 
+%  empty, no stratification of resampling is performed. For stratified 
+%  resampling, onfidence intervals are only returned for the double
+%  bootstrap; NaN is returned in place of the confidence intervals from 
+%  a single bootstrap).
 %
 %  [stats,bootstat] = bootknife(...) also returns bootstat, a vector of
 %  statistics calculated over the (first or outer level of) bootknife 
@@ -104,6 +106,8 @@
 %        AccessEcon, vol. 31(3), pages 2388-2403.
 %  [6] Davison A.C. and Hinkley D.V (1997) Bootstrap Methods And Their 
 %        Application. Chapter 3, pg. 104
+%  [7] Efron, and Tibshirani (1993) An Introduction to the
+%        Bootstrap. New York, NY: Chapman & Hall
 %
 %  bootknife v1.3.0.0 (16/05/2022)
 %  Author: Andrew Charles Penn
@@ -133,10 +137,10 @@ function [stats, T1, idx] = bootknife (x, nboot, bootfun, alpha, strata)
 
   % Set defaults or check for errors
   if nargin < 2
-    nboot = [2000, 200];
+    nboot = [2000, 0];
   else
     if isempty(nboot)
-      nboot = [2000, 200];
+      nboot = [2000, 0];
     else
       if ~isa (nboot, 'numeric')
         error('nboot must be numeric');
@@ -191,7 +195,7 @@ function [stats, T1, idx] = bootknife (x, nboot, bootfun, alpha, strata)
   if (numel (nboot) > 1)
     C =  nboot(2);
   else
-    C = 200;
+    C = 0;
   end
   T1 = zeros (1, B);
   idx = zeros (n, B);
@@ -275,9 +279,33 @@ function [stats, T1, idx] = bootknife (x, nboot, bootfun, alpha, strata)
     bias = mean (T1) - T0;
     % Bootstrap standard error
     se = std (T1, 1);
-    % (Uncalibrated) percentile confidence intervals are inaccurate and 
-    % so we don't calculate them when a single bootstrap is requested
-    ci = nan (1, 2);
+    if ~isempty(alpha) && isempty(strata)
+      % Bias-corrected and accelerated bootstrap confidence intervals 
+      % Create distribution functions
+      stdnormcdf = @(x) 0.5 * (1 + erf (x / sqrt (2)));
+      stdnorminv = @(p) sqrt (2) * erfinv (2 * p-1);
+      % Calculate the median bias correction z0
+      z0 = stdnorminv (sum (T1 < T0)/ B);
+      if isinf (z0) || isnan (z0)
+        error('unable to calculate the bias correction z0')
+      end
+      % Use the Jackknife to calculate the acceleration constant
+      T = zeros (n,1);
+      for j = 1:n
+        T(j) = feval (bootfun, x(1:end ~= j));
+      end
+      U = (n - 1) * (mean (T) - T);  % Influence function 
+      a = ((1 / 6) * ((mean (U.^3)) / (mean (U.^2))^(3/2))) / sqrt (n);
+      % Calculate BCa percentiles
+      z1 = stdnorminv (alpha / 2);
+      z2 = stdnorminv (1 - alpha / 2);
+      l = zeros(1);
+      l(1) = stdnormcdf (z0 + ((z0 + z1)/(1 - a * (z0 + z1))));
+      l(2) = stdnormcdf (z0 + ((z0 + z2)/(1 - a * (z0 + z2))));
+      ci = quantile (T1, l);
+    else
+      ci = nan (1, 2);
+    end
   end
   
   % Prepare stats output argument
