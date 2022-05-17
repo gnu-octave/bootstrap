@@ -57,12 +57,12 @@
 %  handle (e.g. specified with @), a string indicating the name of the 
 %  function to apply to the data (and each bootknife resample), or a cell 
 %  array where the first element is the string or fuction handle and other 
-%  elements being arguments for that function. Note that the function must 
-%  take data for the first input argument for this to work. The default 
-%  value of bootfun is 'mean'. Note that bootfun MUST calculate a statistic
-%  representative of the empirical distribution of the data, it should NOT 
-%  be an estimate of the equivalent population parameter. For example, for 
-%  the variance, set bootfun to {@var,1}, not @var or {@var,0}.
+%  elements being arguments for that function; the function must take data
+%  for the first input argument for this to work. Note that bootfun MUST 
+%  calculate a statistic representative of the finite data sample, it 
+%  should NOT be an estimate of a population parameter. For example, for 
+%  the variance, set bootfun to {@var,1}, not @var or {@var,0}. The default 
+%  value of bootfun is 'mean'. 
 %
 %  stats = bootknife(data,nboot,bootfun,alpha) where alpha sets the lower 
 %  and upper confidence interval ends to be 100 * (alpha/2)% and 100 * 
