@@ -43,9 +43,9 @@
 %  the accuracy of the all of the returned statistics. For confidence 
 %  intervals, this is achieved by calibrating the lower and upper interval 
 %  ends to have tail probabilities of 2.5% and 97.5% [4]. Note that one can 
-%  get away with a lower number of resamples (e.g. [2000,200] in the second 
-%  bootstrap (to reduce the computational expense of the double bootstrap) 
-%  since the algorithm uses linear interpolation to achieve near asymptotic 
+%  get away with a lower number of resamples in the second bootstrap to 
+%  reduce the computational expense of the double bootstrap (e.g. [2000,200]),
+%  since the algorithm uses linear interpolation to achieve near-asymptotic 
 %  calibration of confidence intervals [3]. The confidence intervals 
 %  calculated (with either single or double bootstrap) are transformation 
 %  invariant and second order accurate. The double bootstrap returns
@@ -291,8 +291,8 @@ function [stats, T1, idx] = bootknife (x, nboot, bootfun, alpha, strata)
       end
       % Use the Jackknife to calculate the acceleration constant
       T = zeros (n,1);
-      for j = 1:n
-        T(j) = feval (bootfun, x(1:end ~= j));
+      for i = 1:n
+        T(i) = feval (bootfun, x(1:end ~= i));
       end
       U = (n - 1) * (mean (T) - T);  % Influence function 
       a = ((1 / 6) * ((mean (U.^3)) / (mean (U.^2))^(3/2))) / sqrt (n);
