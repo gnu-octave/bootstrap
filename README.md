@@ -68,6 +68,8 @@ Be aware that that many of the bootstrap functions in this package are determini
 
 ## Development roadmap
  
+* Add ability to `ibootci` to calibrate confidence interval limits like in `bootknife` (not just calibrate central coverage)  
+* Create a new function for permutation tests on independent and paired/matched data samples  
 * Create a simple and efficient progress bar for the functions in this package  
 * Add function to param folder to calculate D statistic from KS-test (with input format suitable for `bootnhst`, `iboottest` and (`i`)`bootci`) 
 * Add the ability to perform stratified jackknife resampling in `jack` 
