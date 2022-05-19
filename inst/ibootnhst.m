@@ -690,7 +690,7 @@
 %        Sampling vs. Smoothing, Proceedings of the Section on Statistics 
 %        and the Environment, American Statistical Association, 2924-2930.
 %
-%  ibootnhst v1.8.0.0 (27/02/2022)
+%  ibootnhst v1.8.1.0 (19/05/2022)
 %  Author: Andrew Charles Penn
 %  https://www.researchgate.net/profile/Andrew_Penn/
 %
@@ -801,7 +801,9 @@ function [p, c, stats] = ibootnhst (data, group, varargin)
         % Grand mean for multivariate data
         bootfun = @(data) mean(mean(data,dim));
       else
-        bootfun = @mean;
+        bootfun = 'mean';
+        % When bootdun is the mean, avoid resampling in the calculate standard errors
+        nboot(2) = 0;
       end
     elseif all(bootfun(data) == smoothmedian(data))
       if (nboot(2) == 0) && isempty(clusters)
@@ -827,7 +829,9 @@ function [p, c, stats] = ibootnhst (data, group, varargin)
         % Grand mean for multivariate data
         bootfun = @(data) mean(mean(data,dim));
       else
-        bootfun = @mean;
+        bootfun = 'mean';
+        % When bootdun is the mean, avoid resampling in the calculate standard errors
+        nboot(2) = 0;
       end
     elseif any(strcmpi(bootfun,{'robust','smoothmedian'}))
       if (nboot(2) == 0) && isempty(clusters)
@@ -957,9 +961,14 @@ function [p, c, stats] = ibootnhst (data, group, varargin)
       nk(j) = numel(unique(opt.clusters));
       SE(j) = jack(data(g==gk(j),:), bootfun, [], opt);
     elseif (nboot(2) == 0)
-      % If requested, compute unbiased estimates of the standard error using jackknife resampling
       nk(j) = sum(g==gk(j));
-      SE(j) = jack(data(g==gk(j),:), bootfun);
+      if isa(bootfun,'char') && strcmp(bootfun,'mean')
+        % Quick calculation for the standard error of the mean
+        SE(j) = std(data(g==gk(j),:),0) / sqrt(nk(j));
+      else
+        % If requested, compute unbiased estimates of the standard error using jackknife resampling
+        SE(j) = jack(data(g==gk(j),:), bootfun);
+      end
     else
       % Compute unbiased estimate of the standard error by balanced bootknife resampling
       % Bootknife resampling involves less computation than Jackknife when sample sizes get larger
