@@ -54,7 +54,7 @@
 %
 %  ibootnhst(...,'bootfun',bootfun) sets the statistic calculated from
 %  the bootstrap samples. This can be a function handle, string or cell 
-%  array with the function handle or name in the first cell and input 
+%  array with the function handle or string in the first cell and input 
 %  arguments to that function in subsequent cells. The calculation of 
 %  bootfun on the DATA must return a scalar value. Note that bootfun MUST 
 %  calculate a statistic representative of the finite data sample, it 
