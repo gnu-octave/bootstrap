@@ -6,6 +6,7 @@
 %  ibootnhst(DATA,GROUP);
 %  ibootnhst(DATA,GROUP);
 %  ibootnhst(...,'bootfun',bootfun);
+%  ibootnhst(...,'bootfun',{bootfun,bootfun_args});
 %  ibootnhst(...,'nboot',nboot);
 %  ibootnhst(...,'ref',ref);
 %  ibootnhst(...,'block',blocks);    % for bootfun 'mean' or 'robust' only
@@ -52,17 +53,33 @@
 %  level is 0.05, which produces 95% confidence intervals.
 %
 %  ibootnhst(...,'bootfun',bootfun) sets the statistic calculated from
-%  the bootstrap samples. This can be a function handle or string
-%  corresponding to the function name. The calculation of bootfun on 
-%  the DATA must return a scalar value. If empty, the default is @mean  
-%  or 'mean'. If DATA is multivariate, bootfun is the grand mean, which  
-%  is the mean of the means of each column (i.e. variates). The standard 
-%  errors are estimated by bootknife [2], jackknife, or cluster-jackknife. 
+%  the bootstrap samples. This can be a function handle, string or cell 
+%  array with the function handle or name in the first cell and input 
+%  arguments to that function in subsequent cells. The calculation of 
+%  bootfun on the DATA must return a scalar value. Note that bootfun MUST 
+%  calculate a statistic representative of the finite data sample, it 
+%  should NOT be an estimate of a population parameter. For example, for 
+%  the variance, set bootfun to {@var,1}, not @var or {@var,0}. The default 
+%  value of bootfun is 'mean'. Smooth functions of the data are preferable,
+%  (e.g. use smoothmedian function instead of ordinary median). If empty, 
+%  the default is @mean or 'mean'. 
+%    If data is univariate, the standard error of the mean will be computed 
+%  without resampling. In other cases, standard errors are estimated by 
+%  bootknife [2], jackknife (if nboot(2) is 0), or cluster-jackknife (if 
+%  using a 'nested' design). If DATA is multivariate, bootfun is the grand 
+%  mean, which is the mean of the means of each column (i.e. variates). 
 %  If a robust statistic for central location is required, setting bootfun 
 %  to 'robust' implements a smoothed version of the median (see function 
-%  help for smoothmedian). Note that if bootfun is not the mean, the 
-%  t-statistics returned by this function will not be comparable with 
-%  tabulated values.
+%  help for smoothmedian). Note that if bootfun is not the mean, the t-
+%  statistics returned by this function will not be comparable with 
+%  tabulated values. cell array where the first element is the string or 
+%  fuction handle and other elements being arguments for that function; 
+%  the function must take data for the first input argument for this to work. 
+%  Note that bootfun MUST calculate a statistic representative of the finite 
+%  data sample, it should NOT be an estimate of a population parameter. For 
+%  example, for the variance, set bootfun to {@var,1}, not @var or {@var,0}. 
+%  The default value of bootfun is 'mean'. Smooth functions of the data are 
+%  preferable (e.g. use smoothmedian function instead of ordinary median).
 %
 %  ibootnhst(...,'nboot',nboot) is a vector of upto two positive integers
 %  indicating the number of replicate samples for the first (bootstrap) 
@@ -80,10 +97,10 @@
 %  bootfun is 'robust' (or 'smoothmedian').
 %
 %  ibootnhst(...,'ref',ref) also sets the GROUP to use as the reference 
-%  GROUP for post hoc tests. For a one-way experimental design or family of 
-%  tests, this will usually be a control GROUP. If all pairwise comparisons 
-%  are desired, then set ref to 'pairwise' or leave empty. By default, 
-%  pairwise comparisons are computed for post hoc tests.
+%  GROUP for post hoc tests. For a one-way experimental design or family 
+%  of tests, this will usually be a control GROUP. If all pairwise 
+%  comparisons are desired, then set ref to 'pairwise' or leave empty. 
+%  By default, pairwise comparisons are computed for post hoc tests.
 %
 %  If the ref input argument is empty, the resampling procedure for 
 %  pairwise comparisons produces p-value adjustments analagous to the 
@@ -795,6 +812,11 @@ function [p, c, stats] = ibootnhst (data, group, varargin)
   if nboot(1) < 1000
     error('the minimum allowable value of nboot(1) is 1000')
   end 
+  if iscell(bootfun)
+    func = bootfun{1};
+    args = bootfun(2:end);
+    bootfun = @(data) feval(func, data, args{:});
+  end
   if isa(bootfun,'function_handle')
     if all(bootfun(data) == mean(data))
       if nvar > 1

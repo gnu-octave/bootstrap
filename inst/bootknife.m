@@ -19,6 +19,7 @@
 %  stats = bootknife(data)
 %  stats = bootknife(data,nboot)
 %  stats = bootknife(data,nboot,bootfun)
+%  stats = bootknife(data,nboot,{bootfun,bootfun_args})
 %  stats = bootknife(data,nboot,bootfun,alpha)
 %  stats = bootknife(data,nboot,bootfun,alpha,strata)
 %  stats = bootknife(data,[2000,0],@mean,0.05,[])     % Default values
@@ -54,14 +55,14 @@
 %  stats = bootknife(data,nboot,bootfun) also specifies bootfun, a function 
 %  handle (e.g. specified with @), a string indicating the name of the 
 %  function to apply to the data (and each bootknife resample), or a cell 
-%  array where the first element is the string or fuction handle and other 
-%  elements being arguments for that function; the function must take data
-%  for the first input argument for this to work. Note that bootfun MUST 
-%  calculate a statistic representative of the finite data sample, it 
-%  should NOT be an estimate of a population parameter. For example, for 
-%  the variance, set bootfun to {@var,1}, not @var or {@var,0}. The default 
-%  value of bootfun is 'mean'. Smooth functions of the data are preferable,
-%  (e.g. use smoothmedian function instead of ordinary median)
+%  array where the first cell is the function handle or string, and other 
+%  cells being arguments for that function. (The function must take data
+%  for the first input argument). Note that bootfun MUST calculate a 
+%  statistic representative of the finite data sample, it should NOT be an 
+%  estimate of a population parameter. For example, for the variance, set 
+%  bootfun to {@var,1}, not @var or {@var,0}. The default value of bootfun 
+%  is 'mean'. Smooth functions of the data are preferable, (e.g. use 
+%  smoothmedian function instead of ordinary median)
 %
 %  stats = bootknife(data,nboot,bootfun,alpha) where alpha sets the lower 
 %  and upper confidence interval ends to be 100 * (alpha/2)% and 100 * 
