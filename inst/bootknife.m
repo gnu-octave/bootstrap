@@ -10,11 +10,12 @@
 %  replacement from the jackknife samples. The resampling of data rows is 
 %  balanced in order to reduce Monte Carlo error [2,3]. By default, the 
 %  bootstrap confidence intervals are bias-corrected and accelerated (BCa) 
-%  [7]. BCa intervals are fast to compute and have reasonable coverage when
+%  [4]. BCa intervals are fast to compute and have reasonable coverage when
 %  combined with bootknife resampling as it is here [1], but it may not  
 %  have the intended coverage when sample size gets very small. If double
 %  bootstrap is requested, the algorithm uses calibration to improve the 
-%  accuracy of estimates for small-to-medium sample sizes [4-6]. 
+%  accuracy of bias-correction and confidence intervals for small-to-
+%  medium sample sizes [5-7]. 
 %
 %  stats = bootknife(data)
 %  stats = bootknife(data,nboot)
@@ -30,8 +31,8 @@
 %  stats = bootknife(data) resamples from the rows of a data sample (column 
 %  vector or a matrix) and returns a column vector, which from top-to-
 %  bottom contains the bootstrap bias-corrected estimate of the population 
-%  mean [5,6], the bootstrap standard error of the mean, and 95% bias-
-%  corrected and accelerated (BCa) bootstrap confidence intervals [7]. 
+%  mean [6,7], the bootknife standard error of the mean [1,4], and 95% bias-
+%  corrected and accelerated (BCa) bootstrap confidence intervals [4]. 
 %
 %  stats = bootknife(data,nboot) also specifies the number of bootknife 
 %  samples. nboot can be a scalar, or vector of upto two positive integers. 
@@ -41,16 +42,17 @@
 %  second element of nboot is > 0, then the first and second elements of 
 %  nboot correspond to the number of outer (first) and inner (second) 
 %  bootknife resamples respectively. Double bootstrap is used to improve 
-%  the accuracy of the all of the returned statistics. For confidence 
-%  intervals, this is achieved by calibrating the lower and upper interval 
-%  ends to have tail probabilities of 2.5% and 97.5% [4]. Note that one can 
-%  get away with a lower number of resamples in the second bootstrap to 
-%  reduce the computational expense of the double bootstrap (e.g. [2000,200]),
-%  since the algorithm uses linear interpolation to achieve near-asymptotic 
-%  calibration of confidence intervals [3]. The confidence intervals 
-%  calculated (with either single or double bootstrap) are transformation 
-%  invariant and second order accurate. The double bootstrap returns
-%  calibrated percentile intervals.
+%  the accuracy of the bias-corrected estimate(s) and the confidence 
+%  intervals. For confidence intervals, this is achieved by calibrating 
+%  the lower and upper interval ends to have tail probabilities of 2.5% 
+%  and 97.5% [5]. Note that one can get away with a lower number of 
+%  resamples in the second bootstrap to reduce the computational expense 
+%  of the double bootstrap (e.g. [2000,200]), since the algorithm uses 
+%  linear interpolation to achieve near-asymptotic calibration of 
+%  confidence intervals [3]. The confidence intervals calculated (with 
+%  either single or double bootstrap) are transformation invariant and 
+%  more accurate by an order of magnitude compared to simple percentile 
+%  bootstrap, or normal theory, confidence intervals. 
 %
 %  stats = bootknife(data,nboot,bootfun) also specifies bootfun, a function 
 %  handle (e.g. specified with @), a string indicating the name of the 
@@ -99,18 +101,18 @@
 %        Biometrika, 73: 555-66
 %  [3] Gleason, J.R. (1988) Algorithms for Balanced Bootstrap Simulations. 
 %        The American Statistician. Vol. 42, No. 4 pp. 263-266
-%  [4] Hall, Lee and Young (2000) Importance of interpolation when
+%  [4] Efron, and Tibshirani (1993) An Introduction to the
+%        Bootstrap. New York, NY: Chapman & Hall
+%  [5] Hall, Lee and Young (2000) Importance of interpolation when
 %        constructing double-bootstrap confidence intervals. Journal
 %        of the Royal Statistical Society. Series B. 62(3): 479-491
-%  [5] Ouysee, R. (2011) Computationally efficient approximation for 
+%  [6] Ouysee, R. (2011) Computationally efficient approximation for 
 %        the double bootstrap mean bias correction. Economics Bulletin, 
 %        AccessEcon, vol. 31(3), pages 2388-2403.
-%  [6] Davison A.C. and Hinkley D.V (1997) Bootstrap Methods And Their 
+%  [7] Davison A.C. and Hinkley D.V (1997) Bootstrap Methods And Their 
 %        Application. Chapter 3, pg. 104
-%  [7] Efron, and Tibshirani (1993) An Introduction to the
-%        Bootstrap. New York, NY: Chapman & Hall
 %
-%  bootknife v1.3.0.0 (16/05/2022)
+%  bootknife v1.4.0.0 (22/05/2022)
 %  Author: Andrew Charles Penn
 %  https://www.researchgate.net/profile/Andrew_Penn/
 %
@@ -129,7 +131,7 @@
 %  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-function [stats, T1, idx] = bootknife (x, nboot, bootfun, alpha, strata)
+function [stats, T1, idx] = bootknife (x, nboot, bootfun, alpha, strata, idx)
   
   % Error checking
   if nargin < 1
@@ -182,7 +184,7 @@ function [stats, T1, idx] = bootknife (x, nboot, bootfun, alpha, strata)
   end
   if nargin < 5
     strata = [];
-  elseif ~isempty (alpha) 
+  elseif ~isempty (strata) 
     if size (strata, 1) ~= size (x, 1)
       error('strata must be a column vector with the same number of rows as the data')
     end
@@ -191,44 +193,72 @@ function [stats, T1, idx] = bootknife (x, nboot, bootfun, alpha, strata)
   % Determine properties of the data (x)
   n = size (x, 1);
 
-  % Initialize
+  % Set number of outer and inner bootknife resamples
   B = nboot(1);
   if (numel (nboot) > 1)
     C =  nboot(2);
   else
     C = 0;
   end
-  T1 = zeros (1, B);
-  idx = zeros (n, B);
-  c = ones (n, 1) * B;
+
+  % Evaluate bootfun on the data
+  T0 = feval (bootfun, x);
+  if all (size (T0) > 1)
+    error ('bootfun must return either a scalar or a vector')
+  end
+
+  % If the function of the data is a vector, calculate the statistics for each element 
+  m = numel(T0);
+  if m > 1
+    % Evaluate bootknife for each element of the output of bootfun
+    stats = zeros (4, m);
+    T1 = zeros (m, B);
+    for j = 1:m
+      out1 = @(x, j) x(j);
+      func = @(x) out1 (bootfun(x), j); 
+      if j > 1
+        [stats(:,j), T1(j,:)] = bootknife (x, nboot, func, alpha, strata, idx);
+      else
+        [stats(:,j), T1(j,:), idx] = bootknife (x, nboot, func, alpha, strata);
+      end
+    end
+    return
+  end
 
   % Perform balanced bootknife resampling
-  if ~isempty (strata)
-    % Get strata IDs
-    gid = unique (strata);  % strata ID
-    K = numel (gid);        % number of strata
-    % Create strata matrix
-    g = false (n,K);
-    for k = 1:K
-      g(:, k) = (strata == gid(k));
-      [~, ~, idx(g(:, k), :)] = bootknife (x(g(:, k), :), [B, 0], bootfun, []);
-      rows = find (g(:, k));
-      idx(g(:, k), :) = rows(idx(g(:, k), :));
-    end
-  else
-    for b = 1:B
-      % Choose which rows of the data to sample
-      r = b - fix ((b-1)/n) * n;
-      for i = 1:n
-        d = c;   
-        d(r) = 0;
-        if ~sum (d)
-          d = c;
-        end
-        j = sum ((rand (1) >= cumsum (d ./sum (d)))) + 1;
-        idx(i, b) = j;
-        c(j) = c(j) - 1;
-      end 
+  if nargin < 6
+    % Initialize
+    T1 = zeros (1, B);
+    idx = zeros (n, B);
+    c = ones (n, 1) * B;
+    % Calculate row indices for resampling
+    if ~isempty (strata)
+      % Get strata IDs
+      gid = unique (strata);  % strata ID
+      K = numel (gid);        % number of strata
+      % Create strata matrix
+      g = false (n,K);
+      for k = 1:K
+        g(:, k) = (strata == gid(k));
+        [~, ~, idx(g(:, k), :)] = bootknife (x(g(:, k), :), [B, 0], bootfun, []);
+        rows = find (g(:, k));
+        idx(g(:, k), :) = rows(idx(g(:, k), :));
+      end
+    else
+      for b = 1:B
+        % Choose which rows of the data to sample
+        r = b - fix ((b - 1) / n) * n;
+        for i = 1:n
+          d = c;   
+          d(r) = 0;
+          if ~sum (d)
+            d = c;
+          end
+          j = sum ((rand (1) >= cumsum (d ./sum (d)))) + 1;
+          idx(i, b) = j;
+          c(j) = c(j) - 1;
+        end 
+      end
     end
   end
   for b = 1:B
@@ -238,9 +268,7 @@ function [stats, T1, idx] = bootknife (x, nboot, bootfun, alpha, strata)
     T1(b) = feval (bootfun, X);
   end
  
-  % Calculate the bootstrap standard error, bias and confidence intervals 
-  % Bootstrap standard error estimation
-  T0 = feval (bootfun,x);
+  % Calculate the bootstrap bias, standard error and confidence intervals 
   if C > 0
     U = zeros (1, B);
     M = zeros (1, B);
@@ -265,11 +293,11 @@ function [stats, T1, idx] = bootknife (x, nboot, bootfun, alpha, strata)
     b = mean (T1) - T0;
     c = mean (M) - 2 * mean (T1) + T0;
     bias = b - c;
-    % Double bootstrap standard error
-    se = sqrt (var (T1, 1)^2 / mean (V));
+    % Bootstrap standard error
+    se = std (T1, 1);
     if ~isempty(alpha)
       % Calibrate tail probabilities to half of alpha
-      l = quantile (U, [alpha/2, 1-alpha/2]);
+      l = quantile (U, [alpha / 2, 1 - alpha / 2]);
       % Calibrated percentile bootstrap confidence intervals
       ci = quantile (T1, l);
     else
@@ -293,16 +321,16 @@ function [stats, T1, idx] = bootknife (x, nboot, bootfun, alpha, strata)
       % Use the Jackknife to calculate the acceleration constant
       T = zeros (n,1);
       for i = 1:n
-        T(i) = feval (bootfun, x(1:end ~= i));
+        T(i) = feval (bootfun, x(1:end ~= i, :));
       end
       U = (n - 1) * (mean (T) - T);  % Influence function 
-      a = ((1 / 6) * ((mean (U.^3)) / (mean (U.^2))^(3/2))) / sqrt (n);
+      a = ((1 / 6) * ((mean (U.^3)) / (mean (U.^2))^(3 / 2))) / sqrt (n);
       % Calculate BCa percentiles
       z1 = stdnorminv (alpha / 2);
       z2 = stdnorminv (1 - alpha / 2);
-      l = zeros(1);
-      l(1) = stdnormcdf (z0 + ((z0 + z1)/(1 - a * (z0 + z1))));
-      l(2) = stdnormcdf (z0 + ((z0 + z2)/(1 - a * (z0 + z2))));
+      l = zeros(1,2);
+      l(1) = stdnormcdf (z0 + ((z0 + z1) / (1 - a * (z0 + z1))));
+      l(2) = stdnormcdf (z0 + ((z0 + z2) / (1 - a * (z0 + z2))));
       ci = quantile (T1, l);
     else
       ci = nan (1, 2);
@@ -313,3 +341,4 @@ function [stats, T1, idx] = bootknife (x, nboot, bootfun, alpha, strata)
   stats = [T0 - bias; se; ci.'];
   
 end
+
