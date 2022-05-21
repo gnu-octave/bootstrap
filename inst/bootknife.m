@@ -14,8 +14,8 @@
 %  combined with bootknife resampling as it is here [1], but it may not  
 %  have the intended coverage when sample size gets very small. If double
 %  bootstrap is requested, the algorithm uses calibration to improve the 
-%  accuracy of bias-correction and confidence intervals for small-to-
-%  medium sample sizes [5-7]. 
+%  accuracy of bias-corrected estimates and confidence intervals for small-
+%  to-medium sample sizes [5-7]. 
 %
 %  stats = bootknife(data)
 %  stats = bootknife(data,nboot)
@@ -29,10 +29,10 @@
 %  [stats,bootstat,bootsam] = bootknife(...)
 %
 %  stats = bootknife(data) resamples from the rows of a data sample (column 
-%  vector or a matrix) and returns a column vector, which from top-to-
-%  bottom contains the bootstrap bias-corrected estimate of the population 
-%  mean [6,7], the bootknife standard error of the mean [1,4], and 95% bias-
-%  corrected and accelerated (BCa) bootstrap confidence intervals [4]. 
+%  vector or a matrix) and returns a column vector or matrix, whose rows  
+%  (from top-to-bottom) contain the bootstrap bias-corrected estimate of   
+%  the population mean [6,7], the bootknife standard error of the mean [1], 
+%  and 95% bias-corrected and accelerated (BCa) confidence intervals [1,4]. 
 %
 %  stats = bootknife(data,nboot) also specifies the number of bootknife 
 %  samples. nboot can be a scalar, or vector of upto two positive integers. 
