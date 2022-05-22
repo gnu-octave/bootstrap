@@ -1033,14 +1033,12 @@ function [ci,bootstat,S,calcurve,idx] = ibootci(argin1,argin2,varargin)
     bias = b-c;
     % Double bootstrap multiplicative correction of the variance
     SE = sqrt(nanfun(@var,T1)^2 / mean(nanfun(@var,T2)));
-    % Double bootstrap multiplicative correction of the variance
-    SE = sqrt(nanfun(@var,T1)^2 / mean(nanfun(@var,T2)));
   else
     % Single bootstrap bias estimation
     bias = nanfun(@mean,T1) - T0;
-    % Single bootstrap variance estimation
-    SE = nanfun(@std,T1);
   end
+  % Bootstrap standard error
+  SE = nanfun(@std,T1);
 
   % Calibrate central two-sided coverage
   if C>0 && any(strcmpi(type,{'per','percentile','cper','bca'}))

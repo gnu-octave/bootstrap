@@ -31,16 +31,17 @@
 %  stats = bootknife(data) resamples from the rows of a data sample (column 
 %  vector or a matrix) and returns a column vector or matrix, whose rows  
 %  (from top-to-bottom) contain the bootstrap bias-corrected estimate of   
-%  the population mean [6,7], the bootknife standard error of the mean [1], 
-%  and 95% bias-corrected and accelerated (BCa) confidence intervals [1,4]. 
+%  the population mean(s) [6,7], the bootknife standard error of the mean  
+%  [1], and 95% bias-corrected and accelerated (BCa) confidence intervals 
+%  [1,4].
 %
 %  stats = bootknife(data,nboot) also specifies the number of bootknife 
 %  samples. nboot can be a scalar, or vector of upto two positive integers. 
 %  By default, nboot is [2000,0], which implements a single bootstrap with 
-%  the 2000 resamples. Larger number of resamples are recommended to reduce 
-%  the Monte Carlo error, particularly for confidence intervals. If the 
-%  second element of nboot is > 0, then the first and second elements of 
-%  nboot correspond to the number of outer (first) and inner (second) 
+%  the 2000 resamples, but larger numbers of resamples are recommended to  
+%  reduce the Monte Carlo error, particularly for confidence intervals. If  
+%  the second element of nboot is > 0, then the first and second elements  
+%  of nboot correspond to the number of outer (first) and inner (second) 
 %  bootknife resamples respectively. Double bootstrap is used to improve 
 %  the accuracy of the bias-corrected estimate(s) and the confidence 
 %  intervals. For confidence intervals, this is achieved by calibrating 
@@ -58,20 +59,21 @@
 %  handle (e.g. specified with @), a string indicating the name of the 
 %  function to apply to the data (and each bootknife resample), or a cell 
 %  array where the first cell is the function handle or string, and other 
-%  cells being arguments for that function. (The function must take data
-%  for the first input argument). Note that bootfun MUST calculate a 
-%  statistic representative of the finite data sample, it should NOT be an 
-%  estimate of a population parameter. For example, for the variance, set 
-%  bootfun to {@var,1}, not @var or {@var,0}. The default value of bootfun 
-%  is 'mean'. Smooth functions of the data are preferable, (e.g. use 
-%  smoothmedian function instead of ordinary median)
+%  cells being arguments for that function, where the function must take 
+%  data for the first input argument. bootfun can return a scalar value or 
+%  vector. The default value(s) of bootfun is/are the (column) mean(s). 
+%    Note that bootfun MUST calculate a statistic representative of the 
+%  finite data sample, it should NOT be an estimate of a population 
+%  parameter. For example, for the variance, set bootfun to {@var,1}, not 
+%  @var or {@var,0}. Smooth functions of the data are preferable, (e.g. use 
+%  smoothmedian function instead of ordinary median). 
 %
 %  stats = bootknife(data,nboot,bootfun,alpha) where alpha sets the lower 
 %  and upper confidence interval ends to be 100 * (alpha/2)% and 100 * 
 %  (1-alpha/2)% respectively. Central coverage of the intervals is thus 
-%  100*(1-alpha)%. alpha should be a scalar value between 0 and 1. Default
-%  is 0.05. If alpha is empty, NaN is returned for the confidence interval
-%  ends.
+%  100*(1-alpha)%. alpha should be a scalar value between 0 and 1. If alpha 
+%  is empty, NaN is returned for the confidence interval ends. The default
+%  alpha is 0.05. 
 %
 %  stats = bootknife(data,nboot,bootfun,alpha,strata) also sets strata, 
 %  which are numeric identifiers that define the grouping of the data rows
@@ -79,19 +81,17 @@
 %  the same number of rows as the data. When resampling is stratified, 
 %  the groups (or stata) of data are equally represented across the 
 %  bootknife resamples. If this input argument is not specified or is 
-%  empty, no stratification of resampling is performed. For stratified 
-%  resampling, onfidence intervals are only returned for the double
-%  bootstrap; NaN is returned in place of the confidence intervals from 
-%  a single bootstrap).
+%  empty, no stratification of resampling is performed. 
 %
 %  [stats,bootstat] = bootknife(...) also returns bootstat, a vector of
-%  statistics calculated over the (first or outer level of) bootknife 
+%  statistics calculated over the (first, or outer level of) bootknife 
 %  resamples. 
 %
 %  [stats,bootstat,bootsam] = bootknife(...) also returns bootsam, the  
-%  matrix of indices used for bootknife resampling. Each column in bootsam
-%  corresponds to one bootknife sample and contains the row indices of the 
-%  values drawn from the nonscalar data argument to create that sample.
+%  matrix of indices used for the (first, or outer level of) bootknife 
+%  resampling. Each column in bootsam corresponds to one bootknife 
+%  resample and contains the row indices of the values drawn from the 
+%  nonscalar data argument to create that sample.
 %
 %  Bibliography:
 %  [1] Hesterberg T.C. (2004) Unbiasing the Bootstrap—Bootknife Sampling 
@@ -214,8 +214,8 @@ function [stats, T1, idx] = bootknife (x, nboot, bootfun, alpha, strata, idx)
     stats = zeros (4, m);
     T1 = zeros (m, B);
     for j = 1:m
-      out1 = @(x, j) x(j);
-      func = @(x) out1 (bootfun(x), j); 
+      out = @(x, j) x(j);
+      func = @(x) out (bootfun(x), j); 
       if j > 1
         [stats(:,j), T1(j,:)] = bootknife (x, nboot, func, alpha, strata, idx);
       else
@@ -308,7 +308,7 @@ function [stats, T1, idx] = bootknife (x, nboot, bootfun, alpha, strata, idx)
     bias = mean (T1) - T0;
     % Bootstrap standard error
     se = std (T1, 1);
-    if ~isempty(alpha) && isempty(strata)
+    if ~isempty(alpha)
       % Bias-corrected and accelerated bootstrap confidence intervals 
       % Create distribution functions
       stdnormcdf = @(x) 0.5 * (1 + erf (x / sqrt (2)));
@@ -323,14 +323,19 @@ function [stats, T1, idx] = bootknife (x, nboot, bootfun, alpha, strata, idx)
       for i = 1:n
         T(i) = feval (bootfun, x(1:end ~= i, :));
       end
-      U = (n - 1) * (mean (T) - T);  % Influence function 
-      a = ((1 / 6) * ((mean (U.^3)) / (mean (U.^2))^(3 / 2))) / sqrt (n);
+      % Calculate empirical influence function
+      if ~isempty(strata)
+        gk = sum (g .* repmat (sum (g), n, 1), 2);
+        U = (gk - 1) .* (mean (T) - T);   
+      else
+        U = (n - 1) * (mean (T) - T);     
+      end
+      a = sum (U.^3) / (6 * sum (U.^2) ^ 1.5);
       % Calculate BCa percentiles
-      z1 = stdnorminv (alpha / 2);
-      z2 = stdnorminv (1 - alpha / 2);
-      l = zeros(1,2);
-      l(1) = stdnormcdf (z0 + ((z0 + z1) / (1 - a * (z0 + z1))));
-      l(2) = stdnormcdf (z0 + ((z0 + z2) / (1 - a * (z0 + z2))));
+      z1 = stdnorminv(alpha / 2);
+      z2 = stdnorminv(1 - alpha / 2);
+      l = cat(2, stdnormcdf (z0 + ((z0 + z1) / (1 - a * (z0 + z1)))),... 
+                 stdnormcdf (z0 + ((z0 + z2) / (1 - a * (z0 + z2)))));
       ci = quantile (T1, l);
     else
       ci = nan (1, 2);
