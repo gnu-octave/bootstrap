@@ -52,8 +52,8 @@
 %  linear interpolation to achieve near-asymptotic calibration of 
 %  confidence intervals [3]. The confidence intervals calculated (with 
 %  either single or double bootstrap) are transformation invariant and 
-%  more accurate by an order of magnitude compared to simple percentile 
-%  bootstrap, or normal theory, confidence intervals. 
+%  have more accuracy and correctness compared to intervals derived from 
+%  normal theory or to simple percentile bootstrap confidence intervals. 
 %
 %  stats = bootknife(data,nboot,bootfun) also specifies bootfun, a function 
 %  handle (e.g. specified with @), a string indicating the name of the 
@@ -112,7 +112,7 @@
 %  [7] Davison A.C. and Hinkley D.V (1997) Bootstrap Methods And Their 
 %        Application. Chapter 3, pg. 104
 %
-%  bootknife v1.4.0.0 (22/05/2022)
+%  bootknife v1.4.1.0 (22/05/2022)
 %  Author: Andrew Charles Penn
 %  https://www.researchgate.net/profile/Andrew_Penn/
 %
@@ -225,6 +225,18 @@ function [stats, T1, idx] = bootknife (x, nboot, bootfun, alpha, strata, idx)
     return
   end
 
+  % Evaluate strata input argument
+  if ~isempty (strata)
+    % Get strata IDs
+    gid = unique (strata);  % strata ID
+    K = numel (gid);        % number of strata
+    % Create strata matrix
+    g = false (n,K);
+    for k = 1:K
+      g(:, k) = (strata == gid(k));
+    end
+  end
+
   % Perform balanced bootknife resampling
   if nargin < 6
     % Initialize
@@ -233,13 +245,7 @@ function [stats, T1, idx] = bootknife (x, nboot, bootfun, alpha, strata, idx)
     c = ones (n, 1) * B;
     % Calculate row indices for resampling
     if ~isempty (strata)
-      % Get strata IDs
-      gid = unique (strata);  % strata ID
-      K = numel (gid);        % number of strata
-      % Create strata matrix
-      g = false (n,K);
       for k = 1:K
-        g(:, k) = (strata == gid(k));
         [~, ~, idx(g(:, k), :)] = bootknife (x(g(:, k), :), [B, 0], bootfun, []);
         rows = find (g(:, k));
         idx(g(:, k), :) = rows(idx(g(:, k), :));
