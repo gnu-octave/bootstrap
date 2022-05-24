@@ -10,11 +10,11 @@
 %  replacement from the jackknife samples. The resampling of data rows is 
 %  balanced in order to reduce Monte Carlo error [2,3]. By default, the 
 %  bootstrap confidence intervals are bias-corrected and accelerated (BCa) 
-%  [4]. BCa intervals are fast to compute and have reasonable coverage when
-%  combined with bootknife resampling as it is here [1], but it may not  
-%  have the intended coverage when sample size gets very small. If double
-%  bootstrap is requested, the algorithm uses calibration to improve the 
-%  accuracy of bias-corrected estimates and confidence intervals for small-
+%  [4]. BCa intervals are fast to compute and have good coverage (and 
+%  correctness) when combined with bootknife resampling as it is here [1], 
+%  but it may not have the intended coverage when sample size gets very small. 
+%  If double bootstrap is requested, the algorithm uses calibration to improve 
+%  the accuracy of bias-corrected estimates and confidence intervals for small-
 %  to-medium sample sizes [5-7]. 
 %
 %  stats = bootknife(data)
@@ -112,7 +112,7 @@
 %  [7] Davison A.C. and Hinkley D.V (1997) Bootstrap Methods And Their 
 %        Application. Chapter 3, pg. 104
 %
-%  bootknife v1.4.1.0 (22/05/2022)
+%  bootknife v1.4.2.0 (24/05/2022)
 %  Author: Andrew Charles Penn
 %  https://www.researchgate.net/profile/Andrew_Penn/
 %
@@ -281,14 +281,15 @@ function [stats, T1, idx] = bootknife (x, nboot, bootfun, alpha, strata, idx)
     V = zeros (1, B);
     % Iterated bootstrap resampling for greater accuracy
     for b = 1:B
-      [~, T2] = bootknife (x(idx(:,b),:), [C,0], bootfun, [], strata);
+      [~, T2] = bootknife (x(idx(:, b), :), [C, 0], bootfun, [], strata);
       % Use quick interpolation to find the probability that T2 <= T0
       I = (T2 <= T0);
       u = sum (I);
-      U(b) =  interp1q ([max([min(T2), max(T2(I))]);...
-                         min([max(T2), min(T2(~I))])],...
-                        [u; min(u+1, C)] / C,...
-                        T0);
+      t2 = [max([min(T2), max(T2(I))]),...
+            min([max(T2), min(T2(~I))])];
+      % Linear interpolation
+      U(b) = ((t2(2) - T0) * u / C + (T0 - t2(1)) * min ((u + 1) / C, 1)) /...
+            (t2(2) - t2(1));
       if isnan (U(b))
         U(b) = u / C;
       end
