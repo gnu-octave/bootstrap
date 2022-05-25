@@ -10,12 +10,12 @@
 %  replacement from the jackknife samples. The resampling of data rows is 
 %  balanced in order to reduce Monte Carlo error [2,3]. By default, the 
 %  bootstrap confidence intervals are bias-corrected and accelerated (BCa) 
-%  [4]. BCa intervals are fast to compute and have good coverage (and 
-%  correctness) when combined with bootknife resampling as it is here [1], 
-%  but it may not have the intended coverage when sample size gets very small. 
-%  If double bootstrap is requested, the algorithm uses calibration to improve 
-%  the accuracy of bias-corrected estimates and confidence intervals for small-
-%  to-medium sample sizes [5-7]. 
+%  [4-5]. BCa intervals are fast to compute and have good coverage and 
+%  correctness when combined with bootknife resampling as it is here [1], 
+%  but it may not have the intended coverage when sample size gets very 
+%  small. If double bootstrap is requested, the algorithm uses calibration 
+%  to improve the accuracy of bias-corrected estimates and confidence 
+%  intervals for small-to-medium sample sizes [6-8]. 
 %
 %  stats = bootknife(data)
 %  stats = bootknife(data,nboot)
@@ -23,7 +23,7 @@
 %  stats = bootknife(data,nboot,{bootfun,bootfun_args})
 %  stats = bootknife(data,nboot,bootfun,alpha)
 %  stats = bootknife(data,nboot,bootfun,alpha,strata)
-%  stats = bootknife(data,[2000,0],@mean,0.05,[])     % Default values
+%  stats = bootknife(data,[2000,0],@mean,0.05,[])      % Default values
 %  [stats,bootstat] = bootknife(...)
 %  [stats,bootstat] = bootknife(...)
 %  [stats,bootstat,bootsam] = bootknife(...)
@@ -31,9 +31,9 @@
 %  stats = bootknife(data) resamples from the rows of a data sample (column 
 %  vector or a matrix) and returns a column vector or matrix, whose rows  
 %  (from top-to-bottom) contain the bootstrap bias-corrected estimate of   
-%  the population mean(s) [6,7], the bootknife standard error of the mean  
+%  the population mean(s) [7-8], the bootknife standard error of the mean  
 %  [1], and 95% bias-corrected and accelerated (BCa) confidence intervals 
-%  [1,4].
+%  [1,4-5,9]. The data cannot contain infinite values of NaN.
 %
 %  stats = bootknife(data,nboot) also specifies the number of bootknife 
 %  samples. nboot can be a scalar, or vector of upto two positive integers. 
@@ -61,7 +61,10 @@
 %  array where the first cell is the function handle or string, and other 
 %  cells being arguments for that function, where the function must take 
 %  data for the first input argument. bootfun can return a scalar value or 
-%  vector. The default value(s) of bootfun is/are the (column) mean(s). 
+%  vector. The default value(s) of bootfun is/are the (column) mean(s).
+%  When bootfun is the mean, residual narrowness bias of central coverage 
+%  is eliminated by using the Student's t-distribution to expand the  
+%  percentiles prior to applying the BCa adjustments as described in [9].
 %    Note that bootfun MUST calculate a statistic representative of the 
 %  finite data sample, it should NOT be an estimate of a population 
 %  parameter. For example, for the variance, set bootfun to {@var,1}, not 
@@ -101,18 +104,23 @@
 %        Biometrika, 73: 555-66
 %  [3] Gleason, J.R. (1988) Algorithms for Balanced Bootstrap Simulations. 
 %        The American Statistician. Vol. 42, No. 4 pp. 263-266
-%  [4] Efron, and Tibshirani (1993) An Introduction to the
+%  [4] Efron (1987) Better Bootstrap Confidence Intervals. JASA, 
+%        82(397): 171-185 
+%  [5] Efron, and Tibshirani (1993) An Introduction to the
 %        Bootstrap. New York, NY: Chapman & Hall
-%  [5] Hall, Lee and Young (2000) Importance of interpolation when
+%  [6] Hall, Lee and Young (2000) Importance of interpolation when
 %        constructing double-bootstrap confidence intervals. Journal
 %        of the Royal Statistical Society. Series B. 62(3): 479-491
-%  [6] Ouysee, R. (2011) Computationally efficient approximation for 
+%  [7] Ouysee, R. (2011) Computationally efficient approximation for 
 %        the double bootstrap mean bias correction. Economics Bulletin, 
 %        AccessEcon, vol. 31(3), pages 2388-2403.
-%  [7] Davison A.C. and Hinkley D.V (1997) Bootstrap Methods And Their 
+%  [8] Davison A.C. and Hinkley D.V (1997) Bootstrap Methods And Their 
 %        Application. Chapter 3, pg. 104
+%  [9] Hesterberg, Tim (2014), What Teachers Should Know about the 
+%        Bootstrap: Resampling in the Undergraduate Statistics Curriculum, 
+%        http://arxiv.org/abs/1411.5279
 %
-%  bootknife v1.4.2.0 (24/05/2022)
+%  bootknife v1.4.3.0 (25/05/2022)
 %  Author: Andrew Charles Penn
 %  https://www.researchgate.net/profile/Andrew_Penn/
 %
@@ -338,6 +346,11 @@ function [stats, T1, idx] = bootknife (x, nboot, bootfun, alpha, strata, idx)
         U = (n - 1) * (mean (T) - T);     
       end
       a = sum (U.^3) / (6 * sum (U.^2) ^ 1.5);
+      if (feval (bootfun, x) == mean (x))
+        % If bootfun is the mean, expand percentiles using Student's 
+        % t-distribution to improve central coverage for small samples
+        alpha = stdnormcdf (tinv (alpha / 2, n - 1)) * 2;
+      end
       % Calculate BCa percentiles
       z1 = stdnorminv(alpha / 2);
       z2 = stdnorminv(1 - alpha / 2);
