@@ -62,9 +62,9 @@
 %  cells being arguments for that function, where the function must take 
 %  data for the first input argument. bootfun can return a scalar value or 
 %  vector. The default value(s) of bootfun is/are the (column) mean(s).
-%  When bootfun is the mean, residual narrowness bias of central coverage 
-%  is eliminated by using the Student's t-distribution to expand the  
-%  percentiles prior to applying the BCa adjustments as described in [9].
+%  When bootfun is @mean or 'mean', residual narrowness bias of central 
+%  coverage is eliminated by using the Student's t-distribution to expand 
+%  the percentiles before applying the BCa adjustments as described in [9].
 %    Note that bootfun MUST calculate a statistic representative of the 
 %  finite data sample, it should NOT be an estimate of a population 
 %  parameter. For example, for the variance, set bootfun to {@var,1}, not 
@@ -120,7 +120,7 @@
 %        Bootstrap: Resampling in the Undergraduate Statistics Curriculum, 
 %        http://arxiv.org/abs/1411.5279
 %
-%  bootknife v1.4.4.0 (26/05/2022)
+%  bootknife v1.4.5.0 (26/05/2022)
 %  Author: Andrew Charles Penn
 %  https://www.researchgate.net/profile/Andrew_Penn/
 %
@@ -346,7 +346,7 @@ function [stats, T1, idx] = bootknife (x, nboot, bootfun, alpha, strata, idx)
         U = (n - 1) * (mean (T) - T);     
       end
       a = sum (U.^3) / (6 * sum (U.^2) ^ 1.5);
-      if all (feval (bootfun, x) == mean (x))
+      if strcmp (func2str (bootfun), 'mean')
         % If bootfun is the mean, expand percentiles using Student's 
         % t-distribution to improve central coverage for small samples
         studinv = @(p, df) - sqrt ( df ./ betaincinv (2 * p, df / 2, 0.5) - df);
