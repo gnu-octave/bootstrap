@@ -33,7 +33,7 @@
 %  (from top-to-bottom) contain the bootstrap bias-corrected estimate of   
 %  the population mean(s) [7-8], the bootknife standard error of the mean  
 %  [1], and 95% bias-corrected and accelerated (BCa) confidence intervals 
-%  [1,4-5,9]. The data cannot contain infinite values of NaN.
+%  [1,4-5,9]. The data cannot contain values that are NaN or infinite.
 %
 %  stats = bootknife(data,nboot) also specifies the number of bootknife 
 %  samples. nboot can be a scalar, or vector of upto two positive integers. 
@@ -120,7 +120,7 @@
 %        Bootstrap: Resampling in the Undergraduate Statistics Curriculum, 
 %        http://arxiv.org/abs/1411.5279
 %
-%  bootknife v1.4.3.0 (25/05/2022)
+%  bootknife v1.4.4.0 (26/05/2022)
 %  Author: Andrew Charles Penn
 %  https://www.researchgate.net/profile/Andrew_Penn/
 %
@@ -346,10 +346,11 @@ function [stats, T1, idx] = bootknife (x, nboot, bootfun, alpha, strata, idx)
         U = (n - 1) * (mean (T) - T);     
       end
       a = sum (U.^3) / (6 * sum (U.^2) ^ 1.5);
-      if (feval (bootfun, x) == mean (x))
+      if all (feval (bootfun, x) == mean (x))
         % If bootfun is the mean, expand percentiles using Student's 
         % t-distribution to improve central coverage for small samples
-        alpha = stdnormcdf (tinv (alpha / 2, n - 1)) * 2;
+        studinv = @(p, df) - sqrt ( df ./ betaincinv (2 * p, df / 2, 0.5) - df);
+        alpha = stdnormcdf (studinv (alpha / 2, n - 1)) * 2;      
       end
       % Calculate BCa percentiles
       z1 = stdnorminv(alpha / 2);
