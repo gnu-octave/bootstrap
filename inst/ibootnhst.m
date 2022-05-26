@@ -707,7 +707,7 @@
 %        Sampling vs. Smoothing, Proceedings of the Section on Statistics 
 %        and the Environment, American Statistical Association, 2924-2930.
 %
-%  ibootnhst v1.8.1.0 (19/05/2022)
+%  ibootnhst v1.8.2.0 (26/05/2022)
 %  Author: Andrew Charles Penn
 %  https://www.researchgate.net/profile/Andrew_Penn/
 %
@@ -818,7 +818,7 @@ function [p, c, stats] = ibootnhst (data, group, varargin)
     bootfun = @(data) feval(func, data, args{:});
   end
   if isa(bootfun,'function_handle')
-    if all(bootfun(data) == mean(data))
+    if strcmp (func2str (bootfun), 'mean')
       if nvar > 1
         % Grand mean for multivariate data
         bootfun = @(data) mean(mean(data,dim));
@@ -827,9 +827,9 @@ function [p, c, stats] = ibootnhst (data, group, varargin)
         % When bootdun is the mean, avoid resampling in the calculate standard errors
         nboot(2) = 0;
       end
-    elseif all(bootfun(data) == smoothmedian(data))
+    elseif strcmp (func2str (bootfun), 'smoothmedian')
       if (nboot(2) == 0) && isempty(clusters)
-        error('Jackknife resampling not permitted for the bootfun setting ''robust''')
+        error('Jackknife resampling not permitted for the smoothed median')
       end
       if nvar > 1 
         % Grand smoothed median for multivariate data
