@@ -970,9 +970,8 @@ function [p, c, stats] = ibootnhst (data, group, varargin)
         % Quick calculation for the standard error of the mean
         SE(j) = std(data(g==gk(j),:),0) / sqrt(nk(j));
       elseif strcmp (func2str (bootfun), 'smoothmedian')
-        theta(j) = smoothmedian(data(g==gk(j),:));
-        % Quick calculation for the smoothmedian and it's standard error
-        [theta(j), SE(j)] = feval(bootfun,data(g==gk(j),:));
+        % Quick calculation for the smoothed median and it's standard error
+        [theta(j), SE(j)] = feval(bootfun, data(g==gk(j),:));
       else
         theta(j) = feval(bootfun,data(g==gk(j),:));
         % If requested, compute unbiased estimates of the standard error using jackknife resampling
