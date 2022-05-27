@@ -39,12 +39,12 @@ function maxT = maxstat (Y, g, nboot, bootfun, ref, clusters, strata)
       SE(j) = jack(Y(g==gk(j),:), bootfun, [], opt);
     elseif (nboot == 0)
       nk(j) = sum(g==gk(j));
-      if strcmp (func2str (bootfun), 'mean')
+      if strcmp (bootfun, 'mean')
         theta(j) = mean(Y(g==gk(j),:));
         % Quick calculation for the standard error of the mean
         SE(j) = std(Y(g==gk(j),:),0) / sqrt(nk(j));
-      elseif strcmp (func2str (bootfun), 'smoothmedian')
-        % Quick calculation for the smoothed median and it's standard error
+      elseif strcmp (bootfun, 'smoothmedian')
+        % Quick calculation of the smoothed median and it's standard error
         [theta(j), SE(j)] = feval(bootfun, Y(g==gk(j),:));
       else
         theta(j) = feval(bootfun,Y(g==gk(j),:));

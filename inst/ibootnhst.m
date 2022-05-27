@@ -814,14 +814,14 @@ function [p, c, stats] = ibootnhst (data, group, varargin)
         % Grand mean for multivariate data
         bootfun = @(data) mean(mean(data,dim));
       else
-        bootfun = @mean;
+        bootfun = 'mean';
       end
     elseif strcmp (func2str (bootfun), 'smoothmedian')
       if nvar > 1 
         % Grand smoothed median for multivariate data
         bootfun = @(data) smoothmedian(smoothmedian(data,dim));
       else
-        bootfun = @smoothmedian;
+        bootfun = 'smoothmedian';
       end
     else
       if ~isempty(strata)
@@ -837,14 +837,14 @@ function [p, c, stats] = ibootnhst (data, group, varargin)
         % Grand mean for multivariate data
         bootfun = @(data) mean(mean(data,dim));
       else
-        bootfun = @mean;
+        bootfun = 'mean';
       end
     elseif any(strcmpi(bootfun,{'robust','smoothmedian'}))
       if nvar > 1
         % Grand smoothed median for multivariate data
         bootfun = @(data) smoothmedian(smoothmedian(data,dim));
       else
-        bootfun = @smoothmedian;
+        bootfun = 'smoothmedian';
       end
     else
       if ~isempty(strata)
@@ -855,6 +855,7 @@ function [p, c, stats] = ibootnhst (data, group, varargin)
       end
     end
   end
+
 
   if ~isempty(ref) && strcmpi(ref,'pairwise')
     ref = [];
@@ -965,12 +966,12 @@ function [p, c, stats] = ibootnhst (data, group, varargin)
       SE(j) = jack(data(g==gk(j),:), bootfun, [], opt);
     elseif (nboot(2) == 0)
       nk(j) = sum(g==gk(j));
-      if strcmp (func2str (bootfun), 'mean')
+      if strcmp (bootfun, 'mean')
         theta(j) = mean(data(g==gk(j),:));
         % Quick calculation for the standard error of the mean
         SE(j) = std(data(g==gk(j),:),0) / sqrt(nk(j));
-      elseif strcmp (func2str (bootfun), 'smoothmedian')
-        % Quick calculation for the smoothed median and it's standard error
+      elseif strcmp (bootfun, 'smoothmedian')
+        % Quick calculation of the smoothed median and it's standard error
         [theta(j), SE(j)] = feval(bootfun, data(g==gk(j),:));
       else
         theta(j) = feval(bootfun,data(g==gk(j),:));
