@@ -30,8 +30,8 @@ function maxT = maxstat (Y, g, nboot, bootfun, ref, clusters, strata)
   t = zeros(nboot,1); 
   nk = zeros(size(gk));
   for j = 1:k
-    theta(j) = feval(bootfun,Y(g==gk(j),:));
     if ~isempty(clusters)
+      theta(j) = feval(bootfun,Y(g==gk(j),:));
       % Compute unbiased estimate of the standard error by cluster-jackknife resampling
       opt = struct;
       opt.clusters = clusters(g==gk(j));
@@ -39,16 +39,23 @@ function maxT = maxstat (Y, g, nboot, bootfun, ref, clusters, strata)
       SE(j) = jack(Y(g==gk(j),:), bootfun, [], opt);
     elseif (nboot == 0)
       nk(j) = sum(g==gk(j));
-      if isa(bootfun,'char') && strcmp(bootfun,'mean')
+      if strcmp (func2str (bootfun), 'mean')
+        theta(j) = mean(Y(g==gk(j),:));
         % Quick calculation for the standard error of the mean
         SE(j) = std(Y(g==gk(j),:),0) / sqrt(nk(j));
+      elseif strcmp (func2str (bootfun), 'smoothmedian')
+        theta(j) = smoothmedian(Y(g==gk(j),:));
+        % Quick calculation for the smoothmedian and it's standard error
+        [theta(j), SE(j)] = feval(bootfunY(g==gk(j),:));
       else
+        theta(j) = feval(bootfun,Y(g==gk(j),:));
         % If requested, compute unbiased estimates of the standard error using jackknife resampling
         SE(j) = jack(Y(g==gk(j),:), bootfun);
       end
     else
       % Compute unbiased estimate of the standard error by balanced bootknife resampling
       % Bootknife resampling involves less computation than Jackknife when sample sizes get larger
+      theta(j) = feval(bootfun,Y(g==gk(j),:));
       nk(j) = sum(g==gk(j));
       stats = bootknife(Y(g==gk(j),:),[nboot,0],bootfun,[]);
       SE(j) = stats(2);

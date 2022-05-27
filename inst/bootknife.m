@@ -120,7 +120,7 @@
 %        Bootstrap: Resampling in the Undergraduate Statistics Curriculum, 
 %        http://arxiv.org/abs/1411.5279
 %
-%  bootknife v1.4.5.0 (26/05/2022)
+%  bootknife v1.4.6.0 (27/05/2022)
 %  Author: Andrew Charles Penn
 %  https://www.researchgate.net/profile/Andrew_Penn/
 %
@@ -199,7 +199,8 @@ function [stats, T1, idx] = bootknife (x, nboot, bootfun, alpha, strata, idx)
   end
 
   % Determine properties of the data (x)
-  n = size (x, 1);
+  sz = size(x);
+  n = sz(1);
 
   % Set number of outer and inner bootknife resamples
   B = nboot(1);
@@ -219,6 +220,7 @@ function [stats, T1, idx] = bootknife (x, nboot, bootfun, alpha, strata, idx)
   m = numel(T0);
   if m > 1
     % Evaluate bootknife for each element of the output of bootfun
+    % Note that row indices in the resamples are the same for all columns of data
     stats = zeros (4, m);
     T1 = zeros (m, B);
     for j = 1:m
@@ -244,6 +246,15 @@ function [stats, T1, idx] = bootknife (x, nboot, bootfun, alpha, strata, idx)
       g(:, k) = (strata == gid(k));
     end
   end
+  
+  % If data is univariate, check whether bootfun is vectorized
+  vectorized = false;
+  if (sz(2) == 1)
+      chk = feval (bootfun, cat (2,x,x));
+      if ( all (size (chk) == [1, 2]) && all (chk == feval (bootfun, x)) )
+        vectorized = true;
+      end
+  end
 
   % Perform balanced bootknife resampling
   if nargin < 6
@@ -257,6 +268,12 @@ function [stats, T1, idx] = bootknife (x, nboot, bootfun, alpha, strata, idx)
         [~, ~, idx(g(:, k), :)] = bootknife (x(g(:, k), :), [B, 0], bootfun, []);
         rows = find (g(:, k));
         idx(g(:, k), :) = rows(idx(g(:, k), :));
+      end
+      if vectorized
+        % Perform data sampling
+        X = x(idx);
+        % Function evaluation on bootknife sample
+        T1 = feval (bootfun, X);
       end
     else
       for b = 1:B
@@ -273,13 +290,22 @@ function [stats, T1, idx] = bootknife (x, nboot, bootfun, alpha, strata, idx)
           c(j) = c(j) - 1;
         end 
       end
+      if vectorized
+        % Perform data sampling
+        X = x(idx);
+        % Function evaluation on bootknife sample
+        T1 = feval (bootfun, X);
+      end
     end
   end
-  for b = 1:B
-    % Perform data sampling
-    X = x(idx(:, b), :);
-    % Function evaluation on bootknife sample
-    T1(b) = feval (bootfun, X);
+  if ~vectorized
+    % Serial evaluation of bootfun on the data
+    for b = 1:B
+      % Perform data sampling
+      X = x(idx(:, b), :);
+      % Function evaluation on bootknife sample
+      T1(b) = feval (bootfun, X);
+    end
   end
  
   % Calculate the bootstrap bias, standard error and confidence intervals 

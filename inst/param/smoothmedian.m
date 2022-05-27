@@ -60,8 +60,7 @@
 %  by requesting the second output argument. Note that the standard 
 %  errors are quick and dirty estimates calculated from the first 
 %  and second derivatives of the objective function. More reliable  
-%  estimates of the standard error can be obtained by bootstrap
-%  or bootknife resampling.
+%  estimates of the standard error can be obtained by resampling.
 %
 %  Bibliography:
 %  [1] Brown, Hall and Young (2001) The smoothed median and the

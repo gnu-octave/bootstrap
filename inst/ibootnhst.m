@@ -60,26 +60,19 @@
 %  calculate a statistic representative of the finite data sample, it 
 %  should NOT be an estimate of a population parameter. For example, for 
 %  the variance, set bootfun to {@var,1}, not @var or {@var,0}. The default 
-%  value of bootfun is 'mean'. Smooth functions of the data are preferable,
-%  (e.g. use smoothmedian function instead of ordinary median). If empty, 
-%  the default is @mean or 'mean'. 
-%    If data is univariate, the standard error of the mean will be computed 
-%  without resampling. In other cases, standard errors are estimated by 
-%  bootknife [2], jackknife (if nboot(2) is 0), or cluster-jackknife (if 
-%  using a 'nested' design). If DATA is multivariate, bootfun is the grand 
-%  mean, which is the mean of the means of each column (i.e. variates). 
-%  If a robust statistic for central location is required, setting bootfun 
-%  to 'robust' implements a smoothed version of the median (see function 
-%  help for smoothmedian). Note that if bootfun is not the mean, the t-
-%  statistics returned by this function will not be comparable with 
-%  tabulated values. cell array where the first element is the string or 
-%  fuction handle and other elements being arguments for that function; 
-%  the function must take data for the first input argument for this to work. 
-%  Note that bootfun MUST calculate a statistic representative of the finite 
-%  data sample, it should NOT be an estimate of a population parameter. For 
-%  example, for the variance, set bootfun to {@var,1}, not @var or {@var,0}. 
-%  The default value of bootfun is 'mean'. Smooth functions of the data are 
-%  preferable (e.g. use smoothmedian function instead of ordinary median).
+%  value of bootfun is 'mean'.  If empty, the default is @mean or 'mean'. 
+%  If DATA is multivariate, bootfun is the grand mean, which is the mean of 
+%  the means of each column (i.e. variates). If a robust statistic for 
+%  central location is required, setting bootfun to 'robust' implements a 
+%  smoothed version of the median (see function help for smoothmedian). 
+%  Smooth functions of the data are preferable.
+%    Standard errors are estimated by bootknife resampling by default [2], 
+%  where nboot(2) corresponds to the number of bootknife resamples. If 
+%  nboot(2) is 0 and standard errors are calculated without resampling 
+%  (if bootfun is 'mean' or 'robust'), or using leave-one-out jackknife 
+%  (or cluster-jackknife (if using a 'nested' design). Note that if bootfun 
+%  is not the mean, the t-statistics returned by this function will not be 
+%  comparable with tabulated values.  
 %
 %  ibootnhst(...,'nboot',nboot) is a vector of upto two positive integers
 %  indicating the number of replicate samples for the first (bootstrap) 
@@ -92,9 +85,7 @@
 %  take longer to complete. If nboot(2) is explicitly set to 0 (or if a 
 %  hierarchical data structure is defined with 'nested') then ibootnhst 
 %  calculates standard errors for studentization using jackknife (or 
-%  cluster-jackknife) resampling instead. Unless clusters are defined  
-%  with the 'nested' input argument, jackknife is not permitted when  
-%  bootfun is 'robust' (or 'smoothmedian').
+%  cluster-jackknife) resampling instead.
 %
 %  ibootnhst(...,'ref',ref) also sets the GROUP to use as the reference 
 %  GROUP for post hoc tests. For a one-way experimental design or family 
@@ -707,7 +698,7 @@
 %        Sampling vs. Smoothing, Proceedings of the Section on Statistics 
 %        and the Environment, American Statistical Association, 2924-2930.
 %
-%  ibootnhst v1.8.2.0 (26/05/2022)
+%  ibootnhst v1.8.3.0 (27/05/2022)
 %  Author: Andrew Charles Penn
 %  https://www.researchgate.net/profile/Andrew_Penn/
 %
@@ -823,14 +814,9 @@ function [p, c, stats] = ibootnhst (data, group, varargin)
         % Grand mean for multivariate data
         bootfun = @(data) mean(mean(data,dim));
       else
-        bootfun = 'mean';
-        % When bootdun is the mean, avoid resampling in the calculate standard errors
-        nboot(2) = 0;
+        bootfun = @mean;
       end
     elseif strcmp (func2str (bootfun), 'smoothmedian')
-      if (nboot(2) == 0) && isempty(clusters)
-        error('Jackknife resampling not permitted for the smoothed median')
-      end
       if nvar > 1 
         % Grand smoothed median for multivariate data
         bootfun = @(data) smoothmedian(smoothmedian(data,dim));
@@ -851,14 +837,9 @@ function [p, c, stats] = ibootnhst (data, group, varargin)
         % Grand mean for multivariate data
         bootfun = @(data) mean(mean(data,dim));
       else
-        bootfun = 'mean';
-        % When bootdun is the mean, avoid resampling in the calculate standard errors
-        nboot(2) = 0;
+        bootfun = @mean;
       end
     elseif any(strcmpi(bootfun,{'robust','smoothmedian'}))
-      if (nboot(2) == 0) && isempty(clusters)
-        error('Jackknife resampling not permitted for the bootfun setting ''robust''')
-      end
       if nvar > 1
         % Grand smoothed median for multivariate data
         bootfun = @(data) smoothmedian(smoothmedian(data,dim));
@@ -975,8 +956,8 @@ function [p, c, stats] = ibootnhst (data, group, varargin)
   t = zeros(nboot(2),1);
   nk = zeros(size(gk));
   for j = 1:k
-    theta(j) = feval(bootfun,data(g==gk(j),:));
     if ~isempty(clusters)
+      theta(j) = feval(bootfun,data(g==gk(j),:));
       % Compute unbiased estimate of the standard error by cluster-jackknife resampling
       opt = struct;
       opt.clusters = clusters(g==gk(j));
@@ -984,18 +965,25 @@ function [p, c, stats] = ibootnhst (data, group, varargin)
       SE(j) = jack(data(g==gk(j),:), bootfun, [], opt);
     elseif (nboot(2) == 0)
       nk(j) = sum(g==gk(j));
-      if isa(bootfun,'char') && strcmp(bootfun,'mean')
+      if strcmp (func2str (bootfun), 'mean')
+        theta(j) = mean(data(g==gk(j),:));
         % Quick calculation for the standard error of the mean
         SE(j) = std(data(g==gk(j),:),0) / sqrt(nk(j));
+      elseif strcmp (func2str (bootfun), 'smoothmedian')
+        theta(j) = smoothmedian(data(g==gk(j),:));
+        % Quick calculation for the smoothmedian and it's standard error
+        [theta(j), SE(j)] = feval(bootfun,data(g==gk(j),:));
       else
+        theta(j) = feval(bootfun,data(g==gk(j),:));
         % If requested, compute unbiased estimates of the standard error using jackknife resampling
         SE(j) = jack(data(g==gk(j),:), bootfun);
       end
     else
       % Compute unbiased estimate of the standard error by balanced bootknife resampling
       % Bootknife resampling involves less computation than Jackknife when sample sizes get larger
+      theta(j) = feval(bootfun,data(g==gk(j),:));
       nk(j) = sum(g==gk(j));
-      stats = bootknife(data(g==gk(j),:),[nboot(1),0],bootfun,[]);
+      stats = bootknife(data(g==gk(j),:),[nboot(2),0],bootfun,[]);
       SE(j) = stats(2);
     end
     Var(j) = ((nk(j)-1)/(N-k-(l-1))) * SE(j)^2;
