@@ -2,12 +2,12 @@
 %
 %  Function file: smoothmedian
 %
-%  [p]  = smoothmedian (x)
-%  [p]  = smoothmedian (x, dim)
-%  [p]  = smoothmedian (x, dim, Tol)
-%  [p, stderr]  = smoothmedian (...)
+%  [M]  = smoothmedian (x)
+%  [M]  = smoothmedian (x, dim)
+%  [M]  = smoothmedian (x, dim, Tol)
+%  [M, SE]  = smoothmedian (...)
 %
-%  If x is a vector, find the univariate smoothed median (p) of x.
+%  If x is a vector, find the univariate smoothed median (M) of x.
 %  If x is a matrix, compute the univariate smoothed median value
 %  for each column and return them in a row vector.  If the optional
 %  argument dim is given, operate along this dimension. Arrays of
@@ -26,7 +26,7 @@
 %  Smoothing the median is achieved by minimizing the following
 %  objective function:
 %
-%        S (p) = sum ((x(i) - p).^2 + (x(j) - p).^2) .^ 0.5
+%        S (M) = sum ((x(i) - M).^2 + (x(j) - M).^2) .^ 0.5
 %               i < j
 % 
 %  where i and j refers to the indices of the Cartesian product 
@@ -34,7 +34,7 @@
 %  when data columns contain one or more NaN or Inf elements.
 %  Where this is the case, the ordinary median is returned.
 %
-%  With the ordinary median as the initial value of p, this function
+%  With the ordinary median as the initial value of M, this function
 %  minimizes the above objective function by finding the root of the 
 %  first derivative using a fast, but reliable, Newton-Bisection  
 %  hybrid algorithm. The tolerance (Tol) is the maximum value of the  
@@ -70,7 +70,7 @@
 %  recent versions of Octave (v3.2.4 on Debian 6 Linux 2.6.32) and
 %  Matlab (v6.5.0 and v7.4.0 on Windows XP).
 %
-%  smoothmedian v1.6.0 (16/12/2021)
+%  smoothmedian v1.7.0 (31/05/2022)
 %  Author: Andrew Charles Penn
 %  https://www.researchgate.net/profile/Andrew_Penn/
 %
@@ -89,7 +89,7 @@
 %  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-function [p, stderr] = smoothmedian(x,dim,Tol)
+function [M, SE] = smoothmedian(x,dim,Tol)
 
   % Evaluate input arguments
   if (nargin < 1) || (nargin > 3)
@@ -144,17 +144,18 @@ function [p, stderr] = smoothmedian(x,dim,Tol)
   n = s(2);
   l = m*(m-1)/2;
 
+  % Find column indices where smoothing is not possible
+  no = any(isnan(x)) | any(isinf(x));
+  
   % Variable transformation to normalize stopping criteria
   % Centre the data on the median and divide by the midrange
   centre = median(x,1);
-  for i = find(isnan(centre))
+  nidx = find(no);
+  for i = 1:numel(nidx)
     centre(i) = median(x(~isnan(x(:,i)),i),1);
   end
   midrange = (max(x,[],1)-min(x,[],1))/2;
   x = (x - centre(ones(1,m),:)) ./ (midrange(ones(1,m),:));
-
-  % Find column indices where smoothing is not possible
-  no = any(isnan(x)) | any(isinf(x));
 
   % Obtain m(m-1)/2 pairs from the Cartesian product of each column of
   % x with itself by enforcing the restriction i < j on xi and xj
@@ -178,7 +179,11 @@ function [p, stderr] = smoothmedian(x,dim,Tol)
   % Set starting value as the median
   c = zeros(1,n);
   p = c;
-  % Initialize and define settings
+  if nargout > 1
+    % Initialize and define settings
+    v0 = zeros(1,n);
+    v  = zeros(1,n);
+  end
   idx = 1:n;
   MaxIter = 5000;
   % Calculate commonly used operations and assign them to new variables
@@ -194,13 +199,12 @@ function [p, stderr] = smoothmedian(x,dim,Tol)
     if Iter==1
       T(no) = 0;
     end
-    temp = []; %#ok<NASGU> Reduce memory usage. Faster than using clear.
+    %temp = []; %#ok<NASGU> Reduce memory usage. Faster than using clear.
     % The following calculation of the second derivative(s) is 
     % equivalent to (but much faster to compute than):
     % U = sum ( (xi-xj).^2 .* ((xi-temp).^2 + (xj-temp).^2).^(-3/2) ) 
     U = sum(z.*R./D.^2,1);
     D = []; %#ok<NASGU> Reduce memory usage. Faster than using clear.
-    R = []; %#ok<NASGU> Reduce memory usage. Faster than using clear.
     % Update bracket bounds
     a(T<-Tol) = c(T<-Tol);
     b(T>+Tol) = c(T>+Tol);
@@ -209,20 +213,25 @@ function [p, stderr] = smoothmedian(x,dim,Tol)
     if any(cvg)
       % Export converged parameters
       p(idx(cvg)) = c(cvg);
+      if nargout > 1
+        % Calculate variables required to compute standard error(s) 
+        v0 (idx(cvg)) = 0.5/l * U(cvg);
+        v  (idx(cvg)) = 0.5/l * sum(((y(:,cvg)-2*ones(l,1)*c(cvg))./R(:,cvg)).^2,1); 
+      end
       % Avoid excess computations in following iterations
       idx(cvg) = [];
       xi(:,cvg) = [];
       xj(:,cvg) = [];
       z(:,cvg) = [];
       y(:,cvg) = [];
+      R(:,cvg) = []; 
       a(cvg) = [];
       b(cvg) = [];
       c(cvg) = [];
       T(cvg) = [];
       U(cvg) = [];
-    elseif all(cvg)
-      % Export converged parameters and break from iterations
-      p(idx(cvg)) = c(cvg);
+    end
+    if all(cvg)
       break
     end
     % Compute Newton step (fast quadratic convergence but unreliable)
@@ -246,35 +255,27 @@ function [p, stderr] = smoothmedian(x,dim,Tol)
     end
   end
 
-  % Backtransform the smoothed median value(s)
-  p = p .* midrange + centre;
-
   % Assign ordinary median where smoothing is not possible
   p(no) = centre(no);
-
-  % Estimate standard error(s) (if requested)
-  if nargout > 1
-    % Obtain m(m-1)/2 pairs from the Cartesian product of each column of
-    % x with itself by enforcing the restriction i < j on xi and xj
-    xi = (x(i(q),:) + h) .*... 
-             midrange(ones(1,l),:) +...
-             centre(ones(1,l),:);   % backtransform data when recreating xi
-    xj = (x(j(q),:) - h) .*... 
-             midrange(ones(1,l),:) +...
-             centre(ones(1,l),:);   % backtransform data when recreating xj
-    tmp = p(ones(l,1),:);
-    % Calculate standard error(s) for the computed value(s) of the smoothed median
-    v0 = (1/(m*(m-1))) * sum((((xi-tmp).^2+(xj-tmp).^2).^(-3/2) .* (xi-xj).^2));
-    v  = (1/(m*(m-1))) * sum(((xi+xj-2*tmp)./(((xi-tmp).^2+(xj-tmp).^2).^(0.5))).^2);
-    stderr = sqrt((v0.^(-2)) .* v / m);
-    % Assign 0 to stderr for x columns with 0 variance 
-    stderr(midrange==0) = 0;
-  else
-    stderr = [];
-  end
-               
+  
+  % Backtransform the smoothed median value(s)
   % If applicable, switch dimension
   if dim > 1
-    p = p.';
-    stderr = stderr.';
+    M  = (p .* midrange + centre).';
+  else
+    M  = p .* midrange + centre;
+  end
+
+  % If requested, calculate standard error(s)  
+  % If applicable, switch dimension
+  if nargout > 1
+    if dim > 1
+      SE = (sqrt(((v0./midrange).^(-2)) .* v / m)).';
+      % Assign 0 to stderr for x columns with 0 variance 
+      SE(midrange.'==0) = 0;
+    else
+      SE = sqrt(((v0./midrange).^(-2)) .* v / m);
+      % Assign 0 to stderr for x columns with 0 variance 
+      SE(midrange==0) = 0;
+    end
   end
