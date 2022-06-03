@@ -186,7 +186,7 @@ function [M, SE] = smoothmedian(x,dim,Tol)
     v  = zeros(1,n);
   end
   idx = 1:n;
-  MaxIter = 10;
+  MaxIter = 20;
   % Calculate commonly used operations and assign them to new variables
   z = (xi-xj).^2;
   y = xi+xj;
