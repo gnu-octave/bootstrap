@@ -156,6 +156,7 @@ function [M, SE] = smoothmedian(x,dim,Tol)
   end
   midrange = (max(x,[],1)-min(x,[],1))/2;
   x = (x - centre(ones(1,m),:)) ./ (midrange(ones(1,m),:));
+  no(midrange==0) = true;
 
   % Obtain m(m-1)/2 pairs from the Cartesian product of each column of
   % x with itself by enforcing the restriction i < j on xi and xj
@@ -185,7 +186,7 @@ function [M, SE] = smoothmedian(x,dim,Tol)
     v  = zeros(1,n);
   end
   idx = 1:n;
-  MaxIter = 5000;
+  MaxIter = 10;
   % Calculate commonly used operations and assign them to new variables
   z = (xi-xj).^2;
   y = xi+xj;
