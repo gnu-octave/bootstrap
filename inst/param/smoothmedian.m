@@ -186,7 +186,7 @@ function [M, SE] = smoothmedian(x,dim,Tol)
     v  = zeros(1,n);
   end
   idx = 1:n;
-  MaxIter = 20;
+  MaxIter = 500;
   % Calculate commonly used operations and assign them to new variables
   z = (xi-xj).^2;
   y = xi+xj;
@@ -200,7 +200,7 @@ function [M, SE] = smoothmedian(x,dim,Tol)
     if Iter==1
       T(no) = 0;
     end
-    %temp = []; %#ok<NASGU> Reduce memory usage. Faster than using clear.
+    temp = []; %#ok<NASGU> Reduce memory usage. Faster than using clear.
     % The following calculation of the second derivative(s) is 
     % equivalent to (but much faster to compute than):
     % U = sum ( (xi-xj).^2 .* ((xi-temp).^2 + (xj-temp).^2).^(-3/2) ) 
