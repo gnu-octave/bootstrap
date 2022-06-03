@@ -70,7 +70,7 @@
 %  recent versions of Octave (v3.2.4 on Debian 6 Linux 2.6.32) and
 %  Matlab (v6.5.0 and v7.4.0 on Windows XP).
 %
-%  smoothmedian v1.7.1 (01/06/2022)
+%  smoothmedian v1.7.2 (04/06/2022)
 %  Author: Andrew Charles Penn
 %  https://www.researchgate.net/profile/Andrew_Penn/
 %
