@@ -70,7 +70,7 @@
 %  recent versions of Octave (v3.2.4 on Debian 6 Linux 2.6.32) and
 %  Matlab (v6.5.0 and v7.4.0 on Windows XP).
 %
-%  smoothmedian v1.7.2 (04/06/2022)
+%  smoothmedian v1.7.3 (04/06/2022)
 %  Author: Andrew Charles Penn
 %  https://www.researchgate.net/profile/Andrew_Penn/
 %
@@ -154,7 +154,9 @@ function [M, SE] = smoothmedian(x,dim,Tol)
   for i = 1:numel(nidx)
     centre(i) = median(x(~isnan(x(:,i)),i),1);
   end
-  midrange = (max(x,[],1)-min(x,[],1))/2;
+  xmax = max(x,[],1);
+  xmin = min(x,[],1);
+  midrange = (xmax-xmin)/2;
   x = (x - centre(ones(1,m),:)) ./ (midrange(ones(1,m),:));
   no(midrange==0) = true;
 
@@ -174,19 +176,22 @@ function [M, SE] = smoothmedian(x,dim,Tol)
   xj = xj-h;
 
   %% Nonlinear root finding by Newton-Bisection hybrid algorithm
-  % Set initial bracket bounds
-  a = min(x,[],1);
-  b = max(x,[],1);
   % Set starting value as the median
   c = zeros(1,n);
   p = c;
+  % Set initial bracket bounds
+  a = (xmin - centre) ./ midrange; 
+  b = (xmax - centre) ./ midrange;
+  xmin = []; %#ok<NASGU> Reduce memory usage. Faster than using clear.
+  xmax = []; %#ok<NASGU> Reduce memory usage. Faster than using clear.
+  no(a==b) = true;
   if nargout > 1
     % Initialize and define settings
     v0 = zeros(1,n);
     v  = zeros(1,n);
   end
   idx = 1:n;
-  MaxIter = 5000;
+  MaxIter = 500;
   % Calculate commonly used operations and assign them to new variables
   z = (xi-xj).^2;
   y = xi+xj;
@@ -256,9 +261,6 @@ function [M, SE] = smoothmedian(x,dim,Tol)
     end
   end
 
-  % Assign ordinary median where smoothing is not possible
-  p(no) = centre(no);
-  
   % Backtransform the smoothed median value(s)
   % If applicable, switch dimension
   if dim > 1
