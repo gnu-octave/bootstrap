@@ -3,7 +3,7 @@
 %  Bootknife resampling  
 %
 %  This function takes a data sample (containing n rows) and uses bootstrap 
-%  techniques to calculate a bias-corrected parameter estimate, a standard 
+%  techniques to calculate a bias of the parameter estimate, a standard 
 %  error, and 95% confidence intervals. Specifically, the method uses 
 %  bootknife resampling [1], which involves creating leave-one-out 
 %  jackknife samples of size n - 1 and then drawing samples of size n with 
@@ -14,8 +14,8 @@
 %  correctness when combined with bootknife resampling as it is here [1], 
 %  but it may not have the intended coverage when sample size gets very 
 %  small. If double bootstrap is requested, the algorithm uses calibration 
-%  to improve the accuracy of bias-corrected estimates and confidence 
-%  intervals for small-to-medium sample sizes [6-8]. 
+%  to improve the accuracy of the bias estimate and confidence intervals
+%  for small-to-medium sample sizes [6-8]. 
 %
 %  stats = bootknife(data)
 %  stats = bootknife(data,nboot)
@@ -30,10 +30,12 @@
 %
 %  stats = bootknife(data) resamples from the rows of a data sample (column 
 %  vector or a matrix) and returns a column vector or matrix, whose rows  
-%  (from top-to-bottom) contain the bootstrap bias-corrected estimate of   
-%  the population mean(s) [7-8], the bootknife standard error of the mean  
+%  (from top-to-bottom) contain the result of applying bootfun to the data,
+%  the bootstrap estimate of the bias [7-8], the bootknife standard error 
 %  [1], and 95% bias-corrected and accelerated (BCa) confidence intervals 
 %  [1,4-5,9]. The data cannot contain values that are NaN or infinite.
+%  By default, all the statistics returned relate to the mean; this can be
+%  changed by setting the bootfun input argument (see below).
 %
 %  stats = bootknife(data,nboot) also specifies the number of bootknife 
 %  samples. nboot can be a scalar, or vector of upto two positive integers. 
@@ -43,17 +45,17 @@
 %  the second element of nboot is > 0, then the first and second elements  
 %  of nboot correspond to the number of outer (first) and inner (second) 
 %  bootknife resamples respectively. Double bootstrap is used to improve 
-%  the accuracy of the bias-corrected estimate(s) and the confidence 
-%  intervals. For confidence intervals, this is achieved by calibrating 
-%  the lower and upper interval ends to have tail probabilities of 2.5% 
-%  and 97.5% [5]. Note that one can get away with a lower number of 
-%  resamples in the second bootstrap to reduce the computational expense 
-%  of the double bootstrap (e.g. [2000,200]), since the algorithm uses 
-%  linear interpolation to achieve near-asymptotic calibration of 
-%  confidence intervals [3]. The confidence intervals calculated (with 
-%  either single or double bootstrap) are transformation invariant and 
-%  have more accuracy and correctness compared to intervals derived from 
-%  normal theory or to simple percentile bootstrap confidence intervals. 
+%  the accuracy of the bias and the confidence intervals. For confidence 
+%  intervals, this is achieved by calibrating the lower and upper interval 
+%  ends to have tail probabilities of 2.5% and 97.5% [5]. Note that one 
+%  can get away with a lower number of resamples in the second bootstrap 
+%  to reduce the computational expense of the double bootstrap (e.g. [2000,
+%  200]), since the algorithm uses linear interpolation to achieve near-
+%  asymptotic calibration of confidence intervals [3]. The confidence 
+%  intervals calculated (with either single or double bootstrap) are 
+%  transformation invariant and have more accuracy and correctness compared 
+%  to intervals derived from normal theory or to simple percentile bootstrap 
+%  confidence intervals. 
 %
 %  stats = bootknife(data,nboot,bootfun) also specifies bootfun, a function 
 %  handle (e.g. specified with @), a string indicating the name of the 
@@ -63,8 +65,9 @@
 %  data for the first input argument. bootfun can return a scalar value or 
 %  vector. The default value(s) of bootfun is/are the (column) mean(s).
 %  When bootfun is @mean or 'mean', residual narrowness bias of central 
-%  coverage is eliminated by using the Student's t-distribution to expand 
-%  the percentiles before applying the BCa adjustments as described in [9].
+%  coverage is almost eliminated by using the Student's t-distribution to
+%  expand the percentiles before applying the BCa adjustments as described 
+%  in [9].
 %    Note that bootfun MUST calculate a statistic representative of the 
 %  finite data sample, it should NOT be an estimate of a population 
 %  parameter. For example, for the variance, set bootfun to {@var,1}, not 
@@ -120,7 +123,7 @@
 %        Bootstrap: Resampling in the Undergraduate Statistics Curriculum, 
 %        http://arxiv.org/abs/1411.5279
 %
-%  bootknife v1.4.6.0 (27/05/2022)
+%  bootknife v1.5.0.0 (06/06/2022)
 %  Author: Andrew Charles Penn
 %  https://www.researchgate.net/profile/Andrew_Penn/
 %
@@ -221,7 +224,7 @@ function [stats, T1, idx] = bootknife (x, nboot, bootfun, alpha, strata, idx)
   if m > 1
     % Evaluate bootknife for each element of the output of bootfun
     % Note that row indices in the resamples are the same for all columns of data
-    stats = zeros (4, m);
+    stats = zeros (5, m);
     T1 = zeros (m, B);
     for j = 1:m
       out = @(x, j) x(j);
@@ -321,10 +324,11 @@ function [stats, T1, idx] = bootknife (x, nboot, bootfun, alpha, strata, idx)
       u = sum (I);
       t2 = [max([min(T2), max(T2(I))]),...
             min([max(T2), min(T2(~I))])];
-      % Linear interpolation
-      U(b) = ((t2(2) - T0) * u / C + (T0 - t2(1)) * min ((u + 1) / C, 1)) /...
-            (t2(2) - t2(1));
-      if isnan (U(b))
+      if (u < C) && ((t2(2) - t2(1)) > 0)
+        % Linear interpolation
+        U(b) = ((t2(2) - T0) * u / C + (T0 - t2(1)) * min ((u + 1) / C, 1)) /...
+              (t2(2) - t2(1));
+      else
         U(b) = u / C;
       end
       M(b) = mean (T2);
@@ -390,7 +394,7 @@ function [stats, T1, idx] = bootknife (x, nboot, bootfun, alpha, strata, idx)
   end
   
   % Prepare stats output argument
-  stats = [T0 - bias; se; ci.'];
+  stats = [T0; bias; se; ci.'];
   
 end
 

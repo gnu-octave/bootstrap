@@ -984,7 +984,7 @@ function [p, c, stats] = ibootnhst (data, group, varargin)
       theta(j) = feval(bootfun,data(g==gk(j),:));
       nk(j) = sum(g==gk(j));
       stats = bootknife(data(g==gk(j),:),[nboot(2),0],bootfun,[]);
-      SE(j) = stats(2);
+      SE(j) = stats(3);
     end
     Var(j) = ((nk(j)-1)/(N-k-(l-1))) * SE(j)^2;
   end

@@ -26,7 +26,7 @@
 %  Smoothing the median is achieved by minimizing the following
 %  objective function:
 %
-%        S (M) = sum ((x(i) - M).^2 + (x(j) - M).^2) .^ 0.5
+%        S (M) = sum (((x(i) - M).^2 + (x(j) - M).^2).^ 0.5)
 %               i < j
 % 
 %  where i and j refers to the indices of the Cartesian product 
