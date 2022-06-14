@@ -262,24 +262,6 @@ function [stats, T1, idx] = bootknife (x, nboot, bootfun, alpha, strata, idx)
   % Perform balanced bootknife resampling
   if nargin < 6
     idx = boot (n, B, 1);
-    else
-      for b = 1:B
-        R = rand (n, 1, 'single');
-        % Choose which row of the data to exclude from this bootknife sample
-        r = b - fix ((b - 1) / n) * n;
-        for i = 1:n
-          d = c;   
-          d(r) = 0;
-          if ~sum (d)
-            d = c;
-          end
-          j = sum (R(i) >= cumsum (d ./sum (d))) + 1;
-          idx(i, b) = j;
-          c(j) = c(j) - 1;
-        end 
-      end
-      R = [];
-    end
   end
   if vectorized
     % Vectorized implementation of data sampling and evaluation of bootfun on the data
