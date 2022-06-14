@@ -262,9 +262,8 @@ function [stats, T1, idx] = bootknife (x, nboot, bootfun, alpha, strata, idx)
   % Perform balanced bootknife resampling
   if nargin < 6
     % Initialize
-    T1 = zeros (1, B);
-    idx = zeros (n, B);
-    c = ones (n, 1) * B;
+    idx = zeros (n, B, 'uint16');
+    c =  ones (n, 1, 'single') * B;
     % Calculate row indices for resampling
     if ~isempty (strata)
       for k = 1:K
@@ -272,15 +271,10 @@ function [stats, T1, idx] = bootknife (x, nboot, bootfun, alpha, strata, idx)
         rows = find (g(:, k));
         idx(g(:, k), :) = rows(idx(g(:, k), :));
       end
-      if vectorized
-        % Perform data sampling
-        X = x(idx);
-        % Function evaluation on bootknife sample
-        T1 = feval (bootfun, X);
-      end
     else
       for b = 1:B
-        % Choose which rows of the data to sample
+        R = rand (n, 1, 'single');
+        % Choose which row of the data to exclude from this bootknife sample
         r = b - fix ((b - 1) / n) * n;
         for i = 1:n
           d = c;   
@@ -288,21 +282,22 @@ function [stats, T1, idx] = bootknife (x, nboot, bootfun, alpha, strata, idx)
           if ~sum (d)
             d = c;
           end
-          j = sum ((rand (1) >= cumsum (d ./sum (d)))) + 1;
+          j = sum (R(i) >= cumsum (d ./sum (d))) + 1;
           idx(i, b) = j;
           c(j) = c(j) - 1;
         end 
       end
-      if vectorized
-        % Perform data sampling
-        X = x(idx);
-        % Function evaluation on bootknife sample
-        T1 = feval (bootfun, X);
-      end
+      R = [];
     end
   end
-  if ~vectorized
-    % Serial evaluation of bootfun on the data
+  if vectorized
+    % Vectorized implementation of data sampling and evaluation of bootfun on the data
+    % Perform data sampling
+    X = x(idx);
+    % Function evaluation on bootknife sample
+    T1 = feval (bootfun, X);
+  else 
+    % Serial implementation of data sampling and evaluation of bootfun on the data
     for b = 1:B
       % Perform data sampling
       X = x(idx(:, b), :);

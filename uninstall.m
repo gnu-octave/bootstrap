@@ -29,6 +29,9 @@ if isoctave
   fseek (fid, 0);
   fputs (fid, S);
   fclose (fid);
+  if exist ('./inst/boot.oct')
+    delete ('./inst/boot.oct');
+  end
 else
   % Assumming uninstall for Matlab instead
   run (fullfile(pwd,'PKG_DEL'));
