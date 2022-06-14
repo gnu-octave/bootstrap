@@ -261,16 +261,7 @@ function [stats, T1, idx] = bootknife (x, nboot, bootfun, alpha, strata, idx)
 
   % Perform balanced bootknife resampling
   if nargin < 6
-    % Initialize
-    idx = zeros (n, B, 'uint16');
-    c =  ones (n, 1, 'single') * B;
-    % Calculate row indices for resampling
-    if ~isempty (strata)
-      for k = 1:K
-        [~, ~, idx(g(:, k), :)] = bootknife (x(g(:, k), :), [B, 0], bootfun, []);
-        rows = find (g(:, k));
-        idx(g(:, k), :) = rows(idx(g(:, k), :));
-      end
+    idx = boot (n, B, 1);
     else
       for b = 1:B
         R = rand (n, 1, 'single');
