@@ -1,20 +1,20 @@
 % Function file (boot.m) for generating bootstrap sample indices
 %
-% bootsam = boot (n, B, u)
+% bootsam = boot (n, nboot, u)
 %
 % INPUT VARIABLES
-% n (double) is the number of rows (of the data vector)
-% B (double) is the number of bootstrap resamples
-% u (boolean) false (for bootstrap) or true (for bootknife)
+% n is the number of rows (of the data vector)
+% nboot is the number of bootstrap resamples
+% u (boolean) for unbiased: false (for bootstrap) or true (for bootknife)
 %
 % OUTPUT VARIABLE
-% bootsam (uint16) is an n x B matrix of bootstrap resamples
+% bootsam (uint16) is an n x nboot matrix of bootstrap resamples
 %
 % Uniform random numbers are generated using the Mersenne Twister 19937 generator
 %
 % Author: Andrew Charles Penn (2022)
 
-function bootsam = boot (n, B, u)
+function bootsam = boot (n, nboot, u)
 
   % Error checking
   if (n <= 0) || (n ~= fix(n)) || isinf(n) || isnan(n) || (max (size (n)) > 1)
@@ -23,11 +23,11 @@ function bootsam = boot (n, B, u)
   if (n > 2^15-1)
     error ('n exceeds the maximum sample size, 2^15-1')
   end
-  if (B <= 0) || (B ~= fix(B)) || isinf(B) || isnan(B) || (max (size (n)) > 1)
-    error ('B must be a finite positive integer')
+  if (nboot <= 0) || (nboot ~= fix(nboot)) || isinf(nboot) || isnan(nboot) || (max (size (n)) > 1)
+    error ('nboot must be a finite positive integer')
   end
-  if (B > realmax('single'))
-    error ('B exceeds the maximum number of resamples')
+  if (nboot > realmax('single'))
+    error ('nboot exceeds the maximum number of resamples')
   end
   if (nargin < 3)
     u = 0;
@@ -38,15 +38,15 @@ function bootsam = boot (n, B, u)
   end
   
   % Preallocate bootsam
-  bootsam = zeros (n, B, 'int16');
+  bootsam = zeros (n, nboot, 'int16');
   
   % Initialize variable defining the available row counts remaining
-  c = ones (n, 1, 'single') * B; 
+  c = ones (n, 1, 'single') * nboot; 
   
   
   % Perform balanced sampling
   r = 0;
-  for b = 1:B
+  for b = 1:nboot
     R = rand (n, 1, 'single');
     if (u)
       % Choose which row of the data to exclude for this bootknife sample
