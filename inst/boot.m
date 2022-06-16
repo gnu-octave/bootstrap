@@ -1,18 +1,20 @@
-% Function file for generating bootstrap sample indices
+% Function file (boot.m) for generating bootstrap sample indices
 %
-% bootsam = boot (n, B, w)
+% bootsam = boot (n, B, u)
 %
 % INPUT VARIABLES
-% n (double) is the number of rows (of data vector)
+% n (double) is the number of rows (of the data vector)
 % B (double) is the number of bootstrap resamples
-% w (double) should be set to 0 (for bootstrap) or 1 (for bootknife)
+% u (boolean) false (for bootstrap) or true (for bootknife)
 %
 % OUTPUT VARIABLE
 % bootsam (uint16) is an n x B matrix of bootstrap resamples
 %
+% Uniform random numbers are generated using the Mersenne Twister 19937 generator
+%
 % Author: Andrew Charles Penn (2022)
 
-function bootsam = boot (n, B, w)
+function bootsam = boot (n, B, u)
 
   % Error checking
   if (n <= 0) || (n ~= fix(n)) || isinf(n) || isnan(n) || (max (size (n)) > 1)
@@ -28,10 +30,10 @@ function bootsam = boot (n, B, w)
     error ('B exceeds the maximum number of resamples')
   end
   if (nargin < 3)
-    w = 0;
+    u = 0;
   else
-    if ~ismember (w, [0, 1]) || (max (size (n)) > 1)
-     error ('w must be either a 0 (for bootstrap) or a 1 (for bootknife)')
+    if ~islogical (u)
+      error ('u must be either a false (for bootstrap) or true (for bootknife)')
     end
   end
   
@@ -46,13 +48,13 @@ function bootsam = boot (n, B, w)
   r = 0;
   for b = 1:B
     R = rand (n, 1, 'single');
-    if (w > 0)
+    if (u)
       % Choose which row of the data to exclude for this bootknife sample
       r = b - fix ((b - 1) / n) * n;
     end
     for i = 1:n
       d = c;  
-      if (w > 0)
+      if (u)
         d(r) = 0;
       end
       if ~sum (d)

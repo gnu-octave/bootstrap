@@ -29,8 +29,11 @@ if isoctave
   fseek (fid, 0);
   fputs (fid, S);
   fclose (fid);
-  mkoctfile --output ./inst/boot.oct ./src/boot.cc
-  movefile ./inst/boot.m ./inst/boot.bak
+  try
+    mkoctfile --output ./inst/boot.oct ./src/boot.cc
+  catch
+    warning ('Could not compile boot.oct. Falling back to the (slower) boot.m file.')
+  end
 else
   % Assumming install for Matlab instead
   if exist('savepath')
