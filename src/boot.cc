@@ -3,15 +3,15 @@
 //
 // boot.oct is a function file for generating balanced bootstrap sample indices
 //
-// bootsam = boot (n, B, u)
+// bootsam = boot (n, nboot, u)
 //
 // INPUT VARIABLES
-// n (double) is the number of rows (of the data vector)
-// B (double) is the number of bootstrap resamples
-// u (boolean) false (for bootstrap) or true (for bootknife)
+// n (short integer, int16) is the number of rows (of the data vector)
+// nboot (integer, int32) is the number of bootstrap resamples
+// u (boolean) for unbiased: false (for bootstrap) or true (for bootknife)
 //
 // OUTPUT VARIABLE
-// bootsam (short integer, int16) is an n x B matrix of bootstrap resamples
+// bootsam (short integer, int16) is an n x nboot matrix of bootstrap resamples
 //
 // Uniform random numbers are generated using the Mersenne Twister 19937 generator
 //
@@ -24,13 +24,13 @@
 
 DEFUN_DLD (boot, args, , 
            "Function file (boot.oct) for generating balanced bootstrap sample indices \n\n"\
-           "bootsam = boot (n, B, u) \n\n"\
+           "bootsam = boot (n, nboot, u) \n\n"\
            "INPUT VARIABLES \n"\
-           "n (double) is the number of rows (of the data vector) \n"\
-           "B (double) is the number of bootstrap resamples \n"\
-           "u (boolean) false (for bootstrap) or true (for bootknife) \n\n"\
+           "n (short integer, int16) is the number of rows (of the data vector) \n"\
+           "nboot (integer, int32) is the number of bootstrap resamples \n"\
+           "u (boolean) for unbiased: false (for bootstrap) or true (for bootknife) \n\n"\
            "OUTPUT VARIABLE \n"\
-           "bootsam (short integer, int16) is an n x B matrix of bootstrap resamples \n\n"\
+           "bootsam (short integer, int16) is an n x nboot matrix of bootstrap resamples \n\n"\
            "Uniform random numbers are generated using the Mersenne Twister 19937 generator \n\n"\
            "Author: Andrew Charles Penn (2022)")
  {
@@ -40,16 +40,16 @@ DEFUN_DLD (boot, args, ,
     
     // Declare variables
     const short int n = args(0).int_value ();
-    const int B = args(1).int_value ();
+    const int nboot = args(1).int_value ();
     bool u = args(2).bool_value ();
-    dim_vector dv (n, B); 
+    dim_vector dv (n, nboot); 
     int16NDArray bootsam (dv);       // Array of bootstrap sample indices
     int d;                           // Counter for cumulative sum calculations
     int c[n];                        // Counter for each of the sample indices
-    for (int i = 0; i < n ; i++) {
-        c[i] = B;
+    for (int i = 0; i < n ; i++) {   
+        c[i] = nboot;                // Set each element in c to nboot
     }
-    int N = n * B;                   // Total counts of all sample indices
+    int N = n * nboot;               // Total counts of all sample indices
     int k;                           // Variable to store random number
     bool LOO = false;                // Leave-one-out (LOO) flag (ignored if u is false)
     int r = -1;                      // Sample index for LOO (ignored if u is false)
@@ -61,7 +61,7 @@ DEFUN_DLD (boot, args, ,
     std::uniform_real_distribution<float> dist(0,1);
     
     // Perform balanced sampling
-    for (int b = 0; b < B ; b++) {     
+    for (int b = 0; b < nboot ; b++) {     
         if (u) {
             r = b - (b / n) * n;
         }
