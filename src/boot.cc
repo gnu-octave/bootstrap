@@ -51,9 +51,9 @@ DEFUN_DLD (boot, args, ,
     }
     int N = n * nboot;               // Total counts of all sample indices
     int k;                           // Variable to store random number
-    bool LOO = false;                // Leave-one-out (LOO) flag (ignored if u is false)
-    int r = -1;                      // Sample index for LOO (ignored if u is false)
-    int m = 0;                       // Counter for LOO sample index r (ignored if u is false) 
+    bool LOO = false;                // Leave-one-out (LOO) flag for the current bootstrap iteration (remains false if u is false)
+    int r = -1;                      // Sample index for LOO (remains -1 and is ignored if u is false)
+    int m = 0;                       // Counter for LOO sample index r (remains 0 if u is false) 
 
     // Initialize random number generator
     std::random_device seed;
@@ -67,13 +67,13 @@ DEFUN_DLD (boot, args, ,
         }
         for (int i = 0; i < n ; i++) {
             if (u) {
-                if (c[r] != N) { 
+                if (c[r] != N) {   // Only LOO if sample index r doesn't account for all remaining sampling counts
                     m = c[r];
                     c[r] = 0;
                     LOO = true;
                 }
             }
-            k = dist(rng) * (N - m - 1); 
+            k = dist(rng) * (N - m); 
             d = c[0];
             for (int j = 0; j < n ; j++) { 
                 if (k < d) {
