@@ -5,7 +5,10 @@
 // smoothmedian.oct is a function file for calculating a smooth 
 // version of the median [1]
 //
-// M = smoothmedian (x, dim, Tol)
+// M   = smoothmedian (x)
+// ... = smoothmedian (x, dim)
+// ... = smoothmedian (x, dim, Tol)      
+// [M, SE] = smoothmedian (...)
 //
 // INPUT VARIABLES
 // x (double) is the data vector or matrix
@@ -14,6 +17,7 @@
 //
 // OUTPUT VARIABLE
 // M (double) is vector of the smoothed median
+// SE (double) is a vector of standard errors of the smoothed median
 //
 // If x is a vector, find the univariate smoothed median (M) of x.
 // If x is a matrix, compute the univariate smoothed median value
@@ -45,6 +49,8 @@
 // the root of the first derivative using a fast, but reliable, 
 // Newton-Bisection hybrid algorithm. The tolerance (Tol) is the 
 // maximum step size that is acceptable to break from optimization.
+// Standard errors of the smoothed median can be estimated and
+// returned by requesting the second output argument (SE).
 //
 // Bibliography:
 // [1] Brown, Hall and Young (2001) The smoothed median and the
@@ -58,7 +64,10 @@ DEFUN_DLD (smoothmedian, args, ,
            " smoothmedian.oct is a function file for calculating a smoothed \n"\
            " version of the median [1] \n"\
            " \n"\
-           " M = smoothmedian (x, dim, Tol) \n"\
+           " M   = smoothmedian (x) \n"\
+           " ... = smoothmedian (x, dim) \n"\
+           " ... = smoothmedian (x, dim, Tol) \n"\
+           " [M, SE] = smoothmedian (...) \n"\
            " \n"\
            " INPUT VARIABLES \n"\
            " x (double) is the data vector or matrix \n"\
@@ -67,6 +76,7 @@ DEFUN_DLD (smoothmedian, args, ,
            " \n"\
            " OUTPUT VARIABLE \n"\
            " M (double) is vector of the smoothed median \n"\
+           " SE (double) is a vector of standard errors of the smoothed median \n"\
            " \n"\
            " If x is a vector, find the univariate smoothed median (M) of x. \n"\
            " If x is a matrix, compute the univariate smoothed median value \n"\
@@ -96,6 +106,8 @@ DEFUN_DLD (smoothmedian, args, ,
            " the root of the first derivative using a fast, but reliable, \n"\
            " Newton-Bisection hybrid algorithm. The tolerance (Tol) is the \n"\
            " maximum step size that is acceptable to break from optimization. \n"\
+           " Standard errors of the smoothed median can be estimated and \n"\
+           " returned by requesting the second output argument (SE). \n"\
            " \n"\
            " Bibliography: \n"\
            " [1] Brown, Hall and Young (2001) The smoothed median and the \n"\
@@ -123,25 +135,30 @@ DEFUN_DLD (smoothmedian, args, ,
     
     // Check that there are no inf or nan values in the data
     if (x.any_element_is_inf_or_nan ()) {
-      octave_stdout << "Error: x cannot contain Inf or NaN values\n";
-      return octave_value ();
+        octave_stdout << "Error: x cannot contain Inf or NaN values\n";
+        return octave_value ();
     }
     
     // If applicable, switch dimension
     if (dim > 1) {
-      x = x.transpose ();
+        x = x.transpose ();
     }
       
     // Obtain data dimensions
     const dim_vector sz = x.dims ();
-    const short int m = sz(0);
-    const short int n = sz(1);
+    short int m = sz(0);
+    short int n = sz(1);
+    short int l = m*(m-1);
     
     // Calculate basic statistics for each column of the data
     Matrix xmax = x.max ();
     Matrix xmin = x.min ();
     Matrix range = (xmax - xmin); // Range
     Matrix M = (xmax + xmin) / 2; // Mid-range
+    
+    // Create output variable for the standard errors
+    dim_vector dv (1, n);
+    Matrix SE (dv);
 
     // Create pointers so that we can more rapidly access elements of the matrices
     double *ptrX = x.fortran_vec ();
@@ -149,6 +166,11 @@ DEFUN_DLD (smoothmedian, args, ,
     double *ptrXMIN = xmin.fortran_vec ();
     double *ptrXMAX = xmax.fortran_vec ();
     double *ptrRANGE = range.fortran_vec ();
+
+    // Declare variables that we update in the loop with math assignment operators
+    double T;
+    double U;
+    double v;
     
     // Loop through each column of the data 
     int MaxIter = 500;
@@ -170,10 +192,9 @@ DEFUN_DLD (smoothmedian, args, ,
                
         // Start iterations
         for (int Iter = 0; Iter < MaxIter ; Iter++) {
-            //std::cout << Iter;
-            //std::cout << " ";
-            double T = 0;
-            double U = 0;
+            T = 0;
+            U = 0;
+            v = 0;
             for (int j = 0; j < m ; j++) {
                 for (int i = 0; i < j ; i++) {
                     double xi = *(ptrX + k * m + i);
@@ -181,7 +202,10 @@ DEFUN_DLD (smoothmedian, args, ,
                     // Calculate first derivative (T)
                     double D = pow (xi - p, 2) + pow (xj - p, 2);
                     double R = sqrt(D);
-                    T += (2 * p - xi - xj) / R;
+                    double t = (2 * p - xi - xj) / R;
+                    T += t;
+                    // Compute v (required for standard error calculation later on)
+                    v += pow (t / (m - 1), 2);
                     // Calculate second derivative (U)
                     U += pow (xi - xj, 2) * R / pow (D, 2);
                 }
@@ -210,17 +234,30 @@ DEFUN_DLD (smoothmedian, args, ,
                 }
             }
             if (Iter == MaxIter) {
-              octave_stdout << "Warning: Root finding failed to reach the specified tolerance.\n";
+                octave_stdout << "Warning: Root finding failed to reach the specified tolerance.\n";
             }
         }
+        
         // Assign parameter value that optimizes the objective function for the smoothed median
         M(k) = p;
+        
+        // Calculate standard error of the smoothed median
+        double v0 = U / l;
+        v /= m;
+        SE(k) = sqrt (pow (v0,-2) * v);  
+    
     }
     
     // If applicable, switch dimension
     if (dim > 1) {
-      M = M.transpose ();  // need to fix this
+        M = M.transpose ();
+        SE = SE.transpose (); 
     }
 
-    return octave_value (M);
+    // Prepare output aruments to return to Octave
+    octave_value_list retval;
+    retval(0) = octave_value(M);
+    retval(1) = octave_value(SE);
+    
+    return retval;
 } 
