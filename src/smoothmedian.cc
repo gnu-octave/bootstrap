@@ -17,10 +17,11 @@
 //
 // If x is a vector, find the univariate smoothed median (M) of x.
 // If x is a matrix, compute the univariate smoothed median value
-// for each column and return them in a row vector. The argument dim 
-// defines which dimension to operate along. Arrays of more than two 
-// dimensions are not currently supported. Tol configures the stopping 
-// criteria, in terms of the change in the step size..
+// for each column and return them in a row vector (default). The 
+// argument dim defines which dimension to operate along. Arrays  
+// of more than two dimensions are not currently supported. Tol 
+// configures the stopping criteria, in terms of the absolute 
+// change in the step size. By default, Tol = RANGE * 1e-4.
 //
 // The smoothed median is a slightly smoothed version of the ordinary 
 // median and is an M-estimator that is both robust and efficient:
@@ -43,8 +44,7 @@
 // This function minimizes the above objective function by finding 
 // the root of the first derivative using a fast, but reliable, 
 // Newton-Bisection hybrid algorithm. The tolerance (Tol) is the 
-// maximum value of the first derivative that is acceptable to break 
-// from optimization. 
+// maximum step size that is acceptable to break from optimization.
 //
 // Bibliography:
 // [1] Brown, Hall and Young (2001) The smoothed median and the
@@ -95,8 +95,7 @@ DEFUN_DLD (smoothmedian, args, ,
            " This function minimizes the above objective function by finding \n"\
            " the root of the first derivative using a fast, but reliable, \n"\
            " Newton-Bisection hybrid algorithm. The tolerance (Tol) is the \n"\
-           " maximum value of the first derivative that is acceptable to break \n"\
-           " from optimization. \n"\
+           " maximum step size that is acceptable to break from optimization. \n"\
            " \n"\
            " Bibliography: \n"\
            " [1] Brown, Hall and Young (2001) The smoothed median and the \n"\
@@ -105,13 +104,22 @@ DEFUN_DLD (smoothmedian, args, ,
            " Author: Andrew Charles Penn (2022)")
  {
 
-    if (args.length () != 3)
-        print_usage ();
-    
+    // Input variable declaration
+    Matrix x;
+    short int dim;
+    double Tol;
+        
     // Input variables
-    Matrix x = args(0).matrix_value();
-    short int dim = args(1).int_value();
-    double Tol = args(2).double_value();
+    if (args.length () < 1) {
+        print_usage ();
+    } else {
+        x = args(0).matrix_value();
+    }
+    if (args.length () < 2) {
+        dim = 1;
+    } else {
+        dim = args(1).int_value();
+    }
     
     // Check that there are no inf or nan values in the data
     if (x.any_element_is_inf_or_nan ()) {
@@ -130,19 +138,27 @@ DEFUN_DLD (smoothmedian, args, ,
     const short int n = sz(1);
     
     // Calculate basic statistics for each column of the data
-    RowVector xmax = x.max ();
-    RowVector xmin = x.min ();
-    RowVector M = (xmax + xmin) / 2; // Mid-range
+    Matrix xmax = x.max ();
+    Matrix xmin = x.min ();
+    Matrix range = (xmax - xmin); // Range
+    Matrix M = (xmax + xmin) / 2; // Mid-range
 
     // Create pointers so that we can more rapidly access elements of the matrices
     double *ptrX = x.fortran_vec ();
     double *ptrM = M.fortran_vec ();
     double *ptrXMIN = xmin.fortran_vec ();
     double *ptrXMAX = xmax.fortran_vec ();
+    double *ptrRANGE = range.fortran_vec ();
     
     // Loop through each column of the data 
     int MaxIter = 500;
     for (int k = 0; k < n ; k++) {
+        
+        if (args.length () < 3) {
+            Tol = *(ptrRANGE + k) * 0.0001; 
+        } else {
+            Tol = args(2).double_value();
+        }
         
         // Using the midrange as the starting value, find the smoothed median
         // Set initial bracket bounds
@@ -203,7 +219,7 @@ DEFUN_DLD (smoothmedian, args, ,
     
     // If applicable, switch dimension
     if (dim > 1) {
-      M = M.transpose ();
+      M = M.transpose ();  // need to fix this
     }
 
     return octave_value (M);
