@@ -17,8 +17,8 @@
 //
 // Author: Andrew Charles Penn (2022)
 
-//#include <cstdlib>
-//#include <stdio.h>
+#include <cstdlib>
+#include <stdio.h>
 #include <octave/oct.h>
 #include <random>
 
