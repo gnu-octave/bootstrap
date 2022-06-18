@@ -17,8 +17,6 @@
 //
 // Author: Andrew Charles Penn (2022)
 
-#include <cstdlib>
-#include <stdio.h>
 #include <octave/oct.h>
 #include <random>
 
@@ -35,8 +33,9 @@ DEFUN_DLD (boot, args, ,
            "Author: Andrew Charles Penn (2022)")
  {
 
-    if (args.length () != 3)
+    if (args.length () != 3) {
         print_usage ();
+    }
     
     // Declare variables
     const short int n = args(0).int_value ();
@@ -54,10 +53,14 @@ DEFUN_DLD (boot, args, ,
     bool LOO = false;                // Leave-one-out (LOO) flag for the current bootstrap iteration (remains false if u is false)
     int r = -1;                      // Sample index for LOO (remains -1 and is ignored if u is false)
     int m = 0;                       // Counter for LOO sample index r (remains 0 if u is false) 
+
+    // Create pointer so that we can more rapidly access elements of bootsam
+    octave_int<short> *ptr = bootsam.fortran_vec ();
     
     // Initialize random number generator
-    //std::random_device seed;
-    std::mt19937 rng(rand());
+    std::random_device rd;
+    std::seed_seq seed{rd(), rd(), rd(), rd()};
+    std::mt19937 rng(seed);
     std::uniform_real_distribution<float> dist(0,1);
     
     // Perform balanced sampling
@@ -67,7 +70,7 @@ DEFUN_DLD (boot, args, ,
         }
         for (int i = 0; i < n ; i++) {
             if (u) {
-                if (c[r] != N) {   // Only LOO if sample index r doesn't account for all remaining sampling counts
+                if (c[r] < N) {   // Only LOO if sample index r doesn't account for all remaining sampling counts
                     m = c[r];
                     c[r] = 0;
                     LOO = true;
@@ -77,7 +80,7 @@ DEFUN_DLD (boot, args, ,
             d = c[0];
             for (int j = 0; j < n ; j++) { 
                 if (k < d) {
-                    bootsam(i, b) = j + 1;
+                    *(ptr + b * n + i) = j + 1;
                     c[j] -= 1;
                     N -= 1;
                     break;
