@@ -10,6 +10,8 @@
 // nboot (integer, int32) is the number of bootstrap resamples
 // u (boolean) for unbiased: false (for bootstrap) or true (for bootknife)
 //
+// u is an optional input argument. The default is false.
+//
 // OUTPUT VARIABLE
 // bootsam (short integer, int16) is an n x nboot matrix of bootstrap resamples
 //
@@ -21,26 +23,42 @@
 #include <random>
 
 DEFUN_DLD (boot, args, , 
-           "Function file (boot.oct) for generating balanced bootstrap sample indices \n\n"\
-           "bootsam = boot (n, nboot, u) \n\n"\
-           "INPUT VARIABLES \n"\
-           "n (short integer, int16) is the number of rows (of the data vector) \n"\
-           "nboot (integer, int32) is the number of bootstrap resamples \n"\
-           "u (boolean) for unbiased: false (for bootstrap) or true (for bootknife) \n\n"\
-           "OUTPUT VARIABLE \n"\
-           "bootsam (short integer, int16) is an n x nboot matrix of bootstrap resamples \n\n"\
-           "Uniform random numbers are generated using the Mersenne Twister 19937 generator \n\n"\
-           "Author: Andrew Charles Penn (2022)")
+           " Function file (boot.oct) for generating balanced bootstrap sample indices \n"\
+           " \n"\
+           " bootsam = boot (n, nboot, u) \n"\
+           " \n"\
+           " INPUT VARIABLES \n"\
+           " n (short integer, int16) is the number of rows (of the data vector) \n"\
+           " nboot (integer, int32) is the number of bootstrap resamples \n"\
+           " u (boolean) for unbiased: false (for bootstrap) or true (for bootknife) \n"\
+           " \n"\
+           " u is an optional input argument. The default is false. \n"\
+           " \n"\
+           " OUTPUT VARIABLE \n"\
+           " bootsam (short integer, int16) is an n x nboot matrix of bootstrap resamples \n"\
+           " \n"\
+           " Uniform random numbers are generated using the Mersenne Twister 19937 generator \n"\
+           " \n"\
+           " Author: Andrew Charles Penn (2022)")
  {
 
-    if (args.length () != 3) {
+    // Input variables
+    if (args.length () < 2) {
         print_usage ();
+    }
+    const short int n = args(0).int_value ();
+    const int nboot = args(1).int_value ();
+    bool u;
+    if (args.length () < 3) {
+        u = false;
+    } else {
+        u = args(2).bool_value ();
     }
     
     // Declare variables
-    const short int n = args(0).int_value ();
-    const int nboot = args(1).int_value ();
-    bool u = args(2).bool_value ();
+    //const short int n = args(0).int_value ();
+    //const int nboot = args(1).int_value ();
+    //bool u = args(2).bool_value ();
     dim_vector dv (n, nboot); 
     int16NDArray bootsam (dv);       // Array of bootstrap sample indices
     int d;                           // Counter for cumulative sum calculations
@@ -76,10 +94,10 @@ DEFUN_DLD (boot, args, ,
                     LOO = true;
                 }
             }
-            k = dist(rng) * (N - m); 
+            k = dist(rng) * (N - m - 1); 
             d = c[0];
             for (int j = 0; j < n ; j++) { 
-                if (k <= d) {
+                if (k < d) {
                     *(ptr + b * n + i) = j + 1;
                     c[j] -= 1;
                     N -= 1;
