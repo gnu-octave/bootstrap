@@ -3,6 +3,8 @@
 //
 // boot.oct is a function file for generating balanced bootstrap sample indices
 //
+// USAGE
+// bootsam = boot (n, nboot)
 // bootsam = boot (n, nboot, u)
 //
 // INPUT VARIABLES
@@ -25,6 +27,8 @@
 DEFUN_DLD (boot, args, , 
            " Function file (boot.oct) for generating balanced bootstrap sample indices \n"\
            " \n"\
+           " USAGE \n"\
+           " bootsam = boot (n, nboot) \n"\
            " bootsam = boot (n, nboot, u) \n"\
            " \n"\
            " INPUT VARIABLES \n"\
