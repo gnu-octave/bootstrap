@@ -59,7 +59,7 @@ DEFUN_DLD (boot, args, ,
     
     // Initialize random number generator
     std::random_device rd;
-    std::seed_seq seed{rd(), rd(), rd(), rd()};
+    std::seed_seq seed {rd(), rd(), rd(), rd()};
     std::mt19937 rng(seed);
     std::uniform_real_distribution<float> dist(0,1);
     
@@ -79,7 +79,7 @@ DEFUN_DLD (boot, args, ,
             k = dist(rng) * (N - m); 
             d = c[0];
             for (int j = 0; j < n ; j++) { 
-                if (k < d) {
+                if (k <= d) {
                     *(ptr + b * n + i) = j + 1;
                     c[j] -= 1;
                     N -= 1;
