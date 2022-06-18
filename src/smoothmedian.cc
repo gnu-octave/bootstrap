@@ -60,7 +60,7 @@
 
 #include <octave/oct.h>
 
-DEFUN_DLD (smoothmedian, args, , 
+DEFUN_DLD (smoothmedian, args, nargout, 
            " smoothmedian.oct is a function file for calculating a smoothed \n"\
            " version of the median [1] \n"\
            " \n"\
@@ -169,8 +169,8 @@ DEFUN_DLD (smoothmedian, args, ,
 
     // Declare variables that we update in the loop with math assignment operators
     double T;
-    double U;
     double v;
+    double U;
     
     // Loop through each column of the data 
     int MaxIter = 500;
@@ -193,8 +193,8 @@ DEFUN_DLD (smoothmedian, args, ,
         // Start iterations
         for (int Iter = 0; Iter < MaxIter ; Iter++) {
             T = 0;
-            U = 0;
             v = 0;
+            U = 0;
             for (int j = 0; j < m ; j++) {
                 for (int i = 0; i < j ; i++) {
                     double xi = *(ptrX + k * m + i);
@@ -204,8 +204,10 @@ DEFUN_DLD (smoothmedian, args, ,
                     double R = sqrt(D);
                     double t = (2 * p - xi - xj) / R;
                     T += t;
-                    // Compute v (required for standard error calculation later on)
-                    v += pow (t / (m - 1), 2);
+                    if (nargout > 1) {
+                        // Compute v (required for standard error calculation later on)
+                        v += pow (t / (m - 1), 2);
+                    }
                     // Calculate second derivative (U)
                     U += pow (xi - xj, 2) * R / pow (D, 2);
                 }
@@ -241,17 +243,21 @@ DEFUN_DLD (smoothmedian, args, ,
         // Assign parameter value that optimizes the objective function for the smoothed median
         M(k) = p;
         
-        // Calculate standard error of the smoothed median
-        double v0 = U / l;
-        v /= m;
-        SE(k) = sqrt (pow (v0,-2) * v);  
+        if (nargout > 1) {
+            // Calculate standard error of the smoothed median
+            double v0 = U / l;
+            v /= m;
+            SE(k) = sqrt (pow (v0,-2) * v);  
+        }
     
     }
     
     // If applicable, switch dimension
     if (dim > 1) {
         M = M.transpose ();
-        SE = SE.transpose (); 
+        if (nargout > 1) {
+            SE = SE.transpose (); 
+        }
     }
 
     // Prepare output aruments to return to Octave
