@@ -34,6 +34,11 @@ if isoctave
   catch
     warning ('Could not compile boot.oct. Falling back to the (slower) boot.m file.')
   end
+  try
+    mkoctfile --output ./inst/smoothmedian.oct ./src/smoothmedian.cc
+  catch
+    warning ('Could not compile smoothmedian.oct. Falling back to the (slower) smoothmedian.m file.')
+  end
 else
   % Assumming install for Matlab instead
   if exist('savepath')
