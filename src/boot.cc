@@ -56,8 +56,8 @@ DEFUN_DLD (boot, args, ,
     int m = 0;                       // Counter for LOO sample index r (remains 0 if u is false) 
     
     // Initialize random number generator
-    std::random_device seed;
-    std::mt19937 rng(seed());
+    //std::random_device seed;
+    std::mt19937 rng(rand());
     std::uniform_real_distribution<float> dist(0,1);
     
     // Perform balanced sampling
