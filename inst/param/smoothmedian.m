@@ -272,11 +272,11 @@ function [M, SE] = smoothmedian(x,dim,Tol)
   % If applicable, switch dimension
   if nargout > 1
     if dim > 1
-      SE = (sqrt(((v0./midrange).^(-2)) .* v / m)).';
+      SE = (sqrt(((v0./midrange).^(-2)) .* v / (m-1))).';
       % Assign 0 to stderr for x columns with 0 variance 
       SE(midrange.'==0) = 0;
     else
-      SE = sqrt(((v0./midrange).^(-2)) .* v / m);
+      SE = sqrt(((v0./midrange).^(-2)) .* v / (m-1));
       % Assign 0 to stderr for x columns with 0 variance 
       SE(midrange==0) = 0;
     end
