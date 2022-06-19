@@ -1,11 +1,8 @@
 %  Function file: smoothmedian
 %
-%  Function file: smoothmedian
-%
-%  [M]  = smoothmedian (x)
-%  [M]  = smoothmedian (x, dim)
-%  [M]  = smoothmedian (x, dim, Tol)
-%  [M, SE]  = smoothmedian (...)
+%  M  = smoothmedian (x)
+%  M  = smoothmedian (x, dim)
+%  M  = smoothmedian (x, dim, Tol)
 %
 %  If x is a vector, find the univariate smoothed median (M) of x.
 %  If x is a matrix, compute the univariate smoothed median value
@@ -32,14 +29,13 @@
 %  where i and j refers to the indices of the Cartesian product 
 %  of each column of x with itself. No smoothing is carried out
 %  when data columns contain one or more NaN or Inf elements.
-%  Where this is the case, the ordinary median is returned.
 %
 %  With the ordinary median as the initial value of M, this function
 %  minimizes the above objective function by finding the root of the 
 %  first derivative using a fast, but reliable, Newton-Bisection  
 %  hybrid algorithm. The tolerance (Tol) is the maximum value of the  
-%  first derivative that is acceptable to break from optimization. 
-%  The default value of Tol is 1e-03.
+%  step size that is acceptable to break from optimization. The 
+%  default value of Tol = range * 1e-04.
 %
 %  The smoothing works by slightly reducing the breakdown point
 %  of the median. Bootstrap confidence intervals using the smoothed
@@ -55,12 +51,6 @@
 %  by vectorization, this algorithm has space complexity O(n^2) along 
 %  dimension dim, thus it is best-suited for small-to-medium sample
 %  sizes, which would benefit most from smoothing.
-%  
-%  Standard errors of the smoothed median can also be estimated  
-%  by requesting the second output argument. Note that the standard 
-%  errors are quick and dirty estimates calculated from the first 
-%  and second derivatives of the objective function. More reliable  
-%  estimates of the standard error can be obtained by resampling.
 %
 %  Bibliography:
 %  [1] Brown, Hall and Young (2001) The smoothed median and the
@@ -70,7 +60,7 @@
 %  recent versions of Octave (v3.2.4 on Debian 6 Linux 2.6.32) and
 %  Matlab (v6.5.0 and v7.4.0 on Windows XP).
 %
-%  smoothmedian v1.7.4 (04/06/2022)
+%  smoothmedian v1.8 (19/06/2022)
 %  Author: Andrew Charles Penn
 %  https://www.researchgate.net/profile/Andrew_Penn/
 %
@@ -96,7 +86,7 @@ function [M, SE] = smoothmedian(x,dim,Tol)
     error('Invalid number of input arguments')
   end
 
-  if (nargout > 2)
+  if (nargout > 1)
     error('Invalid number of output arguments')
   end
 
@@ -123,15 +113,6 @@ function [M, SE] = smoothmedian(x,dim,Tol)
     x = x.';
   end
 
-  % Check/set tolerance
-  if (nargin < 3) || isempty(Tol)
-    Tol = 1e-03;
-  else
-    if (Tol < 1e-03) && (nargout > 1)
-      fprintf('Warning: Setting very low tolerance slows down computations.\n');
-    end
-  end
-
   % Check input data type
   if ~isa(x,'double')
     error('the x variable must be double precision')
@@ -148,16 +129,18 @@ function [M, SE] = smoothmedian(x,dim,Tol)
   
   % Variable transformation to normalize stopping criteria
   % Centre the data on the median and divide by the midrange
-  centre = median(x,1);
-  nidx = find(no);
-  for i = 1:numel(nidx)
-    centre(i) = median(x(~isnan(x(:,i)),i),1);
-  end
   xmax = max(x,[],1);
   xmin = min(x,[],1);
-  midrange = (xmax-xmin)/2;
-  x = (x - centre(ones(1,m),:)) ./ (midrange(ones(1,m),:));
-  no(midrange==0) = true;
+  range = (xmax - xmin) / 2;
+  M = (xmax + xmin) / 2;
+  no(range==0) = true;
+  
+  % Check/set tolerance
+  if (nargin < 3) || isempty(Tol)
+    Tol = range * 1e-04;
+  else 
+    Tol = Tol * ones(1,n);
+  end
 
   % Obtain m(m-1)/2 pairs from the Cartesian product of each column of
   % x with itself by enforcing the restriction i < j on xi and xj
@@ -167,28 +150,14 @@ function [M, SE] = smoothmedian(x,dim,Tol)
   j = uint32(ones(m,1)*(1:m));
   xj = x(j(q),:);
 
-  % Offset xi and xj by +/- h, where h is small enough to avoid
-  % encountering stationary points when calculating function
-  % derivatives for the Newton steps.
-  h = 4.2819e-06;      % sqrt(0.5*eps^(2/3))
-  xi = xi+h;
-  xj = xj-h;
-
-  %% Nonlinear root finding by Newton-Bisection hybrid algorithm
+  % Nonlinear root finding by Newton-Bisection hybrid algorithm
   % Set starting value as the median
-  c = zeros(1,n);
-  p = c;
+  p = M;
   % Set initial bracket bounds
-  a = (xmin - centre) ./ midrange; 
-  b = (xmax - centre) ./ midrange;
+  a = xmin; 
+  b = xmax;
   xmin = []; %#ok<NASGU> Reduce memory usage. Faster than using clear.
   xmax = []; %#ok<NASGU> Reduce memory usage. Faster than using clear.
-  no(a==b) = true;
-  if nargout > 1
-    % Initialize and define settings
-    v0 = zeros(1,n);
-    v  = zeros(1,n);
-  end
   idx = 1:n;
   MaxIter = 500;
   % Calculate commonly used operations and assign them to new variables
@@ -197,7 +166,7 @@ function [M, SE] = smoothmedian(x,dim,Tol)
   % Start iterations
   for Iter = 1:MaxIter
     % Compute derivatives
-    temp = ones(l,1)*c;
+    temp = ones(l,1)*p;
     D = (xi-temp).^2+(xj-temp).^2;
     R = sqrt(D);
     T = sum((2*temp-y)./R,1);
@@ -210,48 +179,44 @@ function [M, SE] = smoothmedian(x,dim,Tol)
     % U = sum ( (xi-xj).^2 .* ((xi-temp).^2 + (xj-temp).^2).^(-3/2) ) 
     U = sum(z.*R./D.^2,1);
     D = []; %#ok<NASGU> Reduce memory usage. Faster than using clear.
-    % Update bracket bounds
-    a(T<-Tol) = c(T<-Tol);
-    b(T>+Tol) = c(T>+Tol);
+    R = []; %#ok<NASGU> Reduce memory usage. Faster than using clear.
+    % Compute Newton step (fast quadratic convergence but unreliable)
+    step = T./U;
     % Evaluate convergence
-    cvg = abs(T)<Tol;
+    cvg = abs(step)<Tol;
     if any(cvg)
       % Export converged parameters
-      p(idx(cvg)) = c(cvg);
-      if nargout > 1
-        % Calculate variables required to compute standard error(s) 
-        v0 (idx(cvg)) = 0.5/l * U(cvg);
-        v  (idx(cvg)) = 0.5/l * sum(((y(:,cvg)-2*ones(l,1)*c(cvg))./R(:,cvg)).^2,1); 
-      end
+      M(idx(cvg)) = p(cvg);
       % Avoid excess computations in following iterations
       idx(cvg) = [];
       xi(:,cvg) = [];
       xj(:,cvg) = [];
       z(:,cvg) = [];
       y(:,cvg) = [];
-      R(:,cvg) = []; 
       a(cvg) = [];
       b(cvg) = [];
-      c(cvg) = [];
+      p(cvg) = [];
+      step(cvg) = [];
       T(cvg) = [];
-      U(cvg) = [];
+      Tol(cvg) = [];
     end
     if all(cvg)
       break
     end
-    % Compute Newton step (fast quadratic convergence but unreliable)
-    W = T./U;
-    d = c-W;
+    % Update bracket bounds
+    a(T<-Tol) = p(T<-Tol);
+    b(T>+Tol) = p(T>+Tol);
+    % Preview new value of the smoothed median
+    d = p-step;
+    % Prefer Newton step if it is within brackets
+    nwt = (d>a) & (d<b);
+    p(nwt) = d(nwt);
+    % Compute Bisection step (slow linear convergence but very safe)
+    p(~nwt) = 0.5 * (a(~nwt) + b(~nwt));
+    d = [];  %#ok<NASGU> Reduce memory usage. Faster than using clear.
+    nwt = []; %#ok<NASGU> Reduce memory usage. Faster than using clear.
     T = []; %#ok<NASGU> Reduce memory usage. Faster than using clear.
     U = []; %#ok<NASGU> Reduce memory usage. Faster than using clear.
-    W = []; %#ok<NASGU> Reduce memory usage. Faster than using clear.
-    % Compute Bisection step (slow linear convergence but very safe)
-    c = 0.5*(a+b);
-    % Prefer Newton step if it is within brackets
-    nwt = d>a & d<b;
-    c(nwt) = d(nwt);
-    d = [];  %#ok<NASGU> Reduce memory usage. Faster than using clear.
-    nwt =[]; %#ok<NASGU> Reduce memory usage. Faster than using clear.
   end
   if Iter==MaxIter
     fprintf('Warning: Root finding failed to reach the specified tolerance.\n');
@@ -263,21 +228,6 @@ function [M, SE] = smoothmedian(x,dim,Tol)
   % Backtransform the smoothed median value(s)
   % If applicable, switch dimension
   if dim > 1
-    M  = (p .* midrange + centre).';
-  else
-    M  = p .* midrange + centre;
+    M  = M.';
   end
 
-  % If requested, calculate standard error(s)  
-  % If applicable, switch dimension
-  if nargout > 1
-    if dim > 1
-      SE = (sqrt(((v0./midrange).^(-2)) .* v / (m-1))).';
-      % Assign 0 to stderr for x columns with 0 variance 
-      SE(midrange.'==0) = 0;
-    else
-      SE = sqrt(((v0./midrange).^(-2)) .* v / (m-1));
-      % Assign 0 to stderr for x columns with 0 variance 
-      SE(midrange==0) = 0;
-    end
-  end
