@@ -43,9 +43,6 @@ function maxT = maxstat (Y, g, nboot, bootfun, ref, clusters, strata)
         theta(j) = mean(Y(g==gk(j),:));
         % Quick calculation for the standard error of the mean
         SE(j) = std(Y(g==gk(j),:),0) / sqrt(nk(j));
-      elseif strcmp (bootfun, 'smoothmedian')
-        % Quick calculation of the smoothed median and it's standard error
-        [theta(j), SE(j)] = feval(bootfun, Y(g==gk(j),:));
       else
         theta(j) = feval(bootfun,Y(g==gk(j),:));
         % If requested, compute unbiased estimates of the standard error using jackknife resampling
