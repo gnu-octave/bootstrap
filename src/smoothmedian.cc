@@ -5,10 +5,9 @@
 // smoothmedian.oct is a function file for calculating a smooth 
 // version of the median [1]
 //
-// M   = smoothmedian (x)
-// ... = smoothmedian (x, dim)
-// ... = smoothmedian (x, dim, Tol)      
-// [M, SE] = smoothmedian (...)
+// M = smoothmedian (x)
+// M = smoothmedian (x, dim)
+// M = smoothmedian (x, dim, Tol)      
 //
 // INPUT VARIABLES
 // x (double) is the data vector or matrix
@@ -17,7 +16,6 @@
 //
 // OUTPUT VARIABLE
 // M (double) is vector of the smoothed median
-// SE (double) is a vector of standard errors of the smoothed median
 //
 // If x is a vector, find the univariate smoothed median (M) of x.
 // If x is a matrix, compute the univariate smoothed median value
@@ -49,8 +47,6 @@
 // the root of the first derivative using a fast, but reliable, 
 // Newton-Bisection hybrid algorithm. The tolerance (Tol) is the 
 // maximum step size that is acceptable to break from optimization.
-// Standard errors of the smoothed median can be estimated and
-// returned by requesting the second output argument (SE).
 //
 // Bibliography:
 // [1] Brown, Hall and Young (2001) The smoothed median and the
@@ -60,7 +56,7 @@
 
 #include <octave/oct.h>
 
-DEFUN_DLD (smoothmedian, args, nargout, 
+DEFUN_DLD (smoothmedian, args, , 
            " smoothmedian.oct is a function file for calculating a smoothed \n"\
            " version of the median [1] \n"\
            " \n"\
@@ -76,7 +72,6 @@ DEFUN_DLD (smoothmedian, args, nargout,
            " \n"\
            " OUTPUT VARIABLE \n"\
            " M (double) is vector of the smoothed median \n"\
-           " SE (double) is a vector of standard errors of the smoothed median \n"\
            " \n"\
            " If x is a vector, find the univariate smoothed median (M) of x. \n"\
            " If x is a matrix, compute the univariate smoothed median value \n"\
@@ -106,8 +101,6 @@ DEFUN_DLD (smoothmedian, args, nargout,
            " the root of the first derivative using a fast, but reliable, \n"\
            " Newton-Bisection hybrid algorithm. The tolerance (Tol) is the \n"\
            " maximum step size that is acceptable to break from optimization. \n"\
-           " Standard errors of the smoothed median can be estimated and \n"\
-           " returned by requesting the second output argument (SE). \n"\
            " \n"\
            " Bibliography: \n"\
            " [1] Brown, Hall and Young (2001) The smoothed median and the \n"\
@@ -155,10 +148,6 @@ DEFUN_DLD (smoothmedian, args, nargout,
     Matrix xmin = x.min ();
     Matrix range = (xmax - xmin); // Range
     Matrix M = (xmax + xmin) / 2; // Mid-range
-    
-    // Create output variable for the standard errors
-    dim_vector dv (1, n);
-    Matrix SE (dv);
 
     // Create pointers so that we can more rapidly access elements of the matrices
     double *ptrX = x.fortran_vec ();
@@ -175,23 +164,23 @@ DEFUN_DLD (smoothmedian, args, nargout,
     // Loop through each column of the data 
     int MaxIter = 500;
     for (int k = 0; k < n ; k++) {
-        
         if (args.length () < 3) {
-            Tol = *(ptrRANGE + k) * 0.0001; 
+            Tol = *(ptrRANGE + k) * 1e-4; 
         } else {
             Tol = args(2).double_value();
         }
-        
         // Using the midrange as the starting value, find the smoothed median
         // Set initial bracket bounds
         double a = *(ptrXMIN + k); 
         double b = *(ptrXMAX + k);
-        
         // Set initial value of free parameter to the midrange
-        double p = *(ptrM + k);
-               
+        double p = *(ptrM + k);    
         // Start iterations
         for (int Iter = 0; Iter < MaxIter ; Iter++) {
+            // Break from iterations if the range of the x values is zero
+            if (*(ptrRANGE + k) == 0) {
+                break;
+            }   
             T = 0;
             v = 0;
             U = 0;
@@ -202,12 +191,7 @@ DEFUN_DLD (smoothmedian, args, nargout,
                     // Calculate first derivative (T)
                     double D = pow (xi - p, 2) + pow (xj - p, 2);
                     double R = sqrt(D);
-                    double t = (2 * p - xi - xj) / R;
-                    T += t;
-                    if (nargout > 1) {
-                        // Compute v (required for standard error calculation later on)
-                        v += pow (t / (m - 1), 2);
-                    }
+                    T += (2 * p - xi - xj) / R;
                     // Calculate second derivative (U)
                     U += pow (xi - xj, 2) * R / pow (D, 2);
                 }
@@ -216,7 +200,7 @@ DEFUN_DLD (smoothmedian, args, nargout,
             double step = T / U;
             // Evaluate convergence
             if (abs (step) < Tol) {
-                break; // Break from optimization when converged to Tolerance 
+                break; // Break from optimization when converged to tolerance 
             } else {
                 // Update bracket bounds for Bisection
                 if (T < -Tol) {
@@ -239,31 +223,12 @@ DEFUN_DLD (smoothmedian, args, nargout,
                 octave_stdout << "Warning: Root finding failed to reach the specified tolerance.\n";
             }
         }
-        
         // Assign parameter value that optimizes the objective function for the smoothed median
         M(k) = p;
-        
-        if (nargout > 1) {
-            // Calculate standard error of the smoothed median
-            double v0 = U / l;
-            v /= m;
-            SE(k) = sqrt (pow (v0,-2) * v);  
-        }
-    
     }
-    
     // If applicable, switch dimension
     if (dim > 1) {
         M = M.transpose ();
-        if (nargout > 1) {
-            SE = SE.transpose (); 
-        }
     }
-
-    // Prepare output aruments to return to Octave
-    octave_value_list retval;
-    retval(0) = octave_value(M);
-    retval(1) = octave_value(SE);
-    
-    return retval;
+    return octave_value(M);
 } 
