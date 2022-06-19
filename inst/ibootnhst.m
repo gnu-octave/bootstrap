@@ -69,9 +69,9 @@
 %    Standard errors are estimated by bootknife resampling by default [2], 
 %  where nboot(2) corresponds to the number of bootknife resamples. If 
 %  nboot(2) is 0 and standard errors are calculated without resampling 
-%  (if bootfun is 'mean' or 'robust'), or using leave-one-out jackknife 
-%  (or cluster-jackknife (if using a 'nested' design). Note that if bootfun 
-%  is not the mean, the t-statistics returned by this function will not be 
+%  (if bootfun is 'mean'), or using leave-one-out jackknife (or cluster-
+%  jackknife (if using a 'nested' design). Note that if bootfun is not 
+%  the mean, the t-statistics returned by this function will not be 
 %  comparable with tabulated values.  
 %
 %  ibootnhst(...,'nboot',nboot) is a vector of upto two positive integers
@@ -970,9 +970,6 @@ function [p, c, stats] = ibootnhst (data, group, varargin)
         theta(j) = mean(data(g==gk(j),:));
         % Quick calculation for the standard error of the mean
         SE(j) = std(data(g==gk(j),:),0) / sqrt(nk(j));
-      elseif strcmp (bootfun, 'smoothmedian')
-        % Quick calculation of the smoothed median and it's standard error
-        [theta(j), SE(j)] = feval(bootfun, data(g==gk(j),:));
       else
         theta(j) = feval(bootfun,data(g==gk(j),:));
         % If requested, compute unbiased estimates of the standard error using jackknife resampling
