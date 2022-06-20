@@ -125,8 +125,7 @@ function M = smoothmedian(x,dim,Tol)
   l = m*(m-1)/2;
 
   % Find column indices where smoothing is not possible
-  no = any(isnan(x)) | any(isinf(x));
-  if any(no)
+  if any(isnan(x)) | any(isinf(x))
      error("x cannot contain Inf or NaN values")
   end
   
@@ -135,7 +134,6 @@ function M = smoothmedian(x,dim,Tol)
   xmin = min(x,[],1);
   range = (xmax - xmin) / 2;
   M = median(x); 
-  no(range==0) = true;
   
   % Check/set tolerance
   if (nargin < 3) || isempty(Tol)
@@ -223,18 +221,18 @@ function M = smoothmedian(x,dim,Tol)
     b(T>+Tol) = p(T>+Tol);
     
     % Preview new value of the smoothed median
-    d = p-step;
+    nwt = p-step;
     
     % Prefer Newton step if it is within brackets
-    nwt = (d>a) & (d<b);
-    p(nwt) = d(nwt);
+    I = (nwt>a) & (nwt<b);
+    p(I) = nwt(I);
     
     % Otherwise, compute Bisection step (slow linear convergence but very safe)
-    p(~nwt) = 0.5 * (a(~nwt) + b(~nwt));
+    p(~I) = 0.5 * (a(~I) + b(~I));
     
     % Tidy up
-    d = [];  %#ok<NASGU> Reduce memory usage. Faster than using clear.
-    nwt = []; %#ok<NASGU> Reduce memory usage. Faster than using clear.
+    nwt = [];  %#ok<NASGU> Reduce memory usage. Faster than using clear.
+    I = []; %#ok<NASGU> Reduce memory usage. Faster than using clear.
     T = []; %#ok<NASGU> Reduce memory usage. Faster than using clear.
     U = []; %#ok<NASGU> Reduce memory usage. Faster than using clear.
     
@@ -251,4 +249,3 @@ function M = smoothmedian(x,dim,Tol)
   if dim > 1
     M  = M.';
   end
-
