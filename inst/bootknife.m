@@ -261,7 +261,7 @@ function [stats, T1, idx] = bootknife (x, nboot, bootfun, alpha, strata, idx)
 
   % Perform balanced bootknife resampling
   if nargin < 6
-    idx = boot (n, B, 1);
+    idx = boot (n, B, true);
   end
   if vectorized
     % Vectorized implementation of data sampling and evaluation of bootfun on the data
