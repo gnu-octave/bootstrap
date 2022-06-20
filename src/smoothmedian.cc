@@ -192,9 +192,9 @@ DEFUN_DLD (smoothmedian, args, ,
             v = 0;
             U = 0;
             for (int j = 0; j < m ; j++) {
+                double xj = *(ptrX + k * m + j);
                 for (int i = 0; i < j ; i++) {
                     double xi = *(ptrX + k * m + i);
-                    double xj = *(ptrX + k * m + j);
                     // Calculate first derivative (T)
                     double D = pow (xi - p, 2) + pow (xj - p, 2);
                     double R = sqrt(D);
