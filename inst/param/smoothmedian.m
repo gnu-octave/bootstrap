@@ -130,10 +130,18 @@ function M = smoothmedian(x,dim,Tol)
   end
   
   % Calculate basic statistics for each column of the data
-  xmax = max(x,[],1);
-  xmin = min(x,[],1);
-  range = (xmax - xmin) / 2;
-  M = median(x); 
+  xsort = sort(x, 1);
+  mid = 0.5 * m;
+  M = xsort(fix (mid + 1), 1 : n); % Median when m is odd
+  if ( mid == fix (mid) ) 
+      % Median when m is even
+      M = M + xsort(fix (mid), 1 : n);
+      M = M * 0.5;
+  end
+  xmin = xsort(1,:);   % Minimum
+  xmax = xsort(end,:);   % Maximum
+  range = (xmax - xmin) / 2;  % Range
+  xsort = []; %#ok<NASGU> Reduce memory usage. Faster than using clear.
   
   % Check/set tolerance
   if (nargin < 3) || isempty(Tol)
