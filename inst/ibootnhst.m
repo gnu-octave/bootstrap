@@ -166,8 +166,7 @@
 %                   of workers.
 % 
 %  ibootnhst(...,'alpha',alpha) specifies the two-tailed significance level
-%  for confidence interval coverage of 0 (in c) or interval overlap (in 
-%  stats.groups).
+%  for confidence interval coverage of 0 (in c).
 %
 %  ibootnhst(...,'dim',dim) specifies which dimension to average over the
 %  DATA first when DATA is a matrix. dim can take values of 1 or 2. Note
@@ -211,18 +210,14 @@
 %              gnames corresponds to the numbers used to identify GROUPs
 %              in columns 1 and 2 of the output argument c
 %   ref      - reference group
-%   groups   - group number and bootfun for each group with sample size, 
-%              standard error, and lower and upper bootstrap-t confidence 
-%              intervals, which have coverage such that they overlap with 
-%              eachother if the ref input argument is 'pairwise', or with 
-%              the reference group, at a FWER-controlled p-value of greater 
-%              than alpha.
+%   groups   - group number and bootfun for each group with sample size 
+%              and standard error.
 %   Var      - weighted mean (pooled) sampling variance
 %   maxT     - omnibus test statistic (maxT) 
 %   df       - degrees of freedom
 %   nboot    - number of bootstrap resamples
 %   alpha    - two-tailed significance level for the confidence interval 
-%              coverage of 0 (in c) or interval overlap (in stats.groups)
+%              coverage of 0 (in c).
 %   blocks   - vector of numeric identifiers indicating block membership.
 %   clusters - vector of numeric identifiers indicating cluster membership
 %   bootstat - test statistic computed for each bootstrap resample 
@@ -1054,8 +1049,6 @@ function [p, c, stats] = ibootnhst (data, group, varargin)
   p = min(c(:,7));
 
   % Prepare stats output structure
-  % Include bootstrap-t confidence intervals for bootfun evaluated for each group
-  % Within a small margin of error, these confidence intervals overlap at a FWER controlled p-value > 0.05
   stats = struct;
   stats.gnames = gnames;
   stats.ref = ref;
@@ -1065,8 +1058,8 @@ function [p, c, stats] = ibootnhst (data, group, varargin)
   stats.groups(:,2) = theta;
   stats.groups(:,3) = nk;
   stats.groups(:,4) = SE;
-  stats.groups(:,5) = theta - sqrt((0.5*(w+1)).*Var/2) * interp1(cdf,QS,1-alpha,'linear');
-  stats.groups(:,6) = theta + sqrt((0.5*(w+1)).*Var/2) * interp1(cdf,QS,1-alpha,'linear');
+  %stats.groups(:,5) = theta - sqrt((0.5*(w+1)).*Var/2) * interp1(cdf,QS,1-alpha,'linear');
+  %stats.groups(:,6) = theta + sqrt((0.5*(w+1)).*Var/2) * interp1(cdf,QS,1-alpha,'linear');
   stats.Var = Var;
   stats.maxT = maxT;
   stats.df = df;
