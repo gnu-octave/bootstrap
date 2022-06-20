@@ -141,13 +141,20 @@ DEFUN_DLD (smoothmedian, args, ,
     const dim_vector sz = x.dims ();
     short int m = sz(0);
     short int n = sz(1);
-    short int l = m*(m-1);
     
     // Calculate basic statistics for each column of the data
     Matrix xmax = x.max ();
     Matrix xmin = x.min ();
     Matrix range = (xmax - xmin); // Range
-    Matrix M = (xmax + xmin) / 2; // Mid-range
+    Matrix sorted = x.sort ();
+    float mid = 0.5 * m;
+    Matrix M;
+    M = sorted.extract (int (mid), 0, int (mid), n-1);   // Median when m is odd
+    if ( mid == int (mid) ) {
+        // Median when m is even
+        M += sorted.extract (int (mid) - 1, 0, int (mid) - 1, n-1);
+        M *= 0.5;
+    }
 
     // Create pointers so that we can more rapidly access elements of the matrices
     double *ptrX = x.fortran_vec ();
@@ -169,7 +176,7 @@ DEFUN_DLD (smoothmedian, args, ,
         } else {
             Tol = args(2).double_value();
         }
-        // Using the midrange as the starting value, find the smoothed median
+        // Using the (ordinary) median as the starting value, find the smoothed median
         // Set initial bracket bounds
         double a = *(ptrXMIN + k); 
         double b = *(ptrXMAX + k);
