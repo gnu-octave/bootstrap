@@ -63,7 +63,6 @@ DEFUN_DLD (smoothmedian, args, ,
            " M   = smoothmedian (x) \n"\
            " ... = smoothmedian (x, dim) \n"\
            " ... = smoothmedian (x, dim, Tol) \n"\
-           " [M, SE] = smoothmedian (...) \n"\
            " \n"\
            " INPUT VARIABLES \n"\
            " x (double) is the data vector or matrix \n"\
