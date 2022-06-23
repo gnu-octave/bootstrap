@@ -156,17 +156,11 @@ DEFUN_DLD (smoothmedian, args, ,
     Matrix range = (xmax - xmin);   // Range
 
     // Create pointers so that we can more rapidly access elements of the matrices
-    //double *ptrX = x.fortran_vec ();
+    double *ptrX = x.fortran_vec ();
     double *ptrM = M.fortran_vec ();
     double *ptrXMIN = xmin.fortran_vec ();
     double *ptrXMAX = xmax.fortran_vec ();
     double *ptrRANGE = range.fortran_vec ();
-    OCTAVE_LOCAL_BUFFER(double,ptrX,m*n);
-    for (int k = 0; k < n ; k++) {
-        for (int j = 0; j < m ; j++) {
-            *(ptrX + k * m + j) = x (j, k);
-        }
-    }
 
     // Declare variables that we update in the loop with math assignment operators
     double T;
