@@ -230,7 +230,7 @@ DEFUN_DLD (smoothmedian, args, ,
             }
         }
         // Assign parameter value that optimizes the objective function for the smoothed median
-        M(k) = p;
+        *(ptrM + k) = p;
     }
     // If applicable, switch dimension
     if (dim > 1) {
