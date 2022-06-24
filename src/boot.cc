@@ -70,9 +70,6 @@ DEFUN_DLD (boot, args, ,
     }
     
     // Declare variables
-    //const short int n = args(0).int_value ();
-    //const int nboot = args(1).int_value ();
-    //bool u = args(2).bool_value ();
     dim_vector dv (n, nboot); 
     int16NDArray bootsam (dv);       // Array of bootstrap sample indices
     int d;                           // Counter for cumulative sum calculations
