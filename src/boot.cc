@@ -14,9 +14,10 @@
 //
 // u is an optional input argument. The default is false.
 //
-// If u is true and nboot is greater than n, then the sample indices omitted 
-// for bootknife resampling are chosen systematically, otherwise sample indices 
-// for omission are selected randomly. 
+// If u is true then the sample index for omission in each bootknife resample 
+// is selected systematically. If the remaining number of bootknife resamples 
+// is not divisible by the sample size (n), then the sample index omitted is  
+// selected randomly. 
 //
 // OUTPUT VARIABLE
 // bootsam (short integer, int16) is an n x nboot matrix of bootstrap resamples
@@ -42,9 +43,10 @@ DEFUN_DLD (boot, args, ,
            " \n"\
            " u is an optional input argument. The default is false. \n"\
            " \n"\
-           " If u is true and nboot is greater than n, then the sample indices omitted \n"\
-           " for bootknife resampling are chosen systematically, otherwise sample indices \n"\
-           " for omission are selected randomly. \n"\
+           " If u is true then the sample index for omission in each bootknife resample \n"\
+           " is selected systematically. If the remaining number of bootknife resamples \n"\
+           " is not divisible by the sample size (n), then the sample index omitted is \n"\
+           " selected randomly. \n"\
            " \n"\
            " OUTPUT VARIABLE \n"\
            " bootsam (short integer, int16) is an n x nboot matrix of bootstrap resamples \n"\
@@ -96,7 +98,7 @@ DEFUN_DLD (boot, args, ,
     // Perform balanced sampling
     for (int b = 0; b < nboot ; b++) { 
         if (u) {    
-            if (n > nboot) {
+            if ((b / n) == (nboot / n)) {
                 r = dist(rng) * n;   // random
             } else {
                 r = b - (b / n) * n; // systematic
