@@ -90,15 +90,15 @@ DEFUN_DLD (boot, args, ,
     std::random_device rd;
     std::seed_seq seed {rd(), rd(), rd(), rd()};
     std::mt19937 rng(seed);
+    std::uniform_int_distribution<int> distr (0, n - 1);
     
     // Perform balanced sampling
     for (int b = 0; b < nboot ; b++) { 
         if (u) {    
             if ((b / n) == (nboot / n)) {
-                std::uniform_int_distribution<float> dist(0, n - 1);
-                r = dist(rng) * n;   // random
+                r = distr (rng);      // random
             } else {
-                r = b - (b / n) * n; // systematic
+                r = b - (b / n) * n;  // systematic
             }
         }
         for (int i = 0; i < n ; i++) {
@@ -109,11 +109,8 @@ DEFUN_DLD (boot, args, ,
                     LOO = true;
                 }
             }
-            std::uniform_int_distribution<float> dist(0, N - m - 1);
-            k = dist(rng); 
-            if (k < 0 || k > (N-m-1)) {
-                octave_stdout << k << " " << (N-m) << "\n";
-            }
+            std::uniform_int_distribution<int> distk (0, N - m - 1);
+            k = distk (rng); 
             d = c[0];
             for (int j = 0; j < n ; j++) { 
                 if (k < d) {
