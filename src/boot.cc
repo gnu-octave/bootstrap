@@ -109,7 +109,7 @@ DEFUN_DLD (boot, args, ,
                     LOO = true;
                 }
             }
-            k = dist(rng) * (N - m - 1); 
+            k = dist(rng) * (N - m); 
             d = c[0];
             for (int j = 0; j < n ; j++) { 
                 if (k < d) {
