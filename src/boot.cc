@@ -96,9 +96,9 @@ DEFUN_DLD (boot, args, ,
     for (int b = 0; b < nboot ; b++) { 
         if (u) {    
             if ((b / n) == (nboot / n)) {
-                r = min (dist(rng) * n, n - 1);   // random
+                r = dist(rng) * n;   // random
             } else {
-                r = b - (b / n) * n;              // systematic
+                r = b - (b / n) * n; // systematic
             }
         }
         for (int i = 0; i < n ; i++) {
@@ -109,7 +109,10 @@ DEFUN_DLD (boot, args, ,
                     LOO = true;
                 }
             }
-            k = min ( dist(rng) * (N - m), N - m - 1); 
+            k = dist(rng) * (N - m); 
+            if (k < 0 || k > (N-m-1)) {
+                octave_stdout << k << " " << (N-m) << "\n";
+            }
             d = c[0];
             for (int j = 0; j < n ; j++) { 
                 if (k < d) {
