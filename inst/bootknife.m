@@ -248,6 +248,7 @@ function [stats, T1, idx] = bootknife (x, nboot, bootfun, alpha, strata, idx)
     for k = 1:K
       g(:, k) = (strata == gid(k));
     end
+    nk = sum(g).';         % strata sample sizes
   end
   
   % If data is univariate, check whether bootfun is vectorized
@@ -261,7 +262,16 @@ function [stats, T1, idx] = bootknife (x, nboot, bootfun, alpha, strata, idx)
 
   % Perform balanced bootknife resampling
   if nargin < 6
-    idx = boot (n, B, true);
+    if ~isempty (strata)
+      idx = zeros (n, B, 'int16');
+      for k = 1:K
+        idx(g(:, k),:) = boot (nk(k), B, true);
+        rows = find (g(:, k));
+        idx(g(:, k),:) = rows(idx(g(:, k), :));
+      end
+    else
+      idx = boot (n, B, true);
+    end
   end
   if vectorized
     % Vectorized implementation of data sampling and evaluation of bootfun on the data
