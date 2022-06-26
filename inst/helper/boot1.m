@@ -85,7 +85,17 @@ function [T1, T2, U, idx] = boot1 (x, nboot, n, nvar, bootfun, T0, S, opt)
     c = ones(n,1)*B;
   end
 
-  % Perform bootstrap resampling
+  % Perform balanced bootknife resampling
+  if ~isempty (strata)
+    idx = zeros (n, B, 'int16');
+    for k = 1:K
+      idx(g(:, k),:) = boot (nk(k), B, false, c(g(:,k)));
+      rows = find (g(:, k));
+      idx(g(:, k),:) = rows(idx(g(:, k), :));
+    end
+  else
+    idx = boot (n, B, false, c);
+  end
   try
     pool = gcp('nocreate');
   catch
@@ -93,43 +103,18 @@ function [T1, T2, U, idx] = boot1 (x, nboot, n, nvar, bootfun, T0, S, opt)
   end
   if paropt.UseParallel && isoctave
     % Octave parallel computing
-    % Perform ordinary resampling with replacement
-    if nargout > 3
-      error('No bootsam when operating ibootci in parallel mode')
-    end
-    % Prepare resampling weights
-    w = zeros(n,K);
-    for k = 1:K
-      w(:,k) = cumsum((g(:,k).*weights)./sum(g(:,k).*weights));
-    end
-    parfun = @() parboot (x, X1, nboot, n, nvar, bootfun, T0, g, S, opt, w, ck, xbar, xvar);
-    bootout = cell(1,B);
+    parfun = @(idx) parboot (idx, x, X1, nboot, n, nvar, bootfun, T0, g, S, opt, xbar, xvar);
     errfun = @() error('An error occurred during octave parallel implementation. Try running computations in serial.');
-    bootout = parcellfun(paropt.nproc, parfun, bootout, 'UniformOutput',false,'ErrorHandler',errfun);
+    bootout = parcellfun(paropt.nproc, parfun, num2cell(idx,1), 'UniformOutput', false);
     T1 = cell2mat(cellfun(@(S) S.T1, bootout, 'UniformOutput', false));
     T2 = cell2mat(cellfun(@(S) S.T2.', bootout, 'UniformOutput', false));
     U = cell2mat(cellfun(@(S) S.U, bootout, 'UniformOutput', false));
   elseif (paropt.UseParallel || ~isempty(pool)) && ~isoctave
     % Matlab parallel computing
-    % Perform ordinary resampling with replacement
-    if nargout > 3
-      error('No bootsam when operating ibootci in parallel mode')
-    end
-    % Prepare resampling weights
-    w = zeros(n,K);
-    for k = 1:K
-      w(:,k) = cumsum((g(:,k).*weights)./sum(g(:,k).*weights));
-    end
     parfor h = 1:B
-      idx = zeros(n,1);
       X1 = cell(1,nvar);
-      for i = 1:n
-        k = sum(i>ck)+1;
-        j = sum((rand(1) >= w(:,k)))+1;
-        idx(i,1) = j;
-      end
       for v = 1:nvar
-        X1{v} = x{v}(idx);
+        X1{v} = x{v}(idx(:,h));
       end
       % Since second bootstrap is usually much smaller, perform rapid
       % balanced resampling by a permutation algorithm
@@ -150,33 +135,9 @@ function [T1, T2, U, idx] = boot1 (x, nboot, n, nvar, bootfun, T0, S, opt)
     end
   else
     % Octave or Matlab serial computing
-    % Since first bootstrap is large, use a memory efficient balanced resampling algorithm
-    %    Gleason, J.R. (1988) Algorithms for Balanced Bootstrap Simulations. 
-    %    The American Statistician. Vol. 42, No. 4 pp. 263-266
-    % If strata is provided, resampling is stratified
-    % In serial mode, a random seed is specified making the Monte Carlo simulation 
-    % deterministic and reproducible between Matlab and Octave
-    rand('twister',rng_state);
     for h = 1:B
-      for i = 1:n
-        k = sum(i>ck)+1;
-        j = sum((rand(1) >= cumsum((g(:,k).*c)./sum(g(:,k).*c))))+1;
-        if nargout < 4
-          idx(i,1) = j;
-        else
-          idx(i,h) = j;
-        end
-        c(j) = c(j)-1;
-      end
-      for v = 1:nvar
-        if nargout < 4
-          X1{v} = x{v}(idx);
-        else
-          X1{v} = x{v}(idx(:,h));
-        end
-      end
-      % Since second bootstrap is usually much smaller, perform rapid
-      % balanced resampling by a permutation algorithm
+      X1{v} = x{v}(idx(:,h));
+      % If applicable, perform second bootstrap 
       if C>0
         [U(h), T2(:,h)] = boot2 (X1, nboot, n, nvar, bootfun, T0, g, S, opt);
       end
