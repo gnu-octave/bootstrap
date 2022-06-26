@@ -35,7 +35,7 @@ if isoctave
     warning ('Could not compile boot.oct. Falling back to the (slower) boot.m file.')
   end
   try
-    mkoctfile --output ./inst/smoothmedian.oct ./src/smoothmedian.cc
+    mkoctfile --output ./inst/param/smoothmedian.oct ./src/smoothmedian.cc
   catch
     warning ('Could not compile smoothmedian.oct. Falling back to the (slower) smoothmedian.m file.')
   end
