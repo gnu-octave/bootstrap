@@ -127,7 +127,7 @@ DEFUN_DLD (smoothmedian, args, ,
     
     // Check that there are no inf or nan values in the data
     if (x.any_element_is_inf_or_nan ()) {
-        octave_stdout << "Error: x cannot contain Inf or NaN values\n";
+        error("x cannot contain Inf or NaN values \n");
         return octave_value ();
     }
     
@@ -226,7 +226,7 @@ DEFUN_DLD (smoothmedian, args, ,
                 }
             }
             if (Iter == MaxIter) {
-                octave_stdout << "Warning: Root finding failed to reach the specified tolerance.\n";
+                octave_stdout << "Warning: Root finding failed to reach the specified tolerance \n";
             }
         }
         // Assign parameter value that optimizes the objective function for the smoothed median
