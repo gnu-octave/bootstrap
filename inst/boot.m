@@ -46,11 +46,11 @@ function bootsam = boot (n, nboot, u)
   % Perform balanced sampling
   r = 0;
   for b = 1:nboot
-    R = rand (n, 1, 'single');
+    R = rand (n, 1);
     if (u)
       % Choose which row of the data to exclude for this bootknife sample
       if (fix ((b - 1) / n) == fix (nboot / n))
-        r = 1 + fix (rand (1, 1, 'single') * n);  % random
+        r = 1 + fix (rand (1) * n);  % random
       else
         r = b - fix ((b - 1) / n) * n;            % systematic
       end
