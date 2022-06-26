@@ -32,6 +32,9 @@ if isoctave
   if exist ('./inst/boot.oct')
     delete ('./inst/boot.oct');
   end
+  if exist ('./inst//param/smoothmedian.oct')
+    delete ('./inst//param/smoothmedian.oct');
+  end
 else
   % Assumming uninstall for Matlab instead
   run (fullfile(pwd,'PKG_DEL'));
