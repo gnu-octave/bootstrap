@@ -957,7 +957,6 @@ function [p, c, stats] = ibootnhst (data, group, varargin)
         rows = find (S(:,i));
         bootsam(S(:,i),:) = rows(bootsam(S(:,i), :));
       end
-      bootsam
     else
       bootsam = boot (N, nboot(1), false);
     end
