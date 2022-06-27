@@ -456,10 +456,9 @@
 % ******************************************************************************
 % Overall hypothesis test from single-step maxT procedure
 % H0: Groups of data are all sampled from the same population
-%
-% Maximum t(4) = 4.00, p-adj = .001 
+% 
+% Maximum t(4) = 3.91, p-adj = .001 
 % ------------------------------------------------------------------------------
-%
 %
 %  EXAMPLE 4B:
 %  ONE-WAY REPEATED MEASURES ANOVA: pairwise comparisons  
@@ -485,23 +484,23 @@
 % ******************************************************************************
 % Overall hypothesis test from single-step maxT procedure
 % H0: Groups of data are all sampled from the same population
-%
-% Maximum t(12) = 2.76, p-adj = .060 
+% 
+% Maximum t(12) = 2.83, p-adj = .003 
 % ------------------------------------------------------------------------------
-%
+% 
 % POST HOC TESTS with control of the FWER by the single-step maxT procedure
 % ------------------------------------------------------------------------------
 % | Comparison |  Reference # |       Test # |  Difference |    t(df)|   p-adj |
 % |------------|--------------|--------------|-------------|---------|---------|
-% |          1 |            1 |            2 |   +6.40e+00 |    0.72 |    .793 |
-% |          2 |            1 |            3 |   +2.24e+01 |    2.51 |    .088 |
-% |          3 |            1 |            4 |   +2.46e+01 |    2.76 |    .060 |
-% |          4 |            2 |            3 |   +1.60e+01 |    1.79 |    .225 |
-% |          5 |            2 |            4 |   +1.82e+01 |    2.04 |    .163 |
-% |          6 |            3 |            4 |   +2.20e+00 |    0.25 |    .988 |
-%
+% |          1 |            1 |            2 |   +6.40e+00 |    0.74 |    .846 |
+% |          2 |            1 |            3 |   +2.24e+01 |    2.58 |    .010 |**
+% |          3 |            1 |            4 |   +2.46e+01 |    2.83 |    .003 |**
+% |          4 |            2 |            3 |   +1.60e+01 |    1.84 |    .163 |
+% |          5 |            2 |            4 |   +1.82e+01 |    2.10 |    .086 |
+% |          6 |            3 |            4 |   +2.20e+00 |    0.25 |    .993 |
+% 
 % Where degrees of freedom (df) = 12
-%
+% 
 % ------------------------------------------------------------------------------
 % |    GROUP # |                                                   GROUP label |
 % |------------|---------------------------------------------------------------|
@@ -594,21 +593,21 @@
 % ******************************************************************************
 % Overall hypothesis test from single-step maxT procedure
 % H0: Groups of data are all sampled from the same population as data in ref
-%
-% Maximum t(4) = 8.48, p-adj = .003 
+% 
+% Maximum t(4) = 8.48, p-adj = .001 
 % ------------------------------------------------------------------------------
 % 
 % POST HOC TESTS with control of the FWER by the single-step maxT procedure
 % ------------------------------------------------------------------------------
 % | Comparison |  Reference # |       Test # |  Difference |    t(df)|   p-adj |
 % |------------|--------------|--------------|-------------|---------|---------|
-% |          1 |            1 |            2 |   +1.50e+00 |    0.28 |    .992 |
-% |          2 |            1 |            3 |   +4.50e+01 |    8.48 |    .003 |**
-% |          3 |            1 |            4 |   +2.65e+01 |    4.99 |    .013 |*
-% |          4 |            1 |            5 |   +1.60e+01 |    3.02 |    .065 |
-%
+% |          1 |            1 |            2 |   +1.50e+00 |    0.28 |    .988 |
+% |          2 |            1 |            3 |   +4.50e+01 |    8.48 |    .001 |**
+% |          3 |            1 |            4 |   +2.65e+01 |    4.99 |    .008 |**
+% |          4 |            1 |            5 |   +1.60e+01 |    3.02 |    .056 |
+% 
 % Where degrees of freedom (df) = 4
-%
+% 
 % ------------------------------------------------------------------------------
 % |    GROUP # |                                                   GROUP label |
 % |------------|---------------------------------------------------------------|
@@ -628,21 +627,21 @@
 % ******************************************************************************
 % Overall hypothesis test from single-step maxT procedure
 % H0: Groups of data are all sampled from the same population as data in ref
-%
-% Maximum t(4) = 13.46, p-adj = .004 
+% 
+% Maximum t(4) = 13.46, p-adj = .002 
 % ------------------------------------------------------------------------------
-%
+% 
 % POST HOC TESTS with control of the FWER by the single-step maxT procedure
 % ------------------------------------------------------------------------------
 % | Comparison |  Reference # |       Test # |  Difference |    t(df)|   p-adj |
 % |------------|--------------|--------------|-------------|---------|---------|
-% |          1 |            1 |            2 |   -4.50e+00 |    0.44 |    .960 |
-% |          2 |            1 |            3 |   +1.37e+02 |   13.46 |    .004 |**
-% |          3 |            1 |            4 |   +1.08e+02 |   10.66 |    .007 |**
-% |          4 |            1 |            5 |   +8.90e+01 |    8.74 |    .011 |*
-%
+% |          1 |            1 |            2 |   -4.50e+00 |    0.44 |    .956 |
+% |          2 |            1 |            3 |   +1.37e+02 |   13.46 |    .002 |**
+% |          3 |            1 |            4 |   +1.08e+02 |   10.66 |    .004 |**
+% |          4 |            1 |            5 |   +8.90e+01 |    8.74 |    .006 |**
+% 
 % Where degrees of freedom (df) = 4
-%
+% 
 % ------------------------------------------------------------------------------
 % |    GROUP # |                                                   GROUP label |
 % |------------|---------------------------------------------------------------|
@@ -693,7 +692,7 @@
 %        Sampling vs. Smoothing, Proceedings of the Section on Statistics 
 %        and the Environment, American Statistical Association, 2924-2930.
 %
-%  ibootnhst v1.8.3.0 (27/05/2022)
+%  ibootnhst v1.9.0.0 (27/06/2022)
 %  Author: Andrew Charles Penn
 %  https://www.researchgate.net/profile/Andrew_Penn/
 %
@@ -948,7 +947,7 @@ function [p, c, stats] = ibootnhst (data, group, varargin)
   func = @(data) maxstat(data,g,nboot(2),bootfun,ref,clusters,strata);
 
   % Perform resampling and calculate bootstrap statistics
-  if isempty(clusters) || (nvar == 1)
+  if isempty(clusters)
     % Use newer, faster resampling function boot
     if ~isempty (strata)
       bootsam = zeros (N, nboot(1), 'int16');
@@ -960,9 +959,10 @@ function [p, c, stats] = ibootnhst (data, group, varargin)
     else
       bootsam = boot (N, nboot(1), false);
     end
+    celldata = num2cell(data, 2);
     if isoctave
       % OCTAVE
-      cellfunc = @(bootsam) feval (func, data (bootsam));
+      cellfunc = @(bootsam) feval (func, cell2mat (celldata (bootsam)));
       if paropt.UseParallel
         Q = parcellfun(paropt.nproc, cellfunc, num2cell (bootsam, 1));
       else
@@ -977,16 +977,18 @@ function [p, c, stats] = ibootnhst (data, group, varargin)
           pool = [];
         end
         Q = zeros (1, nboot(1));
+        cell
         parfor h = 1:nboot(1)
-          Q(h) = feval (func, data (bootsam (:, h)));
+          Q(h) = feval (func, cell2mat (celldata (bootsam (:, h))));
         end
       else
-        cellfunc = @(bootsam) feval (func, data (bootsam));
+        cellfunc = @(bootsam) feval (func, cell2mat (celldata (bootsam)));
         Q = cellfun (cellfunc, num2cell (bootsam, 1));
       end
     end
   else
-    % Use legacy bootstrp function
+    % Use legacy bootstrp function for two-stage nonparametric bootstrap sampling 
+    % with shrinkage correction for clustered data
     state = warning; 
     warning off;    % silence warnings about non-vectorized bootfun
     Q = bootstrp (nboot(1),func,data,'cluster',clusters,'Options',paropt);
