@@ -714,6 +714,10 @@
 
 function [p, c, stats] = ibootnhst (data, group, varargin)
 
+  % Check if running in Octave (else assume Matlab)
+  info = ver; 
+  isoctave = any (ismember ({info.Name}, "Octave"));
+  
   % Apply defaults
   bootfun = 'mean';
   nboot = [1000,200];
@@ -850,8 +854,8 @@ function [p, c, stats] = ibootnhst (data, group, varargin)
       end
     end
   end
-
-
+  
+  % Error checking
   if ~isempty(ref) && strcmpi(ref,'pairwise')
     ref = [];
   end
@@ -924,16 +928,20 @@ function [p, c, stats] = ibootnhst (data, group, varargin)
   if isempty(strata)
     l = 1;
   else
-    l = numel(unique(strata)); % number of strata
+    sid = unique (strata);      % strata ID
+    l = numel (sid);            % number of strata
   end
  
   % If applicable, center each stratum on it's respective (grand) mean or smoothed median 
   % Note that the bootstrap becomes semiparametric
   if ~isempty(strata)
-    sk = unique(strata);
+    S = zeros(N, l, 'logical');
     for i=1:l
-      data(strata==sk(i),:) = data(strata==sk(i),:) - feval(bootfun, feval(bootfun,data(strata==sk(i),:),2) ,1);
+      % Create strata matrix
+      S(:,i) = ismember(strata, sid(i));   % strata logical indexing
+      data(S(:,i),:) = data(S(:,i),:) - feval(bootfun, feval(bootfun,data(S(:,i),:),2) ,1);
     end
+    ns = sum(S);
   end
 
   % Define a function to calculate maxT
@@ -941,9 +949,47 @@ function [p, c, stats] = ibootnhst (data, group, varargin)
 
   % Perform resampling and calculate bootstrap statistics
   state = warning; 
-  warning off;    % silence warnings about non-vectorized bootfun
-  Q = bootstrp (nboot(1),func,data,'cluster',clusters,'strata',strata,'Options',paropt);
-  warning(state);
+  if isempty(clusters)
+    if ~isempty (strata)
+      bootsam = zeros (N, nboot(1), 'int16');
+      for i = 1:l
+        bootsam(S(:,i),:) = boot (ns(i), nboot(1), false);
+        rows = find (S(:,i));
+        bootsam(S(:,i),:) = rows(bootsam(S(:,i), :));
+      end
+      bootsam
+    else
+      bootsam = boot (N, nboot(1), false);
+    end
+    if isoctave
+      func = @(bootsam) feval (bootfun, data (bootsam, :));
+      if paropt.UseParallel
+        Q = parcellfun(paropt.nproc, func, num2cell (bootsam, 1));
+      else
+        Q = cellfun(func, num2cell (bootsam, 1));
+      end
+    else
+      if paropt.UseParallel
+        try
+          pool = gcp('nocreate');
+        catch
+          pool = [];
+        end
+        Q = zeros (1, nboot(1));
+        parfor h = 1:nboot(1)
+          Q(h) = feval (bootfun, data (bootsam (:, h), :));
+        end
+      else
+        func = @(bootsam) feval (bootfun, data (bootsam, :));
+        Q = cellfun(func, num2cell (bootsam, 1));
+      end
+    end
+  else
+    % Use two-stage nonparametric bootstrap sampling with shrinkage correction in legacy bootstrp function
+    warning off;    % silence warnings about non-vectorized bootfun
+    Q = bootstrp (nboot(1),func,data,'cluster',clusters,'strata',strata,'Options',paropt);
+    warning(state);
+  end
 
   % Compute the estimate (theta) and it's pooled (weighted mean) sampling variance 
   theta = zeros(k,1);
