@@ -948,7 +948,8 @@ function [p, c, stats] = ibootnhst (data, group, varargin)
   func = @(data) maxstat(data,g,nboot(2),bootfun,ref,clusters,strata);
 
   % Perform resampling and calculate bootstrap statistics
-  if isempty(clusters)
+  if isempty(clusters) || (nvar == 1)
+    % Use newer, faster resampling function boot
     if ~isempty (strata)
       bootsam = zeros (N, nboot(1), 'int16');
       for i = 1:l
@@ -961,7 +962,7 @@ function [p, c, stats] = ibootnhst (data, group, varargin)
     end
     if isoctave
       % OCTAVE
-      cellfunc = @(bootsam) feval (func, data (bootsam, :));
+      cellfunc = @(bootsam) feval (func, data (bootsam));
       if paropt.UseParallel
         Q = parcellfun(paropt.nproc, cellfunc, num2cell (bootsam, 1));
       else
@@ -977,18 +978,18 @@ function [p, c, stats] = ibootnhst (data, group, varargin)
         end
         Q = zeros (1, nboot(1));
         parfor h = 1:nboot(1)
-          Q(h) = feval (func, data (bootsam (:, h), :));
+          Q(h) = feval (func, data (bootsam (:, h)));
         end
       else
-        cellfunc = @(bootsam) feval (func, data (bootsam, :));
+        cellfunc = @(bootsam) feval (func, data (bootsam));
         Q = cellfun (cellfunc, num2cell (bootsam, 1));
       end
     end
   else
-    % Use two-stage nonparametric bootstrap sampling with shrinkage correction in legacy bootstrp function
+    % Use legacy bootstrp function
     state = warning; 
     warning off;    % silence warnings about non-vectorized bootfun
-    Q = bootstrp (nboot(1),func,data,'cluster',clusters,'strata',strata,'Options',paropt);
+    Q = bootstrp (nboot(1),func,data,'cluster',clusters,'Options',paropt);
     warning(state);
   end
 
