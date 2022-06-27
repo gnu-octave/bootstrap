@@ -69,8 +69,9 @@
 
 function [p, F, FDIST] = bootanovan (data, group, nboot, varargin)
 
-  % Check if running in Octave (otherwise Matab)
-  matflag = ~isoctave;
+  % Check if running in Octave (else assume Matlab)
+  info = ver; 
+  isoctave = any (ismember ({info.Name}, "Octave"));
 
   % Check for dependency anovan
   if ~exist('anovan')
@@ -107,7 +108,7 @@ function [p, F, FDIST] = bootanovan (data, group, nboot, varargin)
   else 
     options = varargin;
   end
-  if matflag
+  if ~isoctave
     % Set default sum-of-squares type to II for consistency with Octave
     if ~any(strcmpi(options,'sstype'))
       % Make default sstype 2 if not Octave
@@ -122,33 +123,22 @@ function [p, F, FDIST] = bootanovan (data, group, nboot, varargin)
   end
 
   % Perform balanced bootstrap resampling and compute bootstrap statistics
-  try 
-    rand('twister',rng_state);
-  catch
-    % Do nothing in case bootanovan is being run without iboot or statistics-bootstrap package
-  end
-  m = size(data,1);
   FDIST = cell(1,nboot);
-  c = ones(m,1) * nboot;
+  m = size(data,1);
+  idx = boot (m, nboot, false);
   for h = 1:nboot
-    idx = zeros(m,1);
-    for i = 1:m
-      j = sum((rand(1) >= cumsum(c./sum(c)))) + 1;
-      idx(i) = j;
-      c(j) = c(j)-1;
-    end
-    if matflag
-      % MATLAB: Resample model residuals since it is valid for a broader range of models
-      FDIST{h} = feval('anovan_wrapper',resid(idx),group,matflag,options);
-    else
+    if isoctave
       % OCTAVE: Resample raw data
-      FDIST{h} = feval('anovan_wrapper',data(idx),group,matflag,options);
+      FDIST{h} = feval('anovan_wrapper',data(idx(:,h)),group,isoctave,options);
+    else
+      % MATLAB: Resample model residuals since it is valid for a broader range of models
+      FDIST{h} = feval('anovan_wrapper',resid(idx(:,h)),group,isoctave,options);
     end
   end
   FDIST = cell2mat(FDIST);
 
   % Calculate ANOVA F-statistics
-  F = feval('anovan_wrapper',data,group,matflag,options);
+  F = feval('anovan_wrapper',data,group,isoctave,options);
 
   % Calculate p-values
   p = sum (FDIST >= F (1:end,ones(1,nboot)),2) / nboot;
@@ -159,15 +149,15 @@ function [p, F, FDIST] = bootanovan (data, group, nboot, varargin)
  
 end
 
-function  F = anovan_wrapper (y, g, matflag, options)
+function  F = anovan_wrapper (y, g, isoctave, options)
   
-  if matflag
+  if isoctave
+    % Octave anovan
+    [~,F] = anovan(y,g,options{:});
+  else
     % Matlab anovan
     [~,tbl] = anovan(y,g,'display','off',options{:});
     F = cell2mat(tbl(2:end,6)); 
-  else
-    % Octave anovan
-    [~,F] = anovan(y,g,options{:});
   end
 
 end
