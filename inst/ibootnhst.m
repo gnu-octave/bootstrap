@@ -961,11 +961,11 @@ function [p, c, stats] = ibootnhst (data, group, varargin)
       bootsam = boot (N, nboot(1), false);
     end
     if isoctave
-      func = @(bootsam) feval (bootfun, data (bootsam, :));
+      cellfunc = @(bootsam) feval (func, data (bootsam, :));
       if paropt.UseParallel
-        Q = parcellfun(paropt.nproc, func, num2cell (bootsam, 1));
+        Q = parcellfun(paropt.nproc, cellfunc, num2cell (bootsam, 1));
       else
-        Q = cellfun(func, num2cell (bootsam, 1));
+        Q = cellfun(cellfunc, num2cell (bootsam, 1));
       end
     else
       if paropt.UseParallel
@@ -979,8 +979,8 @@ function [p, c, stats] = ibootnhst (data, group, varargin)
           Q(h) = feval (bootfun, data (bootsam (:, h), :));
         end
       else
-        func = @(bootsam) feval (bootfun, data (bootsam, :));
-        Q = cellfun(func, num2cell (bootsam, 1));
+        cellfunc = @(bootsam) feval (bootfun, data (bootsam, :));
+        Q = cellfun(cellfunc, num2cell (bootsam, 1));
       end
     end
   else
