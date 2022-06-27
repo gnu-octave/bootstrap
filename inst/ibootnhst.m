@@ -980,7 +980,7 @@ function [p, c, stats] = ibootnhst (data, group, varargin)
           Q(h) = feval (func, data (bootsam (:, h), :));
         end
       else
-        func = @(bootsam) feval (func, data (bootsam, :)));
+        func = @(bootsam) feval (func, data (bootsam, :));
         Q = cellfun (func, num2cell (bootsam, 1));
       end
     end
