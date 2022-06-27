@@ -941,14 +941,13 @@ function [p, c, stats] = ibootnhst (data, group, varargin)
       S(:,i) = ismember(strata, sid(i));   % strata logical indexing
       data(S(:,i),:) = data(S(:,i),:) - feval(bootfun, feval(bootfun,data(S(:,i),:),2) ,1);
     end
-    ns = sum(S);
+    ns = sum(S);                           % number of data elements per stratum
   end
 
   % Define a function to calculate maxT
   func = @(data) maxstat(data,g,nboot(2),bootfun,ref,clusters,strata);
 
   % Perform resampling and calculate bootstrap statistics
-  state = warning; 
   if isempty(clusters)
     if ~isempty (strata)
       bootsam = zeros (N, nboot(1), 'int16');
@@ -960,7 +959,9 @@ function [p, c, stats] = ibootnhst (data, group, varargin)
     else
       bootsam = boot (N, nboot(1), false);
     end
+    bootsam
     if isoctave
+      % OCTAVE
       cellfunc = @(bootsam) feval (func, data (bootsam, :));
       if paropt.UseParallel
         Q = parcellfun(paropt.nproc, cellfunc, num2cell (bootsam, 1));
@@ -968,6 +969,7 @@ function [p, c, stats] = ibootnhst (data, group, varargin)
         Q = cellfun(cellfunc, num2cell (bootsam, 1));
       end
     else
+      % MATLAB
       if paropt.UseParallel
         try
           pool = gcp('nocreate');
@@ -985,6 +987,7 @@ function [p, c, stats] = ibootnhst (data, group, varargin)
     end
   else
     % Use two-stage nonparametric bootstrap sampling with shrinkage correction in legacy bootstrp function
+    state = warning; 
     warning off;    % silence warnings about non-vectorized bootfun
     Q = bootstrp (nboot(1),func,data,'cluster',clusters,'strata',strata,'Options',paropt);
     warning(state);
