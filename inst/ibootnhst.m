@@ -965,7 +965,7 @@ function [p, c, stats] = ibootnhst (data, group, varargin)
       if paropt.UseParallel
         Q = parcellfun(paropt.nproc, cellfunc, num2cell (bootsam, 1));
       else
-        Q = cellfun(cellfunc, num2cell (bootsam, 1));
+        Q = cellfun (cellfunc, num2cell (bootsam, 1));
       end
     else
       % MATLAB
@@ -981,7 +981,7 @@ function [p, c, stats] = ibootnhst (data, group, varargin)
         end
       else
         cellfunc = @(bootsam) feval (func, data (bootsam, :));
-        Q = cellfun(cellfunc, num2cell (bootsam, 1));
+        Q = cellfun (cellfunc, num2cell (bootsam, 1));
       end
     end
   else
