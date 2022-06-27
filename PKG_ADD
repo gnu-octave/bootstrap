@@ -1,4 +1,4 @@
-dirlist = {'helper', 'param'};
+dirlist = {'helper', 'param', 'legacy'};
 dirname = fileparts (mfilename ('fullpath'));
 
 if ~exist (fullfile (dirname, 'inst'), 'dir')
