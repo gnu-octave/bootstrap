@@ -961,7 +961,7 @@ function [p, c, stats] = ibootnhst (data, group, varargin)
     end
     if isoctave
       % OCTAVE
-      func = @(bootsam) feval (func, data (bootsam, :)));
+      func = @(bootsam) feval (func, data (bootsam, :));
       if paropt.UseParallel
         Q = parcellfun(paropt.nproc, func, num2cell (bootsam, 1));
       else
