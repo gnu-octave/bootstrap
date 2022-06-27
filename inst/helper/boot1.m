@@ -27,7 +27,6 @@ function [T1, T2, U, idx] = boot1 (x, nboot, n, nvar, bootfun, T0, S, opt)
     T2 = [];
     U = [];
   end
-  X1 = cell(1,nvar);
   if nargout < 4
     idx = zeros(n,1);
   else
@@ -102,6 +101,7 @@ function [T1, T2, U, idx] = boot1 (x, nboot, n, nvar, bootfun, T0, S, opt)
     for k = 1:K
       w(:,k) = cumsum((g(:,k).*weights)./sum(g(:,k).*weights));
     end
+    X1 = cell(1,nvar);
     parfun = @() parboot (x, X1, nboot, n, nvar, bootfun, T0, g, S, opt, w, ck, xbar, xvar);
     bootout = cell(1,B);
     errfun = @() error('An error occurred during octave parallel implementation. Try running computations in serial.');
@@ -157,6 +157,7 @@ function [T1, T2, U, idx] = boot1 (x, nboot, n, nvar, bootfun, T0, S, opt)
     % In serial mode, a random seed is specified making the Monte Carlo simulation 
     % deterministic and reproducible between Matlab and Octave
     rand('twister',rng_state);
+    X1 = cell(1,nvar);
     for h = 1:B
       for i = 1:n
         k = sum(i>ck)+1;
