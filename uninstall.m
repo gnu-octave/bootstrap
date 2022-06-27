@@ -35,6 +35,8 @@ if isoctave
   if exist ('./inst//param/smoothmedian.oct')
     delete ('./inst//param/smoothmedian.oct');
   end
+  % Unload package from current session
+  run (fullfile(pwd,'PKG_DEL.m'));
 else
   % Assumming uninstall for Matlab instead
   run (fullfile(pwd,'PKG_DEL'));
@@ -46,8 +48,6 @@ else
   end
 end
 
-% Unload package from current session
-run (fullfile(pwd,'PKG_DEL.m'));
 
 % Notify user that uninstall is complete
 disp ('This statistics-bootstrap package has been uninstalled from this location')
