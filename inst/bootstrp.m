@@ -30,27 +30,27 @@
 %  bootstrap sampling probabilities. Balanced resampling is extended
 %  to resampling with weights [3].
 %
-%  ci = ibootci(nboot,{bootfun,...},...,'strata',strata) specifies a
-%  vector containing numeric identifiers of strata. The dimensions of
-%  strata must be equal to that of the non-scalar input arguments to
-%  bootfun. Bootstrap resampling is stratified so that every stratum is
-%  represented in each bootstrap test statistic [4]. If weights are also
-%  provided then they are within-stratum weights; the weighting of
-%  individual strata depends on their respective sample size.
+%  bootstat = bootstrp(...,'strata',strata) specifies a vector containing 
+%  numeric identifiers of strata. The dimensions of strata must be equal 
+%  to that of the non-scalar input arguments to bootfun. Bootstrap 
+%  resampling is stratified so that every stratum is represented in each 
+%  bootstrap test statistic [4]. If weights are also provided then they 
+%  are within-stratum weights; the weighting of individual strata depends 
+%  on their respective sample size.
 %
-%  ci = ibootci(nboot,{bootfun,...},...,'cluster',clusters) specifies 
-%  a column vector (or matrix) of numeric identifiers with the same 
-%  number of rows as the data. The identifiers should indicate cluster 
-%  membership of the data rows. Whereas strata are fixed, clusters are 
-%  resampled. This is achieved by two-stage bootstrap resampling of 
-%  residuals with shrinkage correction [4,5,6]. If a matrix is provided 
-%  defining additional levels of subsampling in a hierarchical data  
-%  model, then level two cluster means are computed and resampled.
+%  bootstat = bootstrp(...,'cluster',clusters) specifies a column vector 
+%  (or matrix) of numeric identifiers with the same number of rows as the 
+%  data. The identifiers should indicate cluster membership of the data 
+%  rows. Whereas strata are fixed, clusters are resampled. This is achieved 
+%  by two-stage bootstrap resampling of residuals with shrinkage correction 
+%  [4,5,6]. If a matrix is provided defining additional levels of subsampling 
+%  in a hierarchical data model, then level two cluster means are computed 
+%  and resampled.
 %
-%  ci = ibootci(nboot,{bootfun,...},...,'block',blocksize) specifies
-%  a positive integer defining the block length for block bootstrapping
-%  data with serial dependence (e.g. stationary time series). The
-%  algorithm uses circular, overlapping blocks. 
+%  bootstat = bootstrp(...,'block',blocksize) specifies a positive integer 
+%  defining the block length for block bootstrapping data with serial 
+%  dependence (e.g. stationary time series). The algorithm uses circular, 
+%  overlapping blocks. 
 %
 %  bootstat = bootstrp(...,'Options',paropt) specifies options that 
 %  govern if and how to perform bootstrap iterations using multiple 
