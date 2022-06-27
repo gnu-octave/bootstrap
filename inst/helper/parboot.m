@@ -1,15 +1,26 @@
-function bootout = parboot (idx, x, X1, nboot, n, nvar, bootfun, T0, g, S, opt, xbar, xvar)
+function bootout = parboot (x, X1, nboot, n, nvar, bootfun, T0, g, S, opt, w, ck, xbar, xvar)
 
   % Helper function file required for Octave Parallel Computing
   % capabilities of ibootci.
 
+
   % Extract required options structure fields
+  weights = opt.weights;
+  strata = opt.strata;
   blocksize = opt.blocksize;
   bandwidth = opt.bandwidth;
   R = opt.R;
   stderr = opt.stderr;
+  runmode = opt.runmode;
 
   % Resampling (with weights if applicable)
+  idx = zeros(n,1);
+  X1 = cell(1,nvar);
+  for i = 1:n
+    k = sum(i>ck)+1;
+    j = sum((rand(1) >= w(:,k)))+1;
+    idx(i,1) = j;
+  end
   for v = 1:nvar
     X1{v} = x{v}(idx);
   end
