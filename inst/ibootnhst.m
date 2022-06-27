@@ -959,7 +959,6 @@ function [p, c, stats] = ibootnhst (data, group, varargin)
     else
       bootsam = boot (N, nboot(1), false);
     end
-    bootsam
     if isoctave
       % OCTAVE
       cellfunc = @(bootsam) feval (func, data (bootsam, :));
