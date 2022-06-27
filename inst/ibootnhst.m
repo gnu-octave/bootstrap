@@ -976,10 +976,10 @@ function [p, c, stats] = ibootnhst (data, group, varargin)
         end
         Q = zeros (1, nboot(1));
         parfor h = 1:nboot(1)
-          Q(h) = feval (bootfun, data (bootsam (:, h), :));
+          Q(h) = feval (func, data (bootsam (:, h), :));
         end
       else
-        cellfunc = @(bootsam) feval (bootfun, data (bootsam, :));
+        cellfunc = @(bootsam) feval (func, data (bootsam, :));
         Q = cellfun(cellfunc, num2cell (bootsam, 1));
       end
     end
