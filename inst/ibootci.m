@@ -1206,7 +1206,7 @@ function [ci,bootstat,S,calcurve,idx] = ibootci(argin1,argin2,varargin)
         end
         data = ori_data;
         if ~isempty(idx)
-          idx = idx(J,:);
+          idx = I(idx(J,:));
         end
         if ~isempty(clusters)
           clusters = strata;
