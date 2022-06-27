@@ -948,7 +948,7 @@ function [p, c, stats] = ibootnhst (data, group, varargin)
 
   % Perform resampling and calculate bootstrap statistics
   if isempty(clusters)
-    % Use newer, faster resampling function boot
+    % Use newer, faster resampling function (boot)
     if ~isempty (strata)
       bootsam = zeros (N, nboot(1), 'int16');
       for i = 1:l
@@ -959,14 +959,13 @@ function [p, c, stats] = ibootnhst (data, group, varargin)
     else
       bootsam = boot (N, nboot(1), false);
     end
-    celldata = num2cell(data, 2);
     if isoctave
       % OCTAVE
-      cellfunc = @(bootsam) feval (func, cell2mat (celldata (bootsam)));
+      func = @(bootsam) feval (func, data (bootsam, :)));
       if paropt.UseParallel
-        Q = parcellfun(paropt.nproc, cellfunc, num2cell (bootsam, 1));
+        Q = parcellfun(paropt.nproc, func, num2cell (bootsam, 1));
       else
-        Q = cellfun (cellfunc, num2cell (bootsam, 1));
+        Q = cellfun (func, num2cell (bootsam, 1));
       end
     else
       % MATLAB
@@ -977,13 +976,12 @@ function [p, c, stats] = ibootnhst (data, group, varargin)
           pool = [];
         end
         Q = zeros (1, nboot(1));
-        cell
         parfor h = 1:nboot(1)
-          Q(h) = feval (func, cell2mat (celldata (bootsam (:, h))));
+          Q(h) = feval (func, data (bootsam (:, h), :));
         end
       else
-        cellfunc = @(bootsam) feval (func, cell2mat (celldata (bootsam)));
-        Q = cellfun (cellfunc, num2cell (bootsam, 1));
+        func = @(bootsam) feval (func, data (bootsam, :)));
+        Q = cellfun (func, num2cell (bootsam, 1));
       end
     end
   else
