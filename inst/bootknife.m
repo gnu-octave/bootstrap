@@ -343,9 +343,11 @@ function [stats, T1, idx] = bootknife (x, nboot, bootfun, alpha, strata, idx)
       end
       % Use the Jackknife to calculate the acceleration constant
       T = zeros (n,1);
-      for i = 1:n
-        T(i) = feval (bootfun, x(1:end ~= i, :));
-      end
+      jackfun = (i) feval (bootfun, x(1:n ~= i, :))
+      T = feval (jackfun, num2cell(1:n));
+      %for i = 1:n
+      %  T(i) = feval (bootfun, x(1:end ~= i, :));
+      %end
       % Calculate empirical influence function
       if ~isempty(strata)
         gk = sum (g .* repmat (sum (g), n, 1), 2);
