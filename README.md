@@ -47,17 +47,16 @@ To install (or test) the statistics-bootstrap package at it's existing location 
 ### Functions
 
 * `boot` returns indices created by balanced bootstrap or bootknife resampling  
-* `bootstrp` performs (balanced) bootstrap resampling 
-* `bootknife` performs (balanced) bootknife resampling and uses double bootstrap to calculate bias-corrected parameter estimates, standard error and confidence intervals. This functional supports stratified resampling.
-* `bootci` calculates confidence intervals using bootstrap resampling
-* `ibootci` calculates confidence intervals (calibrated) by iterated bootstrap resampling 
-* `ibootp` calculates a two-tailed *p*-value for hypothesized value of the statistic using bootstrap
-* `ibootnhst` calculates *p*-values by bootstrap null-hypothesis significance testing (two-tailed). This function can be used to compare 2 or more (independent) samples. This function resamples under the null hypothesis.
+* `bootknife` performs (balanced) bootknife resampling and calculates bias, standard error and bias-corrected and accelerated  or calibrated confidence intervals. This functional supports iterated and stratified resampling.
 * `bootanovan` calculates *p*-values for N-way, fixed effects ANOVA by bootstrapping the distribution of F-statistics under the null hypothesis. This function depends on the `anovan` function from the Statistics package in Octave, or the Statistics and Machine Learning toolbox in Matlab.
-* `iboottest` is a convenience function that uses `ibootci` and `ibootp` to compute confidence intervals and *p*-values for the difference between two paired samples or between one sample and a population value (two-tailed). This function resamples under the alternative hypothesis.
-* `iboottest2` is a convenience function that uses `ibootci` and `ibootp` to compute confidence intervals and *p*-values for the difference between two independent (i.e. unpaired) samples. This function resamples under the alternative hypothesis.
+* `ibootnhst` calculates *p*-values by bootstrap null-hypothesis significance testing (two-tailed). This function can be used to compare 2 or more (independent) samples. This function resamples under the null hypothesis.
 * `bootmode` uses bootstrap to evaluate the likely number of real modes in a distribution
 * `plotboot` plots an overlay of a histogram, kernel density estimate and interval limits from bootstrap statistics
+* (legacy) `bootstrp` performs (balanced) bootstrap resampling 
+* (legacy) `ibootci` calculates confidence intervals (calibrated) by iterated bootstrap resampling 
+* (legacy) `ibootp` calculates a two-tailed *p*-value for hypothesized value of the statistic using bootstrap
+* (legacy) `iboottest` is a convenience function that uses `ibootci` and `ibootp` to compute confidence intervals and *p*-values for the difference between two paired samples or between one sample and a population value (two-tailed). This function resamples under the alternative hypothesis.
+* (legacy) `iboottest2` is a convenience function that uses `ibootci` and `ibootp` to compute confidence intervals and *p*-values for the difference between two independent (i.e. unpaired) samples. This function resamples under the alternative hypothesis.
 
 At the Octave command prompt, type `help function-name` for more information about the function and it's usage.
 
