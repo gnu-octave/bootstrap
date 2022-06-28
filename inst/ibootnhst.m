@@ -942,6 +942,53 @@ function [p, c, stats] = ibootnhst (data, group, varargin)
     end
     ns = sum(S);                           % number of data elements per stratum
   end
+  
+  % If applicable, setup a parallel pool 
+  if ~isoctave
+    % MATLAB
+    if paropt.UseParallel 
+      % PARALLEL
+      if (nproc > 0) 
+        % MANUAL
+        try 
+          pool = gcp ('nocreate'); 
+          if isempty (pool)
+            if (nproc > 1)
+              % Start parallel pool with nproc workers
+              pool = parpool (nproc);
+            else
+              % Parallel pool is not running and nproc is 1 so run function evaluations in serial
+              paropt.UseParallel = false;
+            end
+          else
+            if (pool.NumWorkers ~= nproc)
+              % Check if number of workers matches nproc and correct it accordingly if not
+              delete (pool);
+              parpool (nproc);
+            end
+          end
+        catch
+          % Parallel toolbox not installed, run function evaluations in serial
+          nproc = 1;
+        end
+      else
+        % AUTOMATIC
+        try 
+          pool = gcp ('nocreate'); 
+          if isempty (pool)
+            % Parallel pool not running, start parallel pool using all available workers
+            parpool;
+          else
+            % Parallel pool is already running, set nproc to the number of workers
+            nproc = pool.NumWorkers;
+          end
+        catch
+          % Parallel toolbox not installed, run function evaluations in serial
+          paropt.UseParallel = false;
+        end
+      end
+    end
+  end
 
   % Define a function to calculate maxT
   func = @(data) maxstat (data, g, nboot(2), bootfun, ref, clusters, strata);
@@ -973,34 +1020,11 @@ function [p, c, stats] = ibootnhst (data, group, varargin)
     else
       % MATLAB
       if paropt.UseParallel
-        % Evaluate maxstat on each bootstrap resample in PARALLEL 
-        try 
-          pool = gcp ('nocreate'); 
-          if isempty (pool)
-            pool = parpool (paropt.nproc);
-          else
-            if (pool.NumWorkers ~= paropt.nproc)
-              % Check if number of workers matches nproc and correct it accordingly
-              delete (pool);
-              parpool (paropt.nproc);
-            else
-              % Do nothing, the correct number of workers are in the parallel pool
-            end
-          end
-        catch
-          % Treat parfor loop as for loop if Parallel toolbox toolbox not present
-        end
         Q = zeros (1, nboot(1));
         parfor h = 1:nboot(1)
           Q(h) = feval (func, data (bootsam (:, h), :));
         end
       else
-        try 
-          pool = gcp ('nocreate'); 
-          delete (pool);
-        catch
-          pool = [];
-        end
         % Evaluate maxstat on each bootstrap resample in SERIAL
         cellfunc = @(bootsam) feval (func, data (bootsam, :));
         Q = cellfun (cellfunc, num2cell (bootsam, 1));
