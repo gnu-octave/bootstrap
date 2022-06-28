@@ -944,11 +944,11 @@ function [p, c, stats] = ibootnhst (data, group, varargin)
   end
 
   % Define a function to calculate maxT
-  func = @(data) maxstat(data,g,nboot(2),bootfun,ref,clusters,strata);
+  func = @(data) maxstat (data, g, nboot(2), bootfun, ref, clusters, strata);
 
   % Perform resampling and calculate bootstrap statistics
   if isempty(clusters)
-    % Use newer, faster resampling function (boot)
+    % Use newer, faster and balanced (less biased) resampling function (boot)
     if ~isempty (strata)
       bootsam = zeros (N, nboot(1), 'int16');
       for i = 1:l
@@ -961,11 +961,11 @@ function [p, c, stats] = ibootnhst (data, group, varargin)
     end
     if isoctave
       % OCTAVE
-      func = @(bootsam) feval (func, data (bootsam, :));
+      cellfunc = @(bootsam) feval (func, data (bootsam, :));
       if paropt.UseParallel
-        Q = parcellfun(paropt.nproc, func, num2cell (bootsam, 1));
+        Q = parcellfun(paropt.nproc, cellfunc, num2cell (bootsam, 1));
       else
-        Q = cellfun (func, num2cell (bootsam, 1));
+        Q = cellfun (cellfunc, num2cell (bootsam, 1));
       end
     else
       % MATLAB
@@ -980,8 +980,8 @@ function [p, c, stats] = ibootnhst (data, group, varargin)
           Q(h) = feval (func, data (bootsam (:, h), :));
         end
       else
-        func = @(bootsam) feval (func, data (bootsam, :));
-        Q = cellfun (func, num2cell (bootsam, 1));
+        cellfunc = @(bootsam) feval (func, data (bootsam, :));
+        Q = cellfun (cellfunc, num2cell (bootsam, 1));
       end
     end
   else
