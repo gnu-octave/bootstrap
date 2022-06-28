@@ -948,28 +948,28 @@ function [p, c, stats] = ibootnhst (data, group, varargin)
     % MATLAB
     if paropt.UseParallel 
       % PARALLEL
-      if (nproc > 0) 
+      if (paropt.nproc > 0) 
         % MANUAL
         try 
           pool = gcp ('nocreate'); 
           if isempty (pool)
-            if (nproc > 1)
+            if (paropt.nproc > 1)
               % Start parallel pool with nproc workers
-              pool = parpool (nproc);
+              pool = parpool (paropt.nproc);
             else
               % Parallel pool is not running and nproc is 1 so run function evaluations in serial
               paropt.UseParallel = false;
             end
           else
-            if (pool.NumWorkers ~= nproc)
+            if (pool.NumWorkers ~= paropt.nproc)
               % Check if number of workers matches nproc and correct it accordingly if not
               delete (pool);
-              parpool (nproc);
+              parpool (paropt.nproc);
             end
           end
         catch
           % Parallel toolbox not installed, run function evaluations in serial
-          nproc = 1;
+          paropt.nproc = 1;
         end
       else
         % AUTOMATIC
@@ -980,7 +980,7 @@ function [p, c, stats] = ibootnhst (data, group, varargin)
             parpool;
           else
             % Parallel pool is already running, set nproc to the number of workers
-            nproc = pool.NumWorkers;
+            paropt.nproc = pool.NumWorkers;
           end
         catch
           % Parallel toolbox not installed, run function evaluations in serial
