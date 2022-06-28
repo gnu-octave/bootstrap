@@ -1007,7 +1007,7 @@ function [p, c, stats] = ibootnhst (data, group, varargin)
       if paropt.UseParallel
         % Evaluate maxstat on each bootstrap resample in PARALLEL 
         cellfunc = @(bootsam) feval (func, data (bootsam, :));
-        Q = parcellfun(paropt.nproc, cellfunc, num2cell (bootsam, 1));
+        Q = parcellfun(paropt.nproc, cellfunc, num2cell (bootsam, 1), 'ChunksPerProc', fix (nboot(1) / paropt.nproc));
       else
         % Evaluate maxstat on each bootstrap resample in SERIAL
         cellfunc = @(bootsam) feval (func, data (bootsam, :));
