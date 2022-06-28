@@ -378,6 +378,6 @@ function Y = quantile (X, P)
 
     % Simple quantile function utilizing empcdf
     [cdf,x] = empcdf (X,1);
-    Y = arrayfun ( @(p) interp1 (cdf, x, p, 'linear'), P)
+    Y = arrayfun ( @(p) interp1 (cdf, x, p, 'linear'), P);
     
 end
