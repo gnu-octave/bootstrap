@@ -357,7 +357,7 @@ function [stats, T1, bootsam] = bootknife (x, nboot, bootfun, alpha, strata, npr
       if isoctave
         % OCTAVE
         cellfunc = @(bootsam) feval (bootfun, x (bootsam, :));
-        T1 = parcellfun (nproc, cellfunc, num2cell (bootsam, 1));
+        T1 = parcellfun (nproc, cellfunc, num2cell (bootsam, 1), 'ChunksPerProc', 100);
       else
         % MATLAB
         T1 = zeros (1, B);
