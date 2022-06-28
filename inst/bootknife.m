@@ -24,7 +24,7 @@
 %  stats = bootknife(data,nboot,bootfun,alpha)
 %  stats = bootknife(data,nboot,bootfun,alpha,strata)
 %  stats = bootknife(data,nboot,bootfun,alpha,strata,nproc)
-%  stats = bootknife(data,[2000,0],@mean,0.05,[])      % Default values
+%  stats = bootknife(data,[2000,0],@mean,0.05,[],0)      % Default values
 %  [stats,bootstat] = bootknife(...)
 %  [stats,bootstat] = bootknife(...)
 %  [stats,bootstat,bootsam] = bootknife(...)
@@ -90,6 +90,13 @@
 %  bootknife resamples. If this input argument is not specified or is 
 %  empty, no stratification of resampling is performed. 
 %
+%  stats = bootknife(data,nboot,bootfun,alpha,strata,nproc) sets the
+%  number of processes to parallelize evaluations of bootfun on the  
+%  data resamples. This option is ignored if bootfun operations can 
+%  be vectorized. By default, nproc is 0, which switches parallel
+%  processing in Octave, or makes parallel usage automatic in Matlab 
+%  (i.e. dependent on whether parpool is already running).
+%
 %  [stats,bootstat] = bootknife(...) also returns bootstat, a vector of
 %  statistics calculated over the (first, or outer level of) bootknife 
 %  resamples. 
@@ -143,7 +150,7 @@
 %  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-function [stats, T1, idx] = bootknife (x, nboot, bootfun, alpha, strata, nproc, idx)
+function [stats, T1, bootsam] = bootknife (x, nboot, bootfun, alpha, strata, nproc, bootsam)
   
   % Check if running in Octave (else assume Matlab)
   info = ver; 
@@ -206,7 +213,7 @@ function [stats, T1, idx] = bootknife (x, nboot, bootfun, alpha, strata, nproc, 
     end
   end
   if nargin < 6
-    nproc = 1;
+    nproc = 0;
   elseif ~isempty (nproc) 
     if ~isa (nproc, 'numeric')
       error('nproc must be numeric');
@@ -248,9 +255,9 @@ function [stats, T1, idx] = bootknife (x, nboot, bootfun, alpha, strata, nproc, 
       out = @(x, j) x(j);
       func = @(x) out (bootfun(x), j); 
       if j > 1
-        [stats(:,j), T1(j,:)] = bootknife (x, nboot, func, alpha, strata, nproc, idx);
+        [stats(:,j), T1(j,:)] = bootknife (x, nboot, func, alpha, strata, nproc, bootsam);
       else
-        [stats(:,j), T1(j,:), idx] = bootknife (x, nboot, func, alpha, strata);
+        [stats(:,j), T1(j,:), bootsam] = bootknife (x, nboot, func, alpha, strata, nproc);
       end
     end
     return
@@ -277,24 +284,71 @@ function [stats, T1, idx] = bootknife (x, nboot, bootfun, alpha, strata, nproc, 
         vectorized = true;
       end
   end
+  
+  % If applicable, setup a parallel pool 
+  if ~isoctave
+    % MATLAB
+    if ~vectorized 
+      % bootfun is not vectorized
+      if (nproc > 0) 
+        % MANUAL
+        try 
+          pool = gcp ('nocreate'); 
+          if isempty (pool)
+            if (nproc > 1)
+              % Start parallel pool with nproc workers
+              parpool (nproc);
+            else
+              % Parallel pool is not running and nproc is 1 so run function evaluations in serial
+              nproc = 1;
+            end
+          else
+            if (pool.NumWorkers ~= nproc)
+              % Check if number of workers matches nproc and correct it accordingly if not
+              delete (pool);
+              parpool (nproc);
+            end
+          end
+        catch
+          % Parallel toolbox not installed, run function evaluations in serial
+          nproc = 1;
+        end
+      else
+        % AUTOMATIC
+        try 
+          pool = gcp ('nocreate'); 
+          if isempty (pool)
+            % Parallel pool not running, run function evaluations in serial
+            nproc = 1;
+          else
+            % Parallel pool is already running, set nproc to the number of workers
+            nproc = pool.NumWorkers;
+          end
+        catch
+          % Parallel toolbox not installed, run function evaluations in serial
+          nproc = 1;
+        end
+      end
+    end
+  end
 
   % Perform balanced bootknife resampling
   if nargin < 7
     if ~isempty (strata)
-      idx = zeros (n, B, 'int16');
+      bootsam = zeros (n, B, 'int16');
       for k = 1:K
-        idx(g(:, k),:) = boot (nk(k), B, true);
+        bootsam(g(:, k),:) = boot (nk(k), B, true);
         rows = find (g(:, k));
-        idx(g(:, k),:) = rows(idx(g(:, k), :));
+        bootsam(g(:, k),:) = rows(bootsam(g(:, k), :));
       end
     else
-      idx = boot (n, B, true);
+      bootsam = boot (n, B, true);
     end
   end
   if vectorized
     % Vectorized implementation of data sampling and evaluation of bootfun on the data
     % Perform data sampling
-    X = x(idx);
+    X = x(bootsam);
     % Function evaluation on bootknife sample
     T1 = feval (bootfun, X);
   else 
@@ -302,35 +356,19 @@ function [stats, T1, idx] = bootknife (x, nboot, bootfun, alpha, strata, nproc, 
       % Evaluate maxstat on each bootstrap resample in PARALLEL 
       if isoctave
         % OCTAVE
-        cellfunc = @(idx) feval (bootfun, x (idx, :));
-        T1 = parcellfun (nproc, cellfunc, num2cell (idx, 1));
+        cellfunc = @(bootsam) feval (bootfun, x (bootsam, :));
+        T1 = parcellfun (nproc, cellfunc, num2cell (bootsam, 1));
       else
         % MATLAB
-        try 
-          pool = gcp ('nocreate'); 
-          if isempty (pool)
-            pool = parpool (nproc);
-          else
-            if (pool.NumWorkers ~= nproc)
-              % Check if number of workers matches nproc and correct it accordingly
-              delete (pool);
-              parpool (nproc);
-            else
-              % Do nothing, the correct number of workers are in the parallel pool
-            end
-          end
-        catch
-          % Treat parfor loop as for loop if Parallel toolbox toolbox not present
-        end
         T1 = zeros (1, B);
         parfor h = 1:B
-          T1(h) = feval (bootfun, x (idx (:, h), :));
+          T1(h) = feval (bootfun, x (bootsam (:, h), :));
         end
       end
     else
       % Evaluate bootfun on each bootstrap resample in SERIAL
-      cellfunc = @(idx) feval (bootfun, x (idx, :));
-      T1 = cellfun (cellfunc, num2cell (idx, 1));
+      cellfunc = @(bootsam) feval (bootfun, x (bootsam, :));
+      T1 = cellfun (cellfunc, num2cell (bootsam, 1));
     end
   end
  
@@ -341,7 +379,7 @@ function [stats, T1, idx] = bootknife (x, nboot, bootfun, alpha, strata, nproc, 
     V = zeros (1, B);
     % Iterated bootstrap resampling for greater accuracy
     for b = 1:B
-      [~, T2] = bootknife (x(idx(:, b), :), [C, 0], bootfun, [], strata);
+      [~, T2] = bootknife (x(bootsam(:, b), :), [C, 0], bootfun, [], strata, nproc);
       % Use quick interpolation to find the probability that T2 <= T0
       I = (T2 <= T0);
       u = sum (I);
@@ -389,8 +427,24 @@ function [stats, T1, idx] = bootknife (x, nboot, bootfun, alpha, strata, nproc, 
         error('unable to calculate the bias correction z0')
       end
       % Use the Jackknife to calculate the acceleration constant
-      jackfun = @(i) feval (bootfun, x(1:n ~= i, :));
-      T = arrayfun (jackfun, 1:n);
+      if (nproc > 1)  
+        % Evaluate bootfun on each jacknife resample in PARALLEL 
+        if isoctave
+          % OCTAVE
+          jackfun = @(i) feval (bootfun, x(1:n ~= i, :));
+          T = arrayfun (nproc, jackfun, 1:n);
+        else
+          % MATLAB
+          T = zeros (n, 1);
+          parfor i = 1:n
+            T(i) = feval (bootfun, x(1:end ~= i, :));
+          end
+        end
+      else
+        % Evaluate bootfun on each jacknife resample in SERIAL
+        jackfun = @(i) feval (bootfun, x(1:n ~= i, :));
+        T = arrayfun (jackfun, 1:n);
+      end
       % Calculate empirical influence function
       if ~isempty(strata)
         gk = sum (g .* repmat (sum (g), n, 1), 2);
