@@ -428,7 +428,7 @@ function [stats, T1, bootsam] = bootknife (x, nboot, bootfun, alpha, strata, npr
       end
       % Use the Jackknife to calculate the acceleration constant
       if (nproc > 1)  
-        % Evaluate bootfun on each jacknife resample in PARALLEL 
+        % Evaluate bootfun on each jackknife resample in PARALLEL 
         if isoctave
           % OCTAVE
           jackfun = @(i) feval (bootfun, x(1:n ~= i, :));
@@ -441,7 +441,7 @@ function [stats, T1, bootsam] = bootknife (x, nboot, bootfun, alpha, strata, npr
           end
         end
       else
-        % Evaluate bootfun on each jacknife resample in SERIAL
+        % Evaluate bootfun on each jackknife resample in SERIAL
         jackfun = @(i) feval (bootfun, x(1:n ~= i, :));
         T = arrayfun (jackfun, 1:n);
       end
