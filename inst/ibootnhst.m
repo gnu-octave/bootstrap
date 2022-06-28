@@ -959,17 +959,14 @@ function [p, c, stats] = ibootnhst (data, group, varargin)
     else
       bootsam = boot (N, nboot(1), false);
     end
-    if isoctave
-      % OCTAVE
-      cellfunc = @(bootsam) feval (func, data (bootsam, :));
-      if paropt.UseParallel
+    if paropt.UseParallel
+      % Evaluate maxstat on each bootstrap resample in PARALLEL 
+      if isoctave
+        % OCTAVE
+        cellfunc = @(bootsam) feval (func, data (bootsam, :));
         Q = parcellfun(paropt.nproc, cellfunc, num2cell (bootsam, 1));
       else
-        Q = cellfun (cellfunc, num2cell (bootsam, 1));
-      end
-    else
-      % MATLAB
-      if paropt.UseParallel
+        % MATLAB
         try
           pool = gcp('nocreate');
         catch
@@ -979,10 +976,11 @@ function [p, c, stats] = ibootnhst (data, group, varargin)
         parfor h = 1:nboot(1)
           Q(h) = feval (func, data (bootsam (:, h), :));
         end
-      else
-        cellfunc = @(bootsam) feval (func, data (bootsam, :));
-        Q = cellfun (cellfunc, num2cell (bootsam, 1));
       end
+    else
+      % Evaluate maxstat on each bootstrap resample in SERIAL
+      cellfunc = @(bootsam) feval (func, data (bootsam, :));
+      Q = cellfun (cellfunc, num2cell (bootsam, 1));
     end
   else
     % Use legacy bootstrp function for two-stage nonparametric bootstrap sampling 
