@@ -158,12 +158,8 @@
 %                   Default is false for serial computation. In MATLAB,
 %                   the default is true if a parallel pool has already
 %                   been started.
-%   'nproc'       - The number of processors to use by Octave. Default
-%                   is the number of available processors. If you choose
-%                   In Matlab, nproc is ignored and the number of parallel
-%                   workers should be predefined beforehand by starting
-%                   a parallel pool, else it will use the preferred number
-%                   of workers.
+%   'nproc'       - The number of processors to use to accelerate 
+%                   computations. 
 % 
 %  ibootnhst(...,'alpha',alpha) specifies the two-tailed significance level
 %  for confidence interval coverage of 0 (in c).
