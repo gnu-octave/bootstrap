@@ -1,21 +1,21 @@
-%  Function File: ibootnhst
+%  Function File: bootnhst
 %
 %  Bootstrap null hypothesis significance test(s) (NHST)
 %
-%  ibootnhst(DATA,GROUP,...);
-%  ibootnhst(DATA,GROUP);
-%  ibootnhst(DATA,GROUP);
-%  ibootnhst(...,'bootfun',bootfun);
-%  ibootnhst(...,'bootfun',{bootfun,bootfun_args});
-%  ibootnhst(...,'nboot',nboot);
-%  ibootnhst(...,'ref',ref);
-%  ibootnhst(...,'block',blocks);    % for bootfun 'mean' or 'robust' only
-%  ibootnhst(...,'nested',clusters); % for bootfun 'mean' or 'robust' only
-%  ibootnhst(...,'Options',paropt);
-%  ibootnhst(...,'alpha',alpha);
-%  p = ibootnhst(...,'dim',dim)
-%  [p,c] = ibootnhst(DATA,GROUP,...)
-%  [p,c,stats] = ibootnhst(DATA,GROUP,...)
+%  bootnhst(DATA,GROUP,...);
+%  bootnhst(DATA,GROUP);
+%  bootnhst(DATA,GROUP);
+%  bootnhst(...,'bootfun',bootfun);
+%  bootnhst(...,'bootfun',{bootfun,bootfun_args});
+%  bootnhst(...,'nboot',nboot);
+%  bootnhst(...,'ref',ref);
+%  bootnhst(...,'block',blocks);    % for bootfun 'mean' or 'robust' only
+%  bootnhst(...,'nested',clusters); % for bootfun 'mean' or 'robust' only
+%  bootnhst(...,'Options',paropt);
+%  bootnhst(...,'alpha',alpha);
+%  p = bootnhst(...,'dim',dim)
+%  [p,c] = bootnhst(DATA,GROUP,...)
+%  [p,c,stats] = bootnhst(DATA,GROUP,...)
 %
 %  This function uses non-parametric (or semi-parametric) bootstrap for 
 %  null hypothesis (H0) significance testing on univariate (vector) or
@@ -28,15 +28,15 @@
 %  Thus, depending on the comparisons requested using the ref input   
 %  argument, the p-value adjustments are essentially bootstrap versions of 
 %  either Tukey-Kramer's or Dunnett's tests. Unlike these tests though, 
-%  ibootnhst does not make the normality assumption. Since DATA across the 
-%  GROUPs are resampled, as for a permutation test, ibootnhst assumes  
+%  bootnhst does not make the normality assumption. Since DATA across the 
+%  GROUPs are resampled, as for a permutation test, bootnhst assumes  
 %  exchangeability among the groups under the null hypothesis. The sampling 
 %  method used for bootstrap and bootknife is balanced, unless computations 
 %  are accelerated by parallel processing, in which case bootstrap sampling 
 %  (only) is no longer balanced. Note that this function will return an 
 %  error if any GROUP label is not represented by more than one data row. 
 %
-%  ibootnhst(DATA,GROUP) performs a k-sample bootstrap test where DATA is 
+%  bootnhst(DATA,GROUP) performs a k-sample bootstrap test where DATA is 
 %  a column vector or matrix, and GROUP is a vector or cell array the same 
 %  number of rows as DATA. GROUP contains numbers or strings which denote 
 %  GROUP labels. If the number of GROUPs (k) is 2, this is a 2-sample test. 
@@ -52,7 +52,7 @@
 %  error bars are red if p < .05 or blue if p > .05. The default alpha 
 %  level is 0.05, which produces 95% confidence intervals.
 %
-%  ibootnhst(...,'bootfun',bootfun) sets the statistic calculated from
+%  bootnhst(...,'bootfun',bootfun) sets the statistic calculated from
 %  the bootstrap samples. This can be a function handle, string or cell 
 %  array with the function handle or string in the first cell and input 
 %  arguments to that function in subsequent cells. The calculation of 
@@ -74,7 +74,7 @@
 %  the mean, the t-statistics returned by this function will not be 
 %  comparable with tabulated values.  
 %
-%  ibootnhst(...,'nboot',nboot) is a vector of upto two positive integers
+%  bootnhst(...,'nboot',nboot) is a vector of upto two positive integers
 %  indicating the number of replicate samples for the first (bootstrap) 
 %  and second (bootknife) levels of iterated resampling. The default
 %  value of nboot is [1000,200]. If a scalar value is provided for nboot,
@@ -83,11 +83,11 @@
 %  200. Increasing the values of nboot reduces the Monte Carlo error of  
 %  the p-value (and confidence interval) estimates but the calculations  
 %  take longer to complete. If nboot(2) is explicitly set to 0 (or if a 
-%  hierarchical data structure is defined with 'nested') then ibootnhst 
+%  hierarchical data structure is defined with 'nested') then bootnhst 
 %  calculates standard errors for studentization using jackknife (or 
 %  cluster-jackknife) resampling instead.
 %
-%  ibootnhst(...,'ref',ref) also sets the GROUP to use as the reference 
+%  bootnhst(...,'ref',ref) also sets the GROUP to use as the reference 
 %  GROUP for post hoc tests. For a one-way experimental design or family 
 %  of tests, this will usually be a control GROUP. If all pairwise 
 %  comparisons are desired, then set ref to 'pairwise' or leave empty. 
@@ -115,29 +115,29 @@
 %        the GROUP ref with respect to the parameter defined by bootfun (which   
 %        by default is the mean).  
 %
-%  ibootnhst(...,'block',blocks) specifies a column vector of numeric 
+%  bootnhst(...,'block',blocks) specifies a column vector of numeric 
 %  identifiers with the same number of rows as DATA. The identifiers should 
 %  indicate block membership of the data rows. Data in a data block are 
 %  centered and the resampling is stratified to impose restrictions on the
 %  exchangeability of data to within blocks. Since the data must be centered
 %  using bootfun, this feature only supports location parameters, of which
-%  ibootnhst supports bootfun being either 'mean' or 'robust'. This option
+%  bootnhst supports bootfun being either 'mean' or 'robust'. This option
 %  is appropriate when the family of tests has a randomized block design or
 %  one-way repeated measures layout. See end of this help for an example. The
 %  'block' option here should not be confused with the block option in ibootci.
 %
-%  ibootnhst(...,'nested',clusters) specifies a column vector of numeric 
+%  bootnhst(...,'nested',clusters) specifies a column vector of numeric 
 %  identifiers with the same number of rows as DATA. The identifiers should 
 %  indicate subgroups (a.k.a clusters) of the data rows nested within the 
 %  GROUPs. The clusters are resampled by two-stage bootstrap resampling of 
 %  residuals with shrinkage correction (see bootstrp help for more 
 %  information). For multivariate data, the residuals are calculated as the 
 %  difference of the data values from the column-wise mean vector. Because 
-%  specifying clusters causes ibootnhst to resample residuals, the bootstrap 
+%  specifying clusters causes bootnhst to resample residuals, the bootstrap 
 %  becomes semi-parametric. The clusters input argument can be used to 
 %  accomodate for a single level of nesting in heirarchical data structures. 
 %  Since the bootstrap becomes semiparametric, this feature only supports 
-%  location parameters, of which ibootnhst supports bootfun being either 
+%  location parameters, of which bootnhst supports bootfun being either 
 %  'mean' or 'robust'. This resampling strategy is appropriate when the 
 %  family of tests has a split plot design layout, and is a bootstrap 
 %  version of a nested 1-way ANOVA. See end of this help for an example of 
@@ -147,7 +147,7 @@
 %  ignored since specifying cluster identifiers enforces cluster-jackknife 
 %  to compute standard errors. If empty, this argument is ignored. 
 %
-%  ibootnhst(...,'Options',paropt) specifies options that govern if and 
+%  bootnhst(...,'Options',paropt) specifies options that govern if and 
 %  how to perform bootstrap iterations using multiple processors (if the 
 %  Parallel Computing Toolbox or Octave Forge package is available). If 
 %  empty, calculations are performed in serial.
@@ -161,24 +161,24 @@
 %   'nproc'       - The number of processors to use to accelerate 
 %                   computations. 
 % 
-%  ibootnhst(...,'alpha',alpha) specifies the two-tailed significance level
+%  bootnhst(...,'alpha',alpha) specifies the two-tailed significance level
 %  for confidence interval coverage of 0 (in c).
 %
-%  ibootnhst(...,'dim',dim) specifies which dimension to average over the
+%  bootnhst(...,'dim',dim) specifies which dimension to average over the
 %  DATA first when DATA is a matrix. dim can take values of 1 or 2. Note
 %  that while setting dim can affect the result when bootfun is the median,
 %  both values give the same result when bootfun is the mean (i.e. for the
 %  grand mean). This name-value pair is only used if bootfun is 'mean', 
 %  'median', 'smoothmedian', or 'robust'.
 %
-%  p = ibootnhst(DATA,GROUP) returns a single p-value for the overall,
+%  p = bootnhst(DATA,GROUP) returns a single p-value for the overall,
 %  omnibus hypothesis test and represents the multiplicity-adjusted p-value 
 %  for the maximum t-statistic from the set of comparisons (relevant to the 
 %  test of the overall null hypothesis, see below). Note that the p-value 
 %  returned will be truncated at the resolution limit determined by the 
 %  number of bootstrap replicates, specifically 1/nboot(1). 
 %
-%  [p, c] = ibootnhst(DATA,GROUP,...) also returns a 9 column matrix that
+%  [p, c] = bootnhst(DATA,GROUP,...) also returns a 9 column matrix that
 %  summarises post hoc test results. The family-wise error rate is 
 %  simultaneously controlled since the null distribution for each test 
 %  represents the maximum studentized test statistic of the resamples. 
@@ -198,7 +198,7 @@
 %  the confidence interval limits returned columns 8 and 9 are 
 %  corrected/adjusted to control the FWER.
 %
-%  [p,c,stats] = ibootnhst(DATA,GROUP,...) also returns a structure 
+%  [p,c,stats] = bootnhst(DATA,GROUP,...) also returns a structure 
 %  containing additional statistics. The stats structure contains the 
 %  following fields:
 %
@@ -218,11 +218,11 @@
 %   clusters - vector of numeric identifiers indicating cluster membership
 %   bootstat - test statistic computed for each bootstrap resample 
 %
-%  [...] = ibootnhst(...,'DisplayOpt',logical) a logical value (true or 
+%  [...] = bootnhst(...,'DisplayOpt',logical) a logical value (true or 
 %  false) is used to specify whether to display and graph the results in 
 %  addition to creating the output arguments. The default is true.
 %
-%  Many examples of using ibootnhst to analyse data obtained from a 
+%  Many examples of using bootnhst to analyse data obtained from a 
 %  variety of experimental designs:
 %
 %
@@ -237,7 +237,7 @@
 %           1 2 3 4 5 6 7;
 %           1 2 3 4 5 6 7;
 %           1 2 3 4 5 6 7];
-%   >> ibootnhst (y(:),g(:),'ref',1,'nboot',5000);
+%   >> bootnhst (y(:),g(:),'ref',1,'nboot',5000);
 %
 % Summary of bootstrap null hypothesis (H0) significance test(s)
 % ******************************************************************************
@@ -282,7 +282,7 @@
 %           1 2 3 4 5 6 7;
 %           1 2 3 4 5 6 7;
 %           1 2 3 4 5 6 7];
-%   >> ibootnhst (y(:),g(:),'ref',1,'nboot',5000,'bootfun','robust');
+%   >> bootnhst (y(:),g(:),'ref',1,'nboot',5000,'bootfun','robust');
 %
 % Summary of bootstrap null hypothesis (H0) significance test(s)
 % ******************************************************************************
@@ -332,7 +332,7 @@
 %           'male' 'female'
 %           'male' 'female'
 %           'male' 'female'};
-%   >> ibootnhst (y(:),g(:),'ref','male','nboot',5000);
+%   >> bootnhst (y(:),g(:),'ref','male','nboot',5000);
 %
 % Summary of bootstrap null hypothesis (H0) significance test(s)
 % ******************************************************************************
@@ -357,7 +357,7 @@
 %            1   2   3
 %            1   2   3
 %            1   2   3];
-%   >> ibootnhst (y(:),g(:),'nboot',5000);
+%   >> bootnhst (y(:),g(:),'nboot',5000);
 %
 % Summary of bootstrap null hypothesis (H0) significance test(s)
 % ******************************************************************************
@@ -400,7 +400,7 @@
 %                   1    2    3    4    5    6    7    8    9
 %                   1    2    3    4    5    6    7    8    9
 %                   1    2    3    4    5    6    7    8    9];
-%   >> ibootnhst(y(:),g(:),'nested',clusters(:),'nboot',5000);
+%   >> bootnhst(y(:),g(:),'nested',clusters(:),'nboot',5000);
 %
 % Summary of bootstrap null hypothesis (H0) significance test(s)
 % ******************************************************************************
@@ -446,7 +446,7 @@
 %                  3    3
 %                  4    4
 %                  5    5];
-%   >> ibootnhst (y(:),g(:),'block',blocks(:),'nboot',5000);   
+%   >> bootnhst (y(:),g(:),'block',blocks(:),'nboot',5000);   
 %
 % Summary of bootstrap null hypothesis (H0) significance test(s)
 % ******************************************************************************
@@ -474,7 +474,7 @@
 %                 3  3  3  3
 %                 4  4  4  4 
 %                 5  5  5  5];
-%   >> ibootnhst (y(:),g(:),'block',blocks(:),'nboot',5000);
+%   >> bootnhst (y(:),g(:),'block',blocks(:),'nboot',5000);
 %
 % Summary of bootstrap null hypothesis (H0) significance test(s)
 % ******************************************************************************
@@ -521,7 +521,7 @@
 %           2
 %           3
 %           3];
-%   >> ibootnhst (y,g,'nboot',5000);
+%   >> bootnhst (y,g,'nboot',5000);
 %
 % Summary of bootstrap null hypothesis (H0) significance test(s)
 % ******************************************************************************
@@ -558,7 +558,7 @@
 %            1
 %            2
 %            2];
-%   >> ibootnhst (y,g,'nboot',5000);
+%   >> bootnhst (y,g,'nboot',5000);
 %
 % Summary of bootstrap null hypothesis (H0) significance test(s)
 % ******************************************************************************
@@ -583,7 +583,7 @@
 %                   2     2     2     2     2
 %                   3     3     3     3     3
 %                   4     4     4     4     4];
-%   >> ibootnhst (y(:),g(:),'block',blocks(:),'ref',1,'nboot',5000);
+%   >> bootnhst (y(:),g(:),'block',blocks(:),'ref',1,'nboot',5000);
 %
 % Summary of bootstrap null hypothesis (H0) significance test(s)
 % ******************************************************************************
@@ -617,7 +617,7 @@
 %                NaN   NaN   NaN   NaN   NaN
 %                  1     2     3     4     5
 %                  1     2     3     4     5 ];
-%   >> ibootnhst (y(:),g(:),'block',blocks(:),'ref',1,'nboot',5000);
+%   >> bootnhst (y(:),g(:),'block',blocks(:),'ref',1,'nboot',5000);
 %
 % Summary of bootstrap null hypothesis (H0) significance test(s)
 % ******************************************************************************
@@ -658,7 +658,7 @@
 %             23  19  26  29  25  32  29  26  33 30];
 %   >> g = [   1   1   1   1   1   2   2   2   2   2 
 %            NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN]; 
-%   >> ibootnhst (y(:),g(:),'nboot',5000);
+%   >> bootnhst (y(:),g(:),'nboot',5000);
 %
 % Summary of bootstrap null hypothesis (H0) significance test(s)
 % ******************************************************************************
@@ -670,7 +670,7 @@
 %    
 %   >> g = [ NaN NaN NaN NaN NaN NaN NaN NaN NaN NaN
 %              1   1   1   1   1   2   2   2   2   2];
-%   >> ibootnhst (y(:),g(:),'nboot',5000);
+%   >> bootnhst (y(:),g(:),'nboot',5000);
 %    
 % Summary of bootstrap null hypothesis (H0) significance test(s)
 % ******************************************************************************
@@ -688,7 +688,7 @@
 %        Sampling vs. Smoothing, Proceedings of the Section on Statistics 
 %        and the Environment, American Statistical Association, 2924-2930.
 %
-%  ibootnhst v1.9.0.0 (27/06/2022)
+%  bootnhst v2.0.0.0 (28/06/2022)
 %  Author: Andrew Charles Penn
 %  https://www.researchgate.net/profile/Andrew_Penn/
 %
@@ -707,7 +707,7 @@
 %  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-function [p, c, stats] = ibootnhst (data, group, varargin)
+function [p, c, stats] = bootnhst (data, group, varargin)
 
   % Check if running in Octave (else assume Matlab)
   info = ver; 
@@ -754,7 +754,7 @@ function [p, c, stats] = ibootnhst (data, group, varargin)
       elseif any(strcmpi(argin3{end-1},{'block','blocks','stratum','strata','stratified'}))
         strata = argin3{end};
       else
-        error('unrecognised input argument to ibootnhst')
+        error('unrecognised input argument to bootnhst')
       end
       argin3 = {argin3{1:end-2}};
       narg = numel(argin3);
@@ -765,10 +765,10 @@ function [p, c, stats] = ibootnhst (data, group, varargin)
   end
 
   % Error checking
-  % Check and process ibootnhst input arguments
+  % Check and process bootnhst input arguments
   nvar = size(data,2);
   if (nargin < 2)
-    error('ibootnhst requires atleast two input arguments');
+    error('bootnhst requires atleast two input arguments');
   end
   if ischar(group)
     group = cellstr(group);
@@ -875,7 +875,7 @@ function [p, c, stats] = ibootnhst (data, group, varargin)
     error('strata and cluster options cannot be used together')
   end
   if nargout > 3
-    error('ibootnhst only supports up to 3 output arguments')
+    error('bootnhst only supports up to 3 output arguments')
   end
 
   % Data or group exclusion using NaN 
