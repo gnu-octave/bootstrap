@@ -342,9 +342,9 @@ function [stats, T1, idx] = bootknife (x, nboot, bootfun, alpha, strata, idx)
         error('unable to calculate the bias correction z0')
       end
       % Use the Jackknife to calculate the acceleration constant
-      T = zeros (n,1);
-      jackfun = @(i) feval (bootfun, x(1:n ~= i, :))
-      T = feval (jackfun, num2cell(1:n));
+      jackfun = @(i) feval (bootfun, x(1:n ~= i, :));
+      T = arrayfun (jackfun, 1:n);
+      %T = zeros (n,1);
       %for i = 1:n
       %  T(i) = feval (bootfun, x(1:end ~= i, :));
       %end
