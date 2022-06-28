@@ -959,28 +959,52 @@ function [p, c, stats] = ibootnhst (data, group, varargin)
     else
       bootsam = boot (N, nboot(1), false);
     end
-    if paropt.UseParallel
-      % Evaluate maxstat on each bootstrap resample in PARALLEL 
-      if isoctave
-        % OCTAVE
+    if isoctave
+      % OCTAVE
+      if paropt.UseParallel
+        % Evaluate maxstat on each bootstrap resample in PARALLEL 
         cellfunc = @(bootsam) feval (func, data (bootsam, :));
         Q = parcellfun(paropt.nproc, cellfunc, num2cell (bootsam, 1));
       else
-        % MATLAB
-        try
-          pool = gcp('nocreate');
+        % Evaluate maxstat on each bootstrap resample in SERIAL
+        cellfunc = @(bootsam) feval (func, data (bootsam, :));
+        Q = cellfun (cellfunc, num2cell (bootsam, 1));
+      end
+    else
+      % MATLAB
+      if paropt.UseParallel
+        % Evaluate maxstat on each bootstrap resample in PARALLEL 
+        try 
+          pool = gcp ('nocreate'); 
+          if isempty (pool)
+            pool = parpool (paropt.nproc);
+          else
+            if (pool.NumWorkers ~= paropt.nproc)
+              % Check if number of workers matches nproc and correct it accordingly
+              delete (pool);
+              parpool (paropt.nproc);
+            else
+              % Do nothing, the correct number of workers are in the parallel pool
+            end
+          end
         catch
-          pool = [];
+          % Treat parfor loop as for loop if Parallel toolbox toolbox not present
         end
         Q = zeros (1, nboot(1));
         parfor h = 1:nboot(1)
           Q(h) = feval (func, data (bootsam (:, h), :));
         end
+      else
+        try 
+          pool = gcp ('nocreate'); 
+          delete (pool);
+        catch
+          pool = [];
+        end
+        % Evaluate maxstat on each bootstrap resample in SERIAL
+        cellfunc = @(bootsam) feval (func, data (bootsam, :));
+        Q = cellfun (cellfunc, num2cell (bootsam, 1));
       end
-    else
-      % Evaluate maxstat on each bootstrap resample in SERIAL
-      cellfunc = @(bootsam) feval (func, data (bootsam, :));
-      Q = cellfun (cellfunc, num2cell (bootsam, 1));
     end
   else
     % Use legacy bootstrp function for two-stage nonparametric bootstrap sampling 
