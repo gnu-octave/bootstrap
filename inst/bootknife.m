@@ -23,6 +23,7 @@
 %  stats = bootknife(data,nboot,{bootfun,bootfun_args})
 %  stats = bootknife(data,nboot,bootfun,alpha)
 %  stats = bootknife(data,nboot,bootfun,alpha,strata)
+%  stats = bootknife(data,nboot,bootfun,alpha,strata,nproc)
 %  stats = bootknife(data,[2000,0],@mean,0.05,[])      % Default values
 %  [stats,bootstat] = bootknife(...)
 %  [stats,bootstat] = bootknife(...)
@@ -142,7 +143,11 @@
 %  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-function [stats, T1, idx] = bootknife (x, nboot, bootfun, alpha, strata, idx)
+function [stats, T1, idx] = bootknife (x, nboot, bootfun, alpha, strata, nproc, idx)
+  
+  % Check if running in Octave (else assume Matlab)
+  info = ver; 
+  isoctave = any (ismember ({info.Name}, "Octave"));
   
   % Error checking
   if nargin < 1
@@ -162,7 +167,7 @@ function [stats, T1, idx] = bootknife (x, nboot, bootfun, alpha, strata, idx)
       if any (nboot ~= abs (fix (nboot)))
         error ('nboot must contain positive integers')
       end    
-      if numel (nboot)>3
+      if (numel (nboot) > 3)
         error ('nboot cannot contain more than 2 values')
       end
     end
@@ -200,6 +205,19 @@ function [stats, T1, idx] = bootknife (x, nboot, bootfun, alpha, strata, idx)
       error('strata must be a column vector with the same number of rows as the data')
     end
   end
+  if nargin < 6
+    nproc = 1;
+  elseif ~isempty (nproc) 
+    if ~isa (nproc, 'numeric')
+      error('nproc must be numeric');
+    end
+    if any (nproc ~= abs (fix (nproc)))
+      error ('nproc must contain positive integers')
+    end    
+    if (numel (nproc) > 3)
+      error ('nproc cannot contain more than 2 values')
+    end
+  end
 
   % Determine properties of the data (x)
   sz = size(x);
@@ -230,7 +248,7 @@ function [stats, T1, idx] = bootknife (x, nboot, bootfun, alpha, strata, idx)
       out = @(x, j) x(j);
       func = @(x) out (bootfun(x), j); 
       if j > 1
-        [stats(:,j), T1(j,:)] = bootknife (x, nboot, func, alpha, strata, idx);
+        [stats(:,j), T1(j,:)] = bootknife (x, nboot, func, alpha, strata, nproc, idx);
       else
         [stats(:,j), T1(j,:), idx] = bootknife (x, nboot, func, alpha, strata);
       end
@@ -261,7 +279,7 @@ function [stats, T1, idx] = bootknife (x, nboot, bootfun, alpha, strata, idx)
   end
 
   % Perform balanced bootknife resampling
-  if nargin < 6
+  if nargin < 7
     if ~isempty (strata)
       idx = zeros (n, B, 'int16');
       for k = 1:K
@@ -280,12 +298,39 @@ function [stats, T1, idx] = bootknife (x, nboot, bootfun, alpha, strata, idx)
     % Function evaluation on bootknife sample
     T1 = feval (bootfun, X);
   else 
-    % Serial implementation of data sampling and evaluation of bootfun on the data
-    for b = 1:B
-      % Perform data sampling
-      X = x(idx(:, b), :);
-      % Function evaluation on bootknife sample
-      T1(b) = feval (bootfun, X);
+    if (nproc > 1)
+      % Evaluate maxstat on each bootstrap resample in PARALLEL 
+      if isoctave
+        % OCTAVE
+        cellfunc = @(idx) feval (bootfun, x (idx, :));
+        T1 = parcellfun (nproc, cellfunc, num2cell (idx, 1));
+      else
+        % MATLAB
+        try 
+          pool = gcp ('nocreate'); 
+          if isempty (pool)
+            pool = parpool (nproc);
+          else
+            if (pool.NumWorkers ~= nproc)
+              % Check if number of workers matches nproc and correct it accordingly
+              delete (pool);
+              parpool (nproc);
+            else
+              % Do nothing, the correct number of workers are in the parallel pool
+            end
+          end
+        catch
+          % Treat parfor loop as for loop if Parallel toolbox toolbox not present
+        end
+        T1 = zeros (1, B);
+        parfor h = 1:B
+          T1(h) = feval (bootfun, x (idx (:, h), :));
+        end
+      end
+    else
+      % Evaluate bootfun on each bootstrap resample in SERIAL
+      cellfunc = @(idx) feval (bootfun, x (idx, :));
+      T1 = cellfun (cellfunc, num2cell (idx, 1));
     end
   end
  
