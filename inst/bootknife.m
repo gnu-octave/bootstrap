@@ -344,10 +344,6 @@ function [stats, T1, idx] = bootknife (x, nboot, bootfun, alpha, strata, idx)
       % Use the Jackknife to calculate the acceleration constant
       jackfun = @(i) feval (bootfun, x(1:n ~= i, :));
       T = arrayfun (jackfun, 1:n);
-      %T = zeros (n,1);
-      %for i = 1:n
-      %  T(i) = feval (bootfun, x(1:end ~= i, :));
-      %end
       % Calculate empirical influence function
       if ~isempty(strata)
         gk = sum (g .* repmat (sum (g), n, 1), 2);
@@ -381,12 +377,7 @@ end
 function Y = quantile (X, P) 
 
     % Simple quantile function utilizing empcdf
-    sz = size (P);
-    n = prod (sz);
-    Y = zeros (sz);
     [cdf,x] = empcdf (X,1);
-    for i = 1:n
-      Y(i) = interp1 (cdf, x, P(i), 'linear');
-    end
+    Y = arrayfun ( @(p) interp1 (cdf, x, p, 'linear'), P)
     
 end
