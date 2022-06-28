@@ -363,8 +363,8 @@ function [stats, T1, idx] = bootknife (x, nboot, bootfun, alpha, strata, idx)
       % Calculate BCa percentiles
       z1 = stdnorminv(alpha / 2);
       z2 = stdnorminv(1 - alpha / 2);
-      l = cat(2, stdnormcdf (z0 + ((z0 + z1) / (1 - a * (z0 + z1)))),... 
-                 stdnormcdf (z0 + ((z0 + z2) / (1 - a * (z0 + z2)))));
+      l = cat (2, stdnormcdf (z0 + ((z0 + z1) / (1 - a * (z0 + z1)))),... 
+                  stdnormcdf (z0 + ((z0 + z2) / (1 - a * (z0 + z2)))));
       ci = quantile (T1, l);
     else
       ci = nan (1, 2);
@@ -376,3 +376,15 @@ function [stats, T1, idx] = bootknife (x, nboot, bootfun, alpha, strata, idx)
   
 end
 
+function Y = quantile (X, P) 
+
+    % Simple quantile function utilizing empcdf
+    sz = size (P);
+    n = prod (sz);
+    Y = zeros (sz);
+    [cdf,x] = empcdf (X,1);
+    for i = 1:n
+      Y(i) = interp1 (cdf, x, P(i), 'linear');
+    end
+    
+end
