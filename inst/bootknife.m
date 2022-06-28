@@ -320,9 +320,11 @@ function [stats, T1, idx] = bootknife (x, nboot, bootfun, alpha, strata, idx)
     se = std (T1, 1);
     if ~isempty(alpha)
       % Calibrate tail probabilities to half of alpha
-      l = quantile (U, [alpha / 2, 1 - alpha / 2]);
+      [cdf, u] = empcdf (U, 1);
+      l = arrayfun ( @(p) interp1 (cdf, u, p, 'linear'), [alpha / 2, 1 - alpha / 2]);
       % Calibrated percentile bootstrap confidence intervals
-      ci = quantile (T1, l);
+      [cdf, t1] = empcdf (T1, 1);
+      ci = arrayfun ( @(p) interp1 (cdf, t1, p, 'linear'), l);
     else
       ci = nan (1, 2);
     end
@@ -363,7 +365,8 @@ function [stats, T1, idx] = bootknife (x, nboot, bootfun, alpha, strata, idx)
       z2 = stdnorminv(1 - alpha / 2);
       l = cat (2, stdnormcdf (z0 + ((z0 + z1) / (1 - a * (z0 + z1)))),... 
                   stdnormcdf (z0 + ((z0 + z2) / (1 - a * (z0 + z2)))));
-      ci = quantile (T1, l);
+      [cdf, t1] = empcdf (T1, 1);
+      ci = arrayfun ( @(p) interp1 (cdf, t1, p, 'linear'), l);
     else
       ci = nan (1, 2);
     end
@@ -374,10 +377,3 @@ function [stats, T1, idx] = bootknife (x, nboot, bootfun, alpha, strata, idx)
   
 end
 
-function Y = quantile (X, P) 
-
-    % Simple quantile function utilizing empcdf
-    [cdf,x] = empcdf (X,1);
-    Y = arrayfun ( @(p) interp1 (cdf, x, p, 'linear'), P);
-    
-end
