@@ -253,7 +253,7 @@ function [stats, T1, bootsam] = bootknife (x, nboot, bootfun, alpha, strata, npr
     T1 = zeros (m, B);
     for j = 1:m
       out = @(x, j) x(j);
-      func = @(x) out (bootfun(x), j); 
+      func = @(x) out(bootfun(x), j); 
       if j > 1
         [stats(:,j), T1(j,:)] = bootknife (x, nboot, func, alpha, strata, nproc, bootsam);
       else
@@ -432,7 +432,7 @@ function [stats, T1, bootsam] = bootknife (x, nboot, bootfun, alpha, strata, npr
         if isoctave
           % OCTAVE
           jackfun = @(i) feval (bootfun, x(1:n ~= i, :));
-          T = arrayfun (nproc, jackfun, 1:n);
+          T = pararrayfun (nproc, jackfun, 1:n);
         else
           % MATLAB
           T = zeros (n, 1);
