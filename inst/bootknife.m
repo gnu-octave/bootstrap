@@ -353,7 +353,7 @@ function [stats, T1, bootsam] = bootknife (x, nboot, bootfun, alpha, strata, npr
     T1 = feval (bootfun, X);
   else 
     if (nproc > 1)
-      % Evaluate maxstat on each bootstrap resample in PARALLEL 
+      % Evaluate bootfun on each bootstrap resample in PARALLEL 
       if isoctave
         % OCTAVE
         cellfunc = @(bootsam) feval (bootfun, x (bootsam, :));
