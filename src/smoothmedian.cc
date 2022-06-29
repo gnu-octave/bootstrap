@@ -128,7 +128,6 @@ DEFUN_DLD (smoothmedian, args, ,
     // Check that there are no inf or nan values in the data
     if (x.any_element_is_inf_or_nan ()) {
         error("x cannot contain Inf or NaN values \n");
-        return octave_value ();
     }
     
     // If applicable, switch dimension
