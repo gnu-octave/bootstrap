@@ -47,6 +47,12 @@ else
     % backwards compatibility
     path2rc;
   end
+  try 
+    mex -setup c++
+    mex -compatibleArrayDims -outdir ./inst ./src/boot.cpp
+  catch
+    warning ('Could not compile boot.mex. Falling back to the (slower) boot.m file.')
+  end
 end
 
 % Notify user that installation is complete
