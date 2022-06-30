@@ -47,8 +47,13 @@ else
     % backwards compatibility
     path2rc;
   end
-  mex -setup c++
-  try 
+  try  
+    mex -setup c++
+  catch
+    err = lasterror();
+    disp(err.message);
+  end
+  try
     mex -compatibleArrayDims -outdir ./inst ./src/boot.cpp
   catch
     warning ('Could not compile boot.mex. Falling back to the (slower) boot.m file.')
