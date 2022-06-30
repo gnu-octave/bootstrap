@@ -137,8 +137,8 @@ DEFUN_DLD (smoothmedian, args, ,
       
     // Check data dimensions
     const dim_vector sz = x.dims ();
-    short int m;
-    short int n;
+    int m;
+    int n;
     if (sz(0) == 1) {
         // If row vector, switch dimensions
         m = sz(1);
