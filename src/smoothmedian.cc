@@ -135,10 +135,19 @@ DEFUN_DLD (smoothmedian, args, ,
         x = x.transpose ();
     }
       
-    // Obtain data dimensions
+    // Check data dimensions
     const dim_vector sz = x.dims ();
-    short int m = sz(0);
-    short int n = sz(1);
+    short int m;
+    short int n;
+    if (sz(0) == 1) {
+        // If row vector, switch dimensions
+        m = sz(1);
+        n = sz(0);
+        x = x.transpose ();
+    } else {
+        m = sz(0);
+        n = sz(1);
+    }
     
     // Calculate basic statistics for each column of the data
     Matrix xsort = x.sort ();
