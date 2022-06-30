@@ -188,6 +188,10 @@ function [stats, T1, bootsam] = bootknife (x, nboot, bootfun, alpha, strata, npr
       bootfun = @(x) feval(func, x, args{:});
     end
     if ischar (bootfun)
+      % Interpret 'robust' as smoothmedian
+      if strcmpi(bootfun,'robust')
+        bootfun = 'smoothmedian';
+      end
       % Convert character string of a function name to a function handle
       bootfun = str2func (bootfun);
     end

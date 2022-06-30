@@ -1,4 +1,4 @@
-% Function file (boot.m) for generating bootstrap sample indices
+% Function file for generating bootstrap sample indices
 %
 % USAGE
 % bootsam = boot (n, nboot)

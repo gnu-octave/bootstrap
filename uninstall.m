@@ -32,8 +32,8 @@ if isoctave
   if exist ('./inst/boot.oct')
     delete ('./inst/boot.oct');
   end
-  if exist ('./inst//param/smoothmedian.oct')
-    delete ('./inst//param/smoothmedian.oct');
+  if exist ('./inst/param/smoothmedian.oct')
+    delete ('./inst/param/smoothmedian.oct');
   end
   % Unload package from current session
   run (fullfile(pwd,'PKG_DEL.m'));
@@ -45,6 +45,10 @@ else
   else
     % backwards compatibility
     path2rc;
+  end
+  path_to_boot = sprintf ('./inst/boot.%s',mexext);
+  if exist (path_to_boot)
+    delete (path_to_boot);
   end
 end
 
