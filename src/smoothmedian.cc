@@ -124,6 +124,9 @@ DEFUN_DLD (smoothmedian, args, ,
     } else {
         dim = args(1).int_value();
     }
+    if (args.length () > 2) {
+        Tol = args(2).double_value();
+    }
     
     // Check that there are no inf or nan values in the data
     if (x.any_element_is_inf_or_nan ()) {
@@ -175,13 +178,11 @@ DEFUN_DLD (smoothmedian, args, ,
     double v;
     double U;
     
-    // Loop through each column of the data 
+    // Loop through each column of the data and apply smoothing
     int MaxIter = 500;
     for (int k = 0; k < n ; k++) {
         if (args.length () < 3) {
             Tol = *(ptrRANGE + k) * 1e-4; 
-        } else {
-            Tol = args(2).double_value();
         }
         // Using the (ordinary) median as the starting value, find the smoothed median
         // Set initial bracket bounds
