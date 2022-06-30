@@ -47,14 +47,38 @@ void mexFunction (int nlhs, mxArray* plhs[],
 {
   
     // Input variables
+    if (nrhs < 2) {
+        mexErrMsgIdAndTxt("boot:FunctionUsage","function requires at least 2 scalar input arguments");
+    }
+    // First input argument
     const short int n = *(mxGetPr(prhs[0]));
+    if (mxGetNumberOfElements (prhs[0]) > 1) {
+        mexErrMsgIdAndTxt("boot:FunctionUsage","the first input argument must be scalar");
+    }
+    if (n <= 0) {
+        mexErrMsgIdAndTxt("boot:FunctionUsage","the first input argument must be a positive integer");
+    }
+    // Second input argument
     const int nboot = *(mxGetPr(prhs[1]));
+    if (mxGetNumberOfElements (prhs[1]) > 1) {
+        mexErrMsgIdAndTxt("boot:FunctionUsage","the second input argument must be scalar");
+    }
+    if (nboot <= 0) {
+        mexErrMsgIdAndTxt("boot:FunctionUsage","the second input argument must be a positive integer");
+    }
+    // Third input argument
     bool u;
     if (nrhs < 3) {
         u = false;
     } else {
         u = *(mxGetPr(prhs[2]));
     }    
+    
+    // Output variables
+    if (nlhs > 1) {
+        mexErrMsgIdAndTxt("boot:FunctionUsage","function can only return a single output arguments");
+    }
+    
     // Declare variables
     mwSize dims[2] = {n,nboot};
     plhs[0] = mxCreateNumericArray(2, dims, 
