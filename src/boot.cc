@@ -73,10 +73,25 @@ DEFUN_DLD (boot, args, ,
 
     // Input variables
     if (args.length () < 2) {
-        print_usage ();
+        error("function requires at least 2 scalar input arguments");
     }
+    // First input argument
     const short int n = args(0).int_value ();
+    if (args(0).numel() > 1) {
+        error("the first input argument must be scalar");
+    }
+    if (n <= 0) {
+        error("the first input argument must be a positive integer");
+    }
+    // Second input argument
     const int nboot = args(1).int_value ();
+    if (args(1).numel() > 1) {
+        error("the second input argument must be scalar");
+    }
+    if (nboot <= 0) {
+        error("the second input argument must be a positive integer");
+    }
+    // Third input argument
     bool u;
     if (args.length () < 3) {
         u = false;
