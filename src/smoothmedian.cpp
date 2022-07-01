@@ -72,28 +72,29 @@ void mexFunction (int nlhs, mxArray* plhs[],
     }
     
     // Input variable declaration
-    double *x = mxGetPr(prhs[0]);
+    mxArray *xarr = mxDuplicateArray (prhs[0]);
+    double *x = (double *) mxGetData (xarr);
     short int dim;
     if (nrhs < 2) {
         dim = 1;
     } else {
-        dim = *(mxGetPr(prhs[1]));
+        dim = *(mxGetPr (prhs[1]));
     }
     double Tol;
     if (nrhs > 2) {
-        Tol = *(mxGetPr(prhs[2]));
+        Tol = *(mxGetPr (prhs[2]));
     }
     
     // Get data dimensions
-    int ndims = (int) mxGetNumberOfDimensions(prhs[0]);
-    const mwSize *sz = mxGetDimensions(prhs[0]);
+    int ndims = (int) mxGetNumberOfDimensions (xarr);
+    const mwSize *sz = mxGetDimensions (xarr);
     int m = sz[0];
     int n = sz[1];
-    int N = mxGetNumberOfElements (prhs[0]);
+    int N = mxGetNumberOfElements (xarr);
 
     // Prepare output vector
     mwSize dims[2] = {1,n};
-    plhs[0] = mxCreateNumericArray(2, dims, 
+    plhs[0] = mxCreateNumericArray (2, dims, 
                 mxDOUBLE_CLASS, 
                 mxREAL); 
     double *M = (double *) mxGetData(plhs[0]);
@@ -183,6 +184,9 @@ void mexFunction (int nlhs, mxArray* plhs[],
         // Assign parameter value that optimizes the objective function for the smoothed median
         M[k] = p;
     }
+    
+    // Clean up
+    mxDestroyArray (xarr);
     
     return;
     
