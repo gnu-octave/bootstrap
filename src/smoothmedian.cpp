@@ -60,6 +60,7 @@
 #include "mex.h"
 #include <stdlib.h>
 #include <vector>
+#include <iostream>
 using namespace std;
 
 void mexFunction (int nlhs, mxArray* plhs[],
@@ -84,94 +85,112 @@ void mexFunction (int nlhs, mxArray* plhs[],
         Tol = *(mxGetPr (prhs[2]));
     }
 
-    // Get data dimensions
+    // Get data dimensions and prepare output vector
     int ndims = (int) mxGetNumberOfDimensions (prhs[0]);
     const mwSize *sz = mxGetDimensions (prhs[0]);
-    int m = sz[0];
-    int n = sz[1];
+    if (sz[0] == 1) {
+        dim = 2;
+    }
+    int m, n;
+    if (dim == 1) {
+        m = sz[0];
+        n = sz[1];
+        plhs[0] = mxCreateDoubleMatrix (1, n, mxREAL);
+    } else if (dim == 2) {
+        n = sz[0];
+        m = sz[1]; 
+        plhs[0] = mxCreateDoubleMatrix (n, 1, mxREAL);
+    }
     int N = mxGetNumberOfElements (prhs[0]);
-    
-    // Prepare output vector
-    mwSize dims[2] = {1,n};
-    plhs[0] = mxCreateNumericArray (2, dims, 
-                mxDOUBLE_CLASS, 
-                mxREAL); 
+    float mid = 0.5 * m;
     double *M = (double *) mxGetData(plhs[0]);
     
-    // Calculate basic statistics for each column of the data
-    float mid = 0.5 * m;
-    std::vector<double> xcol;
-    std::vector<double> xmin (n);
-    std::vector<double> xmax (n);
-    std::vector<double> range (n);
-    for (int k = 0; k < n ; k++) {
-        xcol.assign(&x[k * m], &x[k * m + m]);
-        sort(xcol.begin(), xcol.end());
-        M[k] = xcol[int (mid)];            // Median when m is odd
-        if ( mid == int (mid) ) {      
-            M[k] += xcol [int (mid) - 1];
-            M[k] *= 0.5;                   // Median when m is even
-        }
-        xmin[k] = xcol[0];                 // Minimum
-        xmax[k] = xcol[m - 1];             // Maximimum
-        range[k] = xmax[k] - xmin[k];      // Range
-    }
+    // Declare temporary variables needed for the optimization step
+    vector<double> xvec;
+    xvec.reserve (m);
+    double a, b, range, T, v, U, D, R, step, nwt, p;
     
-    // Declare variables that we update in the loop with math assignment operators
-    double T;
-    double v;
-    double U;
-    
-    // Loop through each column of the data and apply smoothing
+    // Loop through the data and apply smoothing
     int MaxIter = 500;
     for (int k = 0; k < n ; k++) {
-        if (nrhs < 3) {
-            Tol = range[k] * 1e-4; 
+
+        // Copy the data to temporary vector and sort it
+        if (dim == 1) {
+            for (int j = 0; j < m ; j++) xvec.push_back ( x[k * m + j] );
+        } else if (dim == 2) { 
+            for (int j = 0; j < m ; j++) {int i = j * n; xvec.push_back ( x[i + k] );};
         }
-        // Using the (ordinary) median as the starting value, find the smoothed median
+        sort(xvec.begin(), xvec.end());
+        
+        // Set the (ordinary) median as the starting value
+        M[k] = xvec[int(mid)];           // Median when m is odd
+        if ( mid == int(mid) ) {      
+            M[k] += xvec [int(mid) - 1];
+            M[k] *= 0.5;                 // Median when m is even
+        }
+        
         // Set initial bracket bounds
-        double a = xmin[k]; 
-        double b = xmax[k];
+        a = xvec[0];                     // Minimum
+        b = xvec[m - 1];                 // Maximimum
+        
+        // Calculate range (and set stopping criteria if not specified)
+        range = b - a;                   // Range
+        if (nrhs < 3) {
+            Tol = range * 1e-4; 
+        }
+        
         // Set initial value of free parameter to the midrange
-        double p = M[k];    
+        p = M[k];   
+        
         // Start iterations
         for (int Iter = 0; Iter < MaxIter ; Iter++) {
+            
             // Break from iterations if the range of the x values is zero
-            if (range[k] == 0) {
+            if (range == 0) {
                 break;
             }   
+            
+            // Perform computations for the current data vector
             T = 0;
             v = 0;
             U = 0;
             for (int j = 0; j < m ; j++) {
-                double xj = x [k * m + j];
-                if ( !mxIsFinite(xj) ) {
+                                
+                if ( !mxIsFinite(xvec[j]) ) {
                     mexErrMsgTxt ("x cannot contain NaN or Inf");
                 }
+                
                 for (int i = 0; i < j ; i++) {
-                    double xi = x [k * m + i];
+                    
                     // Calculate first derivative (T)
-                    double D = pow (xi - p, 2) + pow (xj - p, 2);
-                    double R = sqrt(D);
-                    T += (2 * p - xi - xj) / R;
+                    D = pow (xvec[i] - p, 2) + pow (xvec [j] - p, 2);
+                    R = sqrt(D);
+                    T += (2 * p - xvec[i] - xvec [j]) / R;
+                    
                     // Calculate second derivative (U)
-                    U += pow (xi - xj, 2) * R / pow (D, 2);
+                    U += pow (xvec[i] - xvec [j], 2) * R / pow (D, 2);
+                    
                 }
             }
+            
             // Compute Newton step (fast quadratic convergence but unreliable)
-            double step = T / U;
+            step = T / U;
+            
             // Evaluate convergence
             if (abs (step) < Tol) {
                 break; // Break from optimization when converged to tolerance 
             } else {
+                
                 // Update bracket bounds for Bisection
                 if (T < -Tol) {
                     a = p;
                 } else if (T > +Tol) {
                     b = p;
                 }
+                
                 // Preview new value of the smoothed median
-                double nwt = p - step;
+                nwt = p - step;
+                
                 // Choose which method to use to update the smoothed median
                 if (nwt > a && nwt < b) {
                     // Use Newton step if it is within bracket bounds
@@ -181,12 +200,18 @@ void mexFunction (int nlhs, mxArray* plhs[],
                     p = 0.5 * (a + b);
                 }
             }
+            
             if (Iter == MaxIter) {
                 mexWarnMsgTxt ("Warning: Root finding failed to reach the specified tolerance");
             }
+            
         }
+        
         // Assign parameter value that optimizes the objective function for the smoothed median
         M[k] = p;
+        
+        // Clear the temporary vector for the next cycle of the loop
+        xvec.clear(); 
     }
     
     return;
