@@ -50,6 +50,10 @@ else
   if exist (path_to_boot)
     delete (path_to_boot);
   end
+  path_to_smoothmedian = sprintf ('./inst/param/smoothmedian.%s',mexext);
+  if exist (path_to_smoothmedian)
+    delete (path_to_smoothmedian);
+  end
 end
 
 
