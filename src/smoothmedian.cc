@@ -181,50 +181,67 @@ DEFUN_DLD (smoothmedian, args, ,
     // Loop through each column of the data and apply smoothing
     int MaxIter = 500;
     for (int k = 0; k < n ; k++) {
+        
+        // Set stopping criteria if not specified
         if (args.length () < 3) {
             Tol = *(ptrRANGE + k) * 1e-4; 
         }
+        
         // Using the (ordinary) median as the starting value, find the smoothed median
         // Set initial bracket bounds
         double a = *(ptrXMIN + k); 
         double b = *(ptrXMAX + k);
+        
         // Set initial value of free parameter to the midrange
         double p = *(ptrM + k);    
+        
         // Start iterations
         for (int Iter = 0; Iter < MaxIter ; Iter++) {
+            
             // Break from iterations if the range of the x values is zero
             if (*(ptrRANGE + k) == 0) {
                 break;
             }   
+            
+            // Perform computations for the current data vector
             T = 0;
             v = 0;
             U = 0;
             for (int j = 0; j < m ; j++) {
+                
                 double xj = *(ptrX + k * m + j);
+                
                 for (int i = 0; i < j ; i++) {
                     double xi = *(ptrX + k * m + i);
+                    
                     // Calculate first derivative (T)
                     double D = pow (xi - p, 2) + pow (xj - p, 2);
                     double R = sqrt(D);
                     T += (2 * p - xi - xj) / R;
+                    
                     // Calculate second derivative (U)
                     U += pow (xi - xj, 2) * R / pow (D, 2);
                 }
             }
+            
             // Compute Newton step (fast quadratic convergence but unreliable)
             double step = T / U;
+            
             // Evaluate convergence
             if (abs (step) < Tol) {
                 break; // Break from optimization when converged to tolerance 
             } else {
+                
                 // Update bracket bounds for Bisection
                 if (T < -Tol) {
                     a = p;
                 } else if (T > +Tol) {
                     b = p;
                 }
+                
                 // Preview new value of the smoothed median
                 double nwt = p - step;
+                
                 // Choose which method to use to update the smoothed median
                 if (nwt > a && nwt < b) {
                     // Use Newton step if it is within bracket bounds
@@ -234,16 +251,21 @@ DEFUN_DLD (smoothmedian, args, ,
                     p = 0.5 * (a + b);
                 }
             }
+            
             if (Iter == MaxIter) {
                 octave_stdout << "Warning: Root finding failed to reach the specified tolerance \n";
             }
+            
         }
+        
         // Assign parameter value that optimizes the objective function for the smoothed median
         *(ptrM + k) = p;
     }
+    
     // If applicable, switch dimension
     if (dim > 1) {
         M = M.transpose ();
     }
+    
     return octave_value(M);
 } 
