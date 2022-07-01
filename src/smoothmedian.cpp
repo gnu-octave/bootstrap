@@ -60,6 +60,7 @@
 #include "mex.h"
 #include <stdlib.h>
 #include <vector>
+#include <iostream>
 using namespace std;
 
 void mexFunction (int nlhs, mxArray* plhs[],
@@ -71,9 +72,15 @@ void mexFunction (int nlhs, mxArray* plhs[],
         mexErrMsgTxt("function requires at least 1 input argument");
     }
     
+    // Get data dimensions
+    int ndims = (int) mxGetNumberOfDimensions (prhs[0]);
+    const mwSize *sz = mxGetDimensions (prhs[0]);
+    int m = sz[0];
+    int n = sz[1];
+    int N = mxGetNumberOfElements (prhs[0]);
+    
     // Input variable declaration
-    mxArray *xarr = mxDuplicateArray (prhs[0]);
-    double *x = (double *) mxGetData (xarr);
+    double *x = (double *) mxGetData (prhs[0]);
     short int dim;
     if (nrhs < 2) {
         dim = 1;
@@ -85,13 +92,6 @@ void mexFunction (int nlhs, mxArray* plhs[],
         Tol = *(mxGetPr (prhs[2]));
     }
     
-    // Get data dimensions
-    int ndims = (int) mxGetNumberOfDimensions (xarr);
-    const mwSize *sz = mxGetDimensions (xarr);
-    int m = sz[0];
-    int n = sz[1];
-    int N = mxGetNumberOfElements (xarr);
-
     // Prepare output vector
     mwSize dims[2] = {1,n};
     plhs[0] = mxCreateNumericArray (2, dims, 
@@ -101,21 +101,23 @@ void mexFunction (int nlhs, mxArray* plhs[],
     
     // Calculate basic statistics for each column of the data
     float mid = 0.5 * m;
+    std::vector<double> xcol;
     std::vector<double> xmin (n);
     std::vector<double> xmax (n);
     std::vector<double> range (n);
     for (int k = 0; k < n ; k++) {
-        sort(x + k * m, x + k * m + m);
-        M[k] = x[k * m + int (mid)];    // Median when m is odd
+        xcol.assign(&x[k * m], &x[k * m + m]);
+        sort(xcol.begin(), xcol.end());
+        M[k] = xcol[int (mid)];            // Median when m is odd
         if ( mid == int (mid) ) {      
-            M[k] += x [k * m + int (mid) - 1];
-            M[k] *= 0.5;                // Median when m is even
+            M[k] += xcol [int (mid) - 1];
+            M[k] *= 0.5;                   // Median when m is even
         }
-        xmin[k] = x[k * m];
-        xmax[k] = x[k * m + m - 1];
-        range[k] = xmax[k] - xmin[k];
+        xmin[k] = xcol[0];                 // Minimum
+        xmax[k] = xcol[m - 1];             // Maximimum
+        range[k] = xmax[k] - xmin[k];      // Range
     }
-        
+    
     // Declare variables that we update in the loop with math assignment operators
     double T;
     double v;
@@ -184,9 +186,6 @@ void mexFunction (int nlhs, mxArray* plhs[],
         // Assign parameter value that optimizes the objective function for the smoothed median
         M[k] = p;
     }
-    
-    // Clean up
-    mxDestroyArray (xarr);
     
     return;
     
