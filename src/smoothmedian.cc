@@ -153,17 +153,17 @@ DEFUN_DLD (smoothmedian, args, ,
     }
     
     // Calculate basic statistics for each column of the data
-    Matrix xsort = x.sort ();
+    x = x.sort ();
     float mid = 0.5 * m;
     Matrix M;
-    M = xsort.extract (int (mid), 0, int (mid), n - 1);   // Median when m is odd
+    M = x.extract (int (mid), 0, int (mid), n - 1);   // Median when m is odd
     if ( mid == int (mid) ) {
         // Median when m is even
-        M += xsort.extract (int (mid) - 1, 0, int (mid) - 1, n - 1);
+        M += x.extract (int (mid) - 1, 0, int (mid) - 1, n - 1);
         M *= 0.5;
     }
-    Matrix xmin = xsort.extract (0, 0, 0, n - 1);   // Minimum
-    Matrix xmax = xsort.extract (m - 1, 0, m - 1, n - 1);   // Maximimum
+    Matrix xmin = x.extract (0, 0, 0, n - 1);   // Minimum
+    Matrix xmax = x.extract (m - 1, 0, m - 1, n - 1);   // Maximimum
     Matrix range = (xmax - xmin);   // Range
 
     // Create pointers so that we can more rapidly access elements of the matrices
