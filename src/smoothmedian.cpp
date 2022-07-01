@@ -58,17 +58,13 @@
 
 
 #include "mex.h"
-#include <iostream>
 #include <stdlib.h>
 #include <vector>
-//#include <algorithm>
-//#include <cmath>
 using namespace std;
 
 void mexFunction (int nlhs, mxArray* plhs[],
                   int nrhs, const mxArray* prhs[]) 
 {
-
     
     // Input variables
     if (nrhs < 1) {
@@ -181,7 +177,7 @@ void mexFunction (int nlhs, mxArray* plhs[],
                 }
             }
             if (Iter == MaxIter) {
-                //octave_stdout << "Warning: Root finding failed to reach the specified tolerance \n";
+                mexWarnMsgTxt ("Warning: Root finding failed to reach the specified tolerance");
             }
         }
         // Assign parameter value that optimizes the objective function for the smoothed median
