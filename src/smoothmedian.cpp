@@ -60,7 +60,6 @@
 #include "mex.h"
 #include <stdlib.h>
 #include <vector>
-#include <iostream>
 using namespace std;
 
 void mexFunction (int nlhs, mxArray* plhs[],
@@ -71,13 +70,6 @@ void mexFunction (int nlhs, mxArray* plhs[],
     if (nrhs < 1) {
         mexErrMsgTxt("function requires at least 1 input argument");
     }
-    
-    // Get data dimensions
-    int ndims = (int) mxGetNumberOfDimensions (prhs[0]);
-    const mwSize *sz = mxGetDimensions (prhs[0]);
-    int m = sz[0];
-    int n = sz[1];
-    int N = mxGetNumberOfElements (prhs[0]);
     
     // Input variable declaration
     double *x = (double *) mxGetData (prhs[0]);
@@ -91,6 +83,13 @@ void mexFunction (int nlhs, mxArray* plhs[],
     if (nrhs > 2) {
         Tol = *(mxGetPr (prhs[2]));
     }
+
+    // Get data dimensions
+    int ndims = (int) mxGetNumberOfDimensions (prhs[0]);
+    const mwSize *sz = mxGetDimensions (prhs[0]);
+    int m = sz[0];
+    int n = sz[1];
+    int N = mxGetNumberOfElements (prhs[0]);
     
     // Prepare output vector
     mwSize dims[2] = {1,n};
@@ -146,6 +145,9 @@ void mexFunction (int nlhs, mxArray* plhs[],
             U = 0;
             for (int j = 0; j < m ; j++) {
                 double xj = x [k * m + j];
+                if ( !mxIsFinite(xj) ) {
+                    mexErrMsgTxt ("x cannot contain NaN or Inf");
+                }
                 for (int i = 0; i < j ; i++) {
                     double xi = x [k * m + i];
                     // Calculate first derivative (T)
