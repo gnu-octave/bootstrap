@@ -58,6 +58,11 @@ else
   catch
     warning ('Could not compile boot.mex. Falling back to the (slower) boot.m file.')
   end
+  try
+    mex -compatibleArrayDims -outdir ./inst/param ./src/smoothmedian.cpp
+  catch
+    warning ('Could not compile smoothmedian.mex. Falling back to the (slower) smoothmedian.m file.')
+  end
 end
 
 % Notify user that installation is complete
