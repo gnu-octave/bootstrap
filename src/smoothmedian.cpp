@@ -60,7 +60,6 @@
 #include "mex.h"
 #include <stdlib.h>
 #include <vector>
-#include <iostream>
 using namespace std;
 
 void mexFunction (int nlhs, mxArray* plhs[],
