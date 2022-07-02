@@ -8,6 +8,11 @@ dirlist{1} = fullfile (pwd,'inst','');
 dirlist{2} = fullfile (pwd,'inst','param');
 dirlist{3} = fullfile (pwd,'inst','helper');
 n = numel (dirlist);
+
+% Check if running in Octave (else assume Matlab)
+info = ver; 
+isoctave = any (ismember ({info.Name}, "Octave"));
+
 if isoctave
   % Install for Octave
   octaverc = '~/.octaverc';
@@ -30,14 +35,15 @@ if isoctave
   fputs (fid, S);
   fclose (fid);
   try
-    mex -outdir ./inst ./src/boot.cpp
+    mex --output ./inst/boot ./src/boot.cpp
   catch
-    warning ('Could not compile boot.mex. Falling back to the (slower) boot.m file.')
+    warning ('Could not compile boot.%s. Falling back to the (slower) boot.m file.',mexext)
   end
+  path_to_smoothmedian = sprintf ('./inst/param/smoothmedian.%s',mexext);
   try
-    mex -outdir ./inst/param ./src/smoothmedian.cpp
+    mex --output ./inst/param/smoothmedian ./src/smoothmedian.cpp
   catch
-    warning ('Could not compile smoothmedian.mex. Falling back to the (slower) smoothmedian.m file.')
+    warning ('Could not compile smoothmedian.%s. Falling back to the (slower) smoothmedian.m file.',mexext)
   end
 else
   % Assumming install for Matlab instead
@@ -54,14 +60,14 @@ else
     disp(err.message);
   end
   try
-    mex -compatibleArrayDims -outdir ./inst ./src/boot.cpp
+    mex -compatibleArrayDims -output ./inst ./src/boot.cpp
   catch
-    warning ('Could not compile boot.mex. Falling back to the (slower) boot.m file.')
+    warning ('Could not compile boot.%s. Falling back to the (slower) boot.m file.',mexext)
   end
   try
-    mex -compatibleArrayDims -outdir ./inst/param ./src/smoothmedian.cpp
+    mex -compatibleArrayDims -output ./inst/param ./src/smoothmedian.cpp
   catch
-    warning ('Could not compile smoothmedian.mex. Falling back to the (slower) smoothmedian.m file.')
+    warning ('Could not compile smoothmedian.%s. Falling back to the (slower) smoothmedian.m file.',mexext)
   end
 end
 
