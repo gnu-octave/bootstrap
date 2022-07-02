@@ -93,7 +93,7 @@
 %  stats = bootknife(data,nboot,bootfun,alpha,strata,nproc) sets the
 %  number of processes to parallelize evaluations of bootfun on the  
 %  data resamples. This option is ignored if bootfun operations can 
-%  be vectorized. By default, nproc is 0, which switches parallel
+%  be vectorized. By default, nproc is 0, which switches off parallel
 %  processing in Octave, or makes parallel usage automatic in Matlab 
 %  (i.e. dependent on whether parpool is already running).
 %
