@@ -1,5 +1,5 @@
 // boot.cpp
-// c++ source code for creating boot.mex file using mex in Matlab as follows:
+// c++ source code for creating boot.mex file using mex as follows:
 // 
 // mex -compatibleArrayDims boot.cpp
 //
