@@ -30,14 +30,14 @@ if isoctave
   fputs (fid, S);
   fclose (fid);
   try
-    mkoctfile --output ./inst/boot.oct ./src/boot.cc
+    mex -outdir ./inst ./src/boot.cpp
   catch
-    warning ('Could not compile boot.oct. Falling back to the (slower) boot.m file.')
+    warning ('Could not compile boot.mex. Falling back to the (slower) boot.m file.')
   end
   try
-    mkoctfile --output ./inst/param/smoothmedian.oct ./src/smoothmedian.cc
+    mex -outdir ./inst/param ./src/smoothmedian.cpp
   catch
-    warning ('Could not compile smoothmedian.oct. Falling back to the (slower) smoothmedian.m file.')
+    warning ('Could not compile smoothmedian.mex. Falling back to the (slower) smoothmedian.m file.')
   end
 else
   % Assumming install for Matlab instead

@@ -29,11 +29,13 @@ if isoctave
   fseek (fid, 0);
   fputs (fid, S);
   fclose (fid);
-  if exist ('./inst/boot.oct')
-    delete ('./inst/boot.oct');
+  path_to_boot = sprintf ('./inst/boot.%s',mexext);
+  if exist (path_to_boot)
+    delete (path_to_boot);
   end
-  if exist ('./inst/param/smoothmedian.oct')
-    delete ('./inst/param/smoothmedian.oct');
+  path_to_smoothmedian = sprintf ('./inst/param/smoothmedian.%s',mexext);
+  if exist (path_to_smoothmedian)
+    delete (path_to_smoothmedian);
   end
   % Unload package from current session
   run (fullfile(pwd,'PKG_DEL.m'));
