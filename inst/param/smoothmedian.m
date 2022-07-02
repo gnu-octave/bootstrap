@@ -47,10 +47,7 @@
 %  by improving symmetry through appropriate data transformation. 
 %  Unlike kernel-based smoothing approaches, bootstrapping smoothmedian 
 %  does not require explicit choice of a smoothing parameter or a 
-%  probability density function. Since the calculations are accelerated
-%  by vectorization, this algorithm has space complexity O(n^2) along 
-%  dimension dim, thus it is best-suited for small-to-medium sample
-%  sizes, which would benefit most from smoothing.
+%  probability density function. 
 %
 %  Bibliography:
 %  [1] Brown, Hall and Young (2001) The smoothed median and the

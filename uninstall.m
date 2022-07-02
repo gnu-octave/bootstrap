@@ -29,14 +29,6 @@ if isoctave
   fseek (fid, 0);
   fputs (fid, S);
   fclose (fid);
-  path_to_boot = sprintf ('./inst/boot.%s',mexext);
-  if exist (path_to_boot)
-    delete (path_to_boot);
-  end
-  path_to_smoothmedian = sprintf ('./inst/param/smoothmedian.%s',mexext);
-  if exist (path_to_smoothmedian)
-    delete (path_to_smoothmedian);
-  end
   % Unload package from current session
   run (fullfile(pwd,'PKG_DEL.m'));
 else
@@ -48,14 +40,16 @@ else
     % backwards compatibility
     path2rc;
   end
-  path_to_boot = sprintf ('./inst/boot.%s',mexext);
-  if exist (path_to_boot)
-    delete (path_to_boot);
-  end
-  path_to_smoothmedian = sprintf ('./inst/param/smoothmedian.%s',mexext);
-  if exist (path_to_smoothmedian)
-    delete (path_to_smoothmedian);
-  end
+end
+
+% Delete MEX files
+path_to_boot = sprintf ('./inst/boot.%s',mexext);
+if exist (path_to_boot)
+  delete (path_to_boot);
+end
+path_to_smoothmedian = sprintf ('./inst/param/smoothmedian.%s',mexext);
+if exist (path_to_smoothmedian)
+  delete (path_to_smoothmedian);
 end
 
 

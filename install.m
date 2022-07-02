@@ -35,13 +35,13 @@ if isoctave
   fputs (fid, S);
   fclose (fid);
   try
-    mex --output ./inst/boot ./src/boot.cpp
+    mkoctfile --mex --output ./inst/boot ./src/boot.cpp
   catch
     warning ('Could not compile boot.%s. Falling back to the (slower) boot.m file.',mexext)
   end
   path_to_smoothmedian = sprintf ('./inst/param/smoothmedian.%s',mexext);
   try
-    mex --output ./inst/param/smoothmedian ./src/smoothmedian.cpp
+    mkoctfile --mex --output ./inst/param/smoothmedian ./src/smoothmedian.cpp
   catch
     warning ('Could not compile smoothmedian.%s. Falling back to the (slower) smoothmedian.m file.',mexext)
   end
@@ -60,12 +60,12 @@ else
     disp(err.message);
   end
   try
-    mex -compatibleArrayDims -output ./inst ./src/boot.cpp
+    mex -compatibleArrayDims -output ./inst/boot ./src/boot.cpp
   catch
     warning ('Could not compile boot.%s. Falling back to the (slower) boot.m file.',mexext)
   end
   try
-    mex -compatibleArrayDims -output ./inst/param ./src/smoothmedian.cpp
+    mex -compatibleArrayDims -output ./inst/param/smoothmedian ./src/smoothmedian.cpp
   catch
     warning ('Could not compile smoothmedian.%s. Falling back to the (slower) smoothmedian.m file.',mexext)
   end
