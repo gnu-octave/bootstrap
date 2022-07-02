@@ -1,5 +1,5 @@
 // smoothmedian.cpp
-// c++ source code for creating smoothmedian.mex file in Matlab as follows:
+// c++ source code for creating smoothmedian.mex file as follows:
 //
 // mex -compatibleArrayDims smoothmedian.cpp
 //
