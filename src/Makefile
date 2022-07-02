@@ -1,3 +1,3 @@
 make:
-	mex --output ./inst/boot ./src/boot.cpp
-	mex --output ./inst/param/smoothmedian ./src/smoothmedian.cpp
+	mex --output ./inst/boot.mex ./src/boot.cpp
+	mex --output ./inst/param/smoothmedian.mex ./src/smoothmedian.cpp
