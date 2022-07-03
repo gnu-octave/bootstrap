@@ -93,7 +93,7 @@
 %  stats = bootknife(data,nboot,bootfun,alpha,strata,nproc) sets the
 %  number of processes to parallelize evaluations of bootfun on the  
 %  data resamples. This option is ignored if bootfun operations can 
-%  be vectorized. By default, nproc is 0, which switches off parallel
+%  be vectorized. By default, nproc is 0, which switches parallel
 %  processing in Octave, or makes parallel usage automatic in Matlab 
 %  (i.e. dependent on whether parpool is already running).
 %
@@ -150,17 +150,13 @@
 %  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-function [stats, T1, bootsam] = bootknife (x, nboot, bootfun, alpha, strata, nproc, bootsam)
-  
-  % Check if running in Octave (else assume Matlab)
-  info = ver; 
-  isoctave = any (ismember ({info.Name}, "Octave"));
+function [stats, T1, bootsam] = bootknife (x, nboot, bootfun, alpha, strata, nproc, isoctave, bootsam)
   
   % Error checking
   if nargin < 1
     error ('data must be provided')
   end
-
+  
   % Set defaults or check for errors
   if nargin < 2
     nboot = [2000, 0];
@@ -188,10 +184,6 @@ function [stats, T1, bootsam] = bootknife (x, nboot, bootfun, alpha, strata, npr
       bootfun = @(x) feval(func, x, args{:});
     end
     if ischar (bootfun)
-      % Interpret 'robust' as smoothmedian
-      if strcmpi(bootfun,'robust')
-        bootfun = 'smoothmedian';
-      end
       % Convert character string of a function name to a function handle
       bootfun = str2func (bootfun);
     end
@@ -229,6 +221,11 @@ function [stats, T1, bootsam] = bootknife (x, nboot, bootfun, alpha, strata, npr
       error ('nproc cannot contain more than 2 values')
     end
   end
+  if nargin < 7
+    % Check if running in Octave (else assume Matlab)
+    info = ver; 
+    isoctave = any (ismember ({info.Name}, "Octave"));
+  end
 
   % Determine properties of the data (x)
   sz = size(x);
@@ -259,9 +256,9 @@ function [stats, T1, bootsam] = bootknife (x, nboot, bootfun, alpha, strata, npr
       out = @(x, j) x(j);
       func = @(x) out(bootfun(x), j); 
       if j > 1
-        [stats(:,j), T1(j,:)] = bootknife (x, nboot, func, alpha, strata, nproc, bootsam);
+        [stats(:,j), T1(j,:)] = bootknife (x, nboot, func, alpha, strata, nproc, isoctave, bootsam);
       else
-        [stats(:,j), T1(j,:), bootsam] = bootknife (x, nboot, func, alpha, strata, nproc);
+        [stats(:,j), T1(j,:), bootsam] = bootknife (x, nboot, func, alpha, strata, nproc, isoctave);
       end
     end
     return
@@ -337,7 +334,7 @@ function [stats, T1, bootsam] = bootknife (x, nboot, bootfun, alpha, strata, npr
   end
 
   % Perform balanced bootknife resampling
-  if nargin < 7
+  if nargin < 8
     if ~isempty (strata)
       bootsam = zeros (n, B, 'int16');
       for k = 1:K
@@ -357,7 +354,7 @@ function [stats, T1, bootsam] = bootknife (x, nboot, bootfun, alpha, strata, npr
     T1 = feval (bootfun, X);
   else 
     if (nproc > 1)
-      % Evaluate bootfun on each bootstrap resample in PARALLEL 
+      % Evaluate maxstat on each bootstrap resample in PARALLEL 
       if isoctave
         % OCTAVE
         cellfunc = @(bootsam) feval (bootfun, x (bootsam, :));
@@ -383,7 +380,7 @@ function [stats, T1, bootsam] = bootknife (x, nboot, bootfun, alpha, strata, npr
     V = zeros (1, B);
     % Iterated bootstrap resampling for greater accuracy
     for b = 1:B
-      [~, T2] = bootknife (x(bootsam(:, b), :), [C, 0], bootfun, [], strata, nproc);
+      [~, T2] = bootknife (x(bootsam(:, b), :), [C, 0], bootfun, [], strata, nproc, isoctave);
       % Use quick interpolation to find the probability that T2 <= T0
       I = (T2 <= T0);
       u = sum (I);
