@@ -68,7 +68,9 @@
 // Author: Andrew Charles Penn (2022)
 
 #include "mex.h"
+
 #include <vector>
+#include <stdlib.h>
 #include <cmath>         // for pow function
 #include <algorithm>     // for sort function (using IntroSort algorithm)
 using namespace std;
