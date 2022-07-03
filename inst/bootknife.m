@@ -449,7 +449,7 @@ function [stats, T1, bootsam] = bootknife (x, nboot, bootfun, alpha, strata, npr
       % Calculate empirical influence function
       if ~isempty(strata)
         gk = sum (g .* repmat (sum (g), n, 1), 2);
-        U = (gk - 1) .* (mean (T) - T);   
+        U = (gk - 1) .* (mean (T) - T).';   
       else
         U = (n - 1) * (mean (T) - T);     
       end
