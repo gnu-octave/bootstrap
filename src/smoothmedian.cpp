@@ -49,17 +49,28 @@
 // Newton-Bisection hybrid algorithm. The tolerance (Tol) is the 
 // maximum step size that is acceptable to break from optimization.
 //
+// The smoothing works by slightly reducing the breakdown point
+// of the median. Bootstrap confidence intervals using the smoothed
+// median have good coverage for the ordinary median of the
+// population distribution and can be used to obtain second order
+// accurate intervals with Studentized bootstrap and calibrated
+// percentile bootstrap methods [1]. When the population distribution 
+// is thought to be strongly skewed, coverage errors can be reduced 
+// by improving symmetry through appropriate data transformation. 
+// Unlike kernel-based smoothing approaches, bootstrapping smoothmedian 
+// does not require explicit choice of a smoothing parameter or a 
+// probability density function. 
+//
 // Bibliography:
 // [1] Brown, Hall and Young (2001) The smoothed median and the
 //      bootstrap. Biometrika 88(2):519-534
 //
 // Author: Andrew Charles Penn (2022)
 
-
-
 #include "mex.h"
-#include <stdlib.h>
 #include <vector>
+#include <cmath>         // for pow function
+#include <algorithm>     // for sort function (using IntroSort algorithm)
 using namespace std;
 
 void mexFunction (int nlhs, mxArray* plhs[],
