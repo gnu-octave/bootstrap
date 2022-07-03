@@ -987,7 +987,7 @@ function [p, c, stats] = bootnhst (data, group, varargin)
   end
 
   % Define a function to calculate maxT
-  func = @(data) maxstat (data, g, nboot(2), bootfun, ref, clusters, strata);
+  func = @(data) maxstat (data, g, nboot(2), bootfun, ref, clusters, strata, isoctave);
 
   % Perform resampling and calculate bootstrap statistics
   if isempty(clusters)
@@ -1065,7 +1065,7 @@ function [p, c, stats] = bootnhst (data, group, varargin)
       % Bootknife resampling involves less computation than Jackknife when sample sizes get larger
       theta(j) = feval(bootfun,data(g==gk(j),:));
       nk(j) = sum(g==gk(j));
-      stats = bootknife(data(g==gk(j),:),[nboot(2),0],bootfun,[],[],1);
+      stats = bootknife(data(g==gk(j),:),[nboot(2),0],bootfun,[],[],1,isoctave);
       SE(j) = stats(3);
     end
     Var(j) = ((nk(j)-1)/(N-k-(l-1))) * SE(j)^2;
