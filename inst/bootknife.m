@@ -339,7 +339,7 @@ function [stats, T1, bootsam] = bootknife (x, nboot, bootfun, alpha, strata, npr
   % Perform balanced bootknife resampling
   if nargin < 8
     if ~isempty (strata)
-      bootsam = zeros (n, B, 'int16');
+      bootsam = zeros (n, B, 'int32');
       for k = 1:K
         bootsam(g(:, k),:) = boot (nk(k), B, true);
         rows = find (g(:, k));
