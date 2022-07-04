@@ -80,7 +80,7 @@ void mexFunction (int nlhs, mxArray* plhs[],
     
     // Input variables
     if (nrhs < 1) {
-        mexErrMsgTxt("function requires at least 1 input argument");
+        mexErrMsgTxt ("function requires at least 1 input argument");
     }
     
     // Input variable declaration
