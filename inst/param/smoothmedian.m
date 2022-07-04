@@ -122,7 +122,7 @@ function M = smoothmedian(x,dim,Tol)
   l = m*(m-1)/2;
 
   % Find column indices where smoothing is not possible
-  if any(isnan(x)) | any(isinf(x))
+  if any(isnan(x)) || any(isinf(x))
      error('x cannot contain Inf or NaN values')
   end
   
@@ -166,7 +166,7 @@ function M = smoothmedian(x,dim,Tol)
   y = xi+xj;
   
   % Minimize objective function (vectorized)
-  MaxIter = 100;
+  MaxIter = 200;
   for Iter = 1:MaxIter
   
     % Compute first derivative
