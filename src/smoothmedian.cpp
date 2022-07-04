@@ -67,6 +67,7 @@
 //
 // Author: Andrew Charles Penn (2022)
 
+
 #include "mex.h"
 #include <vector>
 #include <cmath>         // for pow function
@@ -118,7 +119,7 @@ void mexFunction (int nlhs, mxArray* plhs[],
     // Declare temporary variables needed for the optimization step
     vector<double> xvec;
     xvec.reserve (m);
-    double a, b, range, t, T, v, U, D, R, step, nwt, p;
+    double a, b, range, T, v, U, D, R, step, nwt, p;
     
     // Loop through the data and apply smoothing to the median
     int MaxIter = 20;
@@ -164,14 +165,12 @@ void mexFunction (int nlhs, mxArray* plhs[],
             T = 0;
             v = 0;
             U = 0;
-            for (int j = 0; j < m ; j++) {
-                                
+            for (int j = 0; j < m ; j++) {        
                 if ( !mxIsFinite(xvec[j]) ) {
                     mexErrMsgTxt ("x cannot contain NaN or Inf");
                 }
                 
                 for (int i = 0; i < j ; i++) {
-                    
                     // Calculate derivatives
                     D = pow (xvec[i] - p, 2) + pow (xvec [j] - p, 2);
                     R = sqrt(D);
@@ -181,7 +180,6 @@ void mexFunction (int nlhs, mxArray* plhs[],
                         // Calculate second derivative (U)
                         U += pow (xvec[i] - xvec [j], 2) * R / pow (D, 2);
                     }
-                    
                 }
             }
             
@@ -189,25 +187,19 @@ void mexFunction (int nlhs, mxArray* plhs[],
             step = T / U;
             
             // Evaluate convergence
-            if (abs (step) < Tol | range < Tol) {
-                
+            if (abs (step) < Tol | range < Tol) { 
                 break; // Break from optimization when converged to tolerance 
-                
             } else {
-
                 // Update bracket bounds for Bisection
                 if (T < -Tol) {
                     a = p;
                 } else if (T > +Tol) {
                     b = p;
                 }
-                
                 // Update the range with the distance between bracket bounds
                 range = b - a;
-
                 // Preview new value of the smoothed median
                 nwt = p - step;
-                
                 // Choose which method to use to update the smoothed median
                 if (nwt > a && nwt < b) {
                     // Use Newton step if it is within bracket bounds
