@@ -122,7 +122,7 @@ void mexFunction (int nlhs, mxArray* plhs[],
     double a, b, range, T, v, U, D, R, step, nwt, p;
     
     // Loop through the data and apply smoothing to the median
-    int MaxIter = 20;
+    int MaxIter = 99;
     for (int k = 0; k < n ; k++) {
 
         // Copy the next row/column of the data to temporary vector and sort it
@@ -190,13 +190,13 @@ void mexFunction (int nlhs, mxArray* plhs[],
             if (abs (step) < Tol | range < Tol) { 
                 break; // Break from optimization when converged to tolerance 
             } else {
-                // Update bracket bounds for Bisection
+                // Update bracket bounds for Bisection method
                 if (T < -Tol) {
                     a = p;
                 } else if (T > +Tol) {
                     b = p;
                 }
-                // Update the range with the distance between bracket bounds
+                // Update the range with the distance between the bracket bounds
                 range = b - a;
                 // Preview new value of the smoothed median
                 nwt = p - step;
