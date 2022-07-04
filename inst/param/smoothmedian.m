@@ -166,14 +166,15 @@ function M = smoothmedian(x,dim,Tol)
   y = xi+xj;
   
   % Minimize objective function (vectorized)
-  MaxIter = 500;
+  MaxIter = 50;
   for Iter = 1:MaxIter
   
     % Compute first derivative
     temp = ones(l,1)*p;
     D = (xi-temp).^2+(xj-temp).^2;
     R = sqrt(D); 
-    T = sum((2*temp-y)./R,1);
+    D (D==0) = 1;
+    T = sum((2*temp-y)./R,1); 
     temp = []; %#ok<NASGU> Reduce memory usage. Faster than using clear.
     
     % The following calculation of the second derivative(s) is 
@@ -184,18 +185,20 @@ function M = smoothmedian(x,dim,Tol)
     R = []; %#ok<NASGU> Reduce memory usage. Faster than using clear.
     
     % Compute Newton step (fast quadratic convergence but unreliable)
-    step = T./U;
-    if (Iter==1)
-      step(a==b) = 0;
-    end
+    step = T./U; 
+    
+    %step
+    %Tol
+    %a
+    %b
+    %abs(step)<=Tol 
+    %step((b-a)<Tol)
     
     % Evaluate convergence
-    cvg = abs(step)<=Tol;
+    cvg = ( abs(step)<=Tol | range<Tol );
     if any(cvg)
-    
       % Export converged parameters
       M(idx(cvg)) = p(cvg);
-      
       % Avoid excess computations in following iterations
       idx(cvg) = [];
       xi(:,cvg) = [];
@@ -207,8 +210,7 @@ function M = smoothmedian(x,dim,Tol)
       p(cvg) = [];
       step(cvg) = [];
       T(cvg) = [];
-      Tol(cvg) = [];
-      
+      Tol(cvg) = [];  
     end
     
     % Break from loop when all optimizations have converged
@@ -220,6 +222,9 @@ function M = smoothmedian(x,dim,Tol)
     a(T<-Tol) = p(T<-Tol);
     b(T>+Tol) = p(T>+Tol);
     
+    % Update the range with the distance between bracket bounds
+    range = b - a;
+    
     % Preview new value of the smoothed median
     nwt = p-step;
     
@@ -229,7 +234,7 @@ function M = smoothmedian(x,dim,Tol)
     
     % Otherwise, compute Bisection step (slow linear convergence but very safe)
     p(~I) = 0.5 * (a(~I) + b(~I));
-    
+
     % Tidy up
     nwt = [];  %#ok<NASGU> Reduce memory usage. Faster than using clear.
     I = []; %#ok<NASGU> Reduce memory usage. Faster than using clear.
