@@ -74,7 +74,7 @@ function [p, F, FDIST] = bootanovan (data, group, nboot, varargin)
   isoctave = any (ismember ({info.Name}, 'Octave'));
 
   % Check for dependency anovan
-  if ~exist('anovan')
+  if ~exist('anovan','file')
     error('missing dependency: anovan')
   end
 
@@ -115,7 +115,7 @@ function [p, F, FDIST] = bootanovan (data, group, nboot, varargin)
       options = cat(2,options,'sstype',2);
     end 
     % Get model residuals
-    [~,~,stats] = anovan(data,group,'display','off',options{:});
+    [junk1,junk2,stats] = anovan(data,group,'display','off',options{:});
     resid = stats.resid;
   end
   if nargout > 3
@@ -153,10 +153,10 @@ function  F = anovan_wrapper (y, g, isoctave, options)
   
   if isoctave
     % Octave anovan
-    [~,F] = anovan(y,g,options{:});
+    [junk,F] = anovan(y,g,options{:});
   else
     % Matlab anovan
-    [~,tbl] = anovan(y,g,'display','off',options{:});
+    [junk,tbl] = anovan(y,g,'display','off',options{:});
     F = cell2mat(tbl(2:end,6)); 
   end
 
