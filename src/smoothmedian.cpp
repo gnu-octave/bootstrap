@@ -66,7 +66,7 @@
 //      bootstrap. Biometrika 88(2):519-534
 //
 // Author: Andrew Charles Penn (2022)
-
+#include <iostream>
 
 #include "mex.h"
 #include <vector>
@@ -119,7 +119,7 @@ void mexFunction (int nlhs, mxArray* plhs[],
     // Declare temporary variables needed for the optimization step
     vector<double> xvec;
     xvec.reserve (m);
-    double a, b, range, T, v, U, D, R, step, nwt, p;
+    double a, b, range, t, T, v, U, D, R, step, nwt, p;
     
     // Loop through the data and apply smoothing to the median
     int MaxIter = 500;
@@ -154,7 +154,7 @@ void mexFunction (int nlhs, mxArray* plhs[],
         p = M[k];   
         
         // Start iterations
-        for (int Iter = 0; Iter < MaxIter ; Iter++) {
+        for (int Iter = 0; Iter <= MaxIter ; Iter++) {
             
             // Break from iterations if the range of the x values is zero
             if (range == 0) {
@@ -176,7 +176,8 @@ void mexFunction (int nlhs, mxArray* plhs[],
                     // Calculate first derivative (T)
                     D = pow (xvec[i] - p, 2) + pow (xvec [j] - p, 2);
                     R = sqrt(D);
-                    T += (2 * p - xvec[i] - xvec [j]) / R;
+                    t = (2 * p - xvec[i] - xvec [j]) / R;
+                    if ( ! isnan (t) ) T += t;
                     
                     // Calculate second derivative (U)
                     U += pow (xvec[i] - xvec [j], 2) * R / pow (D, 2);
@@ -211,7 +212,7 @@ void mexFunction (int nlhs, mxArray* plhs[],
                     p = 0.5 * (a + b);
                 }
             }
-            
+            //cout << Iter << "\n";
             if (Iter == MaxIter) {
                 mexWarnMsgTxt ("Warning: Root finding failed to reach the specified tolerance");
             }
