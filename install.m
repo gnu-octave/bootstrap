@@ -11,7 +11,7 @@ n = numel (dirlist);
 
 % Check if running in Octave (else assume Matlab)
 info = ver; 
-isoctave = any (ismember ({info.Name}, "Octave"));
+isoctave = any (ismember ({info.Name}, 'Octave'));
 
 if isoctave
   % Install for Octave
