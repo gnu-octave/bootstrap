@@ -711,7 +711,7 @@ function [p, c, stats] = bootnhst (data, group, varargin)
 
   % Check if running in Octave (else assume Matlab)
   info = ver; 
-  isoctave = any (ismember ({info.Name}, "Octave"));
+  isoctave = any (ismember ({info.Name}, 'Octave'));
   
   % Apply defaults
   bootfun = 'mean';
