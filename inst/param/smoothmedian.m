@@ -166,14 +166,14 @@ function M = smoothmedian(x,dim,Tol)
   y = xi+xj;
   
   % Minimize objective function (vectorized)
-  MaxIter = 50;
+  MaxIter = 100;
   for Iter = 1:MaxIter
   
     % Compute first derivative
     temp = ones(l,1)*p;
     D = (xi-temp).^2+(xj-temp).^2;
+    D (D==0) = 1; % Ensures that no NaN values occur when there are ties equal to the median
     R = sqrt(D); 
-    D (D==0) = 1;
     T = sum((2*temp-y)./R,1); 
     temp = []; %#ok<NASGU> Reduce memory usage. Faster than using clear.
     
@@ -186,13 +186,6 @@ function M = smoothmedian(x,dim,Tol)
     
     % Compute Newton step (fast quadratic convergence but unreliable)
     step = T./U; 
-    
-    %step
-    %Tol
-    %a
-    %b
-    %abs(step)<=Tol 
-    %step((b-a)<Tol)
     
     % Evaluate convergence
     cvg = ( abs(step)<=Tol | range<Tol );
