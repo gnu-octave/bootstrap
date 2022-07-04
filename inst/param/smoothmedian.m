@@ -126,19 +126,20 @@ function M = smoothmedian(x,dim,Tol)
      error('x cannot contain Inf or NaN values')
   end
   
-  % Calculate basic statistics for each column of the data
-  xsort = sort(x, 1);
+  % Sort the data and alculate for each column of the data
+  x = sort(x, 1);
   mid = 0.5 * m;
-  M = xsort(fix (mid + 1), 1 : n); % Median when m is odd
+  M = x(fix (mid + 1), 1 : n); % Median when m is odd
   if ( mid == fix (mid) ) 
       % Median when m is even
-      M = M + xsort(fix (mid), 1 : n);
+      M = M + x(fix (mid), 1 : n);
       M = M * 0.5;
   end
-  xmin = xsort(1,:);   % Minimum
-  xmax = xsort(end,:);   % Maximum
-  range = (xmax - xmin) / 2;  % Range
-  xsort = []; %#ok<NASGU> Reduce memory usage. Faster than using clear.
+
+  % Set initial bracket bounds and calculate range
+  a = x(1,:);   % Minimum
+  b = x(end,:);   % Maximum
+  range = (b - a) / 2;  % Range
   
   % Check/set tolerance
   if (nargin < 3) || isempty(Tol)
@@ -160,12 +161,6 @@ function M = smoothmedian(x,dim,Tol)
   % Set starting value as the median
   p = M;
   
-  % Set initial bracket bounds
-  a = xmin; 
-  b = xmax;
-  xmin = []; %#ok<NASGU> Reduce memory usage. Faster than using clear.
-  xmax = []; %#ok<NASGU> Reduce memory usage. Faster than using clear.
-
   % Calculate commonly used operations and assign them to new variables
   z = (xi-xj).^2;
   y = xi+xj;
