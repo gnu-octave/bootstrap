@@ -47,23 +47,23 @@ void mexFunction (int nlhs, mxArray* plhs[],
   
     // Input variables
     if (nrhs < 2) {
-        mexErrMsgTxt("function requires at least 2 scalar input arguments");
+        mexErrMsgTxt ("function requires at least 2 scalar input arguments");
     }
     // First input argument
     const int n = *(mxGetPr(prhs[0]));
     if (mxGetNumberOfElements (prhs[0]) > 1) {
-        mexErrMsgTxt("the first input argument must be scalar");
+        mexErrMsgTxt ("the first input argument must be scalar");
     }
     if (n <= 0) {
-        mexErrMsgTxt("the first input argument must be a positive integer");
+        mexErrMsgTxt ("the first input argument must be a positive integer");
     }
     // Second input argument
     const int nboot = *(mxGetPr(prhs[1]));
     if (mxGetNumberOfElements (prhs[1]) > 1) {
-        mexErrMsgTxt("the second input argument must be scalar");
+        mexErrMsgTxt ("the second input argument must be scalar");
     }
     if (nboot <= 0) {
-        mexErrMsgTxt("the second input argument must be a positive integer");
+        mexErrMsgTxt ("the second input argument must be a positive integer");
     }
     // Third input argument
     bool u;
@@ -75,7 +75,7 @@ void mexFunction (int nlhs, mxArray* plhs[],
     
     // Output variables
     if (nlhs > 1) {
-        mexErrMsgTxt("function can only return a single output arguments");
+        mexErrMsgTxt ("function can only return a single output arguments");
     }
     
     // Declare variables
@@ -91,7 +91,7 @@ void mexFunction (int nlhs, mxArray* plhs[],
         // Assign user defined weights (counts)
         double *w = (double *) mxGetData (prhs[3]);
         if (mxGetNumberOfElements (prhs[3]) != n) {
-            mexErrMsgTxt("weights must be a vector of length n");
+            mexErrMsgTxt ("weights must be a vector of length n");
         }
         long long int s = 0; 
         for (int i = 0; i < n ; i++)  {
@@ -99,7 +99,7 @@ void mexFunction (int nlhs, mxArray* plhs[],
             s += c[i];
         }
         if (s != N) {
-            mexErrMsgTxt("weights must add up to n * nboot");
+            mexErrMsgTxt ("weights must add up to n * nboot");
         }
     } else {
         // Assign weights (counts) for uniform sampling
