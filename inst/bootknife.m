@@ -460,9 +460,16 @@ function [stats, T1, bootsam] = bootknife (x, nboot, bootfun, alpha, strata, npr
       if strcmp (func2str (bootfun), 'mean')
         % If bootfun is the mean, expand percentiles using Student's 
         % t-distribution to improve central coverage for small samples
-        if exist('betaincinv','file')
+        %if exist('betaincinv','file')
+        %  studinv = @(p, df) - sqrt ( df ./ betaincinv (2 * p, df / 2, 0.5) - df);
+        %else
+        %  % Earlier versions of matlab do not have betaincinv
+        %  studinv = @(p, df) - sqrt ( df ./ betainv (2 * p, df / 2, 0.5) - df);
+        %end
+        try 
+          betaincinv (2 * p, df / 2, 0.5);
           studinv = @(p, df) - sqrt ( df ./ betaincinv (2 * p, df / 2, 0.5) - df);
-        else
+        catch
           % Earlier versions of matlab do not have betaincinv
           studinv = @(p, df) - sqrt ( df ./ betainv (2 * p, df / 2, 0.5) - df);
         end
