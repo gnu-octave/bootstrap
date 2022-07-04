@@ -227,7 +227,7 @@ function [stats, T1, bootsam] = bootknife (x, nboot, bootfun, alpha, strata, npr
   if nargin < 7
     % Check if running in Octave (else assume Matlab)
     info = ver; 
-    isoctave = any (ismember ({info.Name}, "Octave"));
+    isoctave = any (ismember ({info.Name}, 'Octave'));
   end
 
   % Determine properties of the data (x)
