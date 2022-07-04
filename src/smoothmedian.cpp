@@ -201,6 +201,8 @@ void mexFunction (int nlhs, mxArray* plhs[],
                 } else if (T > +Tol) {
                     b = p;
                 }
+                
+                // Update the range with the distance between bracket bounds
                 range = b - a;
 
                 // Preview new value of the smoothed median
