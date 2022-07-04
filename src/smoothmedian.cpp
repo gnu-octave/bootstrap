@@ -66,7 +66,6 @@
 //      bootstrap. Biometrika 88(2):519-534
 //
 // Author: Andrew Charles Penn (2022)
-#include <iostream>
 
 #include "mex.h"
 #include <vector>
@@ -122,7 +121,7 @@ void mexFunction (int nlhs, mxArray* plhs[],
     double a, b, range, t, T, v, U, D, R, step, nwt, p;
     
     // Loop through the data and apply smoothing to the median
-    int MaxIter = 500;
+    int MaxIter = 20;
     for (int k = 0; k < n ; k++) {
 
         // Copy the next row/column of the data to temporary vector and sort it
@@ -173,14 +172,15 @@ void mexFunction (int nlhs, mxArray* plhs[],
                 
                 for (int i = 0; i < j ; i++) {
                     
-                    // Calculate first derivative (T)
+                    // Calculate derivatives
                     D = pow (xvec[i] - p, 2) + pow (xvec [j] - p, 2);
                     R = sqrt(D);
-                    t = (2 * p - xvec[i] - xvec [j]) / R;
-                    if ( ! isnan (t) ) T += t;
-                    
-                    // Calculate second derivative (U)
-                    U += pow (xvec[i] - xvec [j], 2) * R / pow (D, 2);
+                    if ( D != 0 ) {
+                        // Calculate first derivative (T)
+                        T += (2 * p - xvec[i] - xvec [j]) / R;
+                        // Calculate second derivative (U)
+                        U += pow (xvec[i] - xvec [j], 2) * R / pow (D, 2);
+                    }
                     
                 }
             }
@@ -189,17 +189,19 @@ void mexFunction (int nlhs, mxArray* plhs[],
             step = T / U;
             
             // Evaluate convergence
-            if (abs (step) < Tol) {
-                break; // Break from optimization when converged to tolerance 
-            } else {
+            if (abs (step) < Tol | (b - a) < Tol) {
                 
+                break; // Break from optimization when converged to tolerance 
+                
+            } else {
+
                 // Update bracket bounds for Bisection
                 if (T < -Tol) {
                     a = p;
                 } else if (T > +Tol) {
                     b = p;
                 }
-                
+
                 // Preview new value of the smoothed median
                 nwt = p - step;
                 
@@ -212,7 +214,7 @@ void mexFunction (int nlhs, mxArray* plhs[],
                     p = 0.5 * (a + b);
                 }
             }
-            //cout << Iter << "\n";
+
             if (Iter == MaxIter) {
                 mexWarnMsgTxt ("Warning: Root finding failed to reach the specified tolerance");
             }
