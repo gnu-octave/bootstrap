@@ -1,11 +1,7 @@
 function maxT = maxstat (Y, g, nboot, bootfun, ref, clusters, strata, isoctave)
 
   % Helper function file required for ibootnhst
-
   % Calculate maximum test statistic
-
-  % Get size and of the data vector or matrix
-  [m,nvar] = size(Y);
 
   % Get data structure information
   if isempty(clusters)
@@ -27,7 +23,6 @@ function maxT = maxstat (Y, g, nboot, bootfun, ref, clusters, strata, isoctave)
   theta = zeros(k,1);
   SE = zeros(k,1);
   Var = zeros(k,1);
-  t = zeros(nboot,1); 
   nk = zeros(size(gk));
   for j = 1:k
     if ~isempty(clusters)
@@ -79,7 +74,7 @@ function maxT = maxstat (Y, g, nboot, bootfun, ref, clusters, strata, isoctave)
     idx = logical(triu(ones(k,k),1));
     i = (1:k)' * ones(1,k);
     j = ones(k,1) * (1:k);
-    t = abs(theta(i(idx)) - theta(j(idx))) ./ sqrt(Var * (w(i(idx)) + w(j(idx))));;
+    t = abs(theta(i(idx)) - theta(j(idx))) ./ sqrt(Var * (w(i(idx)) + w(j(idx))));
   else
     % Calculate Dunnett's test statistic 
     t = abs((theta - theta(ref))) ./ sqrt(Var * (w + w(ref)));

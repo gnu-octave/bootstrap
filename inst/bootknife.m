@@ -383,7 +383,7 @@ function [stats, T1, bootsam] = bootknife (x, nboot, bootfun, alpha, strata, npr
     V = zeros (1, B);
     % Iterated bootstrap resampling for greater accuracy
     for b = 1:B
-      [~, T2] = bootknife (x(bootsam(:, b), :), [C, 0], bootfun, [], strata, nproc, isoctave);
+      [junk, T2] = bootknife (x(bootsam(:, b), :), [C, 0], bootfun, [], strata, nproc, isoctave);
       % Use quick interpolation to find the probability that T2 <= T0
       I = (T2 <= T0);
       u = sum (I);
@@ -460,7 +460,12 @@ function [stats, T1, bootsam] = bootknife (x, nboot, bootfun, alpha, strata, npr
       if strcmp (func2str (bootfun), 'mean')
         % If bootfun is the mean, expand percentiles using Student's 
         % t-distribution to improve central coverage for small samples
-        studinv = @(p, df) - sqrt ( df ./ betaincinv (2 * p, df / 2, 0.5) - df);
+        if exist('betaincinv','file')
+          studinv = @(p, df) - sqrt ( df ./ betaincinv (2 * p, df / 2, 0.5) - df);
+        else
+          % Earlier versions of matlab do not have betaincinv
+          studinv = @(p, df) - sqrt ( df ./ betainv (2 * p, df / 2, 0.5) - df);
+        end
         alpha = stdnormcdf (studinv (alpha / 2, n - 1)) * 2;      
       end
       % Calculate BCa percentiles

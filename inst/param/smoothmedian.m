@@ -123,7 +123,7 @@ function M = smoothmedian(x,dim,Tol)
 
   % Find column indices where smoothing is not possible
   if any(isnan(x)) | any(isinf(x))
-     error("x cannot contain Inf or NaN values")
+     error('x cannot contain Inf or NaN values')
   end
   
   % Calculate basic statistics for each column of the data
@@ -242,7 +242,7 @@ function M = smoothmedian(x,dim,Tol)
     U = []; %#ok<NASGU> Reduce memory usage. Faster than using clear.
     
   end
-  
+
   if Iter==MaxIter
     fprintf('Warning: Root finding failed to reach the specified tolerance.\n');
     if (nargout > 1)

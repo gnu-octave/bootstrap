@@ -903,7 +903,7 @@ function [p, c, stats] = bootnhst (data, group, varargin)
   end
 
   % Assign non-zero numbers to group labels
-  [gnames,~,g] = unique(group);
+  [gnames,junk,g] = unique(group);
   gk = unique(g);
   k = numel(gk);
   if ~isempty(ref)

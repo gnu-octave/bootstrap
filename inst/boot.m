@@ -56,10 +56,10 @@ function bootsam = boot (n, nboot, u, c)
     % Assign user defined weights (counts)
     % Error checking
     if (numel(c) ~= n)
-      error("weights must be a vector of length n");
+      error('weights must be a vector of length n');
     end
     if (sum(c) ~= n * nboot)
-      error("weights must add up to n * nboot")
+      error('weights must add up to n * nboot')
     end
   else
     % Assign weights (counts) for uniform sampling
