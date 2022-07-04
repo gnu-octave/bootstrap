@@ -1044,8 +1044,8 @@ function [p, c, stats] = bootnhst (data, group, varargin)
   for j = 1:k
     if ~isempty(clusters)
       theta(j) = feval(bootfun,data(g==gk(j),:));
-      % Compute unbiased estimate of the standard error by cluster-jackknife resampling
-      opt = struct;
+      % Compute unbiased estimate of the standard error by
+      % cluster-jackknife resampling
       opt.clusters = clusters(g==gk(j));
       nk(j) = numel(unique(opt.clusters));
       SE(j) = jack(data(g==gk(j),:), bootfun, [], opt);
