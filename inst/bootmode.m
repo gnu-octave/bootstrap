@@ -141,7 +141,7 @@ function [H, P, h] = bootmode (x, m, B, kernel)
   % Boostrap statistic is the number of modes (faster)
   f = zeros(200,B);
   for j = 1:B
-    [f(:,j),t] = kde(X(:,j),h, kernel);
+    f(:,j) = kde(X(:,j),h, kernel);
   end
   % Compute number of modes in the kernel density estimate of the bootstrap samples
   mboot = sum(diff(sign(diff(f)))<0);
@@ -176,7 +176,7 @@ function [criticalBandwidth] = findCriticalBandwidth (x, mref, kernel)
   while m > mref
     % Increase h
     h = h * 1.01; % Increase query bandwidth by 1%
-    [y, t] = kde (x, h, kernel);
+    y = kde (x, h, kernel);
     m = sum(diff(sign(diff(y)))<0);
   end
   criticalBandwidth = h;
