@@ -71,7 +71,7 @@ function [p, F, FDIST] = bootanovan (data, group, nboot, varargin)
 
   % Check if running in Octave (else assume Matlab)
   info = ver; 
-  isoctave = any (ismember ({info.Name}, "Octave"));
+  isoctave = any (ismember ({info.Name}, 'Octave'));
 
   % Check for dependency anovan
   if ~exist('anovan')
