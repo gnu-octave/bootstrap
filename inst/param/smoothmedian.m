@@ -126,7 +126,7 @@ function M = smoothmedian(x,dim,Tol)
      error('x cannot contain Inf or NaN values')
   end
   
-  % Sort the data and alculate for each column of the data
+  % Sort the data and calculate the median for each column of the data
   x = sort(x, 1);
   mid = 0.5 * m;
   M = x(fix (mid + 1), 1 : n); % Median when m is odd
@@ -136,7 +136,7 @@ function M = smoothmedian(x,dim,Tol)
       M = M * 0.5;
   end
 
-  % Set initial bracket bounds and calculate range
+  % Set initial bracket bounds and calculate range along each column
   a = x(1,:);   % Minimum
   b = x(end,:);   % Maximum
   range = (b - a) / 2;  % Range
@@ -172,7 +172,7 @@ function M = smoothmedian(x,dim,Tol)
     % Compute first derivative
     temp = ones(l,1)*p;
     D = (xi-temp).^2+(xj-temp).^2;
-    R = sqrt(D);
+    R = sqrt(D); 
     T = sum((2*temp-y)./R,1);
     temp = []; %#ok<NASGU> Reduce memory usage. Faster than using clear.
     
