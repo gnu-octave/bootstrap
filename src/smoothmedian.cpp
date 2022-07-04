@@ -189,7 +189,7 @@ void mexFunction (int nlhs, mxArray* plhs[],
             step = T / U;
             
             // Evaluate convergence
-            if (abs (step) < Tol | (b - a) < Tol) {
+            if (abs (step) < Tol | range < Tol) {
                 
                 break; // Break from optimization when converged to tolerance 
                 
@@ -201,6 +201,7 @@ void mexFunction (int nlhs, mxArray* plhs[],
                 } else if (T > +Tol) {
                     b = p;
                 }
+                range = b - a;
 
                 // Preview new value of the smoothed median
                 nwt = p - step;
