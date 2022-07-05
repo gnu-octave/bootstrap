@@ -122,7 +122,7 @@ function M = smoothmedian(x,dim,Tol)
   l = m*(m-1)/2;
 
   % Find column indices where smoothing is not possible
-  if any(isnan(x)) || any(isinf(x))
+  if any(isnan(x)) | any(isinf(x))
      error('x cannot contain Inf or NaN values')
   end
   
@@ -166,29 +166,33 @@ function M = smoothmedian(x,dim,Tol)
   y = xi+xj;
   
   % Minimize objective function (vectorized)
-  MaxIter = 200;
+  MaxIter = 500;
   for Iter = 1:MaxIter
   
-    % Compute first derivative
+    % Compute derivatives
     temp = ones(l,1)*p;
     D = (xi-temp).^2+(xj-temp).^2;
-    D (D==0) = 1; % Ensures that no NaN values occur when there are ties equal to the median
+    D (D==0) = 1; % Ensures that no NaN values occur when the objective function is not differentiable
     R = sqrt(D); 
+    % Objective function (S)
+    %S = sum(R);
+    % First derivative (T)
     T = sum((2*temp-y)./R,1); 
-    temp = []; %#ok<NASGU> Reduce memory usage. Faster than using clear.
-    
-    % The following calculation of the second derivative(s) is 
-    % equivalent to (but much faster to compute than):
-    % U = sum ( (xi-xj).^2 .* ((xi-temp).^2 + (xj-temp).^2).^(-3/2) ) 
+    % Second derivative (U)
+    % Equivalent to (but much faster to compute than):
+    % U = sum ( (xi-xj).^2 .* ((xi-temp).^2 + (xj-temp).^2).^(-3/2) )   
     U = sum(z.*R./D.^2,1);
-    D = []; %#ok<NASGU> Reduce memory usage. Faster than using clear.
-    R = []; %#ok<NASGU> Reduce memory usage. Faster than using clear.
+    
+    % Reduce memory usage
+    temp = []; %#ok<NASGU> Faster than using clear.
+    D = [];    %#ok<NASGU> Faster than using clear.
+    R = [];    %#ok<NASGU> Faster than using clear.
     
     % Compute Newton step (fast quadratic convergence but unreliable)
     step = T./U; 
     
     % Evaluate convergence
-    cvg = ( abs(step)<=Tol | range<Tol );
+    cvg = ( (abs(step) <= Tol) | (range <= Tol) );
     if any(cvg)
       % Export converged parameters
       M(idx(cvg)) = p(cvg);
@@ -212,9 +216,9 @@ function M = smoothmedian(x,dim,Tol)
     end
     
     % Update bracket bounds
-    a(T<-Tol) = p(T<-Tol);
-    b(T>+Tol) = p(T>+Tol);
-    
+    a(step < 0) = p(step < 0);
+    b(step > 0) = p(step > 0);
+                
     % Update the range with the distance between bracket bounds
     range = b - a;
     
@@ -229,18 +233,15 @@ function M = smoothmedian(x,dim,Tol)
     p(~I) = 0.5 * (a(~I) + b(~I));
 
     % Tidy up
-    nwt = [];  %#ok<NASGU> Reduce memory usage. Faster than using clear.
-    I = []; %#ok<NASGU> Reduce memory usage. Faster than using clear.
-    T = []; %#ok<NASGU> Reduce memory usage. Faster than using clear.
-    U = []; %#ok<NASGU> Reduce memory usage. Faster than using clear.
+    nwt = [];  %#ok<NASGU> Faster than using clear.
+    I = [];    %#ok<NASGU> Faster than using clear.
+    T = [];    %#ok<NASGU> Faster than using clear.
+    U = [];    %#ok<NASGU> Faster than using clear.
     
   end
 
   if Iter==MaxIter
     fprintf('Warning: Root finding failed to reach the specified tolerance.\n');
-    if (nargout > 1)
-      fprintf('Warning: Estimates of the standard errors will be more unstable.\n');
-    end
   end
 
   % If applicable, switch dimension
