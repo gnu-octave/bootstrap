@@ -1,9 +1,12 @@
 % Basic uninstall script 
 % 
 
-copyfile ('PKG_ADD','PKG_ADD.m'); % copy to m-file for backwards compatibility
+% Check if running in Octave (else assume Matlab)
+info = ver; 
+isoctave = any (ismember ({info.Name}, 'Octave'));
+
 copyfile ('PKG_DEL','PKG_DEL.m'); % copy to m-file for backwards compatibility
-run (fullfile(pwd,'PKG_ADD.m'));
+
 if isoctave
   % Uninstall for Octave
   dirlist = cell(3,1); % dir list needs to be in decreasing order of length
@@ -46,10 +49,12 @@ end
 path_to_boot = sprintf ('./inst/boot.%s',mexext);
 if exist (path_to_boot)
   delete (path_to_boot);
+  clear boot
 end
 path_to_smoothmedian = sprintf ('./inst/param/smoothmedian.%s',mexext);
 if exist (path_to_smoothmedian)
   delete (path_to_smoothmedian);
+  clear smoothmedian
 end
 
 
@@ -58,5 +63,4 @@ disp ('This statistics-bootstrap package has been uninstalled from this location
 
 % Clean up
 clear dirlist S comment i ii octaverc fid n msg
-delete ('PKG_ADD.m');
 delete ('PKG_DEL.m');
