@@ -212,7 +212,7 @@ void mexFunction (int nlhs, mxArray* plhs[],
             }
 
             if (Iter == MaxIter) {
-                mexWarnMsgTxt ("Root finding failed to reach the specified tolerance for vector %d along dim %d", k, dim);
+                mexPrintf ("warning: Root finding failed to reach tolerance for vector %d along dim %d \n", k, dim);
             }
             
         }
