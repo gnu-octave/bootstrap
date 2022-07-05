@@ -174,7 +174,7 @@ void mexFunction (int nlhs, mxArray* plhs[],
                     D = pow (xvec[i] - M[k], 2) + pow (xvec [j] - M[k], 2);
                     R = sqrt(D);
                     // Objective function (S)
-                    S += R;
+                    //S += R;
                     if ( D != 0 ) {
                         // First derivative (T)
                         T += (2 * M[k] - xvec[i] - xvec [j]) / R;
@@ -212,7 +212,7 @@ void mexFunction (int nlhs, mxArray* plhs[],
             }
 
             if (Iter == MaxIter) {
-                mexWarnMsgTxt ("Warning: Root finding failed to reach the specified tolerance");
+                mexWarnMsgTxt ("Root finding failed to reach the specified tolerance for vector %d along dim %d", k, dim);
             }
             
         }
