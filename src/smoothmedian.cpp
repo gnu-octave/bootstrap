@@ -124,8 +124,8 @@ void mexFunction (int nlhs, mxArray* plhs[],
     xvec.reserve (m);
     double a, b, range, S, T, U, D, R, step, nwt;
     
-    // Loop through the data and apply smoothing to the median
-    int MaxIter = 99;
+    // Loop through the data and apply smoothing to the median (maximum 20 iterations)
+    int MaxIter = 19;
     for (int k = 0; k < n ; k++) {
 
         // Copy the next row/column of the data to temporary vector and sort it
