@@ -67,7 +67,7 @@
 //
 // Author: Andrew Charles Penn (2022)
 
-
+#include <iostream>
 #include "mex.h"
 #include <vector>
 #include <cmath>         // for pow function
@@ -90,6 +90,9 @@ void mexFunction (int nlhs, mxArray* plhs[],
         dim = 1;
     } else {
         dim = *(mxGetPr (prhs[1]));
+    }
+    if ( dim != 1 && dim != 2) {
+        mexErrMsgTxt ("dim must be 1 (column-wise) or 2 (row-wise)");
     }
     double Tol;
     if (nrhs > 2) {
@@ -171,7 +174,7 @@ void mexFunction (int nlhs, mxArray* plhs[],
                     D = pow (xvec[i] - M[k], 2) + pow (xvec [j] - M[k], 2);
                     R = sqrt(D);
                     // Objective function (S)
-                    //S += R;
+                    S += R;
                     if ( D != 0 ) {
                         // First derivative (T)
                         T += (2 * M[k] - xvec[i] - xvec [j]) / R;
@@ -179,19 +182,19 @@ void mexFunction (int nlhs, mxArray* plhs[],
                         U += pow (xvec[i] - xvec [j], 2) * R / pow (D, 2);
                     }
                 }
-            }
-            
+            }          
+
             // Compute Newton step (fast quadratic convergence but unreliable)
             step = T / U;
-            
+                        
             // Evaluate convergence
             if (abs (step) < Tol) { 
                 break; // Break from optimization when converged to tolerance 
             } else {
                 // Update bracket bounds for Bisection method
-                if (T < -Tol) {
+                if (step < 0) {
                     a = M[k];
-                } else if (T > +Tol) {
+                } else if (step > 0) {
                     b = M[k];
                 }
                 // Update the range with the distance between the bracket bounds
