@@ -166,7 +166,7 @@ function M = smoothmedian(x,dim,Tol)
   y = xi+xj;
   
   % Minimize objective function (vectorized)
-  MaxIter = 500;
+  MaxIter = 20;
   for Iter = 1:MaxIter
   
     % Compute derivatives
