@@ -162,7 +162,7 @@ void mexFunction (int nlhs, mxArray* plhs[],
                 break;
             }   
             
-            // Calculate derivatives of the objective function for Newton's method
+            // Calculate derivatives of the objective function for Newton-Raphson method
             S = 0;
             T = 0;
             U = 0;
