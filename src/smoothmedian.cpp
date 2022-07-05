@@ -67,7 +67,7 @@
 //
 // Author: Andrew Charles Penn (2022)
 
-#include <iostream>
+
 #include "mex.h"
 #include <vector>
 #include <cmath>         // for pow function
@@ -158,7 +158,7 @@ void mexFunction (int nlhs, mxArray* plhs[],
             
             // Break from iterations if the distance between the bracket bounds < Tol since
             // the smoothed median will be equal to the median 
-            if (range < Tol) {
+            if (range <= Tol) {
                 break;
             }   
             
