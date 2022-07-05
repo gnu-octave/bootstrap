@@ -167,7 +167,6 @@ void mexFunction (int nlhs, mxArray* plhs[],
                 if ( !mxIsFinite(xvec[j]) ) {
                     mexErrMsgTxt ("x cannot contain NaN or Inf");
                 }
-                
                 for (int i = 0; i < j ; i++) {
                     D = pow (xvec[i] - M[k], 2) + pow (xvec [j] - M[k], 2);
                     R = sqrt(D);
