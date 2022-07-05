@@ -119,10 +119,10 @@ void mexFunction (int nlhs, mxArray* plhs[],
     // Declare temporary variables needed for the optimization step
     vector<double> xvec;
     xvec.reserve (m);
-    double a, b, range, T, U, D, R, step, nwt;
+    double a, b, range, S, T, U, D, R, step, nwt;
     
     // Loop through the data and apply smoothing to the median
-    int MaxIter = 199;
+    int MaxIter = 99;
     for (int k = 0; k < n ; k++) {
 
         // Copy the next row/column of the data to temporary vector and sort it
@@ -153,12 +153,14 @@ void mexFunction (int nlhs, mxArray* plhs[],
         // Start iterations
         for (int Iter = 0; Iter <= MaxIter ; Iter++) {
             
-            // Break from iterations if the distance between the bracket bounds < Tol
+            // Break from iterations if the distance between the bracket bounds < Tol since
+            // the smoothed median will be equal to the median 
             if (range < Tol) {
                 break;
             }   
             
             // Calculate derivatives of the objective function for Newton's method
+            S = 0;
             T = 0;
             U = 0;
             for (int j = 0; j < m ; j++) {        
@@ -169,10 +171,12 @@ void mexFunction (int nlhs, mxArray* plhs[],
                 for (int i = 0; i < j ; i++) {
                     D = pow (xvec[i] - M[k], 2) + pow (xvec [j] - M[k], 2);
                     R = sqrt(D);
+                    // Objective function (S)
+                    //S += R;
                     if ( D != 0 ) {
-                        // Calculate first derivative (T)
+                        // First derivative (T)
                         T += (2 * M[k] - xvec[i] - xvec [j]) / R;
-                        // Calculate second derivative (U)
+                        // Second derivative (U)
                         U += pow (xvec[i] - xvec [j], 2) * R / pow (D, 2);
                     }
                 }
