@@ -872,7 +872,7 @@ function [p, c, stats] = bootnhst (data, group, varargin)
     end
   end
   if ~isempty(strata) && ~isempty(clusters)
-    error('strata and cluster options cannot be used together')
+    error('block and nested options cannot be used together')
   end
   if nargout > 3
     error('bootnhst only supports up to 3 output arguments')
