@@ -4,12 +4,14 @@
 % bootsam = boot (n, nboot)
 % bootsam = boot (n, nboot, u)
 % bootsam = boot (n, nboot, u, w)
+% bootsam = boot (n, nboot, u, w, s)
 %
 % INPUT VARIABLES
-% n (integer, int32) is the number of rows (of the data vector)
-% nboot (integer, int32) is the number of bootstrap resamples
+% n (double) is the number of rows (of the data vector)
+% nboot (double) is the number of bootstrap resamples
 % u (boolean) for unbiased: false (for bootstrap) or true (for bootknife)
 % w (double) is a weight vector of length n. 
+% s (double) is a seed for the pseudo-random number generator. 
 %
 % OUTPUT VARIABLE
 % bootsam (integer, int32) is an n x nboot matrix of bootstrap resamples
@@ -31,21 +33,27 @@
 % Author: Andrew Charles Penn (2022)
 %
 
-function bootsam = boot (n, nboot, u, c)
+function bootsam = boot (n, nboot, u, c, s)
 
   % Error checking
   if (n <= 0) || (n ~= fix(n)) || isinf(n) || isnan(n) || (max (size (n)) > 1)
-    error ('n must be a finite positive integer')
+    error ('the first input argument (n) must be a finite positive integer')
   end
-  if (nboot <= 0) || (nboot ~= fix(nboot)) || isinf(nboot) || isnan(nboot) || (max (size (n)) > 1)
-    error ('nboot must be a finite positive integer')
+  if (nboot <= 0) || (nboot ~= fix(nboot)) || isinf(nboot) || isnan(nboot) || (max (size (nboot)) > 1)
+    error ('the second input argument (nboot) must be a finite positive integer')
   end
   if (nargin < 3)
     u = 0;
   else
     if ~islogical (u)
-      error ('u must be either a false (for bootstrap) or true (for bootknife)')
+      error ('the third input argument (u) must be a logical scalar value')
     end
+  end
+  if (nargin > 4)
+    if (isinf(s) || isnan(s) || (max (size (s)) > 1))
+      error ('the fifth input argument (s) must be a finite scalar value')
+    end
+    rand ('twister', s);
   end
   
   % Preallocate bootsam

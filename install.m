@@ -34,17 +34,6 @@ if isoctave
   fseek (fid, 0);
   fputs (fid, S);
   fclose (fid);
-  try
-    mkoctfile --mex --output ./inst/boot ./src/boot.cpp
-  catch
-    warning ('Could not compile boot.%s. Falling back to the (slower) boot.m file.',mexext)
-  end
-  path_to_smoothmedian = sprintf ('./inst/param/smoothmedian.%s',mexext);
-  try
-    mkoctfile --mex --output ./inst/param/smoothmedian ./src/smoothmedian.cpp
-  catch
-    warning ('Could not compile smoothmedian.%s. Falling back to the (slower) smoothmedian.m file.',mexext)
-  end
 else
   % Assumming install for Matlab instead
   if exist('savepath')
@@ -52,22 +41,6 @@ else
   else
     % backwards compatibility
     path2rc;
-  end
-  try  
-    mex -setup c++
-  catch
-    err = lasterror();
-    disp(err.message);
-  end
-  try
-    mex -compatibleArrayDims -output ./inst/boot ./src/boot.cpp
-  catch
-    warning ('Could not compile boot.%s. Falling back to the (slower) boot.m file.',mexext)
-  end
-  try
-    mex -compatibleArrayDims -output ./inst/param/smoothmedian ./src/smoothmedian.cpp
-  catch
-    warning ('Could not compile smoothmedian.%s. Falling back to the (slower) smoothmedian.m file.',mexext)
   end
 end
 

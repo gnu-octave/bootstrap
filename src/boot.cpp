@@ -9,12 +9,14 @@
 // bootsam = boot (n, nboot)
 // bootsam = boot (n, nboot, u)
 // bootsam = boot (n, nboot, u, w)
+// bootsam = boot (n, nboot, u, w, s)
 //
 // INPUT VARIABLES
-// n (integer, int32) is the number of rows (of the data vector)
-// nboot (integer, int32) is the number of bootstrap resamples
+// n (double) is the number of rows (of the data vector)
+// nboot (double) is the number of bootstrap resamples
 // u (boolean) for unbiased: false (for bootstrap) or true (for bootknife)
 // w (double) is a weight vector of length n. 
+// s (double) is a seed for the pseudo-random number generator. 
 //
 // OUTPUT VARIABLE
 // bootsam (integer, int32) is an n x nboot matrix of bootstrap resamples
@@ -32,11 +34,14 @@
 // bootsam. For example, if the second element is 500, then the value 2 will 
 // will be assigned to 500 elements within bootsam. The sum of w should equal 
 // n * nboot.
+// 
+// Requirements: Compilation requires C++11
 //
 // Author: Andrew Charles Penn (2022)
 
 
 #include "mex.h"
+#include <vector>
 #include <random>
 using namespace std;
 
@@ -46,36 +51,70 @@ void mexFunction (int nlhs, mxArray* plhs[],
 {
   
     // Input variables
-    if (nrhs < 2) {
+    if ( nrhs < 2 ) {
         mexErrMsgTxt ("function requires at least 2 scalar input arguments");
     }
-    // First input argument
+    // First input argument (n)
     const int n = *(mxGetPr(prhs[0]));
-    if (mxGetNumberOfElements (prhs[0]) > 1) {
-        mexErrMsgTxt ("the first input argument must be scalar");
+    if ( mxGetNumberOfElements (prhs[0]) > 1 ) {
+        mexErrMsgTxt ("the first input argument (n) must be scalar");
     }
-    if (n <= 0) {
-        mexErrMsgTxt ("the first input argument must be a positive integer");
+    if ( !mxIsClass (prhs[0], "double") ) {
+        mexErrMsgTxt ("the first input argument (n) must be of type double");
     }
-    // Second input argument
+    if ( mxIsComplex (prhs[0]) ) {
+        mexErrMsgTxt ("the first input argument (n) cannot contain an imaginary part");
+    }
+    if ( n <= 0 ) {
+        mexErrMsgTxt ("the first input argument (n) must be a positive integer");
+    }
+    if ( !mxIsFinite(n) ) {
+        mexErrMsgTxt ("the first input argument (n) cannot be NaN or Inf");    
+    }
+    // Second input argument (nboot)
     const int nboot = *(mxGetPr(prhs[1]));
-    if (mxGetNumberOfElements (prhs[1]) > 1) {
-        mexErrMsgTxt ("the second input argument must be scalar");
+    if ( mxGetNumberOfElements (prhs[1]) > 1 ) {
+        mexErrMsgTxt ("the second input argument (nboot) must be scalar");
     }
-    if (nboot <= 0) {
-        mexErrMsgTxt ("the second input argument must be a positive integer");
+    if ( !mxIsClass (prhs[1], "double") ) {
+        mexErrMsgTxt ("the second input argument (nboot) must be of type double");
     }
-    // Third input argument
+    if ( mxIsComplex (prhs[1]) ) {
+        mexErrMsgTxt ("the second input argument (nboot) cannot contain an imaginary part");
+    }
+    if ( nboot <= 0 ) {
+        mexErrMsgTxt ("the second input argument (nboot) must be a positive integer");
+    }
+    if ( !mxIsFinite (nboot) ) {
+        mexErrMsgTxt ("the second input argument (nboot) cannot be NaN or Inf");    
+    }
+    // Third input argument (u)
     bool u;
-    if (nrhs < 3) {
+    if ( nrhs < 3 ) {
         u = false;
     } else {
+        if (mxGetNumberOfElements (prhs[2]) > 1 || !mxIsClass (prhs[2], "logical")) {
+            mexErrMsgTxt ("the third input argument (u) must be a logical scalar value");
+        }
         u = *(mxGetPr(prhs[2]));
-    }    
+    }  
+    // Forth input argument (w) - error checking is handled later (see below)
+    // Fifth input argument (s)
+    unsigned int s;
+    if ( nrhs > 4 ) {
+        if ( mxGetNumberOfElements (prhs[4]) > 1 ) {
+            mexErrMsgTxt ("the fifth input argument (s) must be a scalar value");
+        }
+        s = *(mxGetPr(prhs[4]));
+        if ( !mxIsFinite (s) ) {
+            mexErrMsgTxt ("the fifth input argument (s) cannot be NaN or Inf");    
+        }
+        srand (s);
+    }  
     
     // Output variables
     if (nlhs > 1) {
-        mexErrMsgTxt ("function can only return a single output arguments");
+        mexErrMsgTxt ("the function (boot) can only return a single output argument");
     }
     
     // Declare variables
@@ -86,50 +125,61 @@ void mexFunction (int nlhs, mxArray* plhs[],
     long long int N = n * nboot;     // Total counts of all sample indices
     long long int k;                 // Variable to store random number
     long long int d;                 // Counter for cumulative sum calculations
-    long long int c[n];              // Counter for each of the sample indices 
-    if (nrhs > 3) {
+    vector<long long int> c;         // Counter for each of the sample indices
+    c.reserve (n);
+    if ( nrhs > 3 ) {
         // Assign user defined weights (counts)
+        if ( !mxIsClass (prhs[3], "double") ) {
+            mexErrMsgTxt ("the forth input argument (weights) must be of type double");
+        }
+        if ( mxIsComplex (prhs[3]) ) {
+            mexErrMsgTxt ("the forth input argument (weights) cannot contain an imaginary part");
+        }
         double *w = (double *) mxGetData (prhs[3]);
-        if (mxGetNumberOfElements (prhs[3]) != n) {
-            mexErrMsgTxt ("weights must be a vector of length n");
+        if ( mxGetNumberOfElements (prhs[3]) != n ) {
+            mexErrMsgTxt ("the forth input argument (weights) must be a vector of length n");
         }
         long long int s = 0; 
-        for (int i = 0; i < n ; i++)  {
-            c[i] = w[i];     // Set each element in c to the specified weight
+        for ( int i = 0; i < n ; i++ )  {
+            if ( !mxIsFinite (w[i]) ) {
+                mexErrMsgTxt ("the forth input argument (weights) cannot contain NaN or Inf");    
+            }
+            if ( w[i] < 0 ) {
+                mexErrMsgTxt ("the forth input argument (weights) must contain only positive integers");
+            }
+            c.push_back (w[i]);      // Set each element in c to the specified weight    
             s += c[i];
         }
-        if (s != N) {
-            mexErrMsgTxt ("weights must add up to n * nboot");
+        if ( s != N ) {
+            mexErrMsgTxt ("the elements in the forth input argument (weights) must sum to n * nboot");
         }
     } else {
         // Assign weights (counts) for uniform sampling
-        for (int i = 0; i < n ; i++) {   
-            c[i] = nboot;            // Set each element in c to nboot
+        for ( int i = 0; i < n ; i++ ) {   
+            c.push_back (nboot);      // Set each element in c to nboot
         }
     }
-    bool LOO = false;                // Leave-one-out (LOO) flag for the current bootstrap iteration (remains false if u is false)
-    long long int m = 0;             // Counter for LOO sample index r (remains 0 if u is false) 
-    int r = -1;                      // Sample index for LOO (remains -1 and is ignored if u is false)
+    bool LOO = false;                 // Leave-one-out (LOO) flag for the current bootstrap iteration (remains false if u is false)
+    long long int m = 0;              // Counter for LOO sample index r (remains 0 if u is false) 
+    int r = -1;                       // Sample index for LOO (remains -1 and is ignored if u is false)
 
     // Create pointer so that we can access elements of bootsam (i.e. plhs[0])
     int *ptr = (int *) mxGetData(plhs[0]);
     
-    // Initialize random number generator
-    random_device rd;
-    seed_seq seed {rd(), rd(), rd(), rd()};
-    mt19937 rng(seed);
+    // Initialize pseudo-random number generator (Mersenne Twister 19937)
+    mt19937 rng (rand());           
     uniform_int_distribution<int> distr (0, n - 1);
 
     // Perform balanced sampling
-    for (int b = 0; b < nboot ; b++) { 
+    for ( int b = 0; b < nboot ; b++ ) { 
         if (u) {    
-            if ((b / n) == (nboot / n)) {
+            if ( (b / n) == (nboot / n) ) {
                 r = distr (rng);      // random
             } else {
                 r = b - (b / n) * n;  // systematic
             }
         }
-        for (int i = 0; i < n ; i++) {
+        for ( int i = 0; i < n ; i++ ) {
             if (u) {
                 if (c[r] < N) {       // Only LOO if sample index r doesn't account for all remaining sampling counts
                     m = c[r];
@@ -140,8 +190,8 @@ void mexFunction (int nlhs, mxArray* plhs[],
             uniform_int_distribution<int> distk (0, N - m - 1);
             k = distk (rng); 
             d = c[0];
-            for (int j = 0; j < n ; j++) { 
-                if (k < d) {
+            for ( int j = 0; j < n ; j++ ) { 
+                if ( k < d ) {
                     ptr[b * n + i] = j + 1;
                     c[j] -= 1;
                     N -= 1;

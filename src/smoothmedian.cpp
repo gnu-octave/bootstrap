@@ -79,38 +79,69 @@ void mexFunction (int nlhs, mxArray* plhs[],
 {
     
     // Input variables
-    if (nrhs < 1) {
+    if ( nrhs < 1 ) {
         mexErrMsgTxt ("function requires at least 1 input argument");
     }
-    
-    // Input variable declaration
+    // First input argument (x)
+    if ( !mxIsClass (prhs[0], "double") ) {
+        mexErrMsgTxt ("the first input argument (x) must be of type double");
+    }
+    if ( mxIsComplex (prhs[0]) ) {
+        mexErrMsgTxt ("the first input argument (x) cannot contain an imaginary part");
+    }
     double *x = (double *) mxGetData (prhs[0]);
+    // Second input argument (dim)
     short int dim;
-    if (nrhs < 2) {
+    if ( nrhs < 2 ) {
         dim = 1;
     } else {
+        if ( mxGetNumberOfElements (prhs[1]) > 1 ) {
+            mexErrMsgTxt ("the second input argument (dim) must be scalar");
+        }
+        if ( !mxIsClass (prhs[1], "double") ) {
+            mexErrMsgTxt ("the second input argument (dim) must be of type double");
+        }
+        if ( mxIsComplex (prhs[1]) ) {
+            mexErrMsgTxt ("the second input argument (dim) cannot contain an imaginary part");
+        }
         dim = *(mxGetPr (prhs[1]));
     }
     if ( dim != 1 && dim != 2) {
-        mexErrMsgTxt ("dim must be 1 (column-wise) or 2 (row-wise)");
+        mexErrMsgTxt ("the second input argument (dim) must be 1 (column-wise) or 2 (row-wise)");
     }
+    // Third input argument (Tol)
     double Tol;
-    if (nrhs > 2) {
+    if ( nrhs > 2 ) {
+        if ( mxGetNumberOfElements (prhs[2]) > 1 ) {
+            mexErrMsgTxt ("the third input argument (Tol) must be scalar");
+        }
+        if ( !mxIsClass (prhs[2], "double") ) {
+            mexErrMsgTxt ("the third input argument (Tol) must be of type double");
+        }
+        if ( mxIsComplex (prhs[2]) ) {
+            mexErrMsgTxt ("the third input argument (Tol) cannot contain an imaginary part");
+        }
         Tol = *(mxGetPr (prhs[2]));
+    }
+    if ( !mxIsFinite (Tol) ) {
+        mexErrMsgTxt ("the third input argument (Tol) cannot be NaN or Inf");    
+    }
+    if ( Tol < 0 ) {
+        mexErrMsgTxt ("the third input argument (Tol) must be a positive value");
     }
 
     // Get data dimensions and prepare output vector
     int ndims = (int) mxGetNumberOfDimensions (prhs[0]);
     const mwSize *sz = mxGetDimensions (prhs[0]);
-    if (sz[0] == 1) {
+    if ( sz[0] == 1 ) {
         dim = 2;
     }
     int m, n;
-    if (dim == 1) {
+    if ( dim == 1 ) {
         m = sz[0];
         n = sz[1];
         plhs[0] = mxCreateDoubleMatrix (1, n, mxREAL);
-    } else if (dim == 2) {
+    } else if ( dim == 2 ) {
         n = sz[0];
         m = sz[1]; 
         plhs[0] = mxCreateDoubleMatrix (n, 1, mxREAL);
@@ -126,13 +157,13 @@ void mexFunction (int nlhs, mxArray* plhs[],
     
     // Loop through the data and apply smoothing to the median (maximum 20 iterations)
     int MaxIter = 19;
-    for (int k = 0; k < n ; k++) {
+    for ( int k = 0; k < n ; k++ ) {
 
         // Copy the next row/column of the data to temporary vector and sort it
-        if (dim == 1) {
+        if ( dim == 1 ) {
             for (int j = 0; j < m ; j++) xvec.push_back ( x[k * m + j] );
-        } else if (dim == 2) { 
-            for (int j = 0; j < m ; j++) {int i = j * n; xvec.push_back ( x[i + k] );};
+        } else if ( dim == 2 ) { 
+            for ( int j = 0; j < m ; j++ ) {int i = j * n; xvec.push_back ( x[i + k] );};
         }
         sort(xvec.begin(), xvec.end());
         
@@ -154,7 +185,7 @@ void mexFunction (int nlhs, mxArray* plhs[],
         }  
         
         // Start iterations
-        for (int Iter = 0; Iter <= MaxIter ; Iter++) {
+        for ( int Iter = 0; Iter <= MaxIter ; Iter++ ) {
             
             // Break from iterations if the distance between the bracket bounds < Tol since
             // the smoothed median will be equal to the median 
@@ -166,11 +197,11 @@ void mexFunction (int nlhs, mxArray* plhs[],
             S = 0;
             T = 0;
             U = 0;
-            for (int j = 0; j < m ; j++) {        
+            for ( int j = 0; j < m ; j++ ) {        
                 if ( !mxIsFinite(xvec[j]) ) {
-                    mexErrMsgTxt ("x cannot contain NaN or Inf");
+                    mexErrMsgTxt ("the first input argument (x) cannot contain NaN or Inf");
                 }
-                for (int i = 0; i < j ; i++) {
+                for ( int i = 0; i < j ; i++ ) {
                     D = pow (xvec[i] - M[k], 2) + pow (xvec [j] - M[k], 2);
                     R = sqrt(D);
                     // Objective function (S)
@@ -188,13 +219,13 @@ void mexFunction (int nlhs, mxArray* plhs[],
             step = T / U;
                         
             // Evaluate convergence
-            if (abs (step) < Tol) { 
+            if ( abs (step) < Tol ) { 
                 break; // Break from optimization when converged to tolerance 
             } else {
                 // Update bracket bounds for Bisection method
-                if (step < 0) {
+                if ( step < 0 ) {
                     a = M[k];
-                } else if (step > 0) {
+                } else if ( step > 0 ) {
                     b = M[k];
                 }
                 // Update the range with the distance between the bracket bounds
@@ -202,7 +233,7 @@ void mexFunction (int nlhs, mxArray* plhs[],
                 // Preview new value of the smoothed median
                 nwt = M[k] - step;
                 // Choose which method to use to update the smoothed median
-                if (nwt > a && nwt < b) {
+                if ( nwt > a && nwt < b ) {
                     // Use Newton step if it is within bracket bounds
                     M[k] = nwt;
                 } else {
@@ -211,7 +242,7 @@ void mexFunction (int nlhs, mxArray* plhs[],
                 }
             }
 
-            if (Iter == MaxIter) {
+            if ( Iter == MaxIter ) {
                 mexPrintf ("warning: Root finding failed to reach tolerance for vector %d \n", k+1);
             }
             
