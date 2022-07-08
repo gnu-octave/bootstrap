@@ -68,14 +68,5 @@ Be aware that that many of the bootstrap functions in this package are determini
 
 ## Development roadmap
  
-* Add ability to `ibootci` to calibrate confidence interval limits like in `bootknife` (not just calibrate central coverage)  
-* Create a new function for permutation tests on independent and paired/matched data samples  
-* Create a simple and efficient progress bar for the functions in this package  
-* Add function to param folder to calculate D statistic from KS-test (with input format suitable for `bootnhst`, `iboottest` and (`i`)`bootci`) 
-* Add the ability to perform stratified jackknife resampling in `jack` 
-* Allow bootstrap to accept empty argument for `bootfun` (to enhance compatible behaviours with corresponding matlab function) 
-* Create usage guide with examples of how to apply the package functions to different problems and scenarios  
-* Create some compiled mex and oct files on various platforms (mac, pc and linux) to speed up computations. 
-* Include optional output argument in `bootanovan` that includes confidence intervals for the model coefficients
-* Create a function that can return multiparameter bootstrap statistics (e.g. for regression)
+* Create more documentation and guidance for using the functions in this package  
  
