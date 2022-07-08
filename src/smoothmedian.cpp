@@ -194,7 +194,7 @@ void mexFunction (int nlhs, mxArray* plhs[],
             }   
             
             // Calculate derivatives of the objective function for Newton-Raphson method
-            S = 0;
+            //S = 0;
             T = 0;
             U = 0;
             for ( int j = 0; j < m ; j++ ) {        
@@ -219,7 +219,7 @@ void mexFunction (int nlhs, mxArray* plhs[],
             step = T / U;
                         
             // Evaluate convergence
-            if ( abs (step) < Tol ) { 
+            if ( abs (step) <= Tol ) { 
                 break; // Break from optimization when converged to tolerance 
             } else {
                 // Update bracket bounds for Bisection method
