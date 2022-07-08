@@ -1,27 +1,4 @@
-% Check if running in Octave (else assume Matlab)
-info = ver; 
-isoctave = any (ismember ({info.Name}, 'Octave'));
-
-% Create cell array of paths to add
-arch = computer('arch');
-[comp, maxsize, endian] = computer ();
-binary = true;
-switch endian
-  case 'L' 
-    if isoctave
-      arch_idx = regexpi (arch, {'mingw32-i686', 'mingw32-x86_64', '^darwin.*x86_64$', 'gnu-linux-x86_64'});
-      binary_paths = {'..\bin\octave\win\win32','..\bin\octave\win\win64','../bin/octave/mac/maci64', '../bin/octave/linux/glnxa64'};
-    else
-      arch_idx = regexpi (arch, {'win32', 'win64', 'maci64', 'glnxa64'});
-      binary_paths = {'..\bin\matlab\win\win32','..\bin\matlab\win\win64','../bin/matlab/mac/maci64', '../bin/matlab/linux/glnxa64'};
-    end
-    dirlist = {'helper', 'param', 'legacy', sprintf('legacy%shelper', filesep), sprintf('..%sbin', filesep), binary_paths{~cellfun(@isempty,arch_idx)}};
-    if (numel(dirlist) < 6)
-      binary = false;
-    end
-  case 'B'
-    binary = false;
-end
+dirlist = {'helper', 'param', 'legacy', sprintf('legacy%shelper', filesep)};
 dirname = fileparts (mfilename ('fullpath'));
 
 if ~exist (fullfile (dirname, 'inst'), 'dir')
