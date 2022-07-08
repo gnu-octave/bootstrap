@@ -216,8 +216,8 @@ function M = smoothmedian(x,dim,Tol)
     end
     
     % Update bracket bounds
-    a(step < 0) = p(step < 0);
-    b(step > 0) = p(step > 0);
+    a(step < 0) = p(step < 0) + Tol(step < 0);
+    b(step > 0) = p(step > 0) - Tol(step > 0);
                 
     % Update the range with the distance between bracket bounds
     range = b - a;
