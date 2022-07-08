@@ -16,8 +16,8 @@ switch endian
       binary_paths = {'..\bin\matlab\win\win32\','..\bin\matlab\win\win64\','../bin/matlab/mac/maci64/', '../bin/matlab/linux/glnxa64/'};
     end
     if ~all(cellfun(@isempty,arch_idx))
-      copyfile (sprintf ('%s%s%s', binary_paths{~cellfun(@isempty,arch_idx)}, 'boot', mexext), sprintf ('%s%s%s%s', 'inst', filesep, 'boot', mexext), 'f');
-      copyfile (sprintf ('%s%s%s', binary_paths{~cellfun(@isempty,arch_idx)}, 'boot', mexext), sprintf ('%s%s%s%s%s%s', 'inst', filesep, 'param', filesep, 'boot', mexext), 'f');
+      copyfile (sprintf('%s%s%s', binary_paths{~cellfun(@isempty,arch_idx)}, 'boot', mexext), sprintf ('%s%s%s%s', 'inst', filesep, 'boot', mexext), 'f');
+      copyfile (sprintf('%s%s%s', binary_paths{~cellfun(@isempty,arch_idx)}, 'boot', mexext), sprintf ('%s%s%s%s%s%s', 'inst', filesep, 'param', filesep, 'boot', mexext), 'f');
     else
       binary = false;
     end
@@ -38,7 +38,7 @@ if ~binary
       disp(err.message);
       warning ('Could not compile boot.%s. Falling back to the (slower) boot.m file.',mexext)
     end
-    path_to_smoothmedian = sprintf ('./inst/param/smoothmedian.%s',mexext);
+    path_to_smoothmedian = sprintf('./inst/param/smoothmedian.%s',mexext);
     try
       mkoctfile --mex --output ./inst/param/smoothmedian ./src/smoothmedian.cpp
     catch
