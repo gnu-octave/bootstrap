@@ -1,3 +1,5 @@
+function pre_install(junk)
+
 % Check if running in Octave (else assume Matlab)
 info = ver; 
 isoctave = any (ismember ({info.Name}, 'Octave'));
@@ -16,8 +18,8 @@ switch endian
       binary_paths = {'.\installation_files\matlab\win\win32\','.\installation_files\matlab\win\win64\','./installation_files/matlab/mac/maci64/', './bin/matlab/linux/glnxa64/'};
     end
     if ~all(cellfun(@isempty,arch_idx))
-      copyfile (sprintf('%s%s%s', binary_paths{~cellfun(@isempty,arch_idx)}, 'boot.', mexext), sprintf (repmat('%s',1,6), '.', filesep, 'inst', filesep, 'boot.', mexext), 'f');
-      copyfile (sprintf('%s%s%s', binary_paths{~cellfun(@isempty,arch_idx)}, 'smoothmedian.', mexext), sprintf (repmat('%s',1,8), '.', filesep, 'inst', filesep, 'param', filesep, 'smoothmedian.', mexext), 'f');
+      copyfile (sprintf(repmat('%s',1,3), binary_paths{~cellfun(@isempty,arch_idx)}, 'boot.', mexext), sprintf(repmat('%s',1,6), '.', filesep, 'inst', filesep, 'boot.', mexext), 'f');
+      copyfile (sprintf(repmat('%s',1,3), binary_paths{~cellfun(@isempty,arch_idx)}, 'smoothmedian.', mexext), sprintf(repmat('%s',1,8), '.', filesep, 'inst', filesep, 'param', filesep, 'smoothmedian.', mexext), 'f');
     else
       binary = false;
     end
@@ -68,4 +70,6 @@ if ~binary
       warning ('Could not compile smoothmedian.%s. Falling back to the (slower) smoothmedian.m file.',mexext)
     end
   end
+end
+
 end
