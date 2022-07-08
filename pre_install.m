@@ -10,21 +10,21 @@ switch endian
   case 'L' 
     if isoctave
       arch_idx = regexpi (arch, {'mingw32-i686', 'mingw32-x86_64', '^darwin.*x86_64$', 'gnu-linux-x86_64'});
-      binary_paths = {'..\bin\octave\win\win32\','..\bin\octave\win\win64\','../bin/octave/mac/maci64/', '../bin/octave/linux/glnxa64/'};
+      binary_paths = {'.\installation_files\octave\win\win32\','.\installation_files\octave\win\win64\','./installation_files/octave/mac/maci64/', './bin/octave/linux/glnxa64/'};
     else
       arch_idx = regexpi (arch, {'win32', 'win64', 'maci64', 'glnxa64'});
-      binary_paths = {'..\bin\matlab\win\win32\','..\bin\matlab\win\win64\','../bin/matlab/mac/maci64/', '../bin/matlab/linux/glnxa64/'};
+      binary_paths = {'.\installation_files\matlab\win\win32\','.\installation_files\matlab\win\win64\','./installation_files/matlab/mac/maci64/', './bin/matlab/linux/glnxa64/'};
     end
     if ~all(cellfun(@isempty,arch_idx))
-      copyfile (sprintf('%s%s%s', binary_paths{~cellfun(@isempty,arch_idx)}, 'boot', mexext), sprintf ('%s%s%s%s', 'inst', filesep, 'boot', mexext), 'f');
-      copyfile (sprintf('%s%s%s', binary_paths{~cellfun(@isempty,arch_idx)}, 'boot', mexext), sprintf ('%s%s%s%s%s%s', 'inst', filesep, 'param', filesep, 'boot', mexext), 'f');
+      copyfile (sprintf('%s%s%s', binary_paths{~cellfun(@isempty,arch_idx)}, 'boot.', mexext), sprintf (repmat('%s',1,6), '.', filesep, 'inst', filesep, 'boot.', mexext), 'f');
+      copyfile (sprintf('%s%s%s', binary_paths{~cellfun(@isempty,arch_idx)}, 'smoothmedian.', mexext), sprintf (repmat('%s',1,8), '.', filesep, 'inst', filesep, 'param', filesep, 'smoothmedian.', mexext), 'f');
     else
       binary = false;
     end
   case 'B'
     binary = false;
 end
-dirlist = {'helper', 'param', 'legacy', sprintf ('legacy%shelper', filesep)};
+dirlist = {'helper', 'param', 'legacy', sprintf('legacy%shelper', filesep)};
 dirname = fileparts (mfilename ('fullpath'));
 
 % Attemt to compile binaries from source code automatically if no suitable binaries can be found
