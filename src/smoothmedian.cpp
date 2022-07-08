@@ -224,9 +224,9 @@ void mexFunction (int nlhs, mxArray* plhs[],
             } else {
                 // Update bracket bounds for Bisection method
                 if ( step < 0 ) {
-                    a = M[k];
+                    a = M[k] + Tol;
                 } else if ( step > 0 ) {
-                    b = M[k];
+                    b = M[k] - Tol;
                 }
                 // Update the range with the distance between the bracket bounds
                 range = b - a;
