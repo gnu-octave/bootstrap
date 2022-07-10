@@ -34,6 +34,9 @@
 // bootsam. For example, if the second element is 500, then the value 2 will 
 // will be assigned to 500 elements within bootsam. The sum of w should equal 
 // n * nboot.
+// Note that the mex function compiled from this source code is not thread 
+// safe, although this should not be an issue the way it is used since it 
+// is not intended to run on multiple threads.
 // 
 // Requirements: Compilation requires C++11
 //
