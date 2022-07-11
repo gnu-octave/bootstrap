@@ -30,6 +30,7 @@ function pre_install (unused)
                         './bin/matlab/linux/glnxa64/'};
       end
       if ~all(cellfun(@isempty,arch_idx))
+        pwd
         sprintf(repmat('%s',1,3), binary_paths{~cellfun(@isempty,arch_idx)}, 'boot.', mexext)
         sprintf(repmat('%s',1,6), '.', filesep, 'inst', filesep, 'boot.', mexext)
         copyfile (sprintf(repmat('%s',1,3), binary_paths{~cellfun(@isempty,arch_idx)}, 'boot.', mexext),...
