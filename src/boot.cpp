@@ -35,8 +35,13 @@
 // will be assigned to 500 elements within bootsam. The sum of w should equal 
 // n * nboot.
 // Note that the mex function compiled from this source code is not thread 
-// safe, although this should not be an issue the way it is used since it 
-// is not intended to run on multiple threads.
+// safe. Below is an example of a line of code one can run in Octave/Matlab 
+// before attempting parallel operation of boot.mex in order to ensure that 
+// the initial random seeds of each thread are unique:
+// In Octave:
+// >> pararrayfun(nproc, @boot, 1, 1, false, 1, 1:nproc)
+// In Matlab:
+// >> ncpus = feature('numcores'); parfor i = 1:ncpus; boot (1, 1, false, 1, i); end;
 // 
 // Requirements: Compilation requires C++11
 //
