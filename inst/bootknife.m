@@ -94,9 +94,9 @@
 %  stats = bootknife(data,nboot,bootfun,alpha,strata,nproc) sets the
 %  number of processes to parallelize evaluations of bootfun on the  
 %  data resamples. This option is ignored if bootfun operations can 
-%  be vectorized. By default, nproc is 0, which switches parallel
-%  processing in Octave, or makes parallel usage automatic in Matlab 
-%  (i.e. dependent on whether parpool is already running).
+%  be vectorized. By default, nproc is 0, which computes computations 
+%  in serial. Unlike for an nproc of 1, setting nproc to 0 does not 
+%  disable Matlab's parallel pool if one exists.
 %
 %  [stats,bootstat] = bootknife(...) also returns bootstat, a vector of
 %  statistics calculated over the (first, or outer level of) bootknife 
@@ -113,9 +113,6 @@
 %  data along with bootstrap estimates of bias, standard error, and 
 %  lower and upper 100*(1-alpha)% confidence limits.
 %  
-%  statistics and multiplicity-adjusted p-values for both the overall 
-%  hypothesis test, and the post hoc tests for comparison between the 
-%  GROUPs, are returned in a pretty table. 
 %
 %  Bibliography:
 %  [1] Hesterberg T.C. (2004) Unbiasing the Bootstrap—Bootknife Sampling 
@@ -258,42 +255,6 @@ function [stats, T1, bootsam] = bootknife (x, nboot, bootfun, alpha, strata, npr
     error ('bootfun must return either a scalar or a vector')
   end
 
-  % If the function of the data is a vector, calculate the statistics for each element 
-  m = numel(T0);
-  if m > 1
-    % Evaluate bootknife for each element of the output of bootfun
-    % Note that row indices in the resamples are the same for all columns of data
-    stats = zeros (5, m);
-    T1 = zeros (m, B);
-    for j = 1:m
-      out = @(t, j) t(j);
-      func = @(x) out(bootfun(x), j); 
-      if j > 1
-        [stats(:,j), T1(j,:)] = bootknife (x, nboot, func, alpha, strata, nproc, isoctave, bootsam);
-      else
-        [stats(:,j), T1(j,:), bootsam] = bootknife (x, nboot, func, alpha, strata, nproc, isoctave);
-      end
-    end
-    % Print output if no output arguments are requested
-    if (nargout == 0) 
-      print_output(stats);
-    end
-    return
-  end
-
-  % Evaluate strata input argument
-  if ~isempty (strata)
-    % Get strata IDs
-    gid = unique (strata);  % strata ID
-    K = numel (gid);        % number of strata
-    % Create strata matrix
-    g = false (n,K);
-    for k = 1:K
-      g(:, k) = (strata == gid(k));
-    end
-    nk = sum(g).';         % strata sample sizes
-  end
-  
   % If data is univariate, check whether bootfun is vectorized
   vectorized = false;
   if (sz(2) == 1)
@@ -324,23 +285,10 @@ function [stats, T1, bootsam] = bootknife (x, nboot, bootfun, alpha, strata, npr
             if (pool.NumWorkers ~= nproc)
               % Check if number of workers matches nproc and correct it accordingly if not
               delete (pool);
-              parpool (nproc);
+              if (nproc > 1)
+                parpool (nproc);
+              end
             end
-          end
-        catch
-          % Parallel toolbox not installed, run function evaluations in serial
-          nproc = 1;
-        end
-      else
-        % AUTOMATIC
-        try 
-          pool = gcp ('nocreate'); 
-          if isempty (pool)
-            % Parallel pool not running, run function evaluations in serial
-            nproc = 1;
-          else
-            % Parallel pool is already running, set nproc to the number of workers
-            nproc = pool.NumWorkers;
           end
         catch
           % Parallel toolbox not installed, run function evaluations in serial
@@ -348,6 +296,63 @@ function [stats, T1, bootsam] = bootknife (x, nboot, bootfun, alpha, strata, npr
         end
       end
     end
+  end
+  
+  % If the function of the data is a vector, calculate the statistics for each element 
+  m = numel(T0);
+  if m > 1
+    if (sz(2) == m)
+      try
+        % If data is multivariate, check whether bootfun is vectorized
+        chk = feval (bootfun, cat (2,x(:,1),x(:,1)));
+        if ( all (size (chk) == [1, 2]) && all (chk == feval (bootfun, x(:,1))) )
+          vectorized = true;
+        end
+      catch
+        % Do nothing
+      end
+    end
+    % Evaluate bootknife for each element of the output of bootfun
+    % Note that row indices in the resamples are the same for all columns of data
+    stats = zeros (5, m);
+    T1 = zeros (m, B);
+    if vectorized
+      for j = 1:m
+        if j > 1
+          [stats(:,j), T1(j,:)] = bootknife (x(:,j), nboot, bootfun, alpha, strata, nproc, isoctave, bootsam);
+        else
+          [stats(:,j), T1(j,:), bootsam] = bootknife (x(:,j), nboot, bootfun, alpha, strata, nproc, isoctave);
+        end
+      end
+    else
+      for j = 1:m
+        out = @(t, j) t(j);
+        func = @(x) out(bootfun(x), j); 
+        if j > 1
+          [stats(:,j), T1(j,:)] = bootknife (x, nboot, func, alpha, strata, nproc, isoctave, bootsam);
+        else
+          [stats(:,j), T1(j,:), bootsam] = bootknife (x, nboot, func, alpha, strata, nproc, isoctave);
+        end
+      end
+    end
+    % Print output if no output arguments are requested
+    if (nargout == 0) 
+      print_output(stats);
+    end
+    return
+  end
+
+  % Evaluate strata input argument
+  if ~isempty (strata)
+    % Get strata IDs
+    gid = unique (strata);  % strata ID
+    K = numel (gid);        % number of strata
+    % Create strata matrix
+    g = false (n,K);
+    for k = 1:K
+      g(:, k) = (strata == gid(k));
+    end
+    nk = sum(g).';          % strata sample sizes
   end
 
   % Perform balanced bootknife resampling
