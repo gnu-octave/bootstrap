@@ -960,7 +960,9 @@ function [p, c, stats] = bootnhst (data, group, varargin)
             if (pool.NumWorkers ~= paropt.nproc)
               % Check if number of workers matches nproc and correct it accordingly if not
               delete (pool);
-              parpool (paropt.nproc);
+              if (paropt.nproc > 1)
+                parpool (paropt.nproc);
+              end
             end
           end
         catch
