@@ -28,9 +28,10 @@ To install (or test) the statistics-bootstrap package at it's existing location 
  * Download the package. If it is a compressed file, decompress it.
  * Open Octave or Matlab command prompt.
  * `cd` to the package directory. (The directory contains a file called 'install.m')
+ * Type `make` to make the mex files (or use precompiled binaries if available). 
  * Type `install`. The package will load now (and automatically in the future) when you start Octave/Matlab
  
- To uninstall, follow the above steps but use the `uninstall` command
+ To uninstall, `cd` to the package directory and type  `uninstall`.
  
  Alternatively, users of more recent versions of Octave can install the package automatically with the following command:
  
