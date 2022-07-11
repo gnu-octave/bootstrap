@@ -1,4 +1,4 @@
-function pre_install()
+function pre_install (unused)
 
   % Check if running in Octave (else assume Matlab)
   info = ver; 
