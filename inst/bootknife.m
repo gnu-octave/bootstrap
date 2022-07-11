@@ -266,7 +266,7 @@ function [stats, T1, bootsam] = bootknife (x, nboot, bootfun, alpha, strata, npr
     stats = zeros (5, m);
     T1 = zeros (m, B);
     for j = 1:m
-      out = @(x, j) x(j);
+      out = @(t, j) t(j);
       func = @(x) out(bootfun(x), j); 
       if j > 1
         [stats(:,j), T1(j,:)] = bootknife (x, nboot, func, alpha, strata, nproc, isoctave, bootsam);
