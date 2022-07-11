@@ -55,5 +55,5 @@ end
 disp ('The statistics-bootstrap package has been installed at the current location ')
 
 % Clean up
-clear dirlist S comment i ii octaverc fid n msg
+clear info isoctave dirlist S comment i ii octaverc fid n msg
 delete ('PKG_ADD.m');
