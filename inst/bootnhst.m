@@ -1005,6 +1005,8 @@ function [p, c, stats] = bootnhst (data, group, varargin)
     if isoctave
       % OCTAVE
       if paropt.UseParallel
+        % Set unique random seed for each parallel thread
+        pararrayfun(paropt.nproc, @boot, 1, 1, false, 1, 1:paropt.nproc);
         % Evaluate maxstat on each bootstrap resample in PARALLEL 
         cellfunc = @(bootsam) feval (func, data (bootsam, :));
         Q = parcellfun(paropt.nproc, cellfunc, num2cell (bootsam, 1), 'ChunksPerProc', 100);
@@ -1016,6 +1018,9 @@ function [p, c, stats] = bootnhst (data, group, varargin)
     else
       % MATLAB
       if paropt.UseParallel
+        % Set unique random seed for each parallel thread
+        parfor i = 1:paropt.nproc; boot (1, 1, false, 1, i); end;
+        % Evaluate maxstat on each bootstrap resample in PARALLEL 
         Q = zeros (1, nboot(1));
         parfor h = 1:nboot(1)
           Q(h) = feval (func, data (bootsam (:, h), :));
