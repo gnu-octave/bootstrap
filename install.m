@@ -1,9 +1,6 @@
 % Basic script for local installation
 % 
 
-% Run make function to copy over the appropriate binaries to the inst directory, or compile the binaries from the source code
-make;
-
 % Add directories to path
 copyfile ('PKG_ADD','PKG_ADD.m');
 run (fullfile(pwd,'PKG_ADD.m'));
