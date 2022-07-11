@@ -28,6 +28,7 @@
 %  [stats,bootstat] = bootknife(...)
 %  [stats,bootstat] = bootknife(...)
 %  [stats,bootstat,bootsam] = bootknife(...)
+%  bootknife(data,...);
 %
 %  stats = bootknife(data) resamples from the rows of a data sample (column 
 %  vector or a matrix) and returns a column vector or matrix, whose rows  
@@ -106,6 +107,14 @@
 %  resampling. Each column in bootsam corresponds to one bootknife 
 %  resample and contains the row indices of the values drawn from the 
 %  nonscalar data argument to create that sample.
+%
+%  bootknife(data,...); returns a pretty table of the output including 
+%  the bootstrap settings and the original statistic(s) along with their 
+%  bias, standard error, and lower and upper confidence limits.
+%  
+%  statistics and multiplicity-adjusted p-values for both the overall 
+%  hypothesis test, and the post hoc tests for comparison between the 
+%  GROUPs, are returned in a pretty table. 
 %
 %  Bibliography:
 %  [1] Hesterberg T.C. (2004) Unbiasing the Bootstrap—Bootknife Sampling 
@@ -263,6 +272,10 @@ function [stats, T1, bootsam] = bootknife (x, nboot, bootfun, alpha, strata, npr
       else
         [stats(:,j), T1(j,:), bootsam] = bootknife (x, nboot, func, alpha, strata, nproc, isoctave);
       end
+    end
+    % Print output if no output arguments are requested
+    if (nargout == 0) 
+      print_output(stats);
     end
     return
   end
@@ -483,5 +496,36 @@ function [stats, T1, bootsam] = bootknife (x, nboot, bootfun, alpha, strata, npr
   % Prepare stats output argument
   stats = [T0; bias; se; ci.'];
   
-end
+  % Print output if no output arguments are requested
+  if (nargout == 0) 
+    print_output(stats);
+  end
 
+  %--------------------------------------------------------------------------
+
+  function print_output(stats)
+
+      fprintf (['\n',...
+                     'Summary of non-parametric bootstrap estimates of bias and precision\n',...
+                     '******************************************************************************\n\n']);
+      fprintf ('Bootstrap settings: \n');
+      fprintf (' Function: %s\n',func2str(bootfun));
+      fprintf (' Resampling method: Balanced, bootknife resampling \n')
+      fprintf (' Number of resamples (outer): %u \n', B);
+      fprintf (' Number of resamples (inner): %u \n', C);
+      if C>0
+        fprintf (' Confidence interval type: Calibrated \n');
+      else
+        fprintf (' Confidence interval type: Bias-corrected and accelerated (BCa) \n');
+      end
+      fprintf (' Confidence interval coverage: %g%% \n\n',100*(1-alpha));
+      fprintf ('Bootstrap Statistics: \n');
+      fprintf ('original       bias           std.error      CI.lower       CI.upper    \n');
+      for i = 1:m
+        fprintf (' %#-+12.6g   %#-+12.6g   %#-+12.6g   %#-+12.6g   %#-+12.6g \n',stats(:,i).');
+      end
+      fprintf('\n');
+      
+  end
+
+end
