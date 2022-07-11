@@ -521,7 +521,7 @@ function [stats, T1, bootsam] = bootknife (x, nboot, bootfun, alpha, strata, npr
       end
       fprintf (' Confidence interval coverage: %g%% \n\n',100*(1-alpha));
       fprintf ('Bootstrap Statistics: \n');
-      fprintf ('original       bias           std.error      CI.lower       CI.upper    \n');
+      fprintf (' original       bias           std.error      CI.lower       CI.upper    \n');
       for i = 1:m
         fprintf (' %#-+12.6g   %#-+12.6g   %#-+12.6g   %#-+12.6g   %#-+12.6g \n',stats(:,i).');
       end
