@@ -109,8 +109,9 @@
 %  nonscalar data argument to create that sample.
 %
 %  bootknife(data,...); returns a pretty table of the output including 
-%  the bootstrap settings and the original statistic(s) along with their 
-%  bias, standard error, and lower and upper confidence limits.
+%  the bootstrap settings and the result of evaluating bootfun on the 
+%  data along with bootstrap estimates of bias, standard error, and 
+%  lower and upper 100*(1-alpha)% confidence limits.
 %  
 %  statistics and multiplicity-adjusted p-values for both the overall 
 %  hypothesis test, and the post hoc tests for comparison between the 
