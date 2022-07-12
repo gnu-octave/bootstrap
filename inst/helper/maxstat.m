@@ -48,7 +48,7 @@ function maxT = maxstat (Y, g, nboot, bootfun, ref, clusters, strata, isoctave)
       % Bootknife resampling involves less computation than Jackknife when sample sizes get larger
       theta(j) = feval(bootfun,Y(g==gk(j),:));
       nk(j) = sum(g==gk(j));
-      stats = bootknife(Y(g==gk(j),:),[nboot,0],bootfun,[],[],1,isoctave);
+      stats = bootknife(Y(g==gk(j),:),[nboot,0],bootfun,[],[],isoctave);
       SE(j) = stats(3);
     end
     Var(j) = ((nk(j)-1)/(N-k-(l-1))) * SE(j)^2;
