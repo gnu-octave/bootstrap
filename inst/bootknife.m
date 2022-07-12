@@ -96,9 +96,7 @@
 %  data resamples. This option is ignored if bootfun operations can 
 %  be vectorized. By default, nproc is 0, which computes computations 
 %  in serial. Unlike for an nproc of 1, setting nproc to 0 does not 
-%  disable Matlab's parallel pool if one exists. The benefit of this
-%  feature depends on the computational burden of the function being
-%  evaluated.
+%  disable Matlab's parallel pool if one exists. 
 %
 %  [stats,bootstat] = bootknife(...) also returns bootstat, a vector of
 %  statistics calculated over the (first, or outer level of) bootknife 
@@ -140,7 +138,7 @@
 %        Bootstrap: Resampling in the Undergraduate Statistics Curriculum, 
 %        http://arxiv.org/abs/1411.5279
 %
-%  bootknife v1.5.0.0 (06/06/2022)
+%  bootknife v1.6.0.0 (12/07/2022)
 %  Author: Andrew Charles Penn
 %  https://www.researchgate.net/profile/Andrew_Penn/
 %
