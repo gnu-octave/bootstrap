@@ -69,5 +69,4 @@ Be aware that that some of the bootstrap functions in this package are determini
 
 ## Development roadmap
  
-* Create more documentation and guidance for using the functions in this package  
-* To create mex files for `maxstat` and `iboot` functions  
+* Create more documentation and guidance for using the functions in this package      
