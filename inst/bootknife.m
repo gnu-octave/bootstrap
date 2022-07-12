@@ -23,6 +23,7 @@
 %  stats = bootknife(data,nboot,{bootfun,bootfun_args})
 %  stats = bootknife(data,nboot,bootfun,alpha)
 %  stats = bootknife(data,nboot,bootfun,alpha,strata)
+%  stats = bootknife(data,nboot,bootfun,alpha,strata,nproc)
 %  stats = bootknife(data,[2000,0],@mean,0.05,[],0)      % Default values
 %  [stats,bootstat] = bootknife(...)
 %  [stats,bootstat] = bootknife(...)
@@ -90,12 +91,18 @@
 %  bootknife resamples. If this input argument is not specified or is 
 %  empty, no stratification of resampling is performed. 
 %
+%  stats = bootknife(data,nboot,bootfun,alpha,strata,nproc) sets the
+%  number of parallel processes to accelerate computations for double 
+%  bootstrap and jackknife function evaluations. This feature requires
+%  the Parallel package (in Octave), or the Parallel Computing Toolbox 
+%  (in Matlab).
+%
 %  [stats,bootstat] = bootknife(...) also returns bootstat, a vector of
-%  statistics calculated over the (first, or outer level of) bootknife 
+%  statistics calculated over the (first, or outer layer of) bootknife 
 %  resamples. 
 %
 %  [stats,bootstat,bootsam] = bootknife(...) also returns bootsam, the  
-%  matrix of indices used for the (first, or outer level of) bootknife 
+%  matrix of indices used for the (first, or outer layer of) bootknife 
 %  resampling. Each column in bootsam corresponds to one bootknife 
 %  resample and contains the row indices of the values drawn from the 
 %  nonscalar data argument to create that sample.
@@ -149,7 +156,7 @@
 %  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-function [stats, T1, bootsam] = bootknife (x, nboot, bootfun, alpha, strata, isoctave, bootsam)
+function [stats, T1, bootsam] = bootknife (x, nboot, bootfun, alpha, strata, nproc, isoctave, bootsam)
   
   % Error checking
   if nargin < 1
@@ -211,6 +218,19 @@ function [stats, T1, bootsam] = bootknife (x, nboot, bootfun, alpha, strata, iso
     end
   end
   if nargin < 6
+    nproc = 0;    % Ignore parallel processing features
+  elseif ~isempty (nproc) 
+    if ~isa (nproc, 'numeric')
+      error('nproc must be numeric');
+    end
+    if any (nproc ~= abs (fix (nproc)))
+      error ('nproc must be a positive integer')
+    end    
+    if (numel (nproc) > 1)
+      error ('nproc must be a scalar value')
+    end
+  end
+  if nargin < 7
     % Check if running in Octave (else assume Matlab)
     info = ver; 
     isoctave = any (ismember ({info.Name}, 'Octave'));
@@ -243,6 +263,40 @@ function [stats, T1, bootsam] = bootknife (x, nboot, bootfun, alpha, strata, iso
       end
   end
   
+  % If applicable, setup a parallel pool 
+  if ~isoctave
+    % MATLAB
+    if ~vectorized 
+      % bootfun is not vectorized
+      if (nproc > 0) 
+        % MANUAL
+        try 
+          pool = gcp ('nocreate'); 
+          if isempty (pool)
+            if (nproc > 1)
+              % Start parallel pool with nproc workers
+              parpool (nproc);
+            else
+              % Parallel pool is not running and nproc is 1 so run function evaluations in serial
+              nproc = 1;
+            end
+          else
+            if (pool.NumWorkers ~= nproc)
+              % Check if number of workers matches nproc and correct it accordingly if not
+              delete (pool);
+              if (nproc > 1)
+                parpool (nproc);
+              end
+            end
+          end
+        catch
+          % Parallel toolbox not installed, run function evaluations in serial
+          nproc = 1;
+        end
+      end
+    end
+  end
+  
   % If the function of the data is a vector, calculate the statistics for each element 
   m = numel(T0);
   if m > 1
@@ -264,9 +318,9 @@ function [stats, T1, bootsam] = bootknife (x, nboot, bootfun, alpha, strata, iso
     if vectorized
       for j = 1:m
         if j > 1
-          [stats(:,j), T1(j,:)] = bootknife (x(:,j), nboot, bootfun, alpha, strata, isoctave, bootsam);
+          [stats(:,j), T1(j,:)] = bootknife (x(:,j), nboot, bootfun, alpha, strata, nproc, isoctave, bootsam);
         else
-          [stats(:,j), T1(j,:), bootsam] = bootknife (x(:,j), nboot, bootfun, alpha, strata, isoctave);
+          [stats(:,j), T1(j,:), bootsam] = bootknife (x(:,j), nboot, bootfun, alpha, strata, nproc, isoctave);
         end
       end
     else
@@ -274,9 +328,9 @@ function [stats, T1, bootsam] = bootknife (x, nboot, bootfun, alpha, strata, iso
         out = @(t, j) t(j);
         func = @(x) out(bootfun(x), j); 
         if j > 1
-          [stats(:,j), T1(j,:)] = bootknife (x, nboot, func, alpha, strata, isoctave, bootsam);
+          [stats(:,j), T1(j,:)] = bootknife (x, nboot, func, alpha, strata, nproc, isoctave, bootsam);
         else
-          [stats(:,j), T1(j,:), bootsam] = bootknife (x, nboot, func, alpha, strata, isoctave);
+          [stats(:,j), T1(j,:), bootsam] = bootknife (x, nboot, func, alpha, strata, nproc, isoctave);
         end
       end
     end
@@ -327,36 +381,33 @@ function [stats, T1, bootsam] = bootknife (x, nboot, bootfun, alpha, strata, iso
  
   % Calculate the bootstrap bias, standard error and confidence intervals 
   if C > 0
-    U = zeros (1, B);
-    M = zeros (1, B);
-    V = zeros (1, B);
-    % Iterated bootstrap resampling for greater accuracy
-    for b = 1:B
-      [junk, T2] = bootknife (x(bootsam(:, b), :), [C, 0], bootfun, [], strata, isoctave);
-      % Use quick interpolation to find the probability that T2 <= T0
-      I = (T2 <= T0);
-      u = sum (I);
-      t2 = [max([min(T2), max(T2(I))]),...
-            min([max(T2), min(T2(~I))])];
-      if (u < C) && ((t2(2) - t2(1)) > 0)
-        % Linear interpolation
-        U(b) = ((t2(2) - T0) * u / C + (T0 - t2(1)) * min ((u + 1) / C, 1)) /...
-              (t2(2) - t2(1));
+    % PARALLEL execution of inner layer resampling for double bootstrap
+    cellfunc = @(x) iboot (x, T0, C, bootfun, strata, isoctave);
+    if (nproc > 1)
+      if isoctave
+        % OCTAVE
+        bootout = parcellfun (nproc, cellfunc, num2cell(x(bootsam),1));
       else
-        U(b) = u / C;
+        % MATLAB
+        bootout = cell(1,B);
+        parfor b = 1:B
+          bootout(b) = cellfunc (x(bootsam(:,b))); 
+        end
       end
-      M(b) = mean (T2);
-      V(b) = var (T2, 1);
+    else
+      % SERIAL execution of inner layer resampling for double bootstrap
+      bootout = cellfun (cellfunc, num2cell(x(bootsam),1));
     end
+    bootout = cell2mat (bootout);       % Convert cell array to array
     % Double bootstrap bias estimation
     b = mean (T1) - T0;
-    c = mean (M) - 2 * mean (T1) + T0;
+    c = mean (bootout(2,:)) - 2 * mean (T1) + T0;
     bias = b - c;
     % Bootstrap standard error
     se = std (T1, 1);
     if ~isempty(alpha)
       % Calibrate tail probabilities to half of alpha
-      [cdf, u] = empcdf (U, 1);
+      [cdf, u] = empcdf (bootout(1,:), 1);
       l = arrayfun ( @(p) interp1 (cdf, u, p, 'linear'), [alpha / 2, 1 - alpha / 2]);
       % Calibrated percentile bootstrap confidence intervals
       [cdf, t1] = empcdf (T1, 1);
@@ -380,9 +431,24 @@ function [stats, T1, bootsam] = bootknife (x, nboot, bootfun, alpha, strata, iso
         error('unable to calculate the bias correction z0')
       end
       % Use the Jackknife to calculate the acceleration constant
-      % Evaluate bootfun on each jackknife resample in SERIAL
-      jackfun = @(i) feval (bootfun, x(1:n ~= i, :));
-      T = arrayfun (jackfun, 1:n);
+      if (nproc > 1)  
+        % PARALLEL evaluation of bootfun on each jackknife resample 
+        if isoctave
+          % OCTAVE
+          jackfun = @(i) feval (bootfun, x(1:n ~= i, :));
+          T = pararrayfun (nproc, jackfun, 1:n);
+        else
+          % MATLAB
+          T = zeros (n, 1);
+          parfor i = 1:n
+            T(i) = feval (bootfun, x(1:end ~= i, :));
+          end
+        end
+      else
+        % SERIAL evaluation of bootfun on each jackknife resample
+        jackfun = @(i) feval (bootfun, x(1:n ~= i, :));
+        T = arrayfun (jackfun, 1:n);
+      end
       % Calculate empirical influence function
       if ~isempty(strata)
         gk = sum (g .* repmat (sum (g), n, 1), 2).';
@@ -400,11 +466,13 @@ function [stats, T1, bootsam] = bootknife (x, nboot, bootfun, alpha, strata, iso
           % Earlier versions of matlab do not have betaincinv
           studinv = @(p, df) - sqrt ( df ./ betainv (2 * p, df / 2, 0.5) - df);
         end
-        alpha = stdnormcdf (studinv (alpha / 2, n - 1)) * 2;      
+        adj_alpha = stdnormcdf (studinv (alpha / 2, n - 1)) * 2;   
+      else
+        adj_alpha = alpha;
       end
       % Calculate BCa percentiles
-      z1 = stdnorminv(alpha / 2);
-      z2 = stdnorminv(1 - alpha / 2);
+      z1 = stdnorminv(adj_alpha / 2);
+      z2 = stdnorminv(1 - adj_alpha / 2);
       l = cat (2, stdnormcdf (z0 + ((z0 + z1) / (1 - a * (z0 + z1)))),... 
                   stdnormcdf (z0 + ((z0 + z2) / (1 - a * (z0 + z2)))));
       [cdf, t1] = empcdf (T1, 1);
