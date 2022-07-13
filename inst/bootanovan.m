@@ -125,20 +125,18 @@ function [p, F, FDIST] = bootanovan (data, group, nboot, varargin)
   % Perform balanced bootstrap resampling and compute bootstrap statistics
   FDIST = cell(1,nboot);
   m = size(data,1);
-  idx = boot (m, nboot, false);
-  for h = 1:nboot
-    if isoctave
-      % OCTAVE: Resample raw data
-      FDIST{h} = feval('anovan_wrapper',data(idx(:,h)),group,isoctave,options);
-    else
-      % MATLAB: Resample model residuals since it is valid for a broader range of models
-      FDIST{h} = feval('anovan_wrapper',resid(idx(:,h)),group,isoctave,options);
-    end
+  bootsam = boot (m, nboot, false);
+  cellfunc = @(y) anovan_wrapper(y, group, isoctave, options);
+  if isoctave
+    % OCTAVE: Resample raw data
+    FDIST = cellfun (cellfunc, num2cell (data(bootsam), 1));
+  else
+    % MATLAB: Resample model residuals since it is valid for a broader range of models
+    FDIST = cellfun (cellfunc, num2cell (resid(bootsam), 1));
   end
-  FDIST = cell2mat(FDIST);
 
   % Calculate ANOVA F-statistics
-  F = feval('anovan_wrapper',data,group,isoctave,options);
+  F = cellfunc (data);
 
   % Calculate p-values
   p = sum (FDIST >= F (1:end,ones(1,nboot)),2) / nboot;
