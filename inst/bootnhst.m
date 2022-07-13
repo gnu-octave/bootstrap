@@ -724,11 +724,11 @@ function [p, c, stats] = bootnhst (data, group, varargin)
   DisplayOpt = true;
   paropt = struct;
   paropt.UseParallel = false;
-  % Initialise nproc if it doesn't exist
-  if ~exist('nproc','builtin')
-    nproc = 1;
+  if isoctave
+    paropt.nproc = nproc;
+  else
+    paropt.nproc = feature('numcores');
   end
-  paropt.nproc = nproc;
 
   % Fetch extra input arguments
   argin3 = varargin;

@@ -92,10 +92,10 @@
 %  empty, no stratification of resampling is performed. 
 %
 %  stats = bootknife(data,nboot,bootfun,alpha,strata,nproc) sets the
-%  number of parallel processes to accelerate computations for double 
-%  bootstrap and jackknife function evaluations. This feature requires
-%  the Parallel package (in Octave), or the Parallel Computing Toolbox 
-%  (in Matlab).
+%  number of parallel proceses to use to accelerate computations during 
+%  double bootstrap resampling and jackknife function evaluations on 
+%  multicore machines. This feature requires the Parallel package (in 
+%  Octave), or the Parallel Computing Toolbox (in Matlab).
 %
 %  [stats,bootstat] = bootknife(...) also returns bootstat, a vector of
 %  statistics calculated over the (first, or outer layer of) bootknife 
@@ -156,7 +156,7 @@
 %  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-function [stats, T1, bootsam] = bootknife (x, nboot, bootfun, alpha, strata, nproc, isoctave, bootsam)
+function [stats, T1, bootsam] = bootknife (x, nboot, bootfun, alpha, strata, ncpus, isoctave, bootsam)
   
   % Error checking
   if nargin < 1
@@ -218,22 +218,27 @@ function [stats, T1, bootsam] = bootknife (x, nboot, bootfun, alpha, strata, npr
     end
   end
   if nargin < 6
-    nproc = 0;    % Ignore parallel processing features
-  elseif ~isempty (nproc) 
-    if ~isa (nproc, 'numeric')
-      error('nproc must be numeric');
+    ncpus = 0;    % Ignore parallel processing features
+  elseif ~isempty (ncpus) 
+    if ~isa (ncpus, 'numeric')
+      error('ncpus must be numeric');
     end
-    if any (nproc ~= abs (fix (nproc)))
-      error ('nproc must be a positive integer')
+    if any (ncpus ~= abs (fix (ncpus)))
+      error ('ncpus must be a positive integer')
     end    
-    if (numel (nproc) > 1)
-      error ('nproc must be a scalar value')
+    if (numel (ncpus) > 1)
+      error ('ncpus must be a scalar value')
     end
   end
   if nargin < 7
     % Check if running in Octave (else assume Matlab)
     info = ver; 
     isoctave = any (ismember ({info.Name}, 'Octave'));
+  end
+  if isoctave
+    ncpus = max(ncpus, nproc);
+  else
+    ncpus = max(ncpus, feature('numcores'));
   end
 
   % Determine properties of the data (x)
@@ -268,30 +273,30 @@ function [stats, T1, bootsam] = bootknife (x, nboot, bootfun, alpha, strata, npr
     % MATLAB
     if ~vectorized 
       % bootfun is not vectorized
-      if (nproc > 0) 
+      if (ncpus > 0) 
         % MANUAL
         try 
           pool = gcp ('nocreate'); 
           if isempty (pool)
-            if (nproc > 1)
-              % Start parallel pool with nproc workers
-              parpool (nproc);
+            if (ncpus > 1)
+              % Start parallel pool with ncpus workers
+              parpool (ncpus);
             else
-              % Parallel pool is not running and nproc is 1 so run function evaluations in serial
-              nproc = 1;
+              % Parallel pool is not running and ncpus is 1 so run function evaluations in serial
+              ncpus = 1;
             end
           else
-            if (pool.NumWorkers ~= nproc)
-              % Check if number of workers matches nproc and correct it accordingly if not
+            if (pool.NumWorkers ~= ncpus)
+              % Check if number of workers matches ncpus and correct it accordingly if not
               delete (pool);
-              if (nproc > 1)
-                parpool (nproc);
+              if (ncpus > 1)
+                parpool (ncpus);
               end
             end
           end
         catch
           % Parallel toolbox not installed, run function evaluations in serial
-          nproc = 1;
+          ncpus = 1;
         end
       end
     end
@@ -318,9 +323,9 @@ function [stats, T1, bootsam] = bootknife (x, nboot, bootfun, alpha, strata, npr
     if vectorized
       for j = 1:m
         if j > 1
-          [stats(:,j), T1(j,:)] = bootknife (x(:,j), nboot, bootfun, alpha, strata, nproc, isoctave, bootsam);
+          [stats(:,j), T1(j,:)] = bootknife (x(:,j), nboot, bootfun, alpha, strata, ncpus, isoctave, bootsam);
         else
-          [stats(:,j), T1(j,:), bootsam] = bootknife (x(:,j), nboot, bootfun, alpha, strata, nproc, isoctave);
+          [stats(:,j), T1(j,:), bootsam] = bootknife (x(:,j), nboot, bootfun, alpha, strata, ncpus, isoctave);
         end
       end
     else
@@ -328,9 +333,9 @@ function [stats, T1, bootsam] = bootknife (x, nboot, bootfun, alpha, strata, npr
         out = @(t, j) t(j);
         func = @(x) out(bootfun(x), j); 
         if j > 1
-          [stats(:,j), T1(j,:)] = bootknife (x, nboot, func, alpha, strata, nproc, isoctave, bootsam);
+          [stats(:,j), T1(j,:)] = bootknife (x, nboot, func, alpha, strata, ncpus, isoctave, bootsam);
         else
-          [stats(:,j), T1(j,:), bootsam] = bootknife (x, nboot, func, alpha, strata, nproc, isoctave);
+          [stats(:,j), T1(j,:), bootsam] = bootknife (x, nboot, func, alpha, strata, ncpus, isoctave);
         end
       end
     end
@@ -383,18 +388,18 @@ function [stats, T1, bootsam] = bootknife (x, nboot, bootfun, alpha, strata, npr
   if C > 0
     %%%%%%%%%%%%%%%%%%%%%%%%%%% DOUBLE BOOTSTRAP %%%%%%%%%%%%%%%%%%%%%%%%%%%
     cellfunc = @(x) iboot (x, T0, C, bootfun, strata, isoctave);
-    if (nproc > 1)
+    if (ncpus > 1)
       % PARALLEL execution of inner layer resampling for double (i.e. iterated) bootstrap
       if isoctave
         % OCTAVE
         % Set unique random seed for each parallel thread
-        pararrayfun(nproc, @boot, 1, 1, false, 1, 1:nproc);
+        pararrayfun(ncpus, @boot, 1, 1, false, 1, 1:ncpus);
         % Perform inner layer of resampling
-        bootout = parcellfun (nproc, cellfunc, num2cell (x(bootsam), 1));
+        bootout = parcellfun (ncpus, cellfunc, num2cell (x(bootsam), 1));
       else
         % MATLAB
         % Set unique random seed for each parallel thread
-        parfor i = 1:nproc; boot (1, 1, false, 1, i); end;
+        parfor i = 1:ncpus; boot (1, 1, false, 1, i); end;
         % Perform inner layer of resampling
         bootout = cell(1,B);
         parfor b = 1:B; bootout(b) = cellfunc (x(bootsam(:, b))); end
@@ -437,12 +442,12 @@ function [stats, T1, bootsam] = bootknife (x, nboot, bootfun, alpha, strata, npr
         error('unable to calculate the bias correction z0')
       end
       % Use the Jackknife to calculate the acceleration constant
-      if (nproc > 1)  
+      if (ncpus > 1)  
         % PARALLEL evaluation of bootfun on each jackknife resample 
         if isoctave
           % OCTAVE
           jackfun = @(i) feval (bootfun, x(1:n ~= i, :));
-          T = pararrayfun (nproc, jackfun, 1:n);
+          T = pararrayfun (ncpus, jackfun, 1:n);
         else
           % MATLAB
           T = zeros (n, 1);

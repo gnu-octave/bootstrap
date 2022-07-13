@@ -88,7 +88,10 @@
 %  bootfun. Bootstrap resampling is stratified so that every stratum is
 %  represented in each bootstrap test statistic [5]. If weights are also
 %  provided then they are within-stratum weights; the weighting of
-%  individual strata depends on their respective sample size.
+%  individual strata depends on their respective sample size. Note that 
+%  bootfun must not rely on strata in it's calculations since the rows of 
+%  strata and the data are sorted before bootstrap using ibootci. (Use 
+%  the recommended bootstrap function, bootknife, in this situation).
 %
 %  ci = ibootci(nboot,{bootfun,...},...,'cluster',clusters) specifies 
 %  a column vector (or matrix) of numeric identifiers with the same 
