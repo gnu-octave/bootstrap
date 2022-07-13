@@ -384,16 +384,20 @@ function [stats, T1, bootsam] = bootknife (x, nboot, bootfun, alpha, strata, npr
     %%%%%%%%%%%%%%%%%%%%%%%%%%% DOUBLE BOOTSTRAP %%%%%%%%%%%%%%%%%%%%%%%%%%%
     cellfunc = @(x) iboot (x, T0, C, bootfun, strata, isoctave);
     if (nproc > 1)
-      % PARALLEL execution of inner layer resampling for double bootstrap
+      % PARALLEL execution of inner layer resampling for double (i.e. iterated) bootstrap
       if isoctave
         % OCTAVE
+        % Set unique random seed for each parallel thread
+        pararrayfun(nproc, @boot, 1, 1, false, 1, 1:nproc);
+        % Perform inner layer of resampling
         bootout = parcellfun (nproc, cellfunc, num2cell (x(bootsam), 1));
       else
         % MATLAB
+        % Set unique random seed for each parallel thread
+        parfor i = 1:nproc; boot (1, 1, false, 1, i); end;
+        % Perform inner layer of resampling
         bootout = cell(1,B);
-        parfor b = 1:B
-          bootout(b) = cellfunc (x(bootsam(:, b))); 
-        end
+        parfor b = 1:B; bootout(b) = cellfunc (x(bootsam(:, b))); end
       end
     else
       % SERIAL execution of inner layer resampling for double bootstrap
@@ -442,9 +446,7 @@ function [stats, T1, bootsam] = bootknife (x, nboot, bootfun, alpha, strata, npr
         else
           % MATLAB
           T = zeros (n, 1);
-          parfor i = 1:n
-            T(i) = feval (bootfun, x(1:end ~= i, :));
-          end
+          parfor i = 1:n; T(i) = feval (bootfun, x(1:end ~= i, :)); end
         end
       else
         % SERIAL evaluation of bootfun on each jackknife resample
