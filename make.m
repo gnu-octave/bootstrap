@@ -4,6 +4,9 @@
 info = ver; 
 isoctave = any (ismember ({info.Name}, 'Octave'));
 
+% Initialise error flag
+errflag = false;
+
 % Create cell array of paths to add
 arch = computer('arch');
 [comp, maxsize, endian] = computer ();
@@ -44,12 +47,17 @@ dirlist = {'helper', 'param', 'legacy', sprintf('legacy%shelper', filesep)};
 dirname = fileparts (mfilename ('fullpath'));
 
 % Attemt to compile binaries from source code automatically if no suitable binaries can be found
-if ~binary
-  disp('No precombined binaries available for this architecture. Attempting to compile the source code...');
+if binary
+  fprintf('The following precompiled binaries were detected and copied over to the inst directory: \n');
+  fprintf([repmat('%s',1,5),'\n'], '.', filesep, binary_paths{~cellfun(@isempty,arch_idx)}, 'boot.', mexext);
+  fprintf([repmat('%s',1,5),'\n'], '.', filesep, binary_paths{~cellfun(@isempty,arch_idx)}, 'smoothmedian.', mexext);
+else
+  disp('No precompiled binaries are available for this architecture. Attempting to compile the source code...');
   if isoctave
     try
       mkoctfile --mex --output ./inst/boot ./src/boot.cpp
     catch
+      errflag = true;
       err = lasterror();
       disp(err.message);
       warning ('Could not compile boot.%s. Falling back to the (slower) boot.m file.',mexext)
@@ -58,6 +66,7 @@ if ~binary
     try
       mkoctfile --mex --output ./inst/param/smoothmedian ./src/smoothmedian.cpp
     catch
+      errflag = true;
       err = lasterror();
       disp(err.message);
       warning ('Could not compile smoothmedian.%s. Falling back to the (slower) smoothmedian.m file.',mexext)
@@ -66,12 +75,14 @@ if ~binary
     try  
       mex -setup c++
     catch
+      errflag = true;
       err = lasterror();
       disp(err.message);
     end
     try
       mex -compatibleArrayDims -output ./inst/boot ./src/boot.cpp
     catch
+      errflag = true;
       err = lasterror();
       disp(err.message);
       warning ('Could not compile boot.%s. Falling back to the (slower) boot.m file.',mexext)
@@ -79,11 +90,18 @@ if ~binary
     try
       mex -compatibleArrayDims -output ./inst/param/smoothmedian ./src/smoothmedian.cpp
     catch
+      errflag = true;
       err = lasterror();
       disp(err.message);
       warning ('Could not compile smoothmedian.%s. Falling back to the (slower) smoothmedian.m file.',mexext)
     end
   end
 end
+if errflag
+  fprintf('make completed with errors. Please review the details in the errors in the above output. \n')
+else
+  fprintf('make completed successfully. Please run the install command. \n')
+end
+
 
 clear arch arch_idx binary binary_paths comp dirlist dirname endian info isoctave maxsize
