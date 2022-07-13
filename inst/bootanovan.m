@@ -149,6 +149,8 @@ function [p, F, FDIST] = bootanovan (data, group, nboot, varargin)
  
 end
 
+%--------------------------------------------------------------------------
+
 function  F = anovan_wrapper (y, g, isoctave, options)
   
   if isoctave
