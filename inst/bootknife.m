@@ -381,22 +381,23 @@ function [stats, T1, bootsam] = bootknife (x, nboot, bootfun, alpha, strata, npr
  
   % Calculate the bootstrap bias, standard error and confidence intervals 
   if C > 0
-    % PARALLEL execution of inner layer resampling for double bootstrap
+    %%%%%%%%%%%%%%%%%%%%%%%%%%% DOUBLE BOOTSTRAP %%%%%%%%%%%%%%%%%%%%%%%%%%%
     cellfunc = @(x) iboot (x, T0, C, bootfun, strata, isoctave);
     if (nproc > 1)
+      % PARALLEL execution of inner layer resampling for double bootstrap
       if isoctave
         % OCTAVE
-        bootout = parcellfun (nproc, cellfunc, num2cell(x(bootsam),1));
+        bootout = parcellfun (nproc, cellfunc, num2cell (x(bootsam), 1));
       else
         % MATLAB
         bootout = cell(1,B);
         parfor b = 1:B
-          bootout(b) = cellfunc (x(bootsam(:,b))); 
+          bootout(b) = cellfunc (x(bootsam(:, b))); 
         end
       end
     else
       % SERIAL execution of inner layer resampling for double bootstrap
-      bootout = cellfun (cellfunc, num2cell(x(bootsam),1));
+      bootout = cellfun (cellfunc, num2cell (x(bootsam), 1));
     end
     bootout = cell2mat (bootout);       % Convert cell array to array
     % Double bootstrap bias estimation
@@ -416,6 +417,7 @@ function [stats, T1, bootsam] = bootknife (x, nboot, bootfun, alpha, strata, npr
       ci = nan (1, 2);
     end
   else
+    %%%%%%%%%%%%%%%%%%%%%%%%%%% SINGLE BOOTSTRAP %%%%%%%%%%%%%%%%%%%%%%%%%%%
     % Bootstrap bias estimation
     bias = mean (T1) - T0;
     % Bootstrap standard error
