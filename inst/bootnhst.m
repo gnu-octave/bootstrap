@@ -966,7 +966,9 @@ function [p, c, stats] = bootnhst (data, group, varargin)
             end
           end
         catch
-          % Parallel toolbox not installed, run function evaluations in serial
+          % MATLAB Parallel Computing Toolbox is not installed
+          warning('MATLAB Parallel Computing Toolbox is not installed. Falling back to serial processing.')
+          paropt.UseParallel = false;
           paropt.nproc = 1;
         end
       else
@@ -985,6 +987,13 @@ function [p, c, stats] = bootnhst (data, group, varargin)
           paropt.UseParallel = false;
         end
       end
+    end
+  else
+    if paropt.UseParallel && (paropt.nproc > 1) && ~isparallel
+      % OCTAVE Parallel Computing Package is not installed or loaded
+      warning('OCTAVE Parallel Computing Package is not installed and/or loaded. Falling back to serial processing.')
+      paropt.UseParallel = false;
+      paropt.nproc = 1;
     end
   end
 

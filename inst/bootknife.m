@@ -271,37 +271,42 @@ function [stats, T1, bootsam] = bootknife (x, nboot, bootfun, alpha, strata, ncp
   % If applicable, setup a parallel pool 
   if ~isoctave
     % MATLAB
-    if ~vectorized 
-      % bootfun is not vectorized
-      if (ncpus > 0) 
-        % MANUAL
-        try 
-          pool = gcp ('nocreate'); 
-          if isempty (pool)
-            if (ncpus > 1)
-              % Start parallel pool with ncpus workers
-              parpool (ncpus);
-            else
-              % Parallel pool is not running and ncpus is 1 so run function evaluations in serial
-              ncpus = 1;
-            end
+    % bootfun is not vectorized
+    if (ncpus > 0) 
+      % MANUAL
+      try 
+        pool = gcp ('nocreate'); 
+        if isempty (pool)
+          if (ncpus > 1)
+            % Start parallel pool with ncpus workers
+            parpool (ncpus);
           else
-            if (pool.NumWorkers ~= ncpus)
-              % Check if number of workers matches ncpus and correct it accordingly if not
-              delete (pool);
-              if (ncpus > 1)
-                parpool (ncpus);
-              end
+            % Parallel pool is not running and ncpus is 1 so run function evaluations in serial
+            ncpus = 1;
+          end
+        else
+          if (pool.NumWorkers ~= ncpus)
+            % Check if number of workers matches ncpus and correct it accordingly if not
+            delete (pool);
+            if (ncpus > 1)
+              parpool (ncpus);
             end
           end
-        catch
-          % Parallel toolbox not installed, run function evaluations in serial
-          ncpus = 1;
         end
+      catch
+        % MATLAB Parallel Computing Toolbox is not installed
+        warning('MATLAB Parallel Computing Toolbox is not installed. Falling back to serial processing.')
+        ncpus = 1;
       end
     end
+  else
+    if (ncpus > 1) && ~isparallel
+      % OCTAVE Parallel Computing Package is not installed or loaded
+      warning('OCTAVE Parallel Computing Package is not installed and/or loaded. Falling back to serial processing.')
+      ncpus = 1;
+    end
   end
-  
+
   % If the function of the data is a vector, calculate the statistics for each element 
   m = numel(T0);
   if m > 1
@@ -451,7 +456,7 @@ function [stats, T1, bootsam] = bootknife (x, nboot, bootfun, alpha, strata, ncp
         else
           % MATLAB
           T = zeros (n, 1);
-          parfor i = 1:n; T(i) = jackfun(i); end
+          parfor i = 1:n; T(i) = feval(jackfun,i); end
         end
       else
         % SERIAL evaluation of bootfun on each jackknife resample
