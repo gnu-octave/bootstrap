@@ -236,9 +236,9 @@ function [stats, T1, bootsam] = bootknife (x, nboot, bootfun, alpha, strata, ncp
     isoctave = any (ismember ({info.Name}, 'Octave'));
   end
   if isoctave
-    ncpus = max(ncpus, nproc);
+    ncpus = min(ncpus, nproc);
   else
-    ncpus = max(ncpus, feature('numcores'));
+    ncpus = min(ncpus, feature('numcores'));
   end
 
   % Determine properties of the data (x)
@@ -442,20 +442,19 @@ function [stats, T1, bootsam] = bootknife (x, nboot, bootfun, alpha, strata, ncp
         error('unable to calculate the bias correction z0')
       end
       % Use the Jackknife to calculate the acceleration constant
+      jackfun = @(i) feval (bootfun, x(1:n ~= i, :));
       if (ncpus > 1)  
         % PARALLEL evaluation of bootfun on each jackknife resample 
         if isoctave
           % OCTAVE
-          jackfun = @(i) feval (bootfun, x(1:n ~= i, :));
           T = pararrayfun (ncpus, jackfun, 1:n);
         else
           % MATLAB
           T = zeros (n, 1);
-          parfor i = 1:n; T(i) = feval (bootfun, x(1:end ~= i, :)); end
+          parfor i = 1:n; T(i) = jackfun(i); end
         end
       else
         % SERIAL evaluation of bootfun on each jackknife resample
-        jackfun = @(i) feval (bootfun, x(1:n ~= i, :));
         T = arrayfun (jackfun, 1:n);
       end
       % Calculate empirical influence function
