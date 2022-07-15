@@ -27,8 +27,7 @@
 %               i < j
 % 
 %  where i and j refers to the indices of the Cartesian product 
-%  of each column of x with itself. No smoothing is carried out
-%  when data columns contain one or more NaN or Inf elements.
+%  of each column of x with itself. 
 %
 %  With the ordinary median as the initial value of M, this function
 %  minimizes the above objective function by finding the root of the 
