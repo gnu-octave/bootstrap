@@ -1,6 +1,6 @@
 function [F, x] = empcdf (y, c)
 
-  % Helper function file reuired for iboocti
+  % Helper function file required for bootknife, bootnhst and ibootci
   %
   % Calculate empirical cumulative distribution function of y
   %

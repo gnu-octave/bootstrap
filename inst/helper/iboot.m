@@ -1,6 +1,6 @@
-function bootout = iboot (x, T0, nboot, bootfun, strata, isoctave)
+function bootout = iboot (x, nboot, bootfun, strata, isoctave, T0)
 
-    % Helper function file for bootknife required for accelerating double bootstrap by parallel processing
+    % Helper function file for bootknife. Required for double bootstrap. 
 
     % Initialize output
     bootout = cell(1);

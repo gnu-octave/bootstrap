@@ -392,7 +392,7 @@ function [stats, T1, bootsam] = bootknife (x, nboot, bootfun, alpha, strata, ncp
   % Calculate the bootstrap bias, standard error and confidence intervals 
   if C > 0
     %%%%%%%%%%%%%%%%%%%%%%%%%%% DOUBLE BOOTSTRAP %%%%%%%%%%%%%%%%%%%%%%%%%%%
-    cellfunc = @(x) iboot (x, T0, C, bootfun, strata, isoctave);
+    cellfunc = @(x) iboot (x, C, bootfun, strata, isoctave, T0);
     if (ncpus > 1)
       % PARALLEL execution of inner layer resampling for double (i.e. iterated) bootstrap
       if isoctave
