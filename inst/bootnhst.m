@@ -1082,7 +1082,7 @@ function [p, c, stats] = bootnhst (data, group, varargin)
       theta(j) = feval(bootfun,data(g==gk(j),:));
       nk(j) = sum(g==gk(j));
       stats = bootknife(data(g==gk(j),:),[nboot(2),0],bootfun,[],[],0,isoctave);
-      SE(j) = stats(3);
+      SE(j) = stats.std_error;
     end
     Var(j) = ((nk(j)-1)/(N-k-(l-1))) * SE(j)^2;
   end
@@ -1285,3 +1285,46 @@ function [p, c, stats] = bootnhst (data, group, varargin)
 
 end
 
+
+%--------------------------------------------------------------------------
+
+function [F, x] = empcdf (bootstat, c)
+
+  % Subfunction to calculate empirical cumulative distribution function of bootstat
+  %
+  % Set c to:
+  %  1 to have a complete distribution with F ranging from 0 to 1
+  %  0 to avoid duplicate values in x
+  %
+  % Unlike ecdf, empcdf uses a denominator of N+1
+
+  % Check input argument
+  if ~isa(bootstat,'numeric')
+    error('bootstat must be numeric')
+  end
+  if all(size(bootstat)>1)
+    error('bootstat must be a vector')
+  end
+  if size(bootstat,2)>1
+    bootstat = bootstat.';
+  end
+
+  % Create empirical CDF
+  x = sort(bootstat);
+  N = sum(~isnan(bootstat));
+  [x,F] = unique(x,'rows','last');
+  F = F/(N+1);
+
+  % Apply option to complete the CDF
+  if c > 0
+    x = [x(1);x;x(end)];
+    F = [0;F;1];
+  end
+
+  % Remove impossible values
+  F(isnan(x)) = [];
+  x(isnan(x)) = [];
+  F(isinf(x)) = [];
+  x(isinf(x)) = [];
+
+end

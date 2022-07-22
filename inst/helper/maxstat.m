@@ -49,7 +49,7 @@ function maxT = maxstat (Y, g, nboot, bootfun, ref, clusters, strata, isoctave)
       theta(j) = feval(bootfun,Y(g==gk(j),:));
       nk(j) = sum(g==gk(j));
       stats = bootknife(Y(g==gk(j),:),[nboot,0],bootfun,[],[],0,isoctave);
-      SE(j) = stats(3);
+      SE(j) = stats.std_error;
     end
     Var(j) = ((nk(j)-1)/(N-k-(l-1))) * SE(j)^2;
   end

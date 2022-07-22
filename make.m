@@ -71,6 +71,14 @@ else
       disp(err.message);
       warning ('Could not compile smoothmedian.%s. Falling back to the (slower) smoothmedian.m file.',mexext)
     end
+    try
+      mkoctfile --output ./inst/helper/iboot ./src/iboot.cpp
+    catch
+      errflag = true;
+      err = lasterror();
+      disp(err.message);
+      warning ('Could not compile iboot.oct. Falling back to the (slower) iboot.m file.')
+    end
   else
     try  
       mex -setup c++
