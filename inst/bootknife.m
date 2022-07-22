@@ -589,15 +589,14 @@ function [stats, bootstat, BOOTSAM] = bootknife (x, nboot, bootfun, alpha, strat
 
   function print_output(stats)
 
-      fprintf (['\n',...
-                     'Summary of non-parametric bootstrap estimates of bias and precision\n',...
-                     '******************************************************************************\n\n']);
+      fprintf (['\nSummary of non-parametric bootstrap estimates of bias and precision\n',...
+                '******************************************************************************\n\n']);
       fprintf ('Bootstrap settings: \n');
       fprintf (' Function: %s\n',func2str(bootfun));
       fprintf (' Resampling method: Balanced, bootknife resampling \n')
       fprintf (' Number of resamples (outer): %u \n', B);
       fprintf (' Number of resamples (inner): %u \n', C);
-      if C>0
+      if (C > 0)
         fprintf (' Confidence interval type: Calibrated \n');
       else
         fprintf (' Confidence interval type: Bias-corrected and accelerated (BCa) \n');
@@ -609,7 +608,7 @@ function [stats, bootstat, BOOTSAM] = bootknife (x, nboot, bootfun, alpha, strat
         fprintf (' %#-+12.6g   %#-+12.6g   %#-+12.6g   %#-+12.6g   %#-+12.6g \n',... 
                  [stats(i).original, stats(i).bias, stats(i).std_error, stats(i).CI_lower, stats(i).CI_upper]);
       end
-      fprintf('\n');
+      fprintf ('\n');
       
   end
 
