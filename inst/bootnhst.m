@@ -800,7 +800,7 @@ function [p, c, stats] = bootnhst (data, group, varargin)
   if iscell(bootfun)
     func = bootfun{1};
     args = bootfun(2:end);
-    bootfun = @(data) feval(func, data, args{:});
+    bootfun = @(data) func (data, args{:});
   end
   if isa(bootfun,'function_handle')
     if strcmp (func2str (bootfun), 'mean')
@@ -934,7 +934,7 @@ function [p, c, stats] = bootnhst (data, group, varargin)
     for i=1:l
       % Create strata matrix
       S(:,i) = ismember(strata, sid(i));   % strata logical indexing
-      data(S(:,i),:) = data(S(:,i),:) - feval(bootfun, feval(bootfun,data(S(:,i),:),2) ,1);
+      data(S(:,i),:) = data(S(:,i),:) - bootfun(bootfun(data(S(:,i),:),2),1);
     end
     ns = sum(S);                           % number of data elements per stratum
   end
@@ -1019,11 +1019,11 @@ function [p, c, stats] = bootnhst (data, group, varargin)
         % Set unique random seed for each parallel thread
         pararrayfun(paropt.nproc, @boot, 1, 1, false, 1, 1:paropt.nproc);
         % Evaluate maxstat on each bootstrap resample in PARALLEL 
-        cellfunc = @(bootsam) feval (func, data (bootsam, :));
+        cellfunc = @(bootsam) func (data (bootsam, :));
         Q = parcellfun(paropt.nproc, cellfunc, num2cell (bootsam, 1), 'ChunksPerProc', 100);
       else
         % Evaluate maxstat on each bootstrap resample in SERIAL
-        cellfunc = @(bootsam) feval (func, data (bootsam, :));
+        cellfunc = @(bootsam) func (data (bootsam, :));
         Q = cellfun (cellfunc, num2cell (bootsam, 1));
       end
     else
@@ -1034,11 +1034,11 @@ function [p, c, stats] = bootnhst (data, group, varargin)
         % Evaluate maxstat on each bootstrap resample in PARALLEL 
         Q = zeros (1, nboot(1));
         parfor h = 1:nboot(1)
-          Q(h) = feval (func, data (bootsam (:, h), :));
+          Q(h) = func (data (bootsam (:, h), :));
         end
       else
         % Evaluate maxstat on each bootstrap resample in SERIAL
-        cellfunc = @(bootsam) feval (func, data (bootsam, :));
+        cellfunc = @(bootsam) func (data (bootsam, :));
         Q = cellfun (cellfunc, num2cell (bootsam, 1));
       end
     end
@@ -1047,7 +1047,7 @@ function [p, c, stats] = bootnhst (data, group, varargin)
     % with shrinkage correction for clustered data
     state = warning; 
     warning off;    % silence warnings about non-vectorized bootfun
-    Q = bootstrp (nboot(1),func,data,'cluster',clusters,'Options',paropt);
+    Q = bootstrp(nboot(1),func,data,'cluster',clusters,'Options',paropt);
     warning(state);
   end
 
@@ -1059,7 +1059,7 @@ function [p, c, stats] = bootnhst (data, group, varargin)
   nk = zeros(size(gk));
   for j = 1:k
     if ~isempty(clusters)
-      theta(j) = feval(bootfun,data(g==gk(j),:));
+      theta(j) = bootfun (data(g==gk(j),:));
       % Compute unbiased estimate of the standard error by
       % cluster-jackknife resampling
       opt.clusters = clusters(g==gk(j));
@@ -1072,14 +1072,14 @@ function [p, c, stats] = bootnhst (data, group, varargin)
         % Quick calculation for the standard error of the mean
         SE(j) = std(data(g==gk(j),:),0) / sqrt(nk(j));
       else
-        theta(j) = feval(bootfun,data(g==gk(j),:));
+        theta(j) = bootfun (data(g==gk(j),:));
         % If requested, compute unbiased estimates of the standard error using jackknife resampling
         SE(j) = jack(data(g==gk(j),:), bootfun);
       end
     else
       % Compute unbiased estimate of the standard error by balanced bootknife resampling
       % Bootknife resampling involves less computation than Jackknife when sample sizes get larger
-      theta(j) = feval(bootfun,data(g==gk(j),:));
+      theta(j) = bootfun(data(g==gk(j),:));
       nk(j) = sum(g==gk(j));
       stats = bootknife(data(g==gk(j),:),[nboot(2),0],bootfun,[],[],0,isoctave);
       SE(j) = stats.std_error;
