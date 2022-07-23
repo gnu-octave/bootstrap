@@ -1081,7 +1081,7 @@ function [p, c, stats] = bootnhst (data, group, varargin)
       % Bootknife resampling involves less computation than Jackknife when sample sizes get larger
       theta(j) = feval(bootfun,data(g==gk(j),:));
       nk(j) = sum(g==gk(j));
-      stats = bootknife(data(g==gk(j),:),[nboot(2),0],bootfun,[],[],0,isoctave);
+      stats = bootknife(data(g==gk(j),:),[nboot(2),0],bootfun,[],[],0,[],isoctave);
       SE(j) = stats.std_error;
     end
     Var(j) = ((nk(j)-1)/(N-k-(l-1))) * SE(j)^2;
