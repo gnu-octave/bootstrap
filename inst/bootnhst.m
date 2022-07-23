@@ -1198,6 +1198,9 @@ function [p, c, stats] = bootnhst (data, group, varargin)
       fprintf (['Maximum t(%u) = %.2f, p-adj = .%03u \n',...
                 '------------------------------------------------------------------------------\n'],[df,maxT,round(p*1000)]);
     end
+      fprintf ('Bootstrap settings: \n');
+      fprintf (' Function: %s\n',bootfun);
+      fprintf (' Number of resamples: [%u, %u] \n', nboot);
     if size(c,1) > 1
       fprintf (['\n',...
                 'POST HOC TESTS with control of the FWER by the single-step maxT procedure\n',...
