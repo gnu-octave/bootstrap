@@ -193,7 +193,7 @@ function [stats, bootstat, BOOTSAM] = bootknife (x, nboot, bootfun, alpha, strat
     if iscell(bootfun)
       func = bootfun{1};
       args = bootfun(2:end);
-      bootfun = @(x) feval(func, x, args{:});
+      bootfun = @(x) func (x, args{:});
     end
     if ischar (bootfun)
       if strcmpi(bootfun,'robust')
@@ -260,7 +260,7 @@ function [stats, bootstat, BOOTSAM] = bootknife (x, nboot, bootfun, alpha, strat
   end
 
   % Evaluate bootfun on the data
-  T0 = feval (bootfun, x);
+  T0 = bootfun (x);
   if all (size (T0) > 1)
     error ('bootfun must return either a scalar or a vector')
   end
@@ -268,8 +268,8 @@ function [stats, bootstat, BOOTSAM] = bootknife (x, nboot, bootfun, alpha, strat
   % If data is univariate, check whether bootfun is vectorized
   vectorized = false;
   if (nvar == 1)
-      chk = feval (bootfun, cat (2,x,x));
-      if ( all (size (chk) == [1, 2]) && all (chk == feval (bootfun, x)) )
+      chk = bootfun (cat (2,x,x));
+      if ( all (size (chk) == [1, 2]) && all (chk == bootfun (x)) )
         vectorized = true;
       end
   end
@@ -321,8 +321,8 @@ function [stats, bootstat, BOOTSAM] = bootknife (x, nboot, bootfun, alpha, strat
       try
         % If data is multivariate, check whether bootfun is vectorized
         % Bootfun will be evaluated for each column of x, considering each of them as univariate data vectors
-        chk = feval (bootfun, cat (2,x(:,1),x(:,1)));
-        if ( all (size (chk) == [1, 2]) && all (chk == feval (bootfun, x(:,1))) )
+        chk = bootfun (cat (2,x(:,1),x(:,1)));
+        if ( all (size (chk) == [1, 2]) && all (chk == bootfun (x(:,1))) )
           vectorized = true;
         end
       catch
@@ -347,8 +347,8 @@ function [stats, bootstat, BOOTSAM] = bootknife (x, nboot, bootfun, alpha, strat
       end
     else
       for j = 1:m
-        out = @(t, j) t(j);
-        func = @(x) out(bootfun(x), j);
+        out = @(t) t(j);
+        func = @(x) out (bootfun (x));
         if j > 1
           [stats(j), bootstat(j,:)] = bootknife (x, nboot, func, alpha, strata, ncpus, [], ISOCTAVE, BOOTSAM);
         else
@@ -409,17 +409,17 @@ function [stats, bootstat, BOOTSAM] = bootknife (x, nboot, bootfun, alpha, strat
   end
   if isempty(BOOTSAM)
     % Vectorized implementation of data sampling and evaluation of bootfun on the data
-    bootstat = feval (bootfun, X);
+    bootstat = bootfun (X);
   else
     if vectorized
       % Vectorized implementation of data sampling (using BOOTSAM) and evaluation of bootfun on the data 
       % Perform data sampling
       X = x(BOOTSAM);
       % Function evaluation on bootknife sample
-      bootstat = feval (bootfun, X);
+      bootstat = bootfun (X);
     else 
       % Evaluate bootfun on each bootstrap resample in SERIAL
-      cellfunc = @(BOOTSAM) feval (bootfun, x (BOOTSAM, :));
+      cellfunc = @(BOOTSAM) bootfun (x(BOOTSAM, :));
       bootstat = cellfun (cellfunc, num2cell (BOOTSAM, 1));
     end
   end
@@ -427,42 +427,46 @@ function [stats, bootstat, BOOTSAM] = bootknife (x, nboot, bootfun, alpha, strat
   % Calculate the bootstrap bias, standard error and confidence intervals 
   if C > 0
     %%%%%%%%%%%%%%%%%%%%%%%%%%% DOUBLE BOOTSTRAP %%%%%%%%%%%%%%%%%%%%%%%%%%%
-    cellfunc = @(x) bootknife (x, C, bootfun, [], strata, 0, T0, ISOCTAVE);
     if (ncpus > 1)
       % PARALLEL execution of inner layer resampling for double (i.e. iterated) bootstrap
       if ISOCTAVE
         % OCTAVE
         % Set unique random seed for each parallel thread
         pararrayfun(ncpus, @boot, 1, 1, false, 1, 1:ncpus);
-        % Perform inner layer of resampling
-        if (nvar > 1)
-          bootout = parcellfun (ncpus, cellfunc, mat2cell (x(BOOTSAM(:),:), n * ones(B,1)).');
+        if vectorized && isempty(BOOTSAM)
+          cellfunc = @(x) bootknife (x, C, bootfun, [], strata, 0, T0, ISOCTAVE);
+          bootout = parcellfun (ncpus, cellfunc, num2cell (X,1));
         else
-          if vectorized && (nargout < 3)
-            bootout = parcellfun (ncpus, cellfunc, num2cell (X,1));
-          else
-            bootout = parcellfun (ncpus, cellfunc, num2cell (x(BOOTSAM),1));
-          end
+          cellfunc = @(BOOTSAM) bootknife (x(BOOTSAM,:), C, bootfun, [], strata, 0, T0, ISOCTAVE);
+          bootout = parcellfun (ncpus, cellfunc, num2cell (BOOTSAM,1));
         end
       else
         % MATLAB
         % Set unique random seed for each parallel thread
         parfor i = 1:ncpus; boot (1, 1, false, 1, i); end;
         % Perform inner layer of resampling
-        bootout = struct;
-        parfor b = 1:B; bootout(b) = cellfunc (x(BOOTSAM(:,b),:)); end
+        bootout = struct ('original',zeros(1,B),...
+                        'bias',zeros(1,B),...
+                        'std_error',zeros(1,B),...
+                        'CI_lower',zeros(1,B),...
+                        'CI_upper',zeros(1,B),...
+                        'Pr',zeros(1,B));
+        if vectorized && isempty(BOOTSAM)
+          cellfunc = @(x) bootknife (x, C, bootfun, [], strata, 0, T0, ISOCTAVE);
+          parfor b = 1:B; bootout(b) = cellfunc (X(:,b)); end;
+        else
+          cellfunc = @(BOOTSAM) bootknife (x(BOOTSAM,:), C, bootfun, [], strata, 0, T0, ISOCTAVE);
+          parfor b = 1:B; bootout(b) = cellfunc (BOOTSAM(:,b)); end;
+        end
       end
     else
       % SERIAL execution of inner layer resampling for double bootstrap
-      if (nvar > 1)
-        bootout = struct;
-        for b = 1:B; bootout(b) = cellfunc (x(BOOTSAM(:,b),:)); end
+      if vectorized && isempty(BOOTSAM)
+        cellfunc = @(x) bootknife (x, C, bootfun, [], strata, 0, T0, ISOCTAVE);
+        bootout = cellfun (cellfunc, num2cell (X,1));
       else
-        if vectorized && (nargout < 3)
-          bootout = cellfun (cellfunc, num2cell (X,1));
-        else
-          bootout = cellfun (cellfunc, num2cell (x(BOOTSAM),1));
-        end
+        cellfunc = @(BOOTSAM) bootknife (x(BOOTSAM,:), C, bootfun, [], strata, 0, T0, ISOCTAVE);
+        bootout = cellfun (cellfunc, num2cell (BOOTSAM,1));
       end
     end
     Pr = cell2mat(arrayfun(@(S) S.Pr, bootout, 'UniformOutput', false));
@@ -501,7 +505,7 @@ function [stats, bootstat, BOOTSAM] = bootknife (x, nboot, bootfun, alpha, strat
         error('unable to calculate the bias correction z0')
       end
       % Use the Jackknife to calculate the acceleration constant
-      jackfun = @(i) feval (bootfun, x(1:n ~= i, :));
+      jackfun = @(i) bootfun (x(1:n ~= i, :));
       if (ncpus > 1)  
         % PARALLEL evaluation of bootfun on each jackknife resample 
         if ISOCTAVE
@@ -510,7 +514,7 @@ function [stats, bootstat, BOOTSAM] = bootknife (x, nboot, bootfun, alpha, strat
         else
           % MATLAB
           T = zeros (n, 1);
-          parfor i = 1:n; T(i) = feval(jackfun,i); end
+          parfor i = 1:n; T(i) = jackfun (i); end
         end
       else
         % SERIAL evaluation of bootfun on each jackknife resample
