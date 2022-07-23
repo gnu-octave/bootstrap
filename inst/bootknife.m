@@ -237,7 +237,7 @@ function [stats, bootstat, BOOTSAM] = bootknife (x, nboot, bootfun, alpha, strat
     end
   end
   % REF, ISOCTAVE and BOOTSAM are undocumented input arguments required for some of the functionality of bootknife
-  if nargin < 8
+  if (nargin < 8)
     % Check if running in Octave (else assume Matlab)
     info = ver; 
     ISOCTAVE = any (ismember ({info.Name}, 'Octave'));
