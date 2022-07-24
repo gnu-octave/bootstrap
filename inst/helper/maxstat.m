@@ -1,4 +1,4 @@
-function maxT = maxstat (Y, g, nboot, bootfun, ref, clusters, strata, isoctave)
+function maxT = maxstat (Y, g, nboot, bootfun, ref, clusters, strata, ISOCTAVE)
 
   % Helper function file required for ibootnhst
   % Calculate maximum test statistic
@@ -48,7 +48,7 @@ function maxT = maxstat (Y, g, nboot, bootfun, ref, clusters, strata, isoctave)
       % Bootknife resampling involves less computation than Jackknife when sample sizes get larger
       theta(j) = bootfun(Y(g==gk(j),:));
       nk(j) = sum(g==gk(j));
-      stats = bootknife(Y(g==gk(j),:),[nboot,0],bootfun,[],[],0,[],isoctave);
+      stats = bootknife(Y(g==gk(j),:),[nboot,0],bootfun,[],[],0,[],ISOCTAVE);
       SE(j) = stats.std_error;
     end
     Var(j) = ((nk(j)-1)/(N-k-(l-1))) * SE(j)^2;
