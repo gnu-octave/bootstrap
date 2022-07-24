@@ -711,7 +711,7 @@ function [p, c, stats] = bootnhst (data, group, varargin)
 
   % Check if running in Octave (else assume Matlab)
   info = ver; 
-  isoctave = any (ismember ({info.Name}, 'Octave'));
+  ISOCTAVE = any (ismember ({info.Name}, 'Octave'));
   
   % Apply defaults
   bootfun = 'mean';
@@ -724,7 +724,7 @@ function [p, c, stats] = bootnhst (data, group, varargin)
   DisplayOpt = true;
   paropt = struct;
   paropt.UseParallel = false;
-  if isoctave
+  if ISOCTAVE
     paropt.nproc = nproc;
   else
     paropt.nproc = feature('numcores');
@@ -928,7 +928,7 @@ function [p, c, stats] = bootnhst (data, group, varargin)
   if ~isempty(strata)
     S = zeros(N, l, 'logical');
     for i=1:l
-      % Create strata matrix
+      % Create strata identity matrix
       S(:,i) = ismember(strata, sid(i));   % strata logical indexing
       data(S(:,i),:) = data(S(:,i),:) - bootfun(bootfun(data(S(:,i),:),2) ,1);
     end
@@ -936,7 +936,7 @@ function [p, c, stats] = bootnhst (data, group, varargin)
   end
   
   % If applicable, setup a parallel pool 
-  if ~isoctave
+  if ~ISOCTAVE
     % MATLAB
     if paropt.UseParallel 
       % PARALLEL
@@ -994,34 +994,32 @@ function [p, c, stats] = bootnhst (data, group, varargin)
   end
 
   % Define a function to calculate maxT
-  func = @(data) maxstat (data, g, nboot(2), bootfun, ref, clusters, strata, isoctave);
+  func = @(data) maxstat (data, g, nboot(2), bootfun, ref, clusters, strata, ISOCTAVE);
 
   % Perform resampling and calculate bootstrap statistics
   if isempty(clusters)
     % Use newer, faster and balanced (less biased) resampling function (boot)
-    % We can save some memory by making bootsam an int32 datatype
-    bootsam = zeros (N, nboot(1), 'int32');
+    % We can save some memory by making BOOTSAM an int32 datatype
+    BOOTSAM = zeros (N, nboot(1), 'int32');
     if ~isempty (strata)
       for i = 1:l
-        bootsam(S(:,i),:) = boot (ns(i), nboot(1), false);
-        rows = find (S(:,i));
-        bootsam(S(:,i),:) = rows(bootsam(S(:,i), :));
+        BOOTSAM(S(:, l),:) = boot (find (S(:, l)), nboot(1), false);
       end
     else
-      bootsam(:,:) = boot (N, nboot(1), false);
+      BOOTSAM(:,:) = boot (N, nboot(1), false);
     end
-    if isoctave
+    if ISOCTAVE
       % OCTAVE
       if paropt.UseParallel
         % Set unique random seed for each parallel thread
         pararrayfun(paropt.nproc, @boot, 1, 1, false, 1, 1:paropt.nproc);
         % Evaluate maxstat on each bootstrap resample in PARALLEL 
-        cellfunc = @(bootsam) func (data (bootsam, :));
-        Q = parcellfun(paropt.nproc, cellfunc, num2cell (bootsam, 1), 'ChunksPerProc', 100);
+        cellfunc = @(BOOTSAM) func (data (BOOTSAM, :));
+        Q = parcellfun(paropt.nproc, cellfunc, num2cell (BOOTSAM, 1), 'ChunksPerProc', 100);
       else
         % Evaluate maxstat on each bootstrap resample in SERIAL
-        cellfunc = @(bootsam) func (data (bootsam, :));
-        Q = cellfun (cellfunc, num2cell (bootsam, 1));
+        cellfunc = @(BOOTSAM) func (data (BOOTSAM, :));
+        Q = cellfun (cellfunc, num2cell (BOOTSAM, 1));
       end
     else
       % MATLAB
@@ -1030,13 +1028,11 @@ function [p, c, stats] = bootnhst (data, group, varargin)
         parfor i = 1:paropt.nproc; boot (1, 1, false, 1, i); end;
         % Evaluate maxstat on each bootstrap resample in PARALLEL 
         Q = zeros (1, nboot(1));
-        parfor h = 1:nboot(1)
-          Q(h) = func (data (bootsam (:, h), :));
-        end
+        parfor h = 1:nboot(1); Q(h) = func (data (BOOTSAM (:, h), :)); end;
       else
         % Evaluate maxstat on each bootstrap resample in SERIAL
-        cellfunc = @(bootsam) func (data (bootsam, :));
-        Q = cellfun (cellfunc, num2cell (bootsam, 1));
+        cellfunc = @(BOOTSAM) func (data (BOOTSAM, :));
+        Q = cellfun (cellfunc, num2cell (BOOTSAM, 1));
       end
     end
   else
@@ -1078,7 +1074,7 @@ function [p, c, stats] = bootnhst (data, group, varargin)
       % Bootknife resampling involves less computation than Jackknife when sample sizes get larger
       theta(j) = bootfun(data(g==gk(j),:));
       nk(j) = sum(g==gk(j));
-      stats = bootknife(data(g==gk(j),:),[nboot(2),0],bootfun,[],[],0,[],isoctave);
+      stats = bootknife(data(g==gk(j),:),[nboot(2),0],bootfun,[],[],0,[],ISOCTAVE);
       SE(j) = stats.std_error;
     end
     Var(j) = ((nk(j)-1)/(N-k-(l-1))) * SE(j)^2;
