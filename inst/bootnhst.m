@@ -996,44 +996,13 @@ function [p, c, stats] = bootnhst (data, group, varargin)
   % Define a function to calculate maxT
   func = @(data) maxstat (data, g, nboot(2), bootfun, ref, clusters, strata, ISOCTAVE);
 
-  % Perform resampling and calculate bootstrap statistics
+  % Perform resampling and calculate bootstrap statistics to estimate sampling distribution under the null hypothesis
   if isempty(clusters)
-    % Use newer, faster and balanced (less biased) resampling function (boot)
-    % We can save some memory by making BOOTSAM an int32 datatype
-    BOOTSAM = zeros (N, nboot(1), 'int32');
-    if ~isempty (strata)
-      for i = 1:l
-        BOOTSAM(S(:, l),:) = boot (find (S(:, l)), nboot(1), false);
-      end
+    % Use newer, faster and balanced (less biased) resampling functions (boot and bootknife)
+    if paropt.UseParallel
+      Q = bootknife (data,nboot(1),func,[],strata,paropt.nproc);
     else
-      BOOTSAM(:,:) = boot (N, nboot(1), false);
-    end
-    if ISOCTAVE
-      % OCTAVE
-      if paropt.UseParallel
-        % Set unique random seed for each parallel thread
-        pararrayfun(paropt.nproc, @boot, 1, 1, false, 1, 1:paropt.nproc);
-        % Evaluate maxstat on each bootstrap resample in PARALLEL 
-        cellfunc = @(BOOTSAM) func (data (BOOTSAM, :));
-        Q = parcellfun(paropt.nproc, cellfunc, num2cell (BOOTSAM, 1), 'ChunksPerProc', 100);
-      else
-        % Evaluate maxstat on each bootstrap resample in SERIAL
-        cellfunc = @(BOOTSAM) func (data (BOOTSAM, :));
-        Q = cellfun (cellfunc, num2cell (BOOTSAM, 1));
-      end
-    else
-      % MATLAB
-      if paropt.UseParallel
-        % Set unique random seed for each parallel thread
-        parfor i = 1:paropt.nproc; boot (1, 1, false, 1, i); end;
-        % Evaluate maxstat on each bootstrap resample in PARALLEL 
-        Q = zeros (1, nboot(1));
-        parfor h = 1:nboot(1); Q(h) = func (data (BOOTSAM (:, h), :)); end;
-      else
-        % Evaluate maxstat on each bootstrap resample in SERIAL
-        cellfunc = @(BOOTSAM) func (data (BOOTSAM, :));
-        Q = cellfun (cellfunc, num2cell (BOOTSAM, 1));
-      end
+      Q = bootknife (data,nboot(1),func,[],strata);
     end
   else
     % Use legacy bootstrp function for two-stage nonparametric bootstrap sampling 
