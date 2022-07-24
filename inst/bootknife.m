@@ -92,10 +92,11 @@
 %  empty, no stratification of resampling is performed. 
 %
 %  stats = bootknife(data,nboot,bootfun,alpha,strata,nproc) sets the
-%  number of parallel proceses to use to accelerate computations during 
-%  double bootstrap resampling and jackknife function evaluations on 
-%  multicore machines. This feature requires the Parallel package (in 
-%  Octave), or the Parallel Computing Toolbox (in Matlab).
+%  number of parallel proceses to use to accelerate computations on 
+%  multicore machines during non-vectorized function evaluations, double  
+%  bootstrap resampling and jackknife function evaluations. This feature 
+%  requires the Parallel package (in Octave), or the Parallel Computing 
+%  Toolbox (in Matlab).
 %
 %  [stats,bootstat] = bootknife(...) also returns bootstat, a vector of
 %  statistics calculated over the (first, or outer layer of) bootstrap 
