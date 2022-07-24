@@ -381,7 +381,7 @@ function [stats, bootstat, BOOTSAM] = bootknife (x, nboot, bootfun, alpha, strat
   % Perform balanced bootknife resampling
   if nargin < 9
     if ~isempty (strata)
-      if (nvar > 1) && (nargout > 2)
+      if (nvar > 1) || (nargout > 2)
         % If we need BOOTSAM, can save some memory by making BOOTSAM an int32 datatype
         BOOTSAM = zeros (n, B, 'int32'); 
         for k = 1:K
@@ -396,7 +396,7 @@ function [stats, bootstat, BOOTSAM] = bootknife (x, nboot, bootfun, alpha, strat
         end
       end
     else
-      if (nvar > 1) && (nargout > 2)
+      if (nvar > 1) || (nargout > 2)
         % If we need BOOTSAM, can save some memory by making BOOTSAM an int32 datatype
         BOOTSAM = zeros (n, B, 'int32');   
         BOOTSAM(:,:) = boot (n, B, true);
