@@ -429,9 +429,22 @@ function [stats, bootstat, BOOTSAM] = bootknife (x, nboot, bootfun, alpha, strat
       % Function evaluation on bootknife sample
       bootstat = bootfun (X);
     else 
-      % Evaluate bootfun on each bootstrap resample in SERIAL
       cellfunc = @(BOOTSAM) bootfun (x(BOOTSAM, :));
-      bootstat = cellfun (cellfunc, num2cell (BOOTSAM, 1));
+      if (ncpus > 1)
+        % Evaluate bootfun on each bootstrap resample in PARALLEL
+        if ISOCTAVE
+          % OCTAVE
+          bootstat = parcellfun (ncpus, cellfunc, num2cell (BOOTSAM, 1));
+        else
+          % MATLAB
+          bootstat = zeros (1, B);
+          parfor b = 1:B; bootstat(b) = cellfunc (BOOTSAM(:,b)); end;
+        end
+      else
+        % Evaluate bootfun on each bootstrap resample in SERIAL
+        cellfunc = @(BOOTSAM) bootfun (x(BOOTSAM, :));
+        bootstat = cellfun (cellfunc, num2cell (BOOTSAM, 1));
+      end
     end
   end
 
