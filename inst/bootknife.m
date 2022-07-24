@@ -420,7 +420,19 @@ function [stats, bootstat, BOOTSAM] = bootknife (x, nboot, bootfun, alpha, strat
       % Vectorized evaluation of bootfun on the resamples
       bootstat = bootfun (X);
     else
-      bootstat = cellfun (bootfun, num2cell (X, 1));
+      if (ncpus > 1)
+        % Evaluate bootfun on each bootstrap resample in PARALLEL
+        if ISOCTAVE
+          % OCTAVE
+          bootstat = parcellfun (ncpus, bootfun, num2cell (X, 1));
+        else
+          % MATLAB
+          bootstat = zeros (1, B);
+          parfor b = 1:B; bootstat(b) = cellfunc (X(:,b)); end;
+        end
+      else
+        bootstat = cellfun (bootfun, num2cell (X, 1));
+      end
     end
   else
     if vectorized
