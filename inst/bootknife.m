@@ -384,7 +384,7 @@ function [stats, bootstat, BOOTSAM] = bootknife (x, nboot, bootfun, alpha, strat
   else 
     g = ones(n,1);
   end
-
+ncpus
   % Perform balanced bootknife resampling
   if nargin < 9
     if ~isempty (strata)
