@@ -1000,9 +1000,9 @@ function [p, c, stats] = bootnhst (data, group, varargin)
   if isempty(clusters)
     % Use newer, faster and balanced (less biased) resampling functions (boot and bootknife)
     if paropt.UseParallel
-      Q = bootknife (data,nboot(1),func,[],strata,paropt.nproc,[],ISOCTAVE);
+      [null,Q] = bootknife (data,nboot(1),func,[],strata,paropt.nproc,[],ISOCTAVE);
     else
-      Q = bootknife (data,nboot(1),func,[],strata,0,[],ISOCTAVE);
+      [null,Q] = bootknife (data,nboot(1),func,[],strata,0,[],ISOCTAVE);
     end
   else
     % Use legacy bootstrp function for two-stage nonparametric bootstrap sampling 
