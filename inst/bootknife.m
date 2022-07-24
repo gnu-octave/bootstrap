@@ -266,12 +266,19 @@ function [stats, bootstat, BOOTSAM] = bootknife (x, nboot, bootfun, alpha, strat
   end
 
   % If data is univariate, check whether bootfun is vectorized
-  vectorized = false;
   if (nvar == 1)
-      chk = bootfun (cat (2,x,x));
-      if ( all (size (chk) == [1, 2]) && all (chk == bootfun (x)) )
-        vectorized = true;
+      try
+        chk = bootfun (cat (2,x,x));
+        if ( all (size (chk) == [1, 2]) && all (chk == bootfun (x)) )
+          vectorized = true;
+        else
+          vectorized = false;
+        end
+      catch
+        vectorized = false;
       end
+  else
+    vectorized = false;
   end
   
   % If applicable, setup a parallel pool 
@@ -408,11 +415,15 @@ function [stats, bootstat, BOOTSAM] = bootknife (x, nboot, bootfun, alpha, strat
     end
   end
   if isempty(BOOTSAM)
-    % Vectorized implementation of data sampling and evaluation of bootfun on the data
-    bootstat = bootfun (X);
+    if vectorized
+      % Vectorized evaluation of bootfun on the resamples
+      bootstat = bootfun (X);
+    else
+      bootstat = cellfun (bootfun, num2cell (X, 1));
+    end
   else
     if vectorized
-      % Vectorized implementation of data sampling (using BOOTSAM) and evaluation of bootfun on the data 
+      % Vectorized implementation of data sampling (using BOOTSAM) and evaluation of bootfun on the resamples 
       % Perform data sampling
       X = x(BOOTSAM);
       % Function evaluation on bootknife sample
