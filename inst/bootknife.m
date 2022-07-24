@@ -93,10 +93,10 @@
 %
 %  stats = bootknife(data,nboot,bootfun,alpha,strata,nproc) sets the
 %  number of parallel proceses to use to accelerate computations on 
-%  multicore machines during non-vectorized function evaluations, double  
-%  bootstrap resampling and jackknife function evaluations. This feature 
-%  requires the Parallel package (in Octave), or the Parallel Computing 
-%  Toolbox (in Matlab).
+%  multicore machines, specifically non-vectorized function evaluations,   
+%  double bootstrap resampling and jackknife function evaluations. This  
+%  feature requires the Parallel package (in Octave), or the Parallel  
+%  Computing Toolbox (in Matlab).
 %
 %  [stats,bootstat] = bootknife(...) also returns bootstat, a vector of
 %  statistics calculated over the (first, or outer layer of) bootstrap 
@@ -141,7 +141,7 @@
 %        Bootstrap: Resampling in the Undergraduate Statistics Curriculum, 
 %        http://arxiv.org/abs/1411.5279
 %
-%  bootknife v1.7.0.0 (12/07/2022)
+%  bootknife v1.7.0.0 (24/07/2022)
 %  Author: Andrew Charles Penn
 %  https://www.researchgate.net/profile/Andrew_Penn/
 %
@@ -417,7 +417,7 @@ function [stats, bootstat, BOOTSAM] = bootknife (x, nboot, bootfun, alpha, strat
   end
   if isempty(BOOTSAM)
     if vectorized
-      % Vectorized evaluation of bootfun on the resamples
+      % Vectorized evaluation of bootfun on the data resamples
       bootstat = bootfun (X);
     else
       if (ncpus > 1)
@@ -436,7 +436,7 @@ function [stats, bootstat, BOOTSAM] = bootknife (x, nboot, bootfun, alpha, strat
     end
   else
     if vectorized
-      % Vectorized implementation of data sampling (using BOOTSAM) and evaluation of bootfun on the resamples 
+      % Vectorized implementation of data sampling (using BOOTSAM) and evaluation of bootfun on the data resamples 
       % Perform data sampling
       X = x(BOOTSAM);
       % Function evaluation on bootknife sample
@@ -551,7 +551,7 @@ function [stats, bootstat, BOOTSAM] = bootknife (x, nboot, bootfun, alpha, strat
         else
           % MATLAB
           T = zeros (n, 1);
-          parfor i = 1:n; T(i) = jackfun (i); end
+          parfor i = 1:n; T(i) = jackfun (i); end;
         end
       else
         % SERIAL evaluation of bootfun on each jackknife resample
@@ -591,7 +591,7 @@ function [stats, bootstat, BOOTSAM] = bootknife (x, nboot, bootfun, alpha, strat
   end
   
   % Use quick interpolation to find the proportion (Pr) of bootstat <= REF
-  if nargin < 7
+  if (nargin < 7)
     Pr = NaN;
   else
     if isempty(REF)
