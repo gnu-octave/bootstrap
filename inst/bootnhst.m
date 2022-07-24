@@ -688,7 +688,7 @@
 %        Sampling vs. Smoothing, Proceedings of the Section on Statistics 
 %        and the Environment, American Statistical Association, 2924-2930.
 %
-%  bootnhst v2.0.0.0 (28/06/2022)
+%  bootnhst v2.1.0.0 (24/07/2022)
 %  Author: Andrew Charles Penn
 %  https://www.researchgate.net/profile/Andrew_Penn/
 %
@@ -733,7 +733,7 @@ function [p, c, stats] = bootnhst (data, group, varargin)
   % Fetch extra input arguments
   argin3 = varargin;
   narg = numel(argin3);
-  if narg > 1
+  if (narg > 1)
     while ischar(argin3{end-1})
       if strcmpi(argin3{end-1},'bootfun')
         bootfun = argin3{end};
@@ -758,7 +758,7 @@ function [p, c, stats] = bootnhst (data, group, varargin)
       end
       argin3 = {argin3{1:end-2}};
       narg = numel(argin3);
-      if narg < 1
+      if (narg < 1)
         break
       end
     end
@@ -900,6 +900,7 @@ function [p, c, stats] = bootnhst (data, group, varargin)
 
   % Assign non-zero numbers to group labels
   [gnames,junk,g] = unique(group);
+  clear junk;
   gk = unique(g);
   k = numel(gk);
   if ~isempty(ref)
@@ -1000,10 +1001,11 @@ function [p, c, stats] = bootnhst (data, group, varargin)
   if isempty(clusters)
     % Use newer, faster and balanced (less biased) resampling functions (boot and bootknife)
     if paropt.UseParallel && (paropt.nproc > 0)
-      [null,Q] = bootknife (data,nboot(1),func,[],strata,paropt.nproc,[],ISOCTAVE);
+      [junk,Q] = bootknife (data,nboot(1),func,[],strata,paropt.nproc,[],ISOCTAVE);
     else
-      [null,Q] = bootknife (data,nboot(1),func,[],strata,0,[],ISOCTAVE);
+      [junk,Q] = bootknife (data,nboot(1),func,[],strata,0,[],ISOCTAVE);
     end
+    clear junk;
   else
     % Use legacy bootstrp function for two-stage nonparametric bootstrap sampling 
     % with shrinkage correction for clustered data
@@ -1140,6 +1142,9 @@ function [p, c, stats] = bootnhst (data, group, varargin)
   % Print output and plot graph with confidence intervals if no output arguments are requested
   cols = [1,2,5,6,7]; % columns in c that we want to print data for
   if (nargout == 0) || (DisplayOpt == true)
+    if ~iscellstr(gnames)
+      gnames = cellstr(num2str(gnames));
+    end
     fprintf (['\n',...
                     'Summary of bootstrap null hypothesis (H0) significance test(s)\n',...
                     '******************************************************************************\n']);
@@ -1159,6 +1164,17 @@ function [p, c, stats] = bootnhst (data, group, varargin)
     else
       fprintf (['Maximum t(%u) = %.2f, p-adj = .%03u \n',...
                 '------------------------------------------------------------------------------\n'],[df,maxT,round(p*1000)]);
+    end
+    fprintf ('Bootstrap settings: \n');
+    fprintf (' Function: %s\n',func2str(bootfun));
+    fprintf (' Resampling method: Balanced, bootknife resampling \n')
+    fprintf (' Number of resamples (outer): %u \n', nboot(1));
+    fprintf (' Number of resamples (inner): %u \n', nboot(2));
+    if isempty(ref)
+      fprintf (' Multiple comparison method: %s \n', 'Single-step maxT procedure based on Tukey''s test');
+    else
+      fprintf (' Multiple comparison method: %s \n', 'Single-step maxT procedure based on Dunnett''s test');
+      fprintf (' Reference group used for comparisons: %s \n', gnames{ref});
     end
     if size(c,1) > 1
       fprintf (['\n',...
@@ -1214,9 +1230,6 @@ function [p, c, stats] = bootnhst (data, group, varargin)
                 '------------------------------------------------------------------------------\n',...
                 '|    GROUP # |                                                   GROUP label |\n',...
                 '|------------|---------------------------------------------------------------|\n']);
-      if ~iscellstr(gnames)
-        gnames = cellstr(num2str(gnames));
-      end
       for j = 1:k
         fprintf ('| %10u | %61s |\n',gk(j),gnames{j});
       end
