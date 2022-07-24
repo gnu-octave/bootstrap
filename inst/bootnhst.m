@@ -800,22 +800,18 @@ function [p, c, stats] = bootnhst (data, group, varargin)
   if iscell(bootfun)
     func = bootfun{1};
     args = bootfun(2:end);
-    bootfun = @(data) feval(func, data, args{:});
+    bootfun = @(data) func (data, args{:});
   end
   if isa(bootfun,'function_handle')
     if strcmp (func2str (bootfun), 'mean')
-      if nvar > 1
+      if (nvar > 1)
         % Grand mean for multivariate data
         bootfun = @(data) mean(mean(data,dim));
-      else
-        bootfun = 'mean';
       end
     elseif strcmp (func2str (bootfun), 'smoothmedian')
-      if nvar > 1 
+      if (nvar > 1) 
         % Grand smoothed median for multivariate data
         bootfun = @(data) smoothmedian(smoothmedian(data,dim));
-      else
-        bootfun = 'smoothmedian';
       end
     else
       if ~isempty(strata)
@@ -831,14 +827,14 @@ function [p, c, stats] = bootnhst (data, group, varargin)
         % Grand mean for multivariate data
         bootfun = @(data) mean(mean(data,dim));
       else
-        bootfun = 'mean';
+        bootfun = @mean;
       end
     elseif any(strcmpi(bootfun,{'robust','smoothmedian'}))
       if nvar > 1
         % Grand smoothed median for multivariate data
         bootfun = @(data) smoothmedian(smoothmedian(data,dim));
       else
-        bootfun = 'smoothmedian';
+        bootfun = @smoothmedian;
       end
     else
       if ~isempty(strata)
@@ -934,7 +930,7 @@ function [p, c, stats] = bootnhst (data, group, varargin)
     for i=1:l
       % Create strata matrix
       S(:,i) = ismember(strata, sid(i));   % strata logical indexing
-      data(S(:,i),:) = data(S(:,i),:) - feval(bootfun, feval(bootfun,data(S(:,i),:),2) ,1);
+      data(S(:,i),:) = data(S(:,i),:) - bootfun(bootfun(data(S(:,i),:),2) ,1);
     end
     ns = sum(S);                           % number of data elements per stratum
   end
@@ -1003,15 +999,16 @@ function [p, c, stats] = bootnhst (data, group, varargin)
   % Perform resampling and calculate bootstrap statistics
   if isempty(clusters)
     % Use newer, faster and balanced (less biased) resampling function (boot)
+    % We can save some memory by making bootsam an int32 datatype
+    bootsam = zeros (N, nboot(1), 'int32');
     if ~isempty (strata)
-      bootsam = zeros (N, nboot(1), 'int16');
       for i = 1:l
         bootsam(S(:,i),:) = boot (ns(i), nboot(1), false);
         rows = find (S(:,i));
         bootsam(S(:,i),:) = rows(bootsam(S(:,i), :));
       end
     else
-      bootsam = boot (N, nboot(1), false);
+      bootsam(:,:) = boot (N, nboot(1), false);
     end
     if isoctave
       % OCTAVE
@@ -1019,11 +1016,11 @@ function [p, c, stats] = bootnhst (data, group, varargin)
         % Set unique random seed for each parallel thread
         pararrayfun(paropt.nproc, @boot, 1, 1, false, 1, 1:paropt.nproc);
         % Evaluate maxstat on each bootstrap resample in PARALLEL 
-        cellfunc = @(bootsam) feval (func, data (bootsam, :));
+        cellfunc = @(bootsam) func (data (bootsam, :));
         Q = parcellfun(paropt.nproc, cellfunc, num2cell (bootsam, 1), 'ChunksPerProc', 100);
       else
         % Evaluate maxstat on each bootstrap resample in SERIAL
-        cellfunc = @(bootsam) feval (func, data (bootsam, :));
+        cellfunc = @(bootsam) func (data (bootsam, :));
         Q = cellfun (cellfunc, num2cell (bootsam, 1));
       end
     else
@@ -1034,11 +1031,11 @@ function [p, c, stats] = bootnhst (data, group, varargin)
         % Evaluate maxstat on each bootstrap resample in PARALLEL 
         Q = zeros (1, nboot(1));
         parfor h = 1:nboot(1)
-          Q(h) = feval (func, data (bootsam (:, h), :));
+          Q(h) = func (data (bootsam (:, h), :));
         end
       else
         % Evaluate maxstat on each bootstrap resample in SERIAL
-        cellfunc = @(bootsam) feval (func, data (bootsam, :));
+        cellfunc = @(bootsam) func (data (bootsam, :));
         Q = cellfun (cellfunc, num2cell (bootsam, 1));
       end
     end
@@ -1059,7 +1056,7 @@ function [p, c, stats] = bootnhst (data, group, varargin)
   nk = zeros(size(gk));
   for j = 1:k
     if ~isempty(clusters)
-      theta(j) = feval(bootfun,data(g==gk(j),:));
+      theta(j) = bootfun(data(g==gk(j),:));
       % Compute unbiased estimate of the standard error by
       % cluster-jackknife resampling
       opt.clusters = clusters(g==gk(j));
@@ -1072,14 +1069,14 @@ function [p, c, stats] = bootnhst (data, group, varargin)
         % Quick calculation for the standard error of the mean
         SE(j) = std(data(g==gk(j),:),0) / sqrt(nk(j));
       else
-        theta(j) = feval(bootfun,data(g==gk(j),:));
+        theta(j) = bootfun(data(g==gk(j),:));
         % If requested, compute unbiased estimates of the standard error using jackknife resampling
         SE(j) = jack(data(g==gk(j),:), bootfun);
       end
     else
       % Compute unbiased estimate of the standard error by balanced bootknife resampling
       % Bootknife resampling involves less computation than Jackknife when sample sizes get larger
-      theta(j) = feval(bootfun,data(g==gk(j),:));
+      theta(j) = bootfun(data(g==gk(j),:));
       nk(j) = sum(g==gk(j));
       stats = bootknife(data(g==gk(j),:),[nboot(2),0],bootfun,[],[],0,[],isoctave);
       SE(j) = stats.std_error;
@@ -1198,9 +1195,6 @@ function [p, c, stats] = bootnhst (data, group, varargin)
       fprintf (['Maximum t(%u) = %.2f, p-adj = .%03u \n',...
                 '------------------------------------------------------------------------------\n'],[df,maxT,round(p*1000)]);
     end
-      fprintf ('Bootstrap settings: \n');
-      fprintf (' Function: %s\n',bootfun);
-      fprintf (' Number of resamples: [%u, %u] \n', nboot);
     if size(c,1) > 1
       fprintf (['\n',...
                 'POST HOC TESTS with control of the FWER by the single-step maxT procedure\n',...
