@@ -998,6 +998,8 @@ function [p, c, stats] = bootnhst (data, group, varargin)
 
   % Perform resampling and calculate bootstrap statistics to estimate sampling distribution under the null hypothesis
   if isempty(clusters)
+    paropt.UseParallel
+    paropt.nproc
     % Use newer, faster and balanced (less biased) resampling functions (boot and bootknife)
     if paropt.UseParallel
       [null,Q] = bootknife (data,nboot(1),func,[],strata,paropt.nproc,[],ISOCTAVE);
