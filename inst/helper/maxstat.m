@@ -1,21 +1,10 @@
-function maxT = maxstat (Y, g, nboot, bootfun, ref, clusters, strata, ISOCTAVE)
+function maxT = maxstat (Y, g, nboot, bootfun, ref, ISOCTAVE)
 
   % Helper function file required for ibootnhst
   % Calculate maximum test statistic
 
-  % Get data structure information
-  if isempty(clusters)
-    N = size(g,1);
-  else
-    N = numel(unique(clusters));
-  end
-  if isempty(strata)
-    l = 1;
-  else
-    l = numel(unique(strata)); % number of strata
-  end
-
-  % Calculate the number (k) of unique groups
+  % Calculate the size of the data (N) and the number (k) of unique groups
+  N = size(g,1);
   gk = unique(g);
   k = numel(gk);
 
@@ -25,16 +14,9 @@ function maxT = maxstat (Y, g, nboot, bootfun, ref, clusters, strata, ISOCTAVE)
   Var = zeros(k,1);
   nk = zeros(size(gk));
   for j = 1:k
-    if ~isempty(clusters)
-      theta(j) = bootfun(Y(g==gk(j),:));
-      % Compute unbiased estimate of the standard error by cluster-jackknife resampling
-      opt = struct;
-      opt.clusters = clusters(g==gk(j));
-      nk(j) = numel(unique(opt.clusters));
-      SE(j) = jack(Y(g==gk(j),:), bootfun, [], opt);
-    elseif (nboot == 0)
+    if (nboot == 0)
       nk(j) = sum(g==gk(j));
-      if strcmp (func2str (bootfun), 'mean')
+      if strcmp (func2str(bootfun), 'mean')
         theta(j) = mean(Y(g==gk(j),:));
         % Quick calculation for the standard error of the mean
         SE(j) = std(Y(g==gk(j),:),0) / sqrt(nk(j));
@@ -54,10 +36,7 @@ function maxT = maxstat (Y, g, nboot, bootfun, ref, clusters, strata, ISOCTAVE)
       end
       SE(j) = stats.std_error;
     end
-    Var(j) = ((nk(j)-1)/(N-k-(l-1))) * SE(j)^2;
-  end
-  if any(nk <= 1)
-    error('the number of observations or clusters per group must be greater than 1')
+    Var(j) = ((nk(j)-1)/(N-k)) * SE(j)^2;
   end
   nk_bar = sum(nk.^2)./sum(nk);  % weighted mean sample size
   Var = sum(Var.*nk/nk_bar);     % pooled sampling variance weighted by sample size
