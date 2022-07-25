@@ -15,12 +15,12 @@
 %  [p,c] = bootnhst(DATA,GROUP,...)
 %  [p,c,stats] = bootnhst(DATA,GROUP,...)
 %
-%  This function uses non-parametric (or semi-parametric) bootstrap for 
-%  null hypothesis (H0) significance testing on univariate (vector) or
-%  multivatiate (matrix) DATA, to compare bootfun (default is the 'mean') 
-%  evaluated on independent or dependent GROUPs (i.e. samples) [1]. This 
-%  function is appropriate for post hoc comparisons among a family of 
-%  hypothesis tests and comparing groups. The family-wise error rates 
+%  This function uses non-parametric bootstrap for null hypothesis (H0) 
+%  significance testing on univariate (vector) or multivatiate (matrix) 
+%  DATA, to compare bootfun (default is the 'mean') evaluated on 
+%  independent GROUPs (i.e. samples) of data in a one-way layout [1].  
+%  This function is appropriate for post hoc comparisons among a family  
+%  of hypothesis tests and comparing groups. The family-wise error rates 
 %  (FWER) of pairwise comparisons, or comparisons to a reference group,
 %  are controlled by the single-step maxT procedure on bootstrap resamples.
 %  Thus, depending on the comparisons requested using the ref input   
@@ -29,10 +29,9 @@
 %  bootnhst does not make the normality assumption. Since DATA across the 
 %  GROUPs are resampled, as for a permutation test, bootnhst assumes  
 %  exchangeability among the groups under the null hypothesis. The sampling 
-%  method used for bootstrap and bootknife is balanced, unless computations 
-%  are accelerated by parallel processing, in which case bootstrap sampling 
-%  (only) is no longer balanced. Note that this function will return an 
-%  error if any GROUP label is not represented by more than one data row. 
+%  method used is balanced bootknife resampling. Note that this function 
+%  will return an error if any GROUP label is not represented by more than 
+%  one data row. 
 %
 %  bootnhst(DATA,GROUP) performs a k-sample bootstrap test where DATA is 
 %  a column vector or matrix, and GROUP is a vector or cell array the same 
@@ -47,7 +46,7 @@
 %  GROUPs, are returned in a pretty table. The differences between GROUPs 
 %  are also plot along with the symmetic 100*(1-alpha)% bootstrap-t 
 %  confidence intervals (also adjusted to control the FWER). Markers and 
-%  error bars are red if p < .05 or blue if p > .05. The default alpha 
+%  error bars are red if p < .05, or blue if p > .05. The default alpha 
 %  level is 0.05, which produces 95% confidence intervals.
 %
 %  bootnhst(...,'bootfun',bootfun) sets the statistic calculated from
@@ -63,7 +62,7 @@
 %  the means of each column (i.e. variates). If a robust statistic for 
 %  central location is required, setting bootfun to 'robust' implements a 
 %  smoothed version of the median (see function help for smoothmedian). 
-%  Smooth functions of the data are preferable.
+%  Smooth functions of the data are preferable for bootstrap.
 %    Standard errors are estimated by bootknife resampling by default [2], 
 %  where nboot(2) corresponds to the number of bootknife resamples. If 
 %  nboot(2) is 0 and standard errors are calculated without resampling 
@@ -77,11 +76,11 @@
 %  value of nboot is [1000,200]. If a scalar value is provided for nboot,
 %  the value will set the number of first level bootstrap samples; the 
 %  number of second level bootknife samples will assume the default of 
-%  200. Increasing the values of nboot reduces the Monte Carlo error of  
-%  the p-value (and confidence interval) estimates but the calculations  
-%  take longer to complete. If nboot(2) is explicitly set to 0 then 
-%  bootnhst calculates standard errors for studentization using jackknife 
-%  resampling instead.
+%  200, except for the mean, where the default is 0. Increasing the values 
+%  of nboot reduces the Monte Carlo error of the p-value (and confidence 
+%  interval) estimates but the calculations take longer to complete. If 
+%  nboot(2) is explicitly set to 0 then bootnhst calculates standard 
+%  errors for studentization using jackknife resampling instead.
 %
 %  bootnhst(...,'ref',ref) also sets the GROUP to use as the reference 
 %  GROUP for post hoc tests. For a one-way experimental design or family 
