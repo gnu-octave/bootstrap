@@ -84,11 +84,11 @@
 %  alpha is 0.05. 
 %
 %  stats = bootknife(data,nboot,bootfun,alpha,strata) also sets strata, 
-%  which are numeric identifiers that define the grouping of the data rows
+%  which are identifiers that define the grouping of the data rows
 %  for stratified bootstrap resampling. strata should be a column vector 
-%  the same number of rows as the data. When resampling is stratified, 
-%  the groups (or stata) of data are equally represented across the 
-%  bootstrap resamples. If this input argument is not specified or is 
+%  or cell array the same number of rows as the data. When resampling is 
+%  stratified, the groups (or stata) of data are equally represented across 
+%  the bootstrap resamples. If this input argument is not specified or is 
 %  empty, no stratification of resampling is performed. 
 %
 %  stats = bootknife(data,nboot,bootfun,alpha,strata,nproc) sets the
@@ -221,7 +221,7 @@ function [stats, bootstat, BOOTSAM] = bootknife (x, nboot, bootfun, alpha, strat
     strata = [];
   elseif ~isempty (strata) 
     if size (strata, 1) ~= size (x, 1)
-      error('strata must be a column vector with the same number of rows as the data')
+      error('strata should be a column vector or cell array with the same number of rows as the data')
     end
   end
   if (nargin < 6)
@@ -373,6 +373,11 @@ function [stats, bootstat, BOOTSAM] = bootknife (x, nboot, bootfun, alpha, strat
 
   % Evaluate strata input argument
   if ~isempty (strata)
+    if ~isnumeric (strata)
+      % Convert strata to numeric ID
+      [junk1,junk2,strata] = unique (strata);
+      clear junk1 junk2;
+    end
     % Get strata IDs
     gid = unique (strata);  % strata ID
     K = numel (gid);        % number of strata
