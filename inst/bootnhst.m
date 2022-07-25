@@ -244,19 +244,26 @@
 % Overall hypothesis test from single-step maxT procedure
 % H0: Groups of data are all sampled from the same population as data in ref
 % 
-% Maximum t(21) = 3.24, p-adj = .018 
+% Maximum t(21) = 3.29, p-adj = .016
 % ------------------------------------------------------------------------------
+% Bootstrap settings:
+%  Function: mean
+%  Resampling method: Balanced, bootknife resampling
+%  Number of resamples (outer): 5000
+%  Number of resamples (inner): 200
+%  Multiple comparison method: Single-step maxT procedure based on Dunnett's test
+%  Reference group used for comparisons: 1
 % 
 % POST HOC TESTS with control of the FWER by the single-step maxT procedure
 % ------------------------------------------------------------------------------
 % | Comparison |  Reference # |       Test # |  Difference |    t(df)|   p-adj |
 % |------------|--------------|--------------|-------------|---------|---------|
-% |          1 |            1 |            2 |   -9.48e+00 |    0.92 |    .864 |
-% |          2 |            1 |            3 |   -2.49e+01 |    2.42 |    .102 |
-% |          3 |            1 |            4 |   -3.32e+01 |    3.24 |    .018 |*
-% |          4 |            1 |            5 |   -1.35e+01 |    1.31 |    .613 |
-% |          5 |            1 |            6 |   -2.07e+01 |    2.01 |    .224 |
-% |          6 |            1 |            7 |   -3.11e+01 |    3.03 |    .031 |*
+% |          1 |            1 |            2 |   -9.48e+00 |    0.94 |    .850 |
+% |          2 |            1 |            3 |   -2.49e+01 |    2.46 |    .097 |
+% |          3 |            1 |            4 |   -3.32e+01 |    3.29 |    .016 |*
+% |          4 |            1 |            5 |   -1.35e+01 |    1.34 |    .590 |
+% |          5 |            1 |            6 |   -2.07e+01 |    2.05 |    .208 |
+% |          6 |            1 |            7 |   -3.11e+01 |    3.08 |    .026 |*
 % 
 % Where degrees of freedom (df) = 21
 % 
@@ -270,6 +277,7 @@
 % |          5 |                                                             5 |
 % |          6 |                                                             6 |
 % |          7 |                                                             7 |
+%
 %
 %  EXAMPLE 1B: 
 %  ROBUST ONE-WAY ANOVA WITH EQUAL SAMPLE SIZES: Treatment vs. Control (1)
@@ -289,19 +297,26 @@
 % Overall hypothesis test from single-step maxT procedure
 % H0: Groups of data are all sampled from the same population as data in ref
 % 
-% Maximum t(21) = 2.74, p-adj = .024 
+% Maximum t(21) = 2.79, p-adj = .022
 % ------------------------------------------------------------------------------
+% Bootstrap settings:
+%  Function: smoothmedian
+%  Resampling method: Balanced, bootknife resampling
+%  Number of resamples (outer): 5000
+%  Number of resamples (inner): 200
+%  Multiple comparison method: Single-step maxT procedure based on Dunnett's test
+%  Reference group used for comparisons: 1
 % 
 % POST HOC TESTS with control of the FWER by the single-step maxT procedure
 % ------------------------------------------------------------------------------
 % | Comparison |  Reference # |       Test # |  Difference |    t(df)|   p-adj |
 % |------------|--------------|--------------|-------------|---------|---------|
-% |          1 |            1 |            2 |   -6.66e+00 |    0.51 |    .986 |
-% |          2 |            1 |            3 |   -3.02e+01 |    2.32 |    .069 |
-% |          3 |            1 |            4 |   -3.56e+01 |    2.74 |    .024 |*
-% |          4 |            1 |            5 |   -1.62e+01 |    1.25 |    .582 |
-% |          5 |            1 |            6 |   -2.00e+01 |    1.54 |    .370 |
-% |          6 |            1 |            7 |   -3.49e+01 |    2.68 |    .027 |*
+% |          1 |            1 |            2 |   -6.66e+00 |    0.52 |    .982 |
+% |          2 |            1 |            3 |   -3.02e+01 |    2.36 |    .063 |
+% |          3 |            1 |            4 |   -3.56e+01 |    2.79 |    .022 |*
+% |          4 |            1 |            5 |   -1.62e+01 |    1.27 |    .552 |
+% |          5 |            1 |            6 |   -2.00e+01 |    1.56 |    .343 |
+% |          6 |            1 |            7 |   -3.49e+01 |    2.73 |    .026 |*
 % 
 % Where degrees of freedom (df) = 21
 % 
@@ -315,6 +330,7 @@
 % |          5 |                                                             5 |
 % |          6 |                                                             6 |
 % |          7 |                                                             7 |
+%
 %
 %  EXAMPLE 2A:
 %  COMPARISON OF TWO INDEPENDENT GROUPS WITH UNEQUAL SAMPLE SIZES 
@@ -338,9 +354,17 @@
 % ******************************************************************************
 % Overall hypothesis test from single-step maxT procedure
 % H0: Groups of data are all sampled from the same population as data in ref
-%    
-% Maximum t(9) = 1.20, p-adj = .259 
+% 
+% Maximum t(9) = 1.19, p-adj = .260
 % ------------------------------------------------------------------------------
+% Bootstrap settings:
+%  Function: mean
+%  Resampling method: Balanced, bootknife resampling
+%  Number of resamples (outer): 5000
+%  Number of resamples (inner): 200
+%  Multiple comparison method: Single-step maxT procedure based on Dunnett's test
+%  Reference group used for comparisons: male
+%
 %
 %  EXAMPLE 2B:
 %  ONE-WAY ANOVA WITH UNEQUAL SAMPLE SIZES: pairwise comparisons (the 'ref' default)
@@ -363,20 +387,26 @@
 % ******************************************************************************
 % Overall hypothesis test from single-step maxT procedure
 % H0: Groups of data are all sampled from the same population
-%
-% Maximum t(14) = 6.15, p-adj = <.001 
+% 
+% Maximum t(14) = 6.32, p-adj = <.001
 % ------------------------------------------------------------------------------
-%
+% Bootstrap settings:
+%  Function: mean
+%  Resampling method: Balanced, bootknife resampling
+%  Number of resamples (outer): 5000
+%  Number of resamples (inner): 200
+%  Multiple comparison method: Single-step maxT procedure based on Tukey's test
+% 
 % POST HOC TESTS with control of the FWER by the single-step maxT procedure
 % ------------------------------------------------------------------------------
 % | Comparison |  Reference # |       Test # |  Difference |    t(df)|   p-adj |
 % |------------|--------------|--------------|-------------|---------|---------|
-% |          1 |            1 |            2 |   +3.83e+01 |    6.15 |   <.001 |***
-% |          2 |            1 |            3 |   +3.50e+00 |    0.59 |    .831 |
-% |          3 |            2 |            3 |   -3.48e+01 |    5.59 |   <.001 |***
-%
+% |          1 |            1 |            2 |   +3.83e+01 |    6.32 |   <.001 |***
+% |          2 |            1 |            3 |   +3.50e+00 |    0.60 |    .824 |
+% |          3 |            2 |            3 |   -3.48e+01 |    5.74 |   <.001 |***
+% 
 % Where degrees of freedom (df) = 14
-%
+% 
 % ------------------------------------------------------------------------------
 % |    GROUP # |                                                   GROUP label |
 % |------------|---------------------------------------------------------------|
@@ -406,10 +436,16 @@
 % ******************************************************************************
 % Overall hypothesis test from single-step maxT procedure
 % H0: Groups of data are all sampled from the same population
-%
-% Maximum t(6) = 9.01, p-adj = .002 
+% 
+% Maximum t(6) = 9.01, p-adj = .002
 % ------------------------------------------------------------------------------
-%
+% Bootstrap settings:
+%  Function: mean
+%  Resampling method: Two-stage bootstrap resampling of residuals for clustered data
+%  Number of resamples (outer): 5000
+%  Number of resamples (inner): 0
+%  Multiple comparison method: Single-step maxT procedure based on Tukey's test
+% 
 % POST HOC TESTS with control of the FWER by the single-step maxT procedure
 % ------------------------------------------------------------------------------
 % | Comparison |  Reference # |       Test # |  Difference |    t(df)|   p-adj |
@@ -417,7 +453,7 @@
 % |          1 |            1 |            2 |   -2.42e+00 |    2.51 |    .109 |
 % |          2 |            1 |            3 |   -8.67e+00 |    9.01 |    .002 |**
 % |          3 |            2 |            3 |   -6.25e+00 |    6.50 |    .005 |**
-%
+% 
 % Where degrees of freedom (df) = 6
 % 
 % ------------------------------------------------------------------------------
@@ -427,6 +463,7 @@
 % |          2 |                                                             2 |
 % |          3 |                                                             3 |
 %
+% 
 %  EXAMPLE 4A: 
 %  COMPARISON OF TWO DEPENDENT GROUPS 
 %  (analagous to paired t-test)
@@ -452,10 +489,17 @@
 % ******************************************************************************
 % Overall hypothesis test from single-step maxT procedure
 % H0: Groups of data are all sampled from the same population
-% 
-% Maximum t(4) = 3.91, p-adj = .001 
-% ------------------------------------------------------------------------------
 %
+% Maximum t(4) = 3.98, p-adj = .002
+% ------------------------------------------------------------------------------
+% Bootstrap settings:
+%  Function: mean
+%  Resampling method: Stratified bootstrap resampling
+%  Number of resamples (outer): 5000
+%  Number of resamples (inner): 200
+%  Multiple comparison method: Single-step maxT procedure based on Tukey's test
+%
+% 
 %  EXAMPLE 4B:
 %  ONE-WAY REPEATED MEASURES ANOVA: pairwise comparisons  
 %
@@ -475,25 +519,31 @@
 %                 4  4  4  4 
 %                 5  5  5  5];
 %   >> bootnhst (y(:),g(:),'block',blocks(:),'nboot',5000);
-%
+% 
 % Summary of bootstrap null hypothesis (H0) significance test(s)
 % ******************************************************************************
 % Overall hypothesis test from single-step maxT procedure
 % H0: Groups of data are all sampled from the same population
 % 
-% Maximum t(12) = 2.83, p-adj = .003 
+% Maximum t(12) = 2.94, p-adj = .048
 % ------------------------------------------------------------------------------
+% Bootstrap settings:
+%  Function: mean
+%  Resampling method: Stratified bootstrap resampling
+%  Number of resamples (outer): 5000
+%  Number of resamples (inner): 200
+%  Multiple comparison method: Single-step maxT procedure based on Tukey's test
 % 
 % POST HOC TESTS with control of the FWER by the single-step maxT procedure
 % ------------------------------------------------------------------------------
 % | Comparison |  Reference # |       Test # |  Difference |    t(df)|   p-adj |
 % |------------|--------------|--------------|-------------|---------|---------|
-% |          1 |            1 |            2 |   +6.40e+00 |    0.74 |    .846 |
-% |          2 |            1 |            3 |   +2.24e+01 |    2.58 |    .010 |**
-% |          3 |            1 |            4 |   +2.46e+01 |    2.83 |    .003 |**
-% |          4 |            2 |            3 |   +1.60e+01 |    1.84 |    .163 |
-% |          5 |            2 |            4 |   +1.82e+01 |    2.10 |    .086 |
-% |          6 |            3 |            4 |   +2.20e+00 |    0.25 |    .993 |
+% |          1 |            1 |            2 |   +6.40e+00 |    0.76 |    .772 |
+% |          2 |            1 |            3 |   +2.24e+01 |    2.68 |    .068 |
+% |          3 |            1 |            4 |   +2.46e+01 |    2.94 |    .048 |*
+% |          4 |            2 |            3 |   +1.60e+01 |    1.91 |    .204 |
+% |          5 |            2 |            4 |   +1.82e+01 |    2.18 |    .142 |
+% |          6 |            3 |            4 |   +2.20e+00 |    0.26 |    .988 |
 % 
 % Where degrees of freedom (df) = 12
 % 
@@ -547,6 +597,7 @@
 % |          1 |                                                             1 |
 % |          2 |                                                             2 |
 % |          3 |                                                             3 |
+%
 %
 %  EXAMPLE 6A: 
 %  MANOVA or TWO-WAY REPEATED MEASURES ANOVA: comparing 2 groups
@@ -998,23 +1049,24 @@ function [p, c, stats] = bootnhst (data, group, varargin)
   func = @(data) maxstat (data, g, nboot(2), bootfun, ref, clusters, strata, ISOCTAVE);
 
   % Perform resampling and calculate bootstrap statistics to estimate sampling distribution under the null hypothesis
-  if isempty(clusters)
-    % Use newer, faster and balanced (less biased) resampling functions (boot and bootknife)
-    if paropt.UseParallel && (paropt.nproc > 0)
-      [junk,Q] = bootknife (data,nboot(1),func,[],strata,paropt.nproc,[],ISOCTAVE);
-    else
-      [junk,Q] = bootknife (data,nboot(1),func,[],strata,0,[],ISOCTAVE);
-    end
-    clear junk;
+  % Use legacy bootstrp function 
+  state = warning; 
+  warning off;    % silence warnings about non-vectorized bootfun
+  Q = bootstrp (nboot(1),func,data,'strata',strata,'cluster',clusters,'Options',paropt);
+  warning(state);
+  if ~isempty(clusters)
+    resamp_method = 'Two-stage bootstrap resampling of residuals for clustered data';
+    nboot(2) = 0;
+  elseif ~isempty(strata)
+    resamp_method = 'Stratified bootstrap resampling';
   else
-    % Use legacy bootstrp function for two-stage nonparametric bootstrap sampling 
-    % with shrinkage correction for clustered data
-    state = warning; 
-    warning off;    % silence warnings about non-vectorized bootfun
-    Q = bootstrp (nboot(1),func,data,'cluster',clusters,'Options',paropt);
-    warning(state);
+    resamp_method = 'Bootstrap resampling';
   end
-
+  end
+  if (any(isnan(Q)) || any(isinf(Q)))
+    error('evaluating bootfun on some or all resamples returned NaN or Inf values')
+  end
+  
   % Compute the estimate (theta) and it's pooled (weighted mean) sampling variance 
   theta = zeros(k,1);
   SE = zeros(k,1);
@@ -1063,7 +1115,7 @@ function [p, c, stats] = bootnhst (data, group, varargin)
 
   % Prepare to make symmetrical bootstrap-t confidence intervals
   [cdf,QS] = empcdf(Q,0);
-
+  
   % Compute resolution limit of the p-values as determined by resampling with nboot(1) resamples
   res = 1/nboot(1);
 
@@ -1167,7 +1219,7 @@ function [p, c, stats] = bootnhst (data, group, varargin)
     end
     fprintf ('Bootstrap settings: \n');
     fprintf (' Function: %s\n',func2str(bootfun));
-    fprintf (' Resampling method: Balanced, bootknife resampling \n')
+    fprintf (' Resampling method: %s\n', resamp_method)
     fprintf (' Number of resamples (outer): %u \n', nboot(1));
     fprintf (' Number of resamples (inner): %u \n', nboot(2));
     if isempty(ref)
@@ -1176,9 +1228,9 @@ function [p, c, stats] = bootnhst (data, group, varargin)
       fprintf (' Multiple comparison method: %s \n', 'Single-step maxT procedure based on Dunnett''s test');
       fprintf (' Reference group used for comparisons: %s \n', gnames{ref});
     end
+    fprintf ('\n');
     if size(c,1) > 1
-      fprintf (['\n',...
-                'POST HOC TESTS with control of the FWER by the single-step maxT procedure\n',...
+      fprintf (['POST HOC TESTS with control of the FWER by the single-step maxT procedure\n',...
                 '------------------------------------------------------------------------------\n',...
                 '| Comparison |  Reference # |       Test # |  Difference |    t(df)|   p-adj |\n',...
                 '|------------|--------------|--------------|-------------|---------|---------|\n']);
