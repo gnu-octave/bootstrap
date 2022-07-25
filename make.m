@@ -53,8 +53,8 @@ dirname = fileparts (mfilename ('fullpath'));
 % Attemt to compile binaries from source code automatically if no suitable binaries can be found
 if binary
   fprintf('The following suitable binaries were detected and copied over to the inst directory: \n');
-  fprintf([repmat('%s',1,5),'\n'], '.', filesep, binary_paths{~cellfun(@isempty,arch_idx)}, 'boot.', mexext);
-  fprintf([repmat('%s',1,5),'\n'], '.', filesep, binary_paths{~cellfun(@isempty,arch_idx)}, 'smoothmedian.', mexext);
+  fprintf('%s%s%s%s%s\n', '.', filesep, binary_paths{~cellfun(@isempty,arch_idx)}, 'boot.', mexext);
+  fprintf('%s%s%s%s%s\n', '.', filesep, binary_paths{~cellfun(@isempty,arch_idx)}, 'smoothmedian.', mexext);
 else
   disp('No precompiled binaries are available for this architecture. Attempting to compile the source code...');
   if isoctave
