@@ -654,7 +654,34 @@ function [p, c, stats] = bootnhst (data, group, varargin)
   end
   N = numel(g);
   
-  % If applicable, setup a parallel pool 
+  % Check we have parallel computing capabilities
+  if ISOCTAVE
+    pat = '^parallel';
+    software = pkg('list');
+    names = cellfun(@(S) S.name, software, 'UniformOutput', false);
+    status = cellfun(@(S) S.loaded, software, 'UniformOutput', false);
+    index = find(~cellfun(@isempty,regexpi(names,pat)));
+    if ~isempty(index)
+      if logical(status{index})
+        PARALLEL = true;
+      else
+        PARALLEL = false;
+      end
+    else
+      PARALLEL = false;
+    end
+  else
+    try
+      retval = ~isempty(getCurrentTask()) && (matlabpool('size') > 0);
+    catch err
+      if ~strcmp(err.identifier, 'MATLAB:UndefinedFunction')
+        rethrow(err);
+      end
+      PARALLEL = false;
+    end
+  end
+  
+  % If applicable, setup a parallel pool (required for MATLAB)
   if ~ISOCTAVE
     % MATLAB
     if paropt.UseParallel 
@@ -704,7 +731,7 @@ function [p, c, stats] = bootnhst (data, group, varargin)
       end
     end
   else
-    if paropt.UseParallel && (paropt.nproc > 1) && ~isparallel
+    if paropt.UseParallel && (paropt.nproc > 1) && ~PARALLEL
       if ISOCTAVE
         % OCTAVE Parallel Computing Package is not installed or loaded
         warning('OCTAVE Parallel Computing Package is not installed and/or loaded. Falling back to serial processing.')

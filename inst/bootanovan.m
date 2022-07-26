@@ -1,20 +1,21 @@
 %  Function File: bootanovan
 %
-%  Bootstrap N-way fixed effects ANOVA
+%  Bootstrap N-way ANOVA
 %
 %  p = bootanovan(DATA,GROUP)
 %  p = bootanovan(DATA,GROUP)
 %  p = bootanovan(DATA,GROUP,nboot)
-%  p = bootanovan(DATA,GROUP,nboot,nproc)
-%  p = bootanovan(DATA,GROUP,nboot,nproc,varargin)
+%  p = bootanovan(DATA,GROUP,nboot,residuals)
+%  p = bootanovan(DATA,GROUP,nboot,residuals,nproc)
+%  p = bootanovan(DATA,GROUP,nboot,residuals,nproc,varargin)
 %  [p,F] = bootanovan(DATA,GROUP,...)
 %
 %  This bootstrap function is a wrapper for anovan. The p-values are 
 %  calculated using bootstrap distributions of the F-statistics.
-%  The data is resampled with replacement assuming exchangeability 
-%  between the groups across all the factors akin to Manly's approach 
-%  of unrestricted permutations [1]. This function uses balanced, 
-%  bootknife resampling.
+%  The default approach is to resample the raw data with replacement 
+%  assuming exchangeability between the groups across all the factors,
+%  akin to Manly's approach of unrestricted permutations [1] but using
+%  balanced, bootknife resampling.
 %
 %  bootanovan requires anovan from either the Statistics package in 
 %  Octave or the Statistics and Machine Learning Toolbox in Matlab. 
@@ -28,15 +29,20 @@
 %  nboot is empty or not provided, the default (and minimum allowable 
 %  nboot to compute two-tailed p-values down to 0.001) is 1000 - an
 %  error is returned if the nboot provided by the user is lower than 
-%  this. To reduce monte carlo error, the algorithm uses balanced 
-%  bootstrap resampling.
+%  this. To reduce monte carlo error and bias, the algorithm uses  
+%  balanced, bootknife resampling.
 %
-%  p = bootanovan(DATA,GROUP,nboot,nproc) sets the number of parallel 
-%  processes to use to accelerate computations on multicore machines.
-%  This feature requires the Parallel package (in Octave), or the 
-%  Parallel Computing Toolbox (in Matlab).
+%  p = bootanovan(DATA,GROUP,nboot,residuals) sets bootanovan to 
+%  resample the ANOVA model residuals (instead of the raw data). 
+%  Resampling residuals is akin to the approach of ter Braak for
+%  resampling model residuals in permutation and bootstrap tests [1,2].
 %
-%  p = bootanovan(DATA,GROUP,nboot,nproc,varargin) allows users to 
+%  p = bootanovan(DATA,GROUP,nboot,residuals,nproc) sets the number 
+%  of parallel processes to use to accelerate computations on 
+%  multicore machines. This feature requires the Parallel package 
+%  (in Octave), or the Parallel Computing Toolbox (in Matlab).
+%
+%  p = bootanovan(DATA,GROUP,nboot,residuals,nproc,varargin) allows users to 
 %  enter any number of input arguments that will be passed to anovan.
 %  These should be key-value pairs of input arguments, for example the 
 %  key 'model' supports the following keys:
@@ -57,6 +63,9 @@
 %  [1] Howel, D.C. Permutation Tests for Factorial Designs. 
 %      Last modified: 03/07/2009, Accessed: 26/07/2022
 %      www.uvm.edu/~statdhtx/StatPages/Permutation%20Anova/PermTestsAnova.html
+%  [2] ter Braak, CJF (1992) Permutation Versus Bootstrap Significance 
+%      Tests in Multiple Regression and ANOVA. In Bootstrapping and Related 
+%      Techniques. (K. J. Jockel, Ed.), Springer-Verlag, Berlin, pp. 79-86.
 %
 %  bootanovan v1.2.0.0 (25/07/2022)
 %  Author: Andrew Charles Penn
@@ -77,7 +86,7 @@
 %  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-function [p, F, FDIST] = bootanovan (data, group, nboot, ncpus, varargin)
+function [p, F, FDIST] = bootanovan (data, group, nboot, residuals, ncpus, varargin)
 
   % Check if running in Octave (else assume Matlab)
   info = ver; 
@@ -118,6 +127,17 @@ function [p, F, FDIST] = bootanovan (data, group, nboot, ncpus, varargin)
     error('nboot must be scalar. bootnhst is not compatible with bootstrap iteration')
   end
   if (nargin < 4)
+    residuals = false;
+  else
+    if ~islogical(residuals) && (numel(residuals) > 1)
+      error('residuals must be a logical scalar value')
+    end
+    if (residuals && ISOCTAVE)
+      residuals = false;
+      warning('residuals argument is ignored in Octave (residuals = false); the raw data will be resampled.')
+    end
+  end  
+  if (nargin < 5)
     ncpus = 0;    % Ignore parallel processing features
   elseif ~isempty (ncpus) 
     if ~isa (ncpus, 'numeric')
@@ -130,19 +150,10 @@ function [p, F, FDIST] = bootanovan (data, group, nboot, ncpus, varargin)
       error ('ncpus must be a scalar value')
     end
   end
-  if nargin < 5
+  if (nargin < 6)
     options = {};
   else 
     options = varargin;
-  end
-  if any(strcmpi(options,'random'))
-    error('the optional anovan parameter ''random'' is not supported')
-  end
-  if any(strcmpi(options,'continuous'))
-    error('the optional anovan parameter ''continuous'' is not supported')
-  end
-  if any(strcmpi(options,'nested'))
-    error('the optional anovan parameter ''nested'' is not supported')
   end
   if any(strcmpi(options,'alpha'))
     error('the optional anovan parameter ''alpha'' is not supported')
@@ -154,14 +165,24 @@ function [p, F, FDIST] = bootanovan (data, group, nboot, ncpus, varargin)
       options = cat(2,options,'sstype',2);
     end 
   end
-  if nargout > 3
+  if (nargout > 3)
     error('bootanovan only supports up to 3 output arguments')
   end
 
   % Perform balanced, bootknife resampling and compute bootstrap statistics
   boot (1, 1, false, 1, 0); % set random seed to make bootstrap resampling deterministic 
   cellfunc = @(data) anovan_wrapper (data, group, ISOCTAVE, options);
-  [junk, FDIST] = bootknife (data, nboot, cellfunc, [], [], ncpus, [], ISOCTAVE);
+  if residuals
+    % Get model residuals, we will resample these instead
+    % This is the approach of ter Braak
+    [junk1,junk2,stats] = anovan(data,group,'display','off',options{:});
+    [junk, FDIST] = bootknife (stats.resid, nboot, cellfunc, [], [], ncpus, [], ISOCTAVE);
+    clear junk1 junk2;
+  else
+    % Resample raw data assuming exchangeability across all factors and factor levels
+    % This is the approach of Manly
+    [junk, FDIST] = bootknife (data, nboot, cellfunc, [], [], ncpus, [], ISOCTAVE);
+  end
   clear junk;
 
   % Calculate ANOVA F-statistics
