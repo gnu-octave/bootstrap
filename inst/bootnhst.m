@@ -654,30 +654,32 @@ function [p, c, stats] = bootnhst (data, group, varargin)
   end
   N = numel(g);
   
-  % Check we have parallel computing capabilities
-  if ISOCTAVE
-    pat = '^parallel';
-    software = pkg('list');
-    names = cellfun(@(S) S.name, software, 'UniformOutput', false);
-    status = cellfun(@(S) S.loaded, software, 'UniformOutput', false);
-    index = find(~cellfun(@isempty,regexpi(names,pat)));
-    if ~isempty(index)
-      if logical(status{index})
-        PARALLEL = true;
+  % If applicable, check we have parallel computing capabilities
+  if paropt.UseParallel
+    if ISOCTAVE  
+      pat = '^parallel';
+      software = pkg('list');
+      names = cellfun(@(S) S.name, software, 'UniformOutput', false);
+      status = cellfun(@(S) S.loaded, software, 'UniformOutput', false);
+      index = find(~cellfun(@isempty,regexpi(names,pat)));
+      if ~isempty(index)
+        if logical(status{index})
+          PARALLEL = true;
+        else
+          PARALLEL = false;
+        end
       else
         PARALLEL = false;
       end
     else
-      PARALLEL = false;
-    end
-  else
-    try
-      retval = ~isempty(getCurrentTask()) && (matlabpool('size') > 0);
-    catch err
-      if ~strcmp(err.identifier, 'MATLAB:UndefinedFunction')
-        rethrow(err);
+      try
+        retval = ~isempty(getCurrentTask()) && (matlabpool('size') > 0);
+      catch err
+        if ~strcmp(err.identifier, 'MATLAB:UndefinedFunction')
+          rethrow(err);
+        end
+        PARALLEL = false;
       end
-      PARALLEL = false;
     end
   end
   
