@@ -92,7 +92,7 @@
 %  empty, no stratification of resampling is performed. 
 %
 %  stats = bootknife(data,nboot,bootfun,alpha,strata,nproc) sets the
-%  number of parallel proceses to use to accelerate computations on 
+%  number of parallel processes to use to accelerate computations on 
 %  multicore machines, specifically non-vectorized function evaluations,   
 %  double bootstrap resampling and jackknife function evaluations. This  
 %  feature requires the Parallel package (in Octave), or the Parallel  
@@ -315,9 +315,14 @@ function [stats, bootstat, BOOTSAM] = bootknife (x, nboot, bootfun, alpha, strat
     end
   else
     if (ncpus > 1) && ~isparallel
-      % OCTAVE Parallel Computing Package is not installed or loaded
-      warning('OCTAVE Parallel Computing Package is not installed and/or loaded. Falling back to serial processing.')
-      ncpus = 1;
+      if ISOCTAVE
+        % OCTAVE Parallel Computing Package is not installed or loaded
+        warning('OCTAVE Parallel Computing Package is not installed and/or loaded. Falling back to serial processing.')
+      else
+        % MATLAB Parallel Computing Toolbox is not installed or loaded
+        warning('MATLAB Parallel Computing Toolbox is not installed and/or loaded. Falling back to serial processing.')
+      end
+      ncpus = 0;
     end
   end
 

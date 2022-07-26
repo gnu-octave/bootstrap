@@ -57,7 +57,7 @@
 %  calculate a statistic representative of the finite data sample, it 
 %  should NOT be an estimate of a population parameter. For example, for 
 %  the variance, set bootfun to {@var,1}, not @var or {@var,0}. The default 
-%  value of bootfun is 'mean'.  If empty, the default is @mean or 'mean'. 
+%  value of bootfun is 'mean'. If empty, the default is @mean or 'mean'. 
 %  If DATA is multivariate, bootfun is the grand mean, which is the mean of 
 %  the means of each column (i.e. variates). If a robust statistic for 
 %  central location is required, setting bootfun to 'robust' implements a 
@@ -705,10 +705,15 @@ function [p, c, stats] = bootnhst (data, group, varargin)
     end
   else
     if paropt.UseParallel && (paropt.nproc > 1) && ~isparallel
-      % OCTAVE Parallel Computing Package is not installed or loaded
-      warning('OCTAVE Parallel Computing Package is not installed and/or loaded. Falling back to serial processing.')
+      if ISOCTAVE
+        % OCTAVE Parallel Computing Package is not installed or loaded
+        warning('OCTAVE Parallel Computing Package is not installed and/or loaded. Falling back to serial processing.')
+      else
+        % MATLAB Parallel Computing Toolbox is not installed or loaded
+        warning('MATLAB Parallel Computing Toolbox is not installed and/or loaded. Falling back to serial processing.')
+      end
       paropt.UseParallel = false;
-      paropt.nproc = 1;
+      paropt.nproc = 0;
     end
   end
 
@@ -736,7 +741,7 @@ function [p, c, stats] = bootnhst (data, group, varargin)
       if strcmp (func2str(bootfun), 'mean')
         theta(j) = mean(data(g==gk(j),:));
         % Quick calculation for the standard error of the mean
-        SE(j) = std(data(g==gk(j),:),0) / sqrt(nk(j));
+        SE(j) = std(data(g==gk(j),:),0)/sqrt(nk(j));
         if (j==1); se_method = 'Calculated without resampling'; end;
       else
         theta(j) = bootfun(data(g==gk(j),:));

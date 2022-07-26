@@ -1,7 +1,10 @@
 function maxT = maxstat (Y, g, nboot, bootfun, ref, ISOCTAVE)
 
-  % Helper function file required for ibootnhst
+  % Helper function file required for bootnhst
   % Calculate maximum test statistic
+  
+  % maxstat cannot be a subfunction or nested function since 
+  % Octave parallel threads won't be able to find it
 
   % Calculate the size of the data (N) and the number (k) of unique groups
   N = size(g,1);

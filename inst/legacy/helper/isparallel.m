@@ -19,11 +19,12 @@ function retval = isparallel
       retval = false;
     end
   else
-    software = ver;
-    software = {software.Name};
-    if isempty(cell2mat(regexpi(software,str)))
+    try
+      retval = ~isempty(getCurrentTask()) && (matlabpool('size') > 0);
+    catch err
+      if ~strcmp(err.identifier, 'MATLAB:UndefinedFunction')
+        rethrow(err);
+      end
       retval = false;
-    else
-      retval = true;
     end
   end

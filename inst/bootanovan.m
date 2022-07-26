@@ -5,15 +5,19 @@
 %  p = bootanovan(DATA,GROUP)
 %  p = bootanovan(DATA,GROUP)
 %  p = bootanovan(DATA,GROUP,nboot)
-%  p = bootanovan(DATA,GROUP,nboot,varargin)
+%  p = bootanovan(DATA,GROUP,nboot,nproc)
+%  p = bootanovan(DATA,GROUP,nboot,nproc,varargin)
 %  [p,F] = bootanovan(DATA,GROUP,...)
 %
 %  This bootstrap function is a wrapper for anovan. The p-values are 
-%  calculated using from bootstrap distributions of the F-statistics.
+%  calculated using bootstrap distributions of the F-statistics.
+%  The data is resampled with replacement assuming exchangeability 
+%  between the groups across all the factors akin to Manly's approach 
+%  of unrestricted permutations [1]. This function uses balanced, 
+%  bootknife resampling.
+%
 %  bootanovan requires anovan from either the Statistics package in 
 %  Octave or the Statistics and Machine Learning Toolbox in Matlab. 
-%  Note that the data is resampled with replacement assuming 
-%  exchangeability between the groups across all the factors. 
 %  is valid for the sorts of models that Octave anovan can support.
 %  Note also that the anovan calculations in Octave do not work unless
 %  there is replication for each combination of factor levels. 
@@ -27,7 +31,12 @@
 %  this. To reduce monte carlo error, the algorithm uses balanced 
 %  bootstrap resampling.
 %
-%  p = bootanovan(DATA,GROUP,nboot,varargin) allows users to 
+%  p = bootanovan(DATA,GROUP,nboot,nproc) sets the number of parallel 
+%  processes to use to accelerate computations on multicore machines.
+%  This feature requires the Parallel package (in Octave), or the 
+%  Parallel Computing Toolbox (in Matlab).
+%
+%  p = bootanovan(DATA,GROUP,nboot,nproc,varargin) allows users to 
 %  enter any number of input arguments that will be passed to anovan.
 %  These should be key-value pairs of input arguments, for example the 
 %  key 'model' supports the following keys:
@@ -40,6 +49,14 @@
 %  sum-of-squares.  
 % 
 %  [p,F] = bootnhst(DATA,GROUP,...) also returns the F-statistics
+%
+%  [p,F,FDIST] = bootnhst(DATA,GROUP,...) also returns the F-statistics
+%  calculated from the bootstrap resamples.
+%
+%  Bibliography:
+%  [1] Howel, D.C. Permutation Tests for Factorial Designs. 
+%      Last modified: 03/07/2009, Accessed: 26/07/2022
+%      www.uvm.edu/~statdhtx/StatPages/Permutation%20Anova/PermTestsAnova.html
 %
 %  bootanovan v1.2.0.0 (25/07/2022)
 %  Author: Andrew Charles Penn
@@ -60,7 +77,7 @@
 %  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-function [p, F, FDIST] = bootanovan (data, group, nboot, varargin)
+function [p, F, FDIST] = bootanovan (data, group, nboot, ncpus, varargin)
 
   % Check if running in Octave (else assume Matlab)
   info = ver; 
@@ -68,7 +85,11 @@ function [p, F, FDIST] = bootanovan (data, group, nboot, varargin)
 
   % Check for dependency anovan
   if ~exist('anovan','file')
-    error('missing dependency: anovan')
+    if ISOCTAVE
+      error('missing dependency: anovan from the Statistics package')
+    else
+      error('missing dependency: anovan from the Statistics and Machine Learning Toolbox')
+    end
   end
 
   % Check and process bootanovan input arguments
@@ -96,7 +117,20 @@ function [p, F, FDIST] = bootanovan (data, group, nboot, varargin)
   if any(size(nboot)>1)
     error('nboot must be scalar. bootnhst is not compatible with bootstrap iteration')
   end
-  if nargin < 4
+  if (nargin < 4)
+    ncpus = 0;    % Ignore parallel processing features
+  elseif ~isempty (ncpus) 
+    if ~isa (ncpus, 'numeric')
+      error('ncpus must be numeric');
+    end
+    if any (ncpus ~= abs (fix (ncpus)))
+      error ('ncpus must be a positive integer')
+    end    
+    if (numel (ncpus) > 1)
+      error ('ncpus must be a scalar value')
+    end
+  end
+  if nargin < 5
     options = {};
   else 
     options = varargin;
@@ -109,9 +143,6 @@ function [p, F, FDIST] = bootanovan (data, group, nboot, varargin)
   end
   if any(strcmpi(options,'nested'))
     error('the optional anovan parameter ''nested'' is not supported')
-  end
-  if any(strcmpi(options,'sstype'))
-    error('the optional anovan parameter ''sstype'' is not supported')
   end
   if any(strcmpi(options,'alpha'))
     error('the optional anovan parameter ''alpha'' is not supported')
@@ -127,37 +158,21 @@ function [p, F, FDIST] = bootanovan (data, group, nboot, varargin)
     error('bootanovan only supports up to 3 output arguments')
   end
 
-  % Perform balanced bootstrap resampling and compute bootstrap statistics
-  FDIST = cell(1,nboot);
-  m = size(data,1);
+  % Perform balanced, bootknife resampling and compute bootstrap statistics
   boot (1, 1, false, 1, 0); % set random seed to make bootstrap resampling deterministic 
-  bootsam = boot (m, nboot, false);
-  cellfunc = @(bootsam) anovan_wrapper(data(bootsam,:), group, ISOCTAVE, options);
-  FDIST = cell2mat(cellfun (cellfunc, num2cell(bootsam, 1), 'UniformOutput', false));
+  cellfunc = @(data) anovan_wrapper (data, group, ISOCTAVE, options);
+  [junk, FDIST] = bootknife (data, nboot, cellfunc, [], [], ncpus, [], ISOCTAVE);
+  clear junk;
 
   % Calculate ANOVA F-statistics
-  F = cellfunc (1:m);
+  F = cellfunc (data);
 
   % Calculate p-values
-  p = sum (bsxfun(@ge,FDIST,F),2) / nboot;
+  p = sum (bsxfun (@ge, FDIST, F), 2) / nboot;
   
   % Truncate p-values at the resolution of the test
-  res = 1/nboot;
+  res = 1 / nboot;
   p(p<res) = res; 
  
 end
 
-%--------------------------------------------------------------------------
-
-function  F = anovan_wrapper (y, g, ISOCTAVE, options)
-  
-  if ISOCTAVE
-    % Octave anovan
-    [junk,F] = anovan(y,g,options{:});
-  else
-    % Matlab anovan
-    [junk,tbl] = anovan(y,g,'display','off',options{:});
-    F = cell2mat(tbl(2:end,6)); 
-  end
-
-end
