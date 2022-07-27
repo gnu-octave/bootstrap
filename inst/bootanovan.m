@@ -159,10 +159,10 @@ function [p, F, FDIST] = bootanovan (data, group, nboot, residuals, ncpus, varar
     error('the optional anovan parameter ''alpha'' is not supported')
   end
   if ~ISOCTAVE
-    % Set default sum-of-squares type to I for consistency with Octave
+    % Set default sum-of-squares type to II for consistency with Octave
     if ~any(strcmpi(options,'sstype'))
-      % Make default sstype 1 if not Octave
-      options = cat(2,options,'sstype',1);
+      % Make default sstype 2 if not Octave
+      options = cat(2,options,'sstype',2);
     end 
   end
   if (nargout > 3)
