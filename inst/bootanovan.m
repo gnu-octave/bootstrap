@@ -168,6 +168,15 @@ function [p, F, FDIST] = bootanovan (data, group, nboot, residuals, ncpus, varar
   if (nargout > 3)
     error('bootanovan only supports up to 3 output arguments')
   end
+  if ISOCTAVE
+    combi_group_ID = cellstr(cellfun(@num2str,num2cell(group)));
+    [unique_IDs,junk,j] = unique(combi_group_ID,'legacy');
+    count = accumarray(j,1);
+    clear junk;
+    if any(count==1)
+      error('Octave anovan requires replication for each combination of factor levels')
+    end
+  end
 
   % Perform balanced, bootknife resampling and compute bootstrap statistics
   boot (1, 1, false, 1, 0); % set random seed to make bootstrap resampling deterministic 

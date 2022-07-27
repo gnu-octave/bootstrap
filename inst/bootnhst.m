@@ -641,9 +641,9 @@ function [p, c, stats] = bootnhst (data, group, varargin)
   end
 
   % Assign non-zero numbers to group labels
-  [gnames,junk,g] = unique(group);
+  [gnames,junk,g] = unique(group,'legacy');
   clear junk;
-  gk = unique(g);
+  gk = unique(g,'legacy');
   k = numel(gk);
   if ~isempty(ref)
     if isnumeric(ref)
@@ -1024,7 +1024,7 @@ function [F, x] = empcdf (bootstat, c)
   % Create empirical CDF
   x = sort(bootstat);
   N = sum(~isnan(bootstat));
-  [x,F] = unique(x,'rows','last');
+  [x,F] = unique(x,'rows','last','legacy');
   F = F/(N+1);
 
   % Apply option to complete the CDF

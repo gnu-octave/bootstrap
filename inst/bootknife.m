@@ -409,11 +409,11 @@ function [stats, bootstat, BOOTSAM] = bootknife (x, nboot, bootfun, alpha, strat
   if ~isempty (strata)
     if ~isnumeric (strata)
       % Convert strata to numeric ID
-      [junk1,junk2,strata] = unique (strata);
+      [junk1,junk2,strata] = unique (strata,'legacy');
       clear junk1 junk2;
     end
     % Get strata IDs
-    gid = unique (strata);  % strata ID
+    gid = unique (strata,'legacy');  % strata ID
     K = numel (gid);        % number of strata
     % Create strata matrix
     g = false (n,K);
@@ -720,7 +720,7 @@ function [F, x] = empcdf (bootstat, c)
   % Create empirical CDF
   x = sort(bootstat);
   N = sum(~isnan(bootstat));
-  [x,F] = unique(x,'rows','last');
+  [x,F] = unique(x,'rows','last','legacy');
   F = F/(N+1);
 
   % Apply option to complete the CDF
