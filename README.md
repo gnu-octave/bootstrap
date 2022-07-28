@@ -70,4 +70,4 @@ Be aware that that some of the bootstrap functions in this package are determini
 ## Development roadmap
  
 * Create more documentation and guidance for using the functions in this package  
-* Provide the option in bootanovan to print a pretty ANOVA table of the results
+* Provide the option in bootanovan to print a pretty ANOVA table of the results  
