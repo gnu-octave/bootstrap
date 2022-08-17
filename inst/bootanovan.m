@@ -50,9 +50,7 @@
 %   'interaction' - compute N effects and N*(N-1) two-factor interactions
 %   'full'        - compute interactions at all levels
 %  Please see the help information for anovan for further information 
-%  about the key-value pairs supported as input arguments. Note that
-%  unless specified, the calculations in the ANOVA will use type II
-%  sum-of-squares.  
+%  about the key-value pairs supported as input arguments.
 % 
 %  [p,F] = bootnhst(DATA,GROUP,...) also returns the F-statistics
 %
@@ -157,13 +155,6 @@ function [p, F, FDIST] = bootanovan (data, group, nboot, residuals, ncpus, varar
   end
   if any(strcmpi(options,'alpha'))
     error('the optional anovan parameter ''alpha'' is not supported')
-  end
-  if ~ISOCTAVE
-    % Set default sum-of-squares type to II for consistency with Octave
-    if ~any(strcmpi(options,'sstype'))
-      % Make default sstype 2 if not Octave
-      options = cat(2,options,'sstype',2);
-    end 
   end
   if (nargout > 3)
     error('bootanovan only supports up to 3 output arguments')
