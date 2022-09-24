@@ -80,8 +80,6 @@
 %  leave-one-out jackknife, the acceleration constant will be set to 0 and
 %  intervals will only be bias corrected. This warning can be disabled with the
 %  following function call: warning('off','bootknife2:jackfail'). 
-%  Finally, if bootfun returns a vector, attempting to run double bootstrap will
-%  return an error: bootfun must return a scalar value for double bootstrap.
 %
 %  stats = bootknife2(data,nboot,bootfun,alpha) where alpha sets the lower 
 %  and upper confidence interval ends to be 100 * (alpha/2)% and 100 * 
@@ -366,9 +364,6 @@ function [stats, bootstat, BOOTSAM] = bootknife2 (x, nboot, bootfun, alpha, stra
   sz = size (T0);
   m = prod (sz);
   if (m > 1)
-    if (C > 0)
-      error ('bootfun must return a scalar value for double bootstrap');
-    endif
     if (nvar == m)
       try
         % If data is multivariate, check whether bootfun is vectorized
