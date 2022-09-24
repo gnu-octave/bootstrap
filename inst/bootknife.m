@@ -1,15 +1,15 @@
 %  Function File: bootknife
 %
-%  Bootknife resampling  
+%  Bootknife resampling
 %
 %  This function takes a data sample (containing n rows) and uses bootstrap 
 %  techniques to calculate a bias of the parameter estimate, a standard 
-%  error, and 95% confidence intervals. Specifically, the method uses 
-%  bootknife resampling [1], which involves creating leave-one-out 
-%  jackknife samples of size n - 1 and then drawing samples of size n with 
-%  replacement from the jackknife samples. The resampling of data rows is 
-%  balanced in order to reduce Monte Carlo error [2,3]. The confidence intervals
-%  calculated are simple percentile bootstrap confidence intervals.
+%  error, and 95% confidence intervals [1]. Specifically, the method uses 
+%  bootknife resampling [2], which involves creating leave-one-out jackknife
+%  samples of size n - 1 and then drawing samples of size n with replacement
+%  from the jackknife samples. The resampling of data rows is balanced in order
+%  to reduce Monte Carlo error [3,4]. The confidence intervals calculated are
+%  percentile bootstrap confidence intervals.
 %
 %  stats = bootknife(data)
 %  stats = bootknife(data,nboot)
@@ -24,9 +24,9 @@
 %  [stats,bootstat,bootsam] = bootknife(...)
 %  bootknife(data,...);
 %
-%  stats = bootknife(data) resamples from the rows of a data sample (column 
+%  stats = bootknife(data) resamples from the rows of a data sample (column
 %  vector or a matrix) and returns a structure with the following fields:
-%    original: contains the result of applying bootfun to the data (x) 
+%    original: contains the result of applying bootfun to the data (x)
 %    bias: contains the bootstrap estimate of bias
 %    std_error: contains the bootstrap standard error
 %    CI_lower: contains the lower bound of the bootstrap confidence interval
@@ -34,66 +34,73 @@
 %  By default, the statistics relate to bootfun being @mean and the confidence
 %  intervals are 95% percentile bootstrap intervals. 
 %
-%  stats = bootknife(data,nboot) also specifies the number of bootstrap 
-%  samples. nboot must be scalar, positive integer. By default, nboot is 2000. 
+%  stats = bootknife(data,nboot) also specifies the number of bootstrap
+%  samples. nboot must be scalar, positive integer. By default, nboot is 2000.
 %
-%  stats = bootknife(data,nboot,bootfun) also specifies bootfun, a function 
-%  handle, a string indicating the name of the function to apply to the data
-%  (and each bootstrap resample), or a cell array where the first cell is the 
-%  function handle or string, and other cells being arguments for that function, 
-%  where the function must take data for the first input argument. bootfun can 
-%  return a scalar value or vector. The default value(s) of bootfun is/are the
-%  (column) mean(s).
-%    Note that bootfun MUST calculate a statistic representative of the 
-%  finite data sample, it should NOT be an estimate of a population 
-%  parameter. For example, for the variance, set bootfun to {@var,1}, not 
+%  stats = bootknife(data,nboot,bootfun) specifies bootfun, a function handle,
+%  a string indicating the name of the function to apply to the data (and each
+%  bootstrap resample), or a cell array where the first cell is the function
+%  handle or string, and other cells being arguments for that function, where
+%  the function must take data for the first input argument. bootfun can return
+%  a scalar value or vector. The default value(s) of bootfun is/are the (column)
+%  mean(s).
+%    Note that bootfun MUST calculate a statistic representative of the
+%  finite data sample, it should NOT be an estimate of a population
+%  parameter. For example, for the variance, set bootfun to {@var,1}, not
 %  @var or {@var,0}. Smooth functions of the data are preferable, (e.g. use
 %  smoothmedian function instead of ordinary median).
 %
-%  stats = bootknife(data,nboot,bootfun,alpha) where alpha sets the lower 
-%  and upper confidence interval ends to be 100 * (alpha/2)% and 100 * 
-%  (1-alpha/2)% respectively. Central coverage of the intervals is thus 
-%  100*(1-alpha)%. alpha should be a scalar value between 0 and 1. If alpha 
+%  stats = bootknife(data,nboot,bootfun,alpha) where alpha sets the lower
+%  and upper confidence interval ends to be 100 * (alpha/2)% and 100 *
+%  (1-alpha/2)% respectively. Central coverage of the intervals is thus
+%  100*(1-alpha)%. alpha should be a scalar value between 0 and 1. If alpha
 %  is empty, NaN is returned for the confidence interval ends. The default
 %  alpha is 0.05. 
 %
-%  stats = bootknife(data,nboot,bootfun,alpha,strata) also sets strata, 
+%  stats = bootknife(data,nboot,bootfun,alpha,strata) also sets strata,
 %  which are identifiers that define the grouping of the data rows
-%  for stratified bootstrap resampling. strata should be a column vector 
-%  or cell array the same number of rows as the data. When resampling is 
-%  stratified, the groups (or stata) of data are equally represented across 
-%  the bootstrap resamples. If this input argument is not specified or is 
+%  for stratified bootstrap resampling. strata should be a column vector
+%  or cell array the same number of rows as the data. When resampling is
+%  stratified, the groups (or stata) of data are equally represented across
+%  the bootstrap resamples. If this input argument is not specified or is
 %  empty, no stratification of resampling is performed. 
 %
 %  stats = bootknife(data,nboot,bootfun,alpha,strata,nproc) sets the
-%  number of parallel processes to use to accelerate computations on 
-%  multicore machines, specifically non-vectorized function evaluations,   
-%  double bootstrap resampling and jackknife function evaluations. This  
-%  feature requires the Parallel package (in Octave), or the Parallel  
+%  number of parallel processes to use to accelerate computations on
+%  multicore machines, specifically non-vectorized function evaluations,
+%  double bootstrap resampling and jackknife function evaluations. This
+%  feature requires the Parallel package (in Octave), or the Parallel
 %  Computing Toolbox (in Matlab).
 %
 %  [stats,bootstat] = bootknife(...) also returns bootstat, a vector of
-%  statistics calculated over the (first, or outer layer of) bootstrap 
+%  statistics calculated over the (first, or outer layer of) bootstrap
 %  resamples. 
 %
-%  [stats,bootstat,bootsam] = bootknife(...) also returns bootsam, the  
-%  matrix of indices (32-bit integers) used for the (first, or outer 
-%  layer of) bootstrap resampling. Each column in bootsam corresponds 
-%  to one bootstrap resample and contains the row indices of the values 
+%  [stats,bootstat,bootsam] = bootknife(...) also returns bootsam, the
+%  matrix of indices (32-bit integers) used for the (first, or outer
+%  layer of) bootstrap resampling. Each column in bootsam corresponds
+%  to one bootstrap resample and contains the row indices of the values
 %  drawn from the nonscalar data argument to create that sample.
 %
-%  bootknife(data,...); returns a pretty table of the output including 
-%  the bootstrap settings and the result of evaluating bootfun on the 
-%  data along with bootstrap estimates of bias, standard error, and 
+%  bootknife(data,...); returns a pretty table of the output including
+%  the bootstrap settings and the result of evaluating bootfun on the
+%  data along with bootstrap estimates of bias, standard error, and
 %  lower and upper 100*(1-alpha)% confidence limits.
 %
-%  Requirements: The function file boot.m (or better boot.mex) also 
+%  Requirements: The function file boot.m (or better boot.mex) also
 %  distributed in the statistics-bootstrap package. The 'robust' option
 %  for bootfun requires smoothmedian.m (or better smoothmedian.mex).
 %
 %  Bibliography:
 %  [1] Efron, and Tibshirani (1993) An Introduction to the
 %        Bootstrap. New York, NY: Chapman & Hall
+%  [2] Hesterberg T.C. (2004) Unbiasing the Bootstrap???Bootknife Sampling
+%        vs. Smoothing; Proceedings of the Section on Statistics & the
+%        Environment. Alexandria, VA: American Statistical Association.
+%  [3] Davison et al. (1986) Efficient Bootstrap Simulation.
+%        Biometrika, 73: 555-66
+%  [4] Gleason, J.R. (1988) Algorithms for Balanced Bootstrap Simulations.
+%        The American Statistician. Vol. 42, No. 4 pp. 263-266
 %
 %  bootknife v1.8.0.0 (23/09/2022)
 %  Author: Andrew Charles Penn
