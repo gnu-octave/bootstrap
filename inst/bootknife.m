@@ -1,6 +1,6 @@
 %  Function File: bootknife
 %
-%  Bootknife resampling
+%  Bootknife (bootstrap) resampling
 %
 %  This function takes a data sample (containing n rows) and uses bootstrap 
 %  techniques to calculate a bias of the parameter estimate, a standard 
