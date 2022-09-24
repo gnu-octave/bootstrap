@@ -8,8 +8,8 @@
 %  bootknife resampling [2], which involves creating leave-one-out jackknife
 %  samples of size n - 1 and then drawing samples of size n with replacement
 %  from the jackknife samples. The resampling of data rows is balanced in order
-%  to reduce Monte Carlo error [3,4]. The confidence intervals calculated are
-%  percentile bootstrap confidence intervals.
+%  to reduce Monte Carlo error [3,4]. The confidence intervals that are returned
+%  are percentile bootstrap confidence intervals.
 %
 %  stats = bootknife(data)
 %  stats = bootknife(data,nboot)
