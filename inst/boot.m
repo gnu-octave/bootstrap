@@ -36,6 +36,11 @@
 % before attempting parallel operation of boot.mex in order to ensure that 
 % the initial random seeds of each thread are unique:
 %
+% In Octave:
+% >> pararrayfun(nproc, @boot, 1, 1, false, [], 1:nproc)
+% In Matlab:
+% >> ncpus = feature('numcores'); parfor i = 1:ncpus; boot (1, 1, false, [], i); end;
+%
 % Author: Andrew Charles Penn (2022)
 %
 
