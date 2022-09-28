@@ -407,6 +407,7 @@ function [stats, bootstat, BOOTSAM] = bootknife (x, nboot, bootfun, alpha, strat
     end
     % Print output if no output arguments are requested
     if (nargout == 0) 
+      l = []; % we do not have this information and it won't be the same for each column of data
       print_output(stats);
     end
     return
@@ -732,7 +733,11 @@ function [stats, bootstat, BOOTSAM] = bootknife (x, nboot, bootfun, alpha, strat
           % alpha is a two-tailed probability
           coverage = 100*(1-alpha);
         end
-        fprintf (' Confidence interval coverage: %g%% (%.1f%%, %.1f%%)\n\n',coverage,100*l);
+        if isempty (l)
+          fprintf (' Confidence interval coverage: %g%%\n\n',coverage);
+        else
+          fprintf (' Confidence interval coverage: %g%% (%.1f%%, %.1f%%)\n\n',coverage,100*l);
+        end
       end
       fprintf ('Bootstrap Statistics: \n');
       fprintf (' original       bias           std_error      CI_lower       CI_upper    \n');
