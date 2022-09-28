@@ -19,12 +19,10 @@ function retval = isparallel
       retval = false;
     end
   else
-    try
-      retval = ~isempty(getCurrentTask()) && (matlabpool('size') > 0);
-    catch err
-      if ~strcmp(err.identifier, 'MATLAB:UndefinedFunction')
-        rethrow(err);
-      end
+    software = ver;
+    if ismember ('Parallel Computing Toolbox', {software.Name})
+      retval = true;
+    else
       retval = false;
     end
   end
