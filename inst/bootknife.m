@@ -316,12 +316,10 @@ function [stats, bootstat, BOOTSAM] = bootknife (x, nboot, bootfun, alpha, strat
         PARALLEL = false;
       end
     else
-      try
-        retval = ~isempty(getCurrentTask()) && (matlabpool('size') > 0);
-      catch err;
-        if ~strcmp(err.identifier, 'MATLAB:UndefinedFunction')
-          rethrow(err);
-        end
+      software = ver;
+      if ismember ('Parallel Computing Toolbox', {software.Name})
+        PARALLEL = true;
+      else
         PARALLEL = false;
       end
     end
@@ -354,7 +352,7 @@ function [stats, bootstat, BOOTSAM] = bootknife (x, nboot, bootfun, alpha, strat
         end
       catch
         % MATLAB Parallel Computing Toolbox is not installed
-        warning ('MATLAB Parallel Computing Toolbox is not installed. Falling back to serial processing.');
+        warning ('MATLAB Parallel Computing Toolbox is not installed or operational. Falling back to serial processing.');
         ncpus = 1;
       end
     end
@@ -422,8 +420,8 @@ function [stats, bootstat, BOOTSAM] = bootknife (x, nboot, bootfun, alpha, strat
       print_output(stats);
     else
       [warnmsg, warnID] = lastwarn;
-      if any (strcmp (warnID, {'bootknife:biasfail',' bootknife:jackfail'}))
-        warning (warnmsg);
+      if ismember (warnID, {'bootknife:biasfail','bootknife:jackfail'})
+        warning ('bootknife:lastwarn', warnmsg);
       end
       lastwarn ('', '');
     end
@@ -492,7 +490,7 @@ function [stats, bootstat, BOOTSAM] = bootknife (x, nboot, bootfun, alpha, strat
         else
           % MATLAB
           bootstat = zeros (1, B);
-          parfor b = 1:B; bootstat(b) = cellfunc (X(:, b)); end;
+          parfor b = 1:B; bootstat(b) = cellfunc (X(:, b)); end
         end
       else
         bootstat = cellfun (bootfun, num2cell (X, 1));
@@ -515,7 +513,7 @@ function [stats, bootstat, BOOTSAM] = bootknife (x, nboot, bootfun, alpha, strat
         else
           % MATLAB
           bootstat = zeros (1, B);
-          parfor b = 1:B; bootstat(b) = cellfunc (BOOTSAM(:, b)); end;
+          parfor b = 1:B; bootstat(b) = cellfunc (BOOTSAM(:, b)); end
         end
       else
         % Evaluate bootfun on each bootstrap resample in SERIAL
@@ -544,7 +542,7 @@ function [stats, bootstat, BOOTSAM] = bootknife (x, nboot, bootfun, alpha, strat
       else
         % MATLAB
         % Set unique random seed for each parallel thread
-        parfor i = 1:ncpus; boot (1, 1, false, 1, i); end;
+        parfor i = 1:ncpus; boot (1, 1, false, 1, i); end
         % Perform inner layer of resampling
         bootout = struct ('original',zeros(1,B),...
                           'bias',zeros(1,B),...
@@ -554,10 +552,10 @@ function [stats, bootstat, BOOTSAM] = bootknife (x, nboot, bootfun, alpha, strat
                           'Pr',zeros(1,B));
         if vectorized && isempty(BOOTSAM)
           cellfunc = @(x) bootknife (x, C, bootfun, [], strata, 0, T0, ISOCTAVE);
-          parfor b = 1:B; bootout(b) = cellfunc (X(:,b)); end;
+          parfor b = 1:B; bootout(b) = cellfunc (X(:,b)); end
         else
           cellfunc = @(BOOTSAM) bootknife (x(BOOTSAM,:), C, bootfun, [], strata, 0, T0, ISOCTAVE);
-          parfor b = 1:B; bootout(b) = cellfunc (BOOTSAM(:,b)); end;
+          parfor b = 1:B; bootout(b) = cellfunc (BOOTSAM(:,b)); end
         end
       end
     else
@@ -600,7 +598,7 @@ function [stats, bootstat, BOOTSAM] = bootknife (x, nboot, bootfun, alpha, strat
     %%%%%%%%%%%%%%%%%%%%%%%%%%% SINGLE BOOTSTRAP %%%%%%%%%%%%%%%%%%%%%%%%%%%
     state = warning;
     if ISOCTAVE
-      warning ("on", "quiet");
+      warning ('on', 'quiet');
     else
       warning off;
     end
@@ -639,7 +637,7 @@ function [stats, bootstat, BOOTSAM] = bootknife (x, nboot, bootfun, alpha, strat
               else
                 % MATLAB
                 T = zeros (n, 1);
-                parfor i = 1:n; T(i) = jackfun (i); end;
+                parfor i = 1:n; T(i) = jackfun (i); end
               end
             else
               % SERIAL evaluation of bootfun on each jackknife resample
@@ -687,8 +685,8 @@ function [stats, bootstat, BOOTSAM] = bootknife (x, nboot, bootfun, alpha, strat
       end
       warning (state);
       if ISOCTAVE
-        warning ("off", "quiet");
-      endif
+        warning ('off', 'quiet');
+      end
     else
       ci = nan (1, 2);
     end
@@ -734,8 +732,8 @@ function [stats, bootstat, BOOTSAM] = bootknife (x, nboot, bootfun, alpha, strat
   else
     if isempty(BOOTSAM)
       [warnmsg, warnID] = lastwarn;
-      if any (strcmp (warnID, {'bootknife:biasfail',' bootknife:jackfail'}))
-        warning (warnmsg);
+      if ismember (warnID, {'bootknife:biasfail','bootknife:jackfail'})
+        warning ('bootknife:lastwarn', warnmsg);
       end
       lastwarn ('', '');
     end
@@ -759,7 +757,7 @@ function [stats, bootstat, BOOTSAM] = bootknife (x, nboot, bootfun, alpha, strat
           if (numel (alpha) > 1)
             fprintf (' Confidence interval type: Percentile \n');
           else
-            [jnk, warnID] = lastwarn;
+            [junk, warnID] = lastwarn;
             switch warnID
               case 'bootknife:biasfail'
                 fprintf (' Confidence interval type: Percentile \n');
