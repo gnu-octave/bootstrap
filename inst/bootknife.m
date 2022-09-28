@@ -171,10 +171,10 @@ function [stats, bootstat, BOOTSAM] = bootknife (x, nboot, bootfun, alpha, strat
   
   % Error checking
   if (nargin < 1)
-    error ('data must be provided')
+    error ('bootknife: data must be provided')
   end
   if ~(size(x, 1) > 1)
-    error ('data must contain more than one row')
+    error ('bootknife: data must contain more than one row')
   end
   
   % Set defaults or check for errors
@@ -185,13 +185,13 @@ function [stats, bootstat, BOOTSAM] = bootknife (x, nboot, bootfun, alpha, strat
       nboot = [2000, 0];
     else
       if ~isa (nboot, 'numeric')
-        error('nboot must be numeric');
+        error('bootknife: nboot must be numeric');
       end
       if any (nboot ~= abs (fix (nboot)))
-        error ('nboot must contain positive integers')
+        error ('bootknife: nboot must contain positive integers')
       end    
       if (numel (nboot) > 2)
-        error ('nboot cannot contain more than 2 values')
+        error ('bootknife: nboot cannot contain more than 2 values')
       end
     end
   end
@@ -211,37 +211,44 @@ function [stats, bootstat, BOOTSAM] = bootknife (x, nboot, bootfun, alpha, strat
       bootfun = str2func (bootfun);
     end
     if ~isa (bootfun, 'function_handle')
-      error('bootfun must be a function name or function handle');
+      error('bootknife: bootfun must be a function name or function handle');
     end
   end
   if (nargin < 4)
     alpha = 0.05;
   elseif ~isempty (alpha) 
     if ~isa (alpha,'numeric') || numel (alpha) > 2
-      error('alpha must be a numeric scalar value');
+      error('bootknife: alpha must be a scalar (two-tailed probability) or a vector (pair of quantiles)');
     end
     if any ((alpha < 0) | (alpha > 1))
-      error('alpha must be a value between 0 and 1');
+      error('bootknife: value(s) in alpha must be between 0 and 1');
+    end
+    if numel(alpha) > 1
+      % alpha is a pair of quantiles
+      % Make sure quantiles are in the correct order
+      if alpha(1) > alpha(2) 
+        error ('bootknife: the pair of quantiles must be in ascending numeric order')
+      end
     end
   end
   if (nargin < 5)
     strata = [];
   elseif ~isempty (strata) 
     if size (strata, 1) ~= size (x, 1)
-      error('strata should be a column vector or cell array with the same number of rows as the data')
+      error('bootknife: strata should be a column vector or cell array with the same number of rows as the data')
     end
   end
   if (nargin < 6)
     ncpus = 0;    % Ignore parallel processing features
   elseif ~isempty (ncpus) 
     if ~isa (ncpus, 'numeric')
-      error('ncpus must be numeric');
+      error('bootknife: ncpus must be numeric');
     end
     if any (ncpus ~= abs (fix (ncpus)))
-      error ('ncpus must be a positive integer')
+      error ('bootknife: ncpus must be a positive integer')
     end    
     if (numel (ncpus) > 1)
-      error ('ncpus must be a scalar value')
+      error ('bootknife: ncpus must be a scalar value')
     end
   end
   % REF, ISOCTAVE and BOOTSAM are undocumented input arguments required for some of the functionality of bootknife
@@ -270,7 +277,7 @@ function [stats, bootstat, BOOTSAM] = bootknife (x, nboot, bootfun, alpha, strat
   % Evaluate bootfun on the data
   T0 = bootfun (x);
   if all (size (T0) > 1)
-    error ('bootfun must return either a scalar or a vector')
+    error ('bootknife: bootfun must return either a scalar or a vector')
   end
 
   % If data is univariate, check whether bootfun is vectorized
@@ -603,7 +610,8 @@ function [stats, bootstat, BOOTSAM] = bootknife (x, nboot, bootfun, alpha, strat
           % Calculate the median bias correction z0
           z0 = stdnorminv (sum (bootstat < T0)/ B);
           if isinf (z0) || isnan (z0)
-            error('unable to calculate the bias correction z0')
+            z0 = 0;
+            warning ('bootknife:biasfail','unable to calculate the bias correction constant, z0 set to 0\n');
           end
           % Use the Jackknife to calculate the acceleration constant
           try
@@ -656,10 +664,6 @@ function [stats, bootstat, BOOTSAM] = bootknife (x, nboot, bootfun, alpha, strat
           ci = arrayfun ( @(p) interp1 (cdf, t1, p, 'linear'), l);
         case 2
           % alpha is a vector of quantiles
-          % Make sure quantiles are in the correct order
-          if alpha(1) > alpha(2) 
-            alpha = fliplr(alpha(:)');
-          end
           l = alpha;
           % Percentile bootstrap confidence intervals 
           [cdf, t1] = empcdf (bootstat, 1);
@@ -769,19 +773,19 @@ function [F, x] = empcdf (bootstat, c)
 
   % Check input argument
   if ~isa(bootstat,'numeric')
-    error('bootstat must be numeric')
+    error('bootknife:empcdf: bootstat must be numeric')
   end
   if all(size(bootstat)>1)
-    error('bootstat must be a vector')
+    error('bootknife:empcdf: bootstat must be a vector')
   end
   if size(bootstat,2)>1
     bootstat = bootstat.';
   end
 
   % Create empirical CDF
-  x = sort(bootstat);
+  bootstat = sort(bootstat);
   N = sum(~isnan(bootstat));
-  [x,F] = unique(x,'rows','last','legacy');
+  [x,F] = unique(bootstat,'rows','last','legacy');
   F = F/(N+1);
 
   % Apply option to complete the CDF
