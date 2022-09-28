@@ -407,7 +407,11 @@ function [stats, bootstat, BOOTSAM] = bootknife (x, nboot, bootfun, alpha, strat
     end
     % Print output if no output arguments are requested
     if (nargout == 0) 
-      l = []; % we do not have this information and it won't be the same for each column of data
+      if (numel (alpha) > 1) && (C == 0)
+        l = alpha;
+      else
+        l = []; % we do not have this information and it won't be the same for each column of data
+      end
       print_output(stats);
     end
     return
