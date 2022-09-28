@@ -77,8 +77,7 @@
 %  smoothmedian function instead of ordinary median). 
 %    If single bootstrap is requested and bootfun cannot be executed during
 %  leave-one-out jackknife, the acceleration constant will be set to 0 and
-%  intervals will only be bias corrected. This warning can be disabled with the
-%  following function call: warning('off','bootknife:jackfail'). 
+%  intervals will only be bias corrected.
 %
 %  stats = bootknife(data,nboot,bootfun,alpha) where alpha sets the lower 
 %  and upper confidence interval ends. The value(s) in alpha must be between 0
@@ -171,10 +170,10 @@ function [stats, bootstat, BOOTSAM] = bootknife (x, nboot, bootfun, alpha, strat
   
   % Error checking
   if (nargin < 1)
-    error ('bootknife: data must be provided')
+    error ('bootknife: data must be provided');
   end
   if ~(size(x, 1) > 1)
-    error ('bootknife: data must contain more than one row')
+    error ('bootknife: data must contain more than one row');
   end
   
   % Set defaults or check for errors
@@ -185,13 +184,13 @@ function [stats, bootstat, BOOTSAM] = bootknife (x, nboot, bootfun, alpha, strat
       nboot = [2000, 0];
     else
       if ~isa (nboot, 'numeric')
-        error('bootknife: nboot must be numeric');
+        error ('bootknife: nboot must be numeric');
       end
       if any (nboot ~= abs (fix (nboot)))
-        error ('bootknife: nboot must contain positive integers')
+        error ('bootknife: nboot must contain positive integers');
       end    
       if (numel (nboot) > 2)
-        error ('bootknife: nboot cannot contain more than 2 values')
+        error ('bootknife: nboot cannot contain more than 2 values');
       end
     end
   end
@@ -211,23 +210,23 @@ function [stats, bootstat, BOOTSAM] = bootknife (x, nboot, bootfun, alpha, strat
       bootfun = str2func (bootfun);
     end
     if ~isa (bootfun, 'function_handle')
-      error('bootknife: bootfun must be a function name or function handle');
+      error ('bootknife: bootfun must be a function name or function handle');
     end
   end
   if (nargin < 4)
     alpha = 0.05;
   elseif ~isempty (alpha) 
     if ~isa (alpha,'numeric') || numel (alpha) > 2
-      error('bootknife: alpha must be a scalar (two-tailed probability) or a vector (pair of quantiles)');
+      error ('bootknife: alpha must be a scalar (two-tailed probability) or a vector (pair of quantiles)');
     end
     if any ((alpha < 0) | (alpha > 1))
-      error('bootknife: value(s) in alpha must be between 0 and 1');
+      error ('bootknife: value(s) in alpha must be between 0 and 1');
     end
     if numel(alpha) > 1
       % alpha is a pair of quantiles
       % Make sure quantiles are in the correct order
       if alpha(1) > alpha(2) 
-        error ('bootknife: the pair of quantiles must be in ascending numeric order')
+        error ('bootknife: the pair of quantiles must be in ascending numeric order');
       end
     end
   end
@@ -235,7 +234,7 @@ function [stats, bootstat, BOOTSAM] = bootknife (x, nboot, bootfun, alpha, strat
     strata = [];
   elseif ~isempty (strata) 
     if size (strata, 1) ~= size (x, 1)
-      error('bootknife: strata should be a column vector or cell array with the same number of rows as the data')
+      error ('bootknife: strata should be a column vector or cell array with the same number of rows as the data');
     end
   end
   if (nargin < 6)
@@ -245,10 +244,10 @@ function [stats, bootstat, BOOTSAM] = bootknife (x, nboot, bootfun, alpha, strat
       error('bootknife: ncpus must be numeric');
     end
     if any (ncpus ~= abs (fix (ncpus)))
-      error ('bootknife: ncpus must be a positive integer')
+      error ('bootknife: ncpus must be a positive integer');
     end    
     if (numel (ncpus) > 1)
-      error ('bootknife: ncpus must be a scalar value')
+      error ('bootknife: ncpus must be a scalar value');
     end
   end
   % REF, ISOCTAVE and BOOTSAM are undocumented input arguments required for some of the functionality of bootknife
@@ -274,10 +273,13 @@ function [stats, bootstat, BOOTSAM] = bootknife (x, nboot, bootfun, alpha, strat
     C = 0;
   end
 
+  % Initialize quantiles
+  l = [];
+
   % Evaluate bootfun on the data
   T0 = bootfun (x);
   if all (size (T0) > 1)
-    error ('bootknife: bootfun must return either a scalar or a vector')
+    error ('bootknife: bootfun must return either a scalar or a vector');
   end
 
   % If data is univariate, check whether bootfun is vectorized
@@ -316,7 +318,7 @@ function [stats, bootstat, BOOTSAM] = bootknife (x, nboot, bootfun, alpha, strat
     else
       try
         retval = ~isempty(getCurrentTask()) && (matlabpool('size') > 0);
-      catch err
+      catch err;
         if ~strcmp(err.identifier, 'MATLAB:UndefinedFunction')
           rethrow(err);
         end
@@ -352,7 +354,7 @@ function [stats, bootstat, BOOTSAM] = bootknife (x, nboot, bootfun, alpha, strat
         end
       catch
         % MATLAB Parallel Computing Toolbox is not installed
-        warning('MATLAB Parallel Computing Toolbox is not installed. Falling back to serial processing.')
+        warning ('MATLAB Parallel Computing Toolbox is not installed. Falling back to serial processing.');
         ncpus = 1;
       end
     end
@@ -360,10 +362,10 @@ function [stats, bootstat, BOOTSAM] = bootknife (x, nboot, bootfun, alpha, strat
     if (ncpus > 1) && ~PARALLEL
       if ISOCTAVE
         % OCTAVE Parallel Computing Package is not installed or loaded
-        warning('OCTAVE Parallel Computing Package is not installed and/or loaded. Falling back to serial processing.')
+        warning ('OCTAVE Parallel Computing Package is not installed and/or loaded. Falling back to serial processing.');
       else
         % MATLAB Parallel Computing Toolbox is not installed or loaded
-        warning('MATLAB Parallel Computing Toolbox is not installed and/or loaded. Falling back to serial processing.')
+        warning ('MATLAB Parallel Computing Toolbox is not installed and/or loaded. Falling back to serial processing.');
       end
       ncpus = 0;
     end
@@ -416,10 +418,14 @@ function [stats, bootstat, BOOTSAM] = bootknife (x, nboot, bootfun, alpha, strat
     if (nargout == 0) 
       if (numel (alpha) > 1) && (C == 0)
         l = alpha;
-      else
-        l = []; % we do not have this information and it won't be the same for each column of data
       end
       print_output(stats);
+    else
+      [warnmsg, warnID] = lastwarn;
+      if any (strcmp (warnID, {'bootknife:biasfail',' bootknife:jackfail'}))
+        warning (warnmsg);
+      end
+      lastwarn ('', '');
     end
     return
   end
@@ -582,10 +588,6 @@ function [stats, bootstat, BOOTSAM] = bootknife (x, nboot, bootfun, alpha, strat
           l = arrayfun ( @(p) interp1 (cdf, u, p, 'linear'), [alpha / 2, 1 - alpha / 2]);
         case 2
           % alpha is a vector of quantiles
-          % Make sure quantiles are in the correct order
-          if alpha(1) > alpha(2) 
-            alpha = fliplr(alpha(:)');
-          end
           l = arrayfun ( @(p) interp1 (cdf, u, p, 'linear'), alpha);
       end
       % Calibrated percentile bootstrap confidence intervals
@@ -596,6 +598,12 @@ function [stats, bootstat, BOOTSAM] = bootknife (x, nboot, bootfun, alpha, strat
     end
   else
     %%%%%%%%%%%%%%%%%%%%%%%%%%% SINGLE BOOTSTRAP %%%%%%%%%%%%%%%%%%%%%%%%%%%
+    state = warning;
+    if ISOCTAVE
+      warning ("on", "quiet");
+    else
+      warning off;
+    end
     % Bootstrap bias estimation
     bias = mean (bootstat) - T0;
     % Bootstrap standard error
@@ -603,17 +611,24 @@ function [stats, bootstat, BOOTSAM] = bootknife (x, nboot, bootfun, alpha, strat
     if ~isempty(alpha)
       switch (numel (alpha))
         case 1
-          % Bias-corrected and accelerated bootstrap confidence intervals 
           % Create distribution functions
           stdnormcdf = @(x) 0.5 * (1 + erf (x / sqrt (2)));
           stdnorminv = @(p) sqrt (2) * erfinv (2 * p-1);
-          % Calculate the median bias correction z0
-          z0 = stdnorminv (sum (bootstat < T0)/ B);
-          if isinf (z0) || isnan (z0)
-            z0 = 0;
-            warning ('bootknife:biasfail','unable to calculate the bias correction constant, z0 set to 0\n');
+          % If bootfun is the mean, expand percentiles using Student's 
+          % t-distribution to improve central coverage for small samples
+          if strcmp (func2str (bootfun), 'mean')
+            if exist('betaincinv','file')
+              studinv = @(p, df) - sqrt ( df ./ betaincinv (2 * p, df / 2, 0.5) - df);
+            else
+              % Earlier versions of matlab do not have betaincinv
+              studinv = @(p, df) - sqrt ( df ./ betainv (2 * p, df / 2, 0.5) - df);
+            end
+            adj_alpha = stdnormcdf (studinv (alpha / 2, n - 1)) * 2;   
+          else
+            adj_alpha = alpha;
           end
-          % Use the Jackknife to calculate the acceleration constant
+          % Attempt to form bias-corrected and accelerated (BCa) bootstrap confidence intervals. 
+          % Use the Jackknife to calculate the acceleration constant (a)
           try
             jackfun = @(i) bootfun (x(1:n ~= i, :));
             if (ncpus > 1)  
@@ -639,27 +654,28 @@ function [stats, bootstat, BOOTSAM] = bootknife (x, nboot, bootfun, alpha, strat
             end
             a = sum (U.^3) / (6 * sum (U.^2) ^ 1.5);
           catch
-            a = 0;
+            % Revert to bias-corrected (BC) bootstrap confidence intervals
             warning ('bootknife:jackfail','bootfun failed during jackknife, acceleration constant set to 0\n');
+            a = 0;
           end
-          if strcmp (func2str (bootfun), 'mean')
-            % If bootfun is the mean, expand percentiles using Student's 
-            % t-distribution to improve central coverage for small samples
-            if exist('betaincinv','file')
-              studinv = @(p, df) - sqrt ( df ./ betaincinv (2 * p, df / 2, 0.5) - df);
-            else
-              % Earlier versions of matlab do not have betaincinv
-              studinv = @(p, df) - sqrt ( df ./ betainv (2 * p, df / 2, 0.5) - df);
-            end
-            adj_alpha = stdnormcdf (studinv (alpha / 2, n - 1)) * 2;   
-          else
-            adj_alpha = alpha;
+          % Calculate the bias correction constant (z0)
+          % Calculate the median bias correction z0
+          z0 = stdnorminv (sum (bootstat < T0) / B);
+          if isinf (z0) || isnan (z0)
+            % Revert to percentile bootstrap confidence intervals
+            % If bootfun is the mean, the intervals will still include expanded percentiles
+            warning ('bootknife:biasfail','unable to calculate the bias correction constant, reverting to percentile intervals\n');
+            z0 = 0;
+            a = 0; 
+            l = [adj_alpha / 2, 1 - adj_alpha / 2];
           end
-          % Calculate BCa percentiles
-          z1 = stdnorminv(adj_alpha / 2);
-          z2 = stdnorminv(1 - adj_alpha / 2);
-          l = cat (2, stdnormcdf (z0 + ((z0 + z1) / (1 - a * (z0 + z1)))),... 
-                      stdnormcdf (z0 + ((z0 + z2) / (1 - a * (z0 + z2)))));
+          if isempty(l)
+            % Calculate BCa or BC percentiles
+            z1 = stdnorminv(adj_alpha / 2);
+            z2 = stdnorminv(1 - adj_alpha / 2);
+            l = cat (2, stdnormcdf (z0 + ((z0 + z1) / (1 - a * (z0 + z1)))),... 
+                        stdnormcdf (z0 + ((z0 + z2) / (1 - a * (z0 + z2)))));
+          end
           [cdf, t1] = empcdf (bootstat, 1);
           ci = arrayfun ( @(p) interp1 (cdf, t1, p, 'linear'), l);
         case 2
@@ -669,6 +685,10 @@ function [stats, bootstat, BOOTSAM] = bootknife (x, nboot, bootfun, alpha, strat
           [cdf, t1] = empcdf (bootstat, 1);
           ci = arrayfun ( @(p) interp1 (cdf, t1, p, 'linear'), l);
       end
+      warning (state);
+      if ISOCTAVE
+        warning ("off", "quiet");
+      endif
     else
       ci = nan (1, 2);
     end
@@ -711,6 +731,14 @@ function [stats, bootstat, BOOTSAM] = bootknife (x, nboot, bootfun, alpha, strat
   % Print output if no output arguments are requested
   if (nargout == 0) 
     print_output(stats);
+  else
+    if isempty(BOOTSAM)
+      [warnmsg, warnID] = lastwarn;
+      if any (strcmp (warnID, {'bootknife:biasfail',' bootknife:jackfail'}))
+        warning (warnmsg);
+      end
+      lastwarn ('', '');
+    end
   end
 
   %--------------------------------------------------------------------------
@@ -721,7 +749,7 @@ function [stats, bootstat, BOOTSAM] = bootknife (x, nboot, bootfun, alpha, strat
                 '******************************************************************************\n\n']);
       fprintf ('Bootstrap settings: \n');
       fprintf (' Function: %s\n',func2str(bootfun));
-      fprintf (' Resampling method: Balanced, bootknife resampling \n')
+      fprintf (' Resampling method: Balanced, bootknife resampling \n');
       fprintf (' Number of resamples (outer): %u \n', B);
       fprintf (' Number of resamples (inner): %u \n', C);
       if ~isempty(alpha)
@@ -731,7 +759,15 @@ function [stats, bootstat, BOOTSAM] = bootknife (x, nboot, bootfun, alpha, strat
           if (numel (alpha) > 1)
             fprintf (' Confidence interval type: Percentile \n');
           else
-            fprintf (' Confidence interval type: Bias-corrected and accelerated (BCa) \n');
+            [jnk, warnID] = lastwarn;
+            switch warnID
+              case 'bootknife:biasfail'
+                fprintf (' Confidence interval type: Percentile \n');
+              case 'bootknife:jackfail'
+                fprintf (' Confidence interval type: Bias-corrected (BC)\n');
+              otherwise
+                fprintf (' Confidence interval type: Bias-corrected and accelerated (BCa) \n');
+            end
           end
         end
         if (numel (alpha) > 1)
@@ -754,7 +790,8 @@ function [stats, bootstat, BOOTSAM] = bootknife (x, nboot, bootfun, alpha, strat
                  [stats(i).original, stats(i).bias, stats(i).std_error, stats(i).CI_lower, stats(i).CI_upper]);
       end
       fprintf ('\n');
-      
+      lastwarn ('', '');  % reset last warning
+
   end
 
 end
@@ -773,10 +810,10 @@ function [F, x] = empcdf (bootstat, c)
 
   % Check input argument
   if ~isa(bootstat,'numeric')
-    error('bootknife:empcdf: bootstat must be numeric')
+    error ('bootknife:empcdf: bootstat must be numeric');
   end
   if all(size(bootstat)>1)
-    error('bootknife:empcdf: bootstat must be a vector')
+    error ('bootknife:empcdf: bootstat must be a vector');
   end
   if size(bootstat,2)>1
     bootstat = bootstat.';
