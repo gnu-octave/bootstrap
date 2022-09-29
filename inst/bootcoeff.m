@@ -3,8 +3,9 @@
 %  coeffs = bootcoeff(STATS)
 %
 %  Bootstrap the regression coefficients from a linear model. bootcoeff accepts
-%  as input the STATS structure from fitlm or anovan and returns a structure,
-%  coeffs, which contains the following fields:
+%  as input the STATS structure from fitlm or anovan functions (from the
+%  statistics package) and returns a structure, coeffs, which contains the
+%  following fields:
 %    original: contains the regression coefficients from the original data
 %    bias: contains the bootstrap estimate of bias
 %    std_error: contains the bootstrap standard error
@@ -66,20 +67,23 @@ function coeffs = bootcoeff (STATS, nboot, alpha, ncpus)
   fitted = X * b;
   lmfit = STATS.lmfit;
   W = full (STATS.W);
+  resid = STATS.resid;   % weigted residuals
+
+  % Calculate raw residuals
   se = sqrt (diag (W));
-  resid = STATS.resid;
+  raw_resid = resid ./ se;
 
   % Define bootfun for bootstraping the model residuals
-  bootfun = @(r) lmfit (X, fitted + r./se, W);
+  bootfun = @(r) lmfit (X, fitted + r, W);
 
   % Perform bootstrap
   if nargout > 0
     warning ('off','bootknife:lastwarn')
-    coeffs = bootknife (resid, nboot, bootfun, alpha, [], ncpus);
+    coeffs = bootknife (raw_resid, nboot, bootfun, alpha, [], ncpus);
     warning ('on','bootknife:lastwarn')
   else
     coeffs = [];
-    bootknife (resid, nboot, bootfun, alpha, [], ncpus);
+    bootknife (raw_resid, nboot, bootfun, alpha, [], ncpus);
   end
 
 end
