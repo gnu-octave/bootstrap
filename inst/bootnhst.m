@@ -672,12 +672,10 @@ function [p, c, stats] = bootnhst (data, group, varargin)
         PARALLEL = false;
       end
     else
-      try
-        retval = ~isempty(getCurrentTask()) && (matlabpool('size') > 0);
-      catch err
-        if ~strcmp(err.identifier, 'MATLAB:UndefinedFunction')
-          rethrow(err);
-        end
+      software = ver;
+      if ismember ('Parallel Computing Toolbox', {software.Name})
+        PARALLEL = true;
+      else
         PARALLEL = false;
       end
     end

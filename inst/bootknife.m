@@ -1,6 +1,6 @@
 %  Function File: bootknife
 %
-%  Bootknife (bootstrap) resampling
+%  Bootknife (bootstrap) resampling and statistics
 %
 %  This function takes a data sample (containing n rows) and uses bootstrap 
 %  techniques to calculate a bias of the parameter estimate, a standard 
@@ -32,7 +32,7 @@
 %
 %  stats = bootknife(data) resamples from the rows of a data sample (column 
 %  vector or a matrix) and returns a structure with the following fields:
-%    original: contains the result of applying bootfun to the data (x) 
+%    original: contains the result of applying bootfun to the data 
 %    bias: contains the bootstrap estimate of bias [7-8]
 %    std_error: contains the bootstrap standard error
 %    CI_lower: contains the lower bound of the bootstrap confidence interval
@@ -273,9 +273,6 @@ function [stats, bootstat, BOOTSAM] = bootknife (x, nboot, bootfun, alpha, strat
     C = 0;
   end
 
-  % Initialize quantiles
-  l = [];
-
   % Evaluate bootfun on the data
   T0 = bootfun (x);
   if all (size (T0) > 1)
@@ -297,7 +294,10 @@ function [stats, bootstat, BOOTSAM] = bootknife (x, nboot, bootfun, alpha, strat
   else
     vectorized = false;
   end
-  
+
+  % Initialize quantiles
+  l = [];
+
   % If applicable, check we have parallel computing capabilities
   if (ncpus > 1)
     if ISOCTAVE  
@@ -369,7 +369,7 @@ function [stats, bootstat, BOOTSAM] = bootknife (x, nboot, bootfun, alpha, strat
     end
   end
 
-  % If the function of the data is a vector, calculate the statistics for each element 
+  % If the function of the data is a matrix, calculate and return the bootstrap statistics for each column 
   sz = size (T0);
   m = prod (sz);
   if (m > 1)
@@ -694,7 +694,6 @@ function [stats, bootstat, BOOTSAM] = bootknife (x, nboot, bootfun, alpha, strat
   ci(alpha == 0) = -inf;
   ci(alpha == 1) = +inf;
 
-  
   % Use quick interpolation to find the proportion (Pr) of bootstat <= REF
   if (nargin < 7)
     Pr = NaN;
