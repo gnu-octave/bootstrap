@@ -621,7 +621,7 @@ function [stats, bootstat, BOOTSAM] = bootknife (x, nboot, bootfun, alpha, strat
               % Earlier versions of matlab do not have betaincinv
               studinv = @(p, df) - sqrt ( df ./ betainv (2 * p, df / 2, 0.5) - df);
             end
-            adj_alpha = stdnormcdf (studinv (alpha / 2, n - 1)) * 2;   
+            adj_alpha = stdnormcdf (studinv (alpha / 2, n - 1)) * 2;
           else
             adj_alpha = alpha;
           end
@@ -648,7 +648,7 @@ function [stats, bootstat, BOOTSAM] = bootknife (x, nboot, bootfun, alpha, strat
               gk = sum (g .* repmat (sum (g), n, 1), 2).';
               U = (gk - 1) .* (mean (T) - T);   
             else
-              U = (n - 1) * (mean (T) - T);     
+              U = (n - 1) * (mean (T) - T);
             end
             a = sum (U.^3) / (6 * sum (U.^2) ^ 1.5);
           catch
