@@ -1,4 +1,4 @@
-%  Function File: bootknife
+%  Function File: bootcoeff
 %
 %  coeffs = bootcoeff(STATS)
 %
@@ -12,12 +12,15 @@
 %    CI_lower: contains the lower bound of the bootstrap confidence interval
 %    CI_upper: contains the upper bound of the bootstrap confidence interval
 %  The confidence intervals are 95% bias-corrected intervals. If no output is
-%  requested, the results are printed to stdout.
+%  requested, the results are printed to stdout. The list of coefficients and
+%  their bootstrap statistics are correspond to the names in STATS.coeffnames,
+%  which are defined by the contrast coding in STATS.contrasts. The rows of 
+%  STATS.contrasts correspond to the names in STATS.grpnames.
 %
 %  bootcoef is only supported in GNU Octave and requires the Statistics package
 %  version 1.5 or later.
 %
-%  bootcoeff v0.1.0.0 (27/09/2022)
+%  bootcoeff v0.1.1.0 (30/09/2022)
 %  Author: Andrew Charles Penn
 %  https://www.researchgate.net/profile/Andrew_Penn/
 %
@@ -38,7 +41,7 @@
 
 function coeffs = bootcoeff (STATS, nboot, alpha, ncpus)
 
-  % Error checking
+  % Check input aruments
   if (nargin < 2)
     nboot = 2000;
   end
@@ -48,7 +51,11 @@ function coeffs = bootcoeff (STATS, nboot, alpha, ncpus)
   if (nargin < 2)
     ncpus = 0;
   end
-  % Check if running in Octave (else assume Matlab)
+
+  % Error checking
+  if numel(nboot) > 1
+    error ('bootcoeff only supports single bootstrap resampling')
+  end
   info = ver; 
   ISOCTAVE = any (ismember ({info.Name}, 'Octave'));
   if ~ISOCTAVE
@@ -79,7 +86,7 @@ function coeffs = bootcoeff (STATS, nboot, alpha, ncpus)
   % Perform bootstrap
   if nargout > 0
     warning ('off','bootknife:lastwarn')
-    coeffs = bootknife (raw_resid, nboot, bootfun, alpha, [], ncpus);
+    [coeffs,bootstat,bootsam] = bootknife (raw_resid, nboot, bootfun, alpha, [], ncpus);
     warning ('on','bootknife:lastwarn')
   else
     coeffs = [];
