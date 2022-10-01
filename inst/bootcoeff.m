@@ -74,18 +74,16 @@ function coeffs = bootcoeff (STATS, nboot, alpha, ncpus)
   fitted = X * b;
   lmfit = STATS.lmfit;
   W = full (STATS.W);
-  resid = STATS.resid;   % weigted residuals
-
-  % Calculate raw residuals
-  se = sqrt (diag (W));
+  se = diag (W).^(-0.5);
+  resid = STATS.resid;   % weighted residuals
 
   % Define bootfun for bootstraping the model residuals
-  bootfun = @(r) lmfit (X, fitted + r./se, W);
+  bootfun = @(r) lmfit (X, fitted + r .* se, W);
 
   % Perform bootstrap
   if nargout > 0
     warning ('off','bootknife:lastwarn')
-    [coeffs,bootstat,bootsam] = bootknife (resid, nboot, bootfun, alpha, [], ncpus);
+    coeffs = bootknife (resid, nboot, bootfun, alpha, [], ncpus);
     warning ('on','bootknife:lastwarn')
   else
     coeffs = [];
