@@ -36,7 +36,7 @@
 %  resample the ANOVA model residuals (instead of the raw data). 
 %  Resampling residuals is akin to the approach of ter Braak for
 %  resampling model residuals in permutation and bootstrap tests [1,2].
-%  Default is false.
+%  Default is false (i.e. Manly's approach).
 %
 %  p = bootanovan(DATA,GROUP,nboot,residuals,nproc) sets the number 
 %  of parallel processes to use to accelerate computations on 
