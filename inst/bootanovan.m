@@ -36,6 +36,7 @@
 %  resample the ANOVA model residuals (instead of the raw data). 
 %  Resampling residuals is akin to the approach of ter Braak for
 %  resampling model residuals in permutation and bootstrap tests [1,2].
+%  Default is false.
 %
 %  p = bootanovan(DATA,GROUP,nboot,residuals,nproc) sets the number 
 %  of parallel processes to use to accelerate computations on 
@@ -93,9 +94,12 @@ function [p, F, FDIST] = bootanovan (data, group, nboot, residuals, ncpus, varar
   % Check for dependency anovan
   if ~exist('anovan','file')
     if ISOCTAVE
-      error('missing dependency: anovan from the Statistics package')
+      statspackage = ismember ({info.Name}, 'statistics');
+      if (~ any (statspackage)) || (str2num(info(statspackage).Version(1:3)) < 1.5)
+        error ('bootanovan requires version >= 1.5 of the statistics package')
+      end
     else
-      error('missing dependency: anovan from the Statistics and Machine Learning Toolbox')
+      error('bootanovan: requires anovan from the Statistics and Machine Learning Toolbox')
     end
   end
 
@@ -159,18 +163,9 @@ function [p, F, FDIST] = bootanovan (data, group, nboot, residuals, ncpus, varar
   if (nargout > 3)
     error('bootanovan only supports up to 3 output arguments')
   end
-  if ISOCTAVE
-    combi_group_ID = cellstr(cellfun(@num2str,num2cell(group)));
-    [unique_IDs,junk,j] = unique(combi_group_ID,'legacy');
-    count = accumarray(j,1);
-    clear junk;
-    if any(count==1)
-      error('Octave anovan requires replication for each combination of factor levels')
-    end
-  end
 
   % Perform balanced, bootknife resampling and compute bootstrap statistics
-  boot (1, 1, false, 1, 0); % set random seed to make bootstrap resampling deterministic 
+  boot (1, 1, false, 1, 0); % set random seed to make bootstrap resampling reproducible 
   cellfunc = @(data) anovan_wrapper (data, group, ISOCTAVE, options);
   if residuals
     % Get model residuals, we will resample these instead
