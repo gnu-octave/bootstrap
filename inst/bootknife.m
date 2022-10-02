@@ -749,7 +749,7 @@ function [stats, bootstat, BOOTSAM] = bootknife (x, nboot, bootfun, alpha, strat
       fprintf (' Resampling method: Balanced, bootknife resampling \n');
       fprintf (' Number of resamples (outer): %u \n', B);
       fprintf (' Number of resamples (inner): %u \n', C);
-      if ~isempty(alpha)
+      if ~isempty(alpha) && ~isnan(alpha)
         if (C > 0)
           fprintf (' Confidence interval type: Calibrated \n');
         else
