@@ -34,10 +34,10 @@ function maxT = maxstat (Y, g, nboot, bootfun, ref, ISOCTAVE)
       theta(j) = bootfun(Y(g==gk(j),:));
       nk(j) = sum(g==gk(j));
       stats = bootknife(Y(g==gk(j),:),[nboot,0],bootfun,[],[],0,[],ISOCTAVE);
-      if isnan(stats.std_error)
-        error('evaluating bootfun on the bootknife resamples created NaN values for the standard error')
-      end
       SE(j) = stats.std_error;
+    end
+    if any(isnan(SE))
+      error('evaluating bootfun on the bootknife resamples created NaN values for the standard error')
     end
     Var(j) = ((nk(j)-1)/(N-k)) * SE(j)^2;
   end
