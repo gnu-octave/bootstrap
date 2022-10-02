@@ -530,7 +530,7 @@ function [p, c, stats] = bootnhst (data, group, varargin)
       elseif strcmpi(argin3{end-1},'DisplayOpt')
         DisplayOpt = argin3{end};
       else
-        error('unrecognised input argument to bootnhst')
+        error('bootnhst: unrecognised input argument to bootnhst')
       end
       argin3 = {argin3{1:end-2}};
       narg = numel(argin3);
@@ -550,7 +550,7 @@ function [p, c, stats] = bootnhst (data, group, varargin)
     group = cellstr(group);
   end
   if (size(group,1)>1) && (size(data,1) ~= size(group,1))
-    error('DATA and GROUP must have the same number of rows')
+    error('bootnhst: DATA and GROUP must have the same number of rows')
   end
   if iscell(group)
     if ~iscellstr(group)
@@ -592,13 +592,13 @@ function [p, c, stats] = bootnhst (data, group, varargin)
     end
   end
   if ~isa(nboot,'numeric')
-    error('nboot must be numeric');
+    error('bootnhst: nboot must be numeric');
   end
   if any(nboot~=abs(fix(nboot)))
-    error('nboot must contain positive integers')
+    error('bootnhst: nboot must contain positive integers')
   end
   if numel(nboot) > 2
-    error('the vector nboot cannot have length > 2')
+    error('bootnhst: the vector nboot cannot have length > 2')
   elseif numel(nboot) < 2
     if strcmp(func2str(bootfun),'mean')
       % Avoid resampling when estimating standard errors of the mean
@@ -611,7 +611,7 @@ function [p, c, stats] = bootnhst (data, group, varargin)
     end
   end
   if nboot(1) < 1000
-    error('the minimum allowable value of nboot(1) is 1000')
+    error('bootnhst: the minimum allowable value of nboot(1) is 1000')
   end 
   
   % Error checking
@@ -619,10 +619,10 @@ function [p, c, stats] = bootnhst (data, group, varargin)
     ref = [];
   end
   if ~isa(dim,'numeric')
-    error('dim must be numeric');
+    error('bootnhst: dim must be numeric');
   end
   if (dim ~= 1) && (dim ~= 2)
-    error('dim must be either 1 or 2');
+    error('bootnhst: dim must be either 1 or 2');
   end
   if nargout > 3
     error('bootnhst only supports up to 3 output arguments')
@@ -1010,19 +1010,19 @@ function [F, x] = empcdf (bootstat, c)
 
   % Check input argument
   if ~isa(bootstat,'numeric')
-    error('bootstat must be numeric')
+    error('bootnhst:empcdf: bootstat must be numeric')
   end
   if all(size(bootstat)>1)
-    error('bootstat must be a vector')
+    error('bootnhst:empcdf: bootstat must be a vector')
   end
   if size(bootstat,2)>1
     bootstat = bootstat.';
   end
 
   % Create empirical CDF
-  x = sort(bootstat);
+  bootstat = sort(bootstat);
   N = sum(~isnan(bootstat));
-  [x,F] = unique(x,'rows','last','legacy');
+  [x,F] = unique(bootstat,'rows','last','legacy');
   F = F/(N+1);
 
   % Apply option to complete the CDF
