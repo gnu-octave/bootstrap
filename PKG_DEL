@@ -1,4 +1,4 @@
-dirlist = {'helper', 'param', 'legacy', sprintf('legacy%shelper', filesep)};
+dirlist = {'helper', 'param', 'octave', 'legacy', sprintf('legacy%shelper', filesep)};
 dirname = fileparts (mfilename ('fullpath'));
 
 if ~exist (fullfile (dirname, 'inst'), 'dir')
