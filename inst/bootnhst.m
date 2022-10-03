@@ -58,17 +58,15 @@
 %  should NOT be an estimate of a population parameter. For example, for 
 %  the variance, set bootfun to {@var,1}, not @var or {@var,0}. The default 
 %  value of bootfun is 'mean'. If empty, the default is @mean or 'mean'. 
-%  If DATA is multivariate, bootfun is the grand mean, which is the mean of 
-%  the means of each column (i.e. variates). If a robust statistic for 
-%  central location is required, setting bootfun to 'robust' implements a 
-%  smoothed version of the median (see function help for smoothmedian). 
-%  Smooth functions of the data are preferable for bootstrap.
+%  If a robust statistic for central location is required, setting bootfun
+%  to 'robust' implements a smoothed version of the median (see function help
+%  for smoothmedian). Smooth functions of the data are preferable for bootstrap.
 %    Standard errors are estimated by bootknife resampling by default [2], 
 %  where nboot(2) corresponds to the number of bootknife resamples. If 
 %  nboot(2) is 0 and standard errors are calculated without resampling 
 %  (if bootfun is 'mean'), or using leave-one-out jackknife. Note that if 
 %  bootfun is not the mean, the t-statistics returned by this function  
-%  will not be comparable with tabulated values.  
+%  will not be comparable with tabulated values.
 %
 %  bootnhst(...,'nboot',nboot) is a vector of upto two positive integers
 %  indicating the number of replicate samples for the first (bootstrap) 
@@ -158,7 +156,7 @@
 %    column 9: UPPER bound of the bootstrap-t confidence interval
 %
 %  Note that the p-values returned in column 7 and the length of 
-%  the confidence interval limits returned columns 8 and 9 are 
+%  the confidence interval limits returned in columns 8 and 9 are 
 %  corrected/adjusted to control the FWER.
 %
 %  [p,c,stats] = bootnhst(DATA,GROUP,...) also returns a structure 
@@ -169,8 +167,9 @@
 %              gnames corresponds to the numbers used to identify GROUPs
 %              in columns 1 and 2 of the output argument c
 %   ref      - reference group
-%   groups   - group number and bootfun for each group with sample size 
-%              and standard error.
+%   groups   - group number and bootfun for each group with sample size,
+%              standard error and confidence intervals that start to overlap
+%              at a FWER-controlled p-value of approximately 0.05
 %   Var      - weighted mean (pooled) sampling variance
 %   maxT     - omnibus test statistic (maxT) 
 %   df       - degrees of freedom
@@ -382,85 +381,6 @@
 % |          3 |                                                             3 |
 %
 % 
-%  EXAMPLE 3: 
-%  MANOVA or TWO-WAY REPEATED MEASURES ANOVA: pairwise comparisons
-%
-%   >> y = [34  54
-%           65  91
-%           12  13
-%           35  29
-%           55  79
-%           99 121];
-%   >> g = [1
-%           1
-%           2
-%           2
-%           3
-%           3];
-%   >> bootnhst (y,g,'nboot',5000);
-%
-% Summary of bootstrap null hypothesis (H0) significance test(s)
-% ******************************************************************************
-% Bootstrap settings:
-%  Function: @(data) mean (mean (data, dim))
-%  Bootstrap resampling method: Balanced, bootknife resampling
-%  Number of bootstrap resamples: 5000
-%  Method for estimating standard errors: Balanced, bootknife resampling
-%  Number of bootknife resamples used to estimate standard errors: 200
-%  Multiple comparison method: Single-step maxT procedure based on Tukey-Kramer
-% ------------------------------------------------------------------------------
-% 
-% Overall hypothesis test from single-step maxT procedure
-% H0: Groups of data are all sampled from the same population
-% 
-% Maximum t(3) = 2.79, p-adj = .136
-% ------------------------------------------------------------------------------
-% POST HOC TESTS with control of the FWER by the single-step maxT procedure
-% ------------------------------------------------------------------------------
-% | Comparison |  Reference # |       Test # |  Difference |    t(df)|   p-adj |
-% |------------|--------------|--------------|-------------|---------|---------|
-% |          1 |            1 |            2 |   -3.88e+01 |    1.63 |    .345 |
-% |          2 |            1 |            3 |   +2.75e+01 |    1.16 |    .548 |
-% |          3 |            2 |            3 |   +6.62e+01 |    2.79 |    .136 |
-% 
-% Where degrees of freedom (df) = 3
-% 
-% ------------------------------------------------------------------------------
-% |    GROUP # |                                                   GROUP label |
-% |------------|---------------------------------------------------------------|
-% |          1 |                                                             1 |
-% |          2 |                                                             2 |
-% |          3 |                                                             3 |
-%
-%
-%  EXAMPLE 4: 
-%  MANOVA or TWO-WAY REPEATED MEASURES ANOVA: comparing 2 groups
-%   >> y = [34    35    78    54    42
-%           65    67   111    98    89
-%           39    41   167   143   136
-%           65    54   211   178   146];
-%   >> g = [ 1
-%            1
-%            2
-%            2];
-%   >> bootnhst (y,g,'nboot',5000);
-%
-% Summary of bootstrap null hypothesis (H0) significance test(s)
-% ******************************************************************************
-% Bootstrap settings:
-%  Function: @(data) mean (mean (data, dim))
-%  Bootstrap resampling method: Balanced, bootknife resampling
-%  Number of bootstrap resamples: 5000
-%  Method for estimating standard errors: Balanced, bootknife resampling
-%  Number of bootknife resamples used to estimate standard errors: 200
-%  Multiple comparison method: Single-step maxT procedure based on Tukey-Kramer
-% ------------------------------------------------------------------------------
-% 
-% Overall hypothesis test from single-step maxT procedure
-% H0: Groups of data are all sampled from the same population
-% 
-% Maximum t(2) = 2.24, p-adj = .144
-% ------------------------------------------------------------------------------
 %
 %
 %   Bibliography:
@@ -562,40 +482,17 @@ function [p, c, stats] = bootnhst (data, group, varargin)
     args = bootfun(2:end);
     bootfun = @(data) func (data, args{:});
   end
-  if isa(bootfun,'function_handle')
-    if strcmp (func2str (bootfun), 'mean')
-      if (nvar > 1)
-        % Grand mean for multivariate data
-        bootfun = @(data) mean(mean(data,dim));
-      end
-    elseif strcmp (func2str (bootfun), 'smoothmedian')
-      if (nvar > 1) 
-        % Grand smoothed median for multivariate data
-        bootfun = @(data) smoothmedian(smoothmedian(data,dim));
-      end
-    end
-  elseif isa(bootfun,'char')
-    if strcmpi(bootfun,'mean') 
-      if nvar > 1
-        % Grand mean for multivariate data
-        bootfun = @(data) mean(mean(data,dim));
-      else
-        bootfun = @mean;
-      end
-    elseif any(strcmpi(bootfun,{'robust','smoothmedian'}))
-      if nvar > 1
-        % Grand smoothed median for multivariate data
-        bootfun = @(data) smoothmedian(smoothmedian(data,dim));
-      else
-        bootfun = @smoothmedian;
-      end
-    end
-  end
   if ~isa(nboot,'numeric')
     error('bootnhst: nboot must be numeric');
   end
   if any(nboot~=abs(fix(nboot)))
     error('bootnhst: nboot must contain positive integers')
+  end
+  if isa(bootfun,'char')
+    if any(strcmpi(bootfun,'robust'))
+      bootfun = 'smoothmedian';
+    end
+    bootfun = str2func(bootfun);
   end
   if numel(nboot) > 2
     error('bootnhst: the vector nboot cannot have length > 2')
@@ -748,7 +645,7 @@ function [p, c, stats] = bootnhst (data, group, varargin)
   func = @(data) maxstat (data, g, nboot(2), bootfun, ref, ISOCTAVE);
 
   % Perform resampling and calculate bootstrap statistics to estimate sampling distribution under the null hypothesis
-  boot (1, 1, false, 1, 0); % set random seed to make bootstrap resampling deterministic  
+  boot (1, 1, true, 1, 0); % set random seed to make bootstrap resampling deterministic  
   % Use newer, faster and balanced (less biased) resampling functions (boot and bootknife)
   if paropt.UseParallel
     [null,Q] = bootknife (data,nboot(1),func,[],[],paropt.nproc,[],ISOCTAVE);
@@ -773,7 +670,8 @@ function [p, c, stats] = bootnhst (data, group, varargin)
       else
         theta(j) = bootfun(data(g==gk(j),:));
         % If requested, compute unbiased estimates of the standard error using jackknife resampling
-        SE(j) = jack(data(g==gk(j),:), bootfun);
+        jackstat = jackknife(bootfun,data(g==gk(j),:));
+        SE(j) = sqrt ((nk(j)-1)/nk(j) * sum(((mean(jackstat)-jackstat)).^2));
         if (j==1); se_method = 'Leave-one-out jackknife'; end;
       end
     else
@@ -786,6 +684,12 @@ function [p, c, stats] = bootnhst (data, group, varargin)
       if (j==1); se_method = 'Balanced, bootknife resampling'; end;
     end
     Var(j) = ((nk(j)-1)/(N-k)) * SE(j)^2;
+  end
+  if any(SE==0)
+    error('bootnhst: samples must have non-zero standard error')
+  end
+  if any(isnan(SE))
+    error('bootnhst: evaluating bootfun on the bootknife resamples created NaN values for the standard error')
   end
   nk_bar = sum(nk.^2)./sum(nk);  % weighted mean sample size
   Var = sum(Var.*nk/nk_bar);     % pooled sampling variance weighted by sample size
@@ -856,14 +760,14 @@ function [p, c, stats] = bootnhst (data, group, varargin)
   stats = struct;
   stats.gnames = gnames;
   stats.ref = ref;
-  stats.groups = zeros(k,5);
-  stats.groups = zeros(k,5);
+  stats.groups = zeros(k,6);
+  stats.groups = zeros(k,6);
   stats.groups(:,1) = gk;
   stats.groups(:,2) = theta;
   stats.groups(:,3) = nk;
   stats.groups(:,4) = SE;
-  %stats.groups(:,5) = theta - sqrt((0.5*(w+1)).*Var/2) * interp1(cdf,QS,1-alpha,'linear');
-  %stats.groups(:,6) = theta + sqrt((0.5*(w+1)).*Var/2) * interp1(cdf,QS,1-alpha,'linear');
+  stats.groups(:,5) = theta - sqrt((0.5*(w+1)).*Var/2) * interp1(cdf,QS,1-alpha,'linear');
+  stats.groups(:,6) = theta + sqrt((0.5*(w+1)).*Var/2) * interp1(cdf,QS,1-alpha,'linear');
   stats.Var = Var;
   stats.maxT = maxT;
   stats.df = df;
@@ -1038,3 +942,56 @@ function [F, x] = empcdf (bootstat, c)
   x(isinf(x)) = [];
 
 end
+
+
+%!test
+%! y = [111.39 110.21  89.21  76.64  95.35  90.97  62.78;
+%!      112.93  60.36  92.29  59.54  98.93  97.03  79.65;
+%!       85.24 109.63  64.93  75.69  95.28  57.41  75.83;
+%!      111.96 103.40  75.49  76.69  77.95  93.32  78.70];
+%! g = [1 2 3 4 5 6 7;
+%!      1 2 3 4 5 6 7;
+%!      1 2 3 4 5 6 7;
+%!      1 2 3 4 5 6 7];
+%! p = bootnhst (y(:),g(:),'ref',1,'nboot',[1000,0],'DisplayOpt','off');
+%! assert (p, 0.01210939735473963, 1e-09);
+%! p = bootnhst (y(:),g(:),'nboot',[1000,0],'DisplayOpt','off');
+%! assert (p, 0.04407742932277153, 1e-09);
+%! # Result from anova1 is 0.0387
+
+%!test
+%! y = [54       43
+%!      23       34
+%!      45       65
+%!      54       77
+%!      45       46
+%!     NaN       65];
+%! g = {'male' 'female'
+%!      'male' 'female'
+%!      'male' 'female'
+%!      'male' 'female'
+%!      'male' 'female'
+%!      'male' 'female'};
+%! p = bootnhst (y(:),g(:),'ref','male','nboot',[1000,0],'DisplayOpt','off');
+%! assert (p, 0.2577543618442567, 1e-09);
+%! p = bootnhst (y(:),g(:),'nboot',[1000,0],'DisplayOpt','off');
+%! assert (p, 0.2577543618442567, 1e-09);
+%! # Result from anova1 is 0.2613
+
+%!test
+%! y = [54  87  45
+%!      23  98  39
+%!      45  64  51
+%!      54  77  49
+%!      45  89  50
+%!      47 NaN  55];
+%! g = [ 1   2   3
+%!       1   2   3
+%!       1   2   3
+%!       1   2   3
+%!       1   2   3
+%!       1   2   3];
+%! p = bootnhst (y(:),g(:),'nboot',[1000,0],'DisplayOpt','off');
+%! assert (p, 0.001, 1e-09); # truncated at 0.001
+%! # Result from anova1 is 4.162704768129188e-05
+
