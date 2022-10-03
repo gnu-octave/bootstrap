@@ -26,7 +26,8 @@ function maxT = maxstat (Y, g, nboot, bootfun, ref, ISOCTAVE)
       else
         theta(j) = bootfun(Y(g==gk(j),:));
         % If requested, compute unbiased estimates of the standard error using jackknife resampling
-        SE(j) = jack(Y(g==gk(j),:), bootfun);
+        jackstat = jackknife(bootfun,Y(g==gk(j),:));
+        SE(j) = sqrt ((nk(j)-1)/nk(j) * sum(((mean(jackstat)-jackstat)).^2));
       end
     else
       % Compute unbiased estimate of the standard error by balanced bootknife resampling
@@ -36,10 +37,10 @@ function maxT = maxstat (Y, g, nboot, bootfun, ref, ISOCTAVE)
       stats = bootknife(Y(g==gk(j),:),[nboot,0],bootfun,[],[],0,[],ISOCTAVE);
       SE(j) = stats.std_error;
     end
-    if any(isnan(SE))
-      error('evaluating bootfun on the bootknife resamples created NaN values for the standard error')
-    end
     Var(j) = ((nk(j)-1)/(N-k)) * SE(j)^2;
+  end
+  if any(isnan(SE))
+    error('maxstat: evaluating bootfun on the bootknife resamples created NaN values for the standard error')
   end
   nk_bar = sum(nk.^2)./sum(nk);  % weighted mean sample size
   Var = sum(Var.*nk/nk_bar);     % pooled sampling variance weighted by sample size
