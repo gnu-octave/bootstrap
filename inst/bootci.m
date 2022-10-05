@@ -219,7 +219,7 @@ end
 %! ## Nonparametric 90% BCa confidence intervals (single bootstrap)
 %! ## Table 2 BCa intervals are 0.55 - 0.85
 %! boot (1, 1, true, [], 1); # Set random seed
-%! ci = bootci(2000,{@corr,{baseline,oneyear}},'alpha',0.1);
+%! ci = bootci(2000,{@corr,baseline,oneyear},'alpha',0.1);
 %! assert (ci(1), 0.5477225147834641, 1e-09);
 %! assert (ci(2), 0.8457573378934136, 1e-09);
 %! # Exact intervals based on theory are 0.47 - 0.86 (Table 14.2)
