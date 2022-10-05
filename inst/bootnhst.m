@@ -411,6 +411,15 @@
 
 function [p, c, stats] = bootnhst (data, group, varargin)
 
+  % Evaluate the number of function arguments
+  if (nargin < 2)
+    error('bootnhst usage: ''bootnhst (data, group, varargin)''; atleast 2 input arguments required');
+  end
+
+  % Store local functions in a stucture for parallel processes
+  localfunc = struct ('maxstat',@maxstat,...
+                      'empcdf',@empcdf);
+
   % Check if running in Octave (else assume Matlab)
   info = ver; 
   ISOCTAVE = any (ismember ({info.Name}, 'Octave'));
@@ -510,6 +519,14 @@ function [p, c, stats] = bootnhst (data, group, varargin)
   if nboot(1) < 1000
     error('bootnhst: the minimum allowable value of nboot(1) is 1000')
   end 
+  if (nboot(2) == 0)
+    if ISOCTAVE
+      statspackage = ismember ({info.Name}, 'statistics');
+      if (~ any (statspackage))
+        error ('bootanovan: jackknife calculations require the statistics package')
+      end
+    end
+  end
   
   % Error checking
   if ~isempty(ref) && strcmpi(ref,'pairwise')
@@ -523,6 +540,9 @@ function [p, c, stats] = bootnhst (data, group, varargin)
   end
   if nargout > 3
     error('bootnhst only supports up to 3 output arguments')
+  end
+  if ~islogical(DisplayOpt) || (numel(DisplayOpt)>1)
+    error('bootnhst: the value for DisplayOpt must be a logical scalar value')
   end
 
   % Data or group exclusion using NaN 
@@ -569,8 +589,7 @@ function [p, c, stats] = bootnhst (data, group, varargin)
         PARALLEL = false;
       end
     else
-      software = ver;
-      if ismember ('Parallel Computing Toolbox', {software.Name})
+      if ismember ('Parallel Computing Toolbox', {info.Name})
         PARALLEL = true;
       else
         PARALLEL = false;
@@ -641,8 +660,9 @@ function [p, c, stats] = bootnhst (data, group, varargin)
     end
   end
 
-  % Define a function to calculate maxT
-  func = @(data) maxstat (data, g, nboot(2), bootfun, ref, ISOCTAVE);
+  % Create handle to a local function for calculating the maximum test statistic
+  localfunc = struct ('maxstat', @maxstat);
+  func = @(data) localfunc.maxstat (data, g, nboot(2), bootfun, ref, ISOCTAVE);
 
   % Perform resampling and calculate bootstrap statistics to estimate sampling distribution under the null hypothesis
   boot (1, 1, true, 1, 0); % set random seed to make bootstrap resampling deterministic  
@@ -899,6 +919,78 @@ function [p, c, stats] = bootnhst (data, group, varargin)
 
 end
 
+%--------------------------------------------------------------------------
+
+function maxT = maxstat (Y, g, nboot, bootfun, ref, ISOCTAVE)
+
+  % Helper function file required for bootnhst
+  % Calculate maximum test statistic
+  
+  % maxstat cannot be a subfunction or nested function since 
+  % Octave parallel threads won't be able to find it
+
+  % Calculate the size of the data (N) and the number (k) of unique groups
+  N = size(g,1);
+  gk = unique(g);
+  k = numel(gk);
+
+  % Compute the estimate (theta) and it's pooled (weighted mean) sampling variance 
+  theta = zeros(k,1);
+  SE = zeros(k,1);
+  Var = zeros(k,1);
+  nk = zeros(size(gk));
+  for j = 1:k
+    if (nboot == 0)
+      nk(j) = sum(g==gk(j));
+      if strcmp (func2str(bootfun), 'mean')
+        theta(j) = mean(Y(g==gk(j),:));
+        % Quick calculation for the standard error of the mean
+        SE(j) = std(Y(g==gk(j),:),0) / sqrt(nk(j));
+      else
+        theta(j) = bootfun(Y(g==gk(j),:));
+        % If requested, compute unbiased estimates of the standard error using jackknife resampling
+        jackstat = jackknife(bootfun,Y(g==gk(j),:));
+        SE(j) = sqrt ((nk(j)-1)/nk(j) * sum(((mean(jackstat)-jackstat)).^2));
+      end
+    else
+      % Compute unbiased estimate of the standard error by balanced bootknife resampling
+      % Bootknife resampling involves less computation than Jackknife when sample sizes get larger
+      theta(j) = bootfun(Y(g==gk(j),:));
+      nk(j) = sum(g==gk(j));
+      stats = bootknife(Y(g==gk(j),:),[nboot,0],bootfun,[],[],0,[],ISOCTAVE);
+      SE(j) = stats.std_error;
+    end
+    Var(j) = ((nk(j)-1)/(N-k)) * SE(j)^2;
+  end
+  if any(isnan(SE))
+    error('maxstat: evaluating bootfun on the bootknife resamples created NaN values for the standard error')
+  end
+  nk_bar = sum(nk.^2)./sum(nk);  % weighted mean sample size
+  Var = sum(Var.*nk/nk_bar);     % pooled sampling variance weighted by sample size
+
+  % Calculate weights to correct for unequal sample size  
+  % when calculating standard error of the difference
+  w = nk_bar./nk;
+
+  % Calculate the maximum test statistic 
+  if isempty(ref)
+    % Calculate Tukey-Kramer test statistic (without sqrt(2) factor)
+    %
+    % Bibliography:
+    %  [1] https://en.wikipedia.org/wiki/Tukey%27s_range_test
+    %  [2] https://cdn.graphpad.com/faq/1688/file/MulitpleComparisonAlgorithmsPrism8.pdf
+    %  [3] www.graphpad.com/guides/prism/latest/statistics/stat_the_methods_of_tukey_and_dunne.htm
+    idx = logical(triu(ones(k,k),1));
+    i = (1:k)' * ones(1,k);
+    j = ones(k,1) * (1:k);
+    t = abs(theta(i(idx)) - theta(j(idx))) ./ sqrt(Var * (w(i(idx)) + w(j(idx))));
+  else
+    % Calculate Dunnett's test statistic 
+    t = abs((theta - theta(ref))) ./ sqrt(Var * (w + w(ref)));
+  end
+  maxT = max(t);
+  
+end
 
 %--------------------------------------------------------------------------
 
@@ -943,6 +1035,7 @@ function [F, x] = empcdf (bootstat, c)
 
 end
 
+%--------------------------------------------------------------------------
 
 %!test
 %! y = [111.39 110.21  89.21  76.64  95.35  90.97  62.78;
@@ -953,9 +1046,9 @@ end
 %!      1 2 3 4 5 6 7;
 %!      1 2 3 4 5 6 7;
 %!      1 2 3 4 5 6 7];
-%! p = bootnhst (y(:),g(:),'ref',1,'nboot',[1000,0],'DisplayOpt','off');
+%! p = bootnhst (y(:),g(:),'ref',1,'nboot',[1000,0],'DisplayOpt',false);
 %! assert (p, 0.01210939735473963, 1e-09);
-%! p = bootnhst (y(:),g(:),'nboot',[1000,0],'DisplayOpt','off');
+%! p = bootnhst (y(:),g(:),'nboot',[1000,0],'DisplayOpt',false);
 %! assert (p, 0.04407742932277153, 1e-09);
 %! # Result from anova1 is 0.0387
 
@@ -972,9 +1065,9 @@ end
 %!      'male' 'female'
 %!      'male' 'female'
 %!      'male' 'female'};
-%! p = bootnhst (y(:),g(:),'ref','male','nboot',[1000,0],'DisplayOpt','off');
+%! p = bootnhst (y(:),g(:),'ref','male','nboot',[1000,0],'DisplayOpt',false);
 %! assert (p, 0.2577543618442567, 1e-09);
-%! p = bootnhst (y(:),g(:),'nboot',[1000,0],'DisplayOpt','off');
+%! p = bootnhst (y(:),g(:),'nboot',[1000,0],'DisplayOpt',false);
 %! assert (p, 0.2577543618442567, 1e-09);
 %! # Result from anova1 is 0.2613
 
@@ -991,7 +1084,7 @@ end
 %!       1   2   3
 %!       1   2   3
 %!       1   2   3];
-%! p = bootnhst (y(:),g(:),'nboot',[1000,0],'DisplayOpt','off');
+%! p = bootnhst (y(:),g(:),'nboot',[1000,0],'DisplayOpt',false);
 %! assert (p, 0.001, 1e-09); # truncated at 0.001
 %! # Result from anova1 is 4.162704768129188e-05
 

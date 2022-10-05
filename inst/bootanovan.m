@@ -134,10 +134,6 @@ function [p, F, FDIST] = bootanovan (data, group, nboot, residuals, ncpus, varar
     if ~islogical(residuals) && (numel(residuals) > 1)
       error('residuals must be a logical scalar value')
     end
-    if (residuals && ISOCTAVE)
-      residuals = false;
-      warning('residuals argument is ignored in Octave (residuals = false); the raw data will be resampled.')
-    end
   end  
   if (nargin < 5)
     ncpus = 0;    % Ignore parallel processing features
@@ -165,8 +161,9 @@ function [p, F, FDIST] = bootanovan (data, group, nboot, residuals, ncpus, varar
   end
 
   % Perform balanced, bootknife resampling and compute bootstrap statistics
-  boot (1, 1, false, 1, 0); % set random seed to make bootstrap resampling reproducible 
-  cellfunc = @(data) anovan_wrapper (data, group, ISOCTAVE, options);
+  boot (1, 1, false, 1, 0); % set random seed to make bootstrap resampling reproducible
+  localfunc = struct ('anovan_wrapper',@anovan_wrapper);
+  cellfunc = @(data) localfunc.anovan_wrapper (data, group, ISOCTAVE, options);
   if residuals
     % Get model residuals, we will resample these instead
     % This is the approach of ter Braak
@@ -192,3 +189,16 @@ function [p, F, FDIST] = bootanovan (data, group, nboot, residuals, ncpus, varar
  
 end
 
+%--------------------------------------------------------------------------
+
+function  F = anovan_wrapper (y, g, ISOCTAVE, options)
+  
+  % Helper function file required for bootanovan
+  
+  % anovan_wrapper cannot be a subfunction or nested function since 
+  % Octave parallel threads won't be able to find it
+  
+  [junk,tbl] = anovan(y,g,'display','off',options{:});
+  F = cell2mat(tbl(2:end,6)); 
+
+end

@@ -14,7 +14,7 @@ if isoctave
   dirlist = cell(5,1); % dir list needs to be in decreasing order of length
   dirlist{1} = fullfile (pwd,'inst','legacy','helper');
   dirlist{2} = fullfile (pwd,'inst','legacy');
-  dirlist{3} = fullfile (pwd,'inst','helper');
+  dirlist{3} = fullfile (pwd,'inst','octave');
   dirlist{4} = fullfile (pwd,'inst','param');
   dirlist{5} = fullfile (pwd,'inst','');
   n = numel (dirlist);
