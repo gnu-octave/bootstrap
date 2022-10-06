@@ -519,11 +519,15 @@ function [p, c, stats] = bootnhst (data, group, varargin)
   if nboot(1) < 1000
     error('bootnhst: the minimum allowable value of nboot(1) is 1000')
   end 
-  if (nboot(2) == 0)
+  if (nboot(2) == 0) && ~strcmp(func2str(bootfun),'mean')
     if ISOCTAVE
       statspackage = ismember ({info.Name}, 'statistics');
       if (~ any (statspackage))
-        error ('bootanovan: jackknife calculations require the statistics package')
+        error ('bootnhst: jackknife calculations require the ''Statistics'' package')
+      end
+    else
+      if ~ismember ('Statistics and Machine Learning Toolbox', {info.Name})
+        error ('bootnhst: jackknife calculations require the ''Statistics and Machine Learning Toolbox''')
       end
     end
   end
