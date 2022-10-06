@@ -3,27 +3,21 @@
 %  Two-stage nonparametric bootstrap sampling with shrinkage correction for
 %  clustered data [1-4]. 
 %
-%  stats = bootclust (data,groups)
-%  stats = bootclust (data,groups,nboot)
-%  stats = bootclust (data,groups,nboot,alpha)
-%  [stats, bootstat] = bootclust (...)
+%  ci = bootclust (data,groups)
+%  ci = bootclust (data,groups,nboot)
+%  ci = bootclust (data,groups,nboot,alpha)
+%  [ci, bootstat] = bootclust (...)
 %  bootclust (data,groups,...)
 %
-%  stats = bootclust(data,groups) resamples both the group means of the data and 
+%  ci = bootclust(data,groups) resamples both the group means of the data and 
 %  their residuals. Bootstrap samples are formed by adding the resampled residuals
 %  to the resampled means. Bootstrap statitistics are the mean of the bootstrap. 
-%  The output structure, stats, contains the following fields:
-%    original: contains the mean of the original data 
-%    bias: contains the bootstrap estimate of bias
-%    std_error: contains the bootstrap standard error
-%    CI_lower: contains the lower bound of the bootstrap confidence interval
-%    CI_upper: contains the upper bound of the bootstrap confidence interval
-%  The confidence intervals are 95% percentile intervals.
+%  The confidence intervals returned are 95% percentile intervals.
 %
-%  stats = bootclust (data,groups,nboot) also specifies the number of bootstrap
+%  ci = bootclust (data,groups,nboot) also specifies the number of bootstrap
 %  samples. nboot must be a positive finite scalar. By default, nboot is 2000.
 %
-%  stats = bootclust (data,groups,nboot,alpha) where alpha sets the lower 
+%  ci = bootclust (data,groups,nboot,alpha) where alpha sets the lower 
 %  and upper bounds of the confidence interval(s). The value(s) in alpha must be 
 %  between 0 and 1. If alpha is a scalar value, the nominal lower and upper
 %  percentiles of the confidence are 100*(alpha/2)% and 100*(1-alpha/2)%
@@ -32,7 +26,7 @@
 %  confidence intervals, and the intervals become percentile bootstrap confidence
 %  intervals.
 %
-%  [stats, bootstat] = bootclust (...) also returns bootstat, a vector of
+%  [ci, bootstat] = bootclust (...) also returns bootstat, a vector of
 %  statistics calculated over the bootstrap samples.
 %
 %  bootclust(data,...); returns a pretty table of the output including
@@ -66,39 +60,82 @@
 %  You should have received a copy of the GNU General Public License
 %  along with this program.  If not, see <http://www.gnu.org/licenses/>.
   
-function stats = bootclust(data,groups,nboot,alpha)
+function [ci, bootstat] = bootclust(data,groups,nboot,alpha)
 
   % Error checking
   if nargin < 2
     error('bootclust usage: ''bootci (data,groups)''; atleast 2 input arguments required');
   end
-  if nargin < 3
-    nboot = 2000;
+  if size (groups, 1) ~= size (data, 1)
+    error ('bootclust: group should be a column vector or cell array with the same number of rows as the data');
   end
-  if nargin < 4
+  if any(isnan(data)) || any(isinf(data))
+    error ('bootclust: data must contain finite numeric values');
+  end
+  if (nargin < 3)
+    nboot = 2000;
+  else
+    if isempty(nboot)
+      nboot = 2000;
+    else
+      if ~isa (nboot, 'numeric')
+        error ('bootclust: nboot must be numeric');
+      end
+      if any (nboot ~= abs (fix (nboot)))
+        error ('bootclust: nboot must contain positive integers');
+      end    
+      if (numel (nboot) > 1)
+        error ('bootclust: nboot must be scalar');
+      end
+    end
+  end
+  if (nargin < 4)
     alpha = 0.05;
+  elseif ~isempty (alpha) 
+    if ~isa (alpha,'numeric') || numel (alpha) > 2
+      error ('bootclust: alpha must be a scalar (two-tailed probability) or a vector (pair of quantiles)');
+    end
+    if any ((alpha < 0) | (alpha > 1))
+      error ('bootclust: value(s) in alpha must be between 0 and 1');
+    end
+    if numel(alpha) > 1
+      % alpha is a pair of quantiles
+      % Make sure quantiles are in the correct order
+      if alpha(1) > alpha(2) 
+        error ('bootclust: the pair of quantiles must be in ascending numeric order');
+      end
+    end
+  end
+  % Evaluate group input argument
+  if ~isnumeric (groups)
+    % Convert group to numeric ID
+    [junk1,junk2,groups] = unique (groups);
+    clear junk1 junk2;
   end
 
-  % Convert alpha to quantiles
+  % If the alpha provided is scalar, convert it to quantiles
   if numel(alpha) < 2
-    % If the alpha provided is a scalar, convert it to quantiles
     q = [alpha / 2, 1 - alpha / 2];
   else
     q = alpha;
   end
 
-  % Calculate the means and residuals for each group/cluster
-  [mu,resid,K,g] = clustmean(data,groups);
+  % Calculate the shrunken means and residuals for each group/cluster
+  [mu,resid,K,g] = clustmean (data,groups);
 
   % Redefine bootfun for two-stage balanced, bootknife resampling
-  bootfun = @(resid) clustboot(mu,resid,K,g);
+  bootfun = @(resid) clustboot (mu,resid,K,g);
 
   % Run resampling and calculation of bootstrao statistics
-  if nargout < 1
-    bootknife(resid, nboot, bootfun, q);
-  else
-    [stats, bootstat] = bootknife(resid, nboot, bootfun, q);
-  end
+  bootstat = bootfun (boot (resid, nboot, false));
+
+  % Calculate percentile confidence intervals
+  [cdf, t1] = empcdf (bootstat, 1);
+  ci = arrayfun ( @(p) interp1 (cdf, t1, p, 'linear'), q);
+
+  % Transpose result
+  ci = ci';
+  bootstat = bootstat';
 
 end
 
@@ -173,7 +210,7 @@ function T = clustboot (mu, resid, K, g)
   [n,nboot] = size(resid);
 
   % Balanced, bootknife resampling of cluster means
-  bootmu = boot(mu,nboot,true);
+  bootmu = boot(mu,nboot,false);
 
   % Combine residuals with resampled cluster means
   X = zeros(n,nboot);
@@ -185,3 +222,57 @@ function T = clustboot (mu, resid, K, g)
   T = mean(X);
 
 end
+
+%--------------------------------------------------------------------------
+
+function [F, x] = empcdf (bootstat, c)
+
+  % Subfunction to calculate empirical cumulative distribution function of bootstat
+  %
+  % Set c to:
+  %  1 to have a complete distribution with F ranging from 0 to 1
+  %  0 to avoid duplicate values in x
+  %
+  % Unlike ecdf, empcdf uses a denominator of N+1
+
+  % Check input argument
+  if ~isa(bootstat,'numeric')
+    error ('bootknife:empcdf: bootstat must be numeric');
+  end
+  if all(size(bootstat)>1)
+    error ('bootknife:empcdf: bootstat must be a vector');
+  end
+  if size(bootstat,2)>1
+    bootstat = bootstat.';
+  end
+
+  % Create empirical CDF
+  bootstat = sort(bootstat);
+  N = sum(~isnan(bootstat));
+  [x,F] = unique(bootstat,'rows','last','legacy');
+  F = F/(N+1);
+
+  % Apply option to complete the CDF
+  if c > 0
+    x = [x(1);x;x(end)];
+    F = [0;F;1];
+  end
+
+  % Remove impossible values
+  F(isnan(x)) = [];
+  x(isnan(x)) = [];
+  F(isinf(x)) = [];
+  x(isinf(x)) = [];
+
+end
+
+%--------------------------------------------------------------------------
+
+%!test
+%! data = [0.125, 0.127, 0.125, 0.126, 0.128, 0.118, 0.122, 0.12, 0.124, ...
+%!         0.119, 0.123, 0.125, 0.125, 0.124, 0.126, 0.126, 0.128, 0.126, ...
+%!         0.127, 0.129, 0.118, 0.129, 0.127, 0.12, 0.121]';
+%! groups = [1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, ...
+%!           4, 4, 4, 4, 4, 5, 5, 5, 5, 5]';
+%! boot (1, 1, false, [], 1); # Set random seed
+%! ci = bootclust (data,groups);
