@@ -11,8 +11,8 @@
 %
 %  ci = bootclust(data,groups) resamples both the group means of the data and 
 %  their residuals. Bootstrap samples are formed by adding the resampled residuals
-%  to the resampled means. Bootstrap statitistics are the mean of the bootstrap. 
-%  The confidence intervals returned are 95% percentile intervals.
+%  to the resampled means. Bootstrap statitistics are the means of the bootstrap 
+%  samples. The confidence intervals returned are 95% percentile intervals.
 %
 %  ci = bootclust (data,groups,nboot) also specifies the number of bootstrap
 %  samples. nboot must be a positive finite scalar. By default, nboot is 2000.

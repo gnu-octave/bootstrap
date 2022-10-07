@@ -631,7 +631,13 @@ function [stats, bootstat, BOOTSAM] = bootknife (x, nboot, bootfun, alpha, strat
             else
               % Earlier versions of matlab do not have betaincinv
               % Instead, use betainv from the Statistics and Machine Learning Toolbox
-              studinv = @(p, df) - sqrt ( df ./ betainv (2 * p, df / 2, 0.5) - df);
+              try 
+                studinv = @(p, df) - sqrt ( df ./ betainv (2 * p, df / 2, 0.5) - df);
+              catch
+                % Use the Normal distribution (i.e. do not expanded quantiles) if
+                % either of the functions, betaincinv or betainv, are not available
+                studinv = @(p,df) sqrt (2) * erfinv (2 * p-1);
+              end
             end
             adj_alpha = stdnormcdf (studinv (alpha / 2, n - 1)) * 2;
           else
