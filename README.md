@@ -48,24 +48,15 @@ To install (or test) the statistics-bootstrap package at it's existing location 
 ### Functions
 
 * `boot` returns resamples data or indices created by balanced bootstrap or bootknife resampling  
-* `bootknife` performs balanced bootknife resampling and calculates bootstrap bias, standard error and bias-corrected and accelerated (or calibrated) confidence intervals. This function supports iterated and stratified resampling.
-* `bootanovan` calculates *p*-values for N-way ANOVA by bootstrapping the distribution of F-statistics under the null hypothesis. This function depends on the `anovan` function from the Statistics package in Octave, or the Statistics and Machine Learning toolbox in Matlab.
+* `bootknife` performs balanced bootknife resampling and calculates bootstrap bias, standard error and confidence intervals. The interval types supported are simple percentile, bias-corrected and accelerated, or calibrated. This function supports iterated and stratified resampling.
 * `bootnhst` calculates *p*-values by bootstrap null-hypothesis significance testing (two-tailed). This function can be used to compare 2 or more (independent) samples. This function resamples under the null hypothesis.
+* `bootanovan` calculates *p*-values for N-way ANOVA by bootstrapping the distribution of F-statistics under the null hypothesis. This function depends on the `anovan` function from the Statistics v1.5+ package in Octave, or the Statistics and Machine Learning toolbox in Matlab.
 * `bootmode` uses bootstrap to evaluate the likely number of real modes in a distribution
-* (legacy) `plotboot` plots an overlay of a histogram, kernel density estimate and interval limits from bootstrap statistics
-* (legacy) `bootstrp` performs (balanced) bootstrap resampling 
-* (legacy) `ibootci` calculates confidence intervals (calibrated) by iterated bootstrap resampling 
-* (legacy) `ibootp` calculates a two-tailed *p*-value for hypothesized value of the statistic using bootstrap
-* (legacy) `iboottest` is a convenience function that uses `ibootci` and `ibootp` to compute confidence intervals and *p*-values for the difference between two paired samples or between one sample and a population value (two-tailed). This function resamples under the alternative hypothesis.
-* (legacy) `iboottest2` is a convenience function that uses `ibootci` and `ibootp` to compute confidence intervals and *p*-values for the difference between two independent (i.e. unpaired) samples. This function resamples under the alternative hypothesis.
+* `bootclust`performs two-stage nonparametric bootstrap sampling with shrinkage correction for the mean of clustered data  
+* `bootci` is a function for calculating bootstrap confidence intervals. This function is a wrapper of the `bootknife` function but has the same usage as the `bootci` function from Matlab's Statistics and Machine Learning toolbox.  
+* `bootstrp` is a function for calculating bootstrap statistics. This function is a wrapper of the `bootknife` function but has the same usage as the `bootstrp` function from Matlab's Statistics and Machine Learning toolbox.   
 
 At the Octave command prompt, type `help function-name` for more information about the function and it's usage.
-
-### Notes 
-
-The Matlab Statistics and Machine Learning toolbox has functions also called `bootstrp` and `bootci`. The same-named functions in the iboot package have almost identical usage to the Matlab functions from the Statistics and Machine Learning toolbox. Be aware though that Matlab's own `bootci` function has a couple of errors, namely in the calculation of the bias for `cper` and `bca` intervals, and in the calculation of `stud` intervals.  We recommend using the iboot package function `bootci`, or better it's functions `bootknife` or `ibootci` for the calculation of calibrated bootstrap confidence intervals. 
-
-Be aware that that some of the bootstrap functions in this package are deterministic through the setting of a random seed on each function call. This will be a problem if testing the bootstrap functions in simulations that depend on generating samples using Matlab's or Octave's random number generator. The solution is to set `UseParallel` in the `paropt` structure input argument to `True`, which disables the resetting of the random number generator.
 
 ## Development roadmap
  

@@ -4,12 +4,10 @@
 % Add directories to path
 copyfile ('PKG_ADD','PKG_ADD.m');
 run (fullfile(pwd,'PKG_ADD.m'));
-dirlist = cell(5,1); % dir list needs to be in increasing order of length
+dirlist = cell(3,1); % dir list needs to be in increasing order of length
 dirlist{1} = fullfile (pwd,'inst','');
 dirlist{2} = fullfile (pwd,'inst','param');
 dirlist{3} = fullfile (pwd,'inst','octave');
-dirlist{4} = fullfile (pwd,'inst','legacy');
-dirlist{5} = fullfile (pwd,'inst','legacy','helper');
 n = numel (dirlist);
 
 % Check if running in Octave (else assume Matlab)

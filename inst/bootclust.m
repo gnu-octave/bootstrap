@@ -1,7 +1,7 @@
 %  Function File: bootclust 
 %
 %  Two-stage nonparametric bootstrap sampling with shrinkage correction for
-%  clustered data [1-4]. 
+%  the mean of clustered data [1-4]. 
 %
 %  ci = bootclust (data,groups)
 %  ci = bootclust (data,groups,nboot)
