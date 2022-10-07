@@ -53,7 +53,7 @@ To install (or test) the statistics-bootstrap package at it's existing location 
 * `bootanovan` calculates *p*-values for N-way ANOVA by bootstrapping the distribution of F-statistics under the null hypothesis. This function depends on the `anovan` function from the Statistics v1.5+ package in Octave, or the Statistics and Machine Learning toolbox in Matlab.
 * `bootmode` uses bootstrap to evaluate the likely number of real modes in a distribution
 * `bootclust`performs two-stage nonparametric bootstrap sampling with shrinkage correction for the mean of clustered data  
-* `bootci` is a function for calculating bootstrap confidence intervals. This function is a wrapper of the `bootknife` function but has the same usage as the `bootci` function from Matlab's Statistics and Machine Learning toolbox.  
+* `bootci` is a function for calculating bootstrap confidence intervals. This function is a wrapper of the `bootknife` function but has the same usage as the `bootci` function from Matlab's Statistics and Machine Learning toolbox. `bootci` does not support the double bootstrap functionality of `bootknife`.
 * `bootstrp` is a function for calculating bootstrap statistics. This function is a wrapper of the `bootknife` function but has the same usage as the `bootstrp` function from Matlab's Statistics and Machine Learning toolbox.   
 
 At the Octave command prompt, type `help function-name` for more information about the function and it's usage.
