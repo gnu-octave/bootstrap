@@ -14,11 +14,10 @@ This package of functions can be used to estimate uncertainty (confidence interv
 
 This package is known to be compatible with versions of Octave v3.6.0+ and Matlab v7.4.0+. Some features of this package have specific dependencies:
 
+ * All parallel computing options require either the parallel package (in Octave) or the Parallel Computing Matlab Toolbox (in Matlab).  
  * The optional jackknife functionality in `bootnhst` requires the Statistics package (in Octave) or the Statistics and Machine Learning Toolbox (in Matlab).  
- * The `bootanovan` function requires either the Statistics package version v1.5+ (in Octave v6.1+), or the Statistics and Machine Learning Toolbox (in Matlab)
  * The `bootcoeff` and `bootemm` functions require Octave v6.1+ and the Statistics package version v1.5+. 
- * All parallel computing options require either the parallel package (in Octave) or the Parallel Computing Matlab Toolbox (in Matlab).
-
+ 
 ## Installation
  
 To install (or test) the statistics-bootstrap package at it's existing location in either Octave or Matlab, follow these steps: 
@@ -59,4 +58,4 @@ At the Octave command prompt, type `help function-name` for more information abo
 ## Development roadmap
  
 * Create more documentation and guidance for using the functions in this package  
-* Provide the option in bootanovan to print a pretty ANOVA table of the results  
+
