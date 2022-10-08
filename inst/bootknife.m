@@ -634,8 +634,8 @@ function [stats, bootstat, BOOTSAM] = bootknife (x, nboot, bootfun, alpha, strat
               try 
                 studinv = @(p, df) - sqrt ( df ./ betainv (2 * p, df / 2, 0.5) - df);
               catch
-                % Use the Normal distribution (i.e. do not expanded quantiles) if
-                % either of the functions, betaincinv or betainv, are not available
+                % Use the Normal distribution (i.e. do not expand quantiles) if
+                % either betaincinv or betainv are not available
                 studinv = @(p,df) sqrt (2) * erfinv (2 * p-1);
               end
             end
