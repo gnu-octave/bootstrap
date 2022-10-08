@@ -380,8 +380,6 @@
 % |          2 |                                                             2 |
 % |          3 |                                                             3 |
 %
-% 
-%
 %
 %   Bibliography:
 %   [1] Efron and Tibshirani. Chapter 16 Hypothesis testing with the
