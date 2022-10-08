@@ -48,7 +48,6 @@ To install (or test) the statistics-bootstrap package at it's existing location 
 * `boot` returns resamples data or indices created by balanced bootstrap or bootknife resampling  
 * `bootknife` performs balanced bootknife resampling and calculates bootstrap bias, standard error and confidence intervals. The interval types supported are simple percentile, bias-corrected and accelerated, or calibrated. This function supports iterated and stratified resampling.
 * `bootnhst` calculates *p*-values by bootstrap null-hypothesis significance testing (two-tailed). This function can be used to compare 2 or more (independent) samples. This function resamples under the null hypothesis.
-* `bootanovan` calculates *p*-values for N-way ANOVA by bootstrapping the distribution of F-statistics under the null hypothesis. This function depends on the `anovan` function from the Statistics v1.5+ package in Octave, or the Statistics and Machine Learning toolbox in Matlab.
 * `bootmode` uses bootstrap to evaluate the likely number of real modes in a distribution
 * `bootci` is a function for calculating bootstrap confidence intervals. This function is a wrapper of the `bootknife` function but has the same usage as the `bootci` function from Matlab's Statistics and Machine Learning toolbox.  
 * `bootstrp` is a function for calculating bootstrap statistics. This function is a wrapper of the `bootknife` function but has the same usage as the `bootstrp` function from Matlab's Statistics and Machine Learning toolbox.  

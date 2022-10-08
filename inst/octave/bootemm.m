@@ -42,7 +42,7 @@
 %  bootemm is only supported in GNU Octave and requires the Statistics package
 %  version 1.5 or later.
 %
-%  bootemm v0.1.1.0 (30/09/2022)
+%  bootemm (version 2022.10.08)
 %  Author: Andrew Charles Penn
 %  https://www.researchgate.net/profile/Andrew_Penn/
 %

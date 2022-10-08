@@ -2,9 +2,9 @@
 %
 %  Function file: smoothmad
 %
-%  [MAD]  = smoothmad (x)
-%  [MAD]  = smoothmad (x, group)
-%  [MAD]  = smoothmad (x, group, constant)
+%  MAD = smoothmad (x)
+%  MAD = smoothmad (x, group)
+%  MAD = smoothmad (x, group, constant)
 %
 %  Calculate a smoothed version of the median absolute deviation (MAD) 
 %  for each column of the data in x. The statistics are scaled by a 
@@ -25,7 +25,7 @@
 %  recent versions of Octave (v3.2.4 on Debian 6 Linux 2.6.32) and
 %  Matlab (v6.5.0 and v7.4.0 on Windows XP).
 %
-%  smoothmad v1.0.0 (05/06/2022)
+%  smoothmad (version 2022.10.08)
 %  Author: Andrew Charles Penn
 %  https://www.researchgate.net/profile/Andrew_Penn/
 %
@@ -44,7 +44,7 @@
 %  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-function [PMAD] = smoothmad(x,group,constant)
+function PMAD = smoothmad(x,group,constant)
 
   % Evaluate input arguments
   if (nargin < 1) || (nargin > 3)
