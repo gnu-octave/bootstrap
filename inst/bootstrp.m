@@ -88,9 +88,11 @@ function [bootstat,bootsam] = bootstrp(argin1,argin2,varargin)
   paropt = struct;
   paropt.UseParallel = false;
   if ~ISOCTAVE
-    nproc = feature('numcores');
+    ncpus = feature('numcores');
+  else
+    ncpus = nproc;
   end
-  paropt.nproc = nproc;
+  paropt.nproc = ncpus;
 
   % Assign input arguments to function variables
   nboot = argin1;
@@ -111,16 +113,14 @@ function [bootstat,bootsam] = bootstrp(argin1,argin2,varargin)
       end
     end
   end
-  if paropt.UseParallel
-    nproc = paropt.nproc;
-  else
-    nproc = 0;
-  end
   bootfun = argin2;
   if (numel(argin3) > 1)
     data = argin3;
   else
     data = argin3{1};
+  end
+  if ~paropt.UseParallel
+    ncpus = 0;
   end
 
 

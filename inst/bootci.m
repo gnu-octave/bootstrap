@@ -131,9 +131,11 @@ function [ci,bootstat,bootsam] = bootci(argin1,argin2,varargin)
   paropt = struct;
   paropt.UseParallel = false;
   if ~ISOCTAVE
-    nproc = feature('numcores');
+    ncpus = feature('numcores');
+  else
+    ncpus = nproc;
   end
-  paropt.nproc = nproc;
+  paropt.nproc = ncpus;
 
   % Assign input arguments to function variables
   nboot = argin1;
@@ -175,6 +177,9 @@ function [ci,bootstat,bootsam] = bootci(argin1,argin2,varargin)
     bootfun = argin2;
     data = argin3;
   end
+  if ~paropt.UseParallel
+    ncpus = 0;
+  end
 
   % Error checking
   if ~isa (nboot, 'numeric')
@@ -210,7 +215,7 @@ function [ci,bootstat,bootsam] = bootci(argin1,argin2,varargin)
   end
 
   % Parse input arguments to the function bootknife
-  [stats, bootstat] = bootknife(data, nboot, bootfun, alpha,[],nproc);
+  [stats, bootstat] = bootknife(data, nboot, bootfun, alpha, [], ncpus);
 
   % Format output to be consistent with MATLAB's bootci
   ci = [stats.CI_lower; stats.CI_upper];
