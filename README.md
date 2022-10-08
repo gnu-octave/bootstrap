@@ -50,7 +50,7 @@ To install (or test) the statistics-bootstrap package at it's existing location 
 * `bootnhst` calculates *p*-values by bootstrap null-hypothesis significance testing (two-tailed). This function can be used to compare 2 or more (independent) samples. This function resamples under the null hypothesis.
 * `bootanovan` calculates *p*-values for N-way ANOVA by bootstrapping the distribution of F-statistics under the null hypothesis. This function depends on the `anovan` function from the Statistics v1.5+ package in Octave, or the Statistics and Machine Learning toolbox in Matlab.
 * `bootmode` uses bootstrap to evaluate the likely number of real modes in a distribution
-* `bootci` is a function for calculating bootstrap confidence intervals. This function is a wrapper of the `bootknife` function but has the same usage as the `bootci` function from Matlab's Statistics and Machine Learning toolbox.
+* `bootci` is a function for calculating bootstrap confidence intervals. This function is a wrapper of the `bootknife` function but has the same usage as the `bootci` function from Matlab's Statistics and Machine Learning toolbox.  
 * `bootstrp` is a function for calculating bootstrap statistics. This function is a wrapper of the `bootknife` function but has the same usage as the `bootstrp` function from Matlab's Statistics and Machine Learning toolbox.  
 * `bootcoeff` (Octave only) is a function for semi-parametric bootstrap of the regression coefficients from a linear model fit using `anovan` or `fitlm`.  
 * `bootemm` (Octave only) is a function for semi-parametric bootstrap of the estimated marginal means from a linear model fit using `anovan` or `fitlm`.  
