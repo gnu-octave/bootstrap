@@ -6,20 +6,18 @@ Andrew Penn (andy.c.penn@gmail.com)
 ## Package contributors
 Andrew Penn
 
-## Citations
-If you use this package please include the following citation(s):
-
-* Penn, Andrew Charles. (2020). iboot: Iterated bootstrap for small samples or samples with complex dependence structures. Zenodo. https://doi.org/10.5281/zenodo.3992392  
-
 ## A statistics package for Octave/Matlab providing a variety of bootstrap resampling tools
 
-This package of functions can be used to estimate uncertainty (confidence intervals) and test hypotheses (*p*-values) using bootstrap. Variations of the bootstrap are included that improve the accuracy of bootstrap statistics for small samples and samples with complex dependence structures. 
+This package of functions can be used to estimate uncertainty (confidence intervals) and test hypotheses (*p*-values) using bootstrap. Variations of the bootstrap are included that improve the accuracy of bootstrap statistics for small samples.
 
 ## Requirements and dependencies
 
-This package is known to be compatible with versions of Octave v3.6.0+ and Matlab v7.4.0+. 
+This package is known to be compatible with versions of Octave v3.6.0+ and Matlab v7.4.0+. Some features of this package have specific dependencies:
 
-Most features of of the package do not depend on other packages. An exception is the parallel computing options, which require either the Octave forge parallel package or the Parallel Computing Matlab Toolbox.
+ * The optional jackknife functionality in `bootnhst` requires the Statistics package (in Octave) or the Statistics and Machine Learning Toolbox (in Matlab).  
+ * The `bootanovan` function requires either the Statistics package version v1.5+ (in Octave v6.1+), or the Statistics and Machine Learning Toolbox (in Matlab)
+ * The `bootcoeff` and `bootemm` functions require Octave v6.1+ and the Statistics package version v1.5+. 
+ * All parallel computing options require either the parallel package (in Octave) or the Parallel Computing Matlab Toolbox (in Matlab).
 
 ## Installation
  
@@ -53,7 +51,9 @@ To install (or test) the statistics-bootstrap package at it's existing location 
 * `bootanovan` calculates *p*-values for N-way ANOVA by bootstrapping the distribution of F-statistics under the null hypothesis. This function depends on the `anovan` function from the Statistics v1.5+ package in Octave, or the Statistics and Machine Learning toolbox in Matlab.
 * `bootmode` uses bootstrap to evaluate the likely number of real modes in a distribution
 * `bootci` is a function for calculating bootstrap confidence intervals. This function is a wrapper of the `bootknife` function but has the same usage as the `bootci` function from Matlab's Statistics and Machine Learning toolbox.
-* `bootstrp` is a function for calculating bootstrap statistics. This function is a wrapper of the `bootknife` function but has the same usage as the `bootstrp` function from Matlab's Statistics and Machine Learning toolbox.   
+* `bootstrp` is a function for calculating bootstrap statistics. This function is a wrapper of the `bootknife` function but has the same usage as the `bootstrp` function from Matlab's Statistics and Machine Learning toolbox.  
+* `bootcoeff` (Octave only) is a function for semi-parametric bootstrap of the regression coefficients from a linear model fit using `anovan` or `fitlm`.  
+* `bootemm` (Octave only) is a function for semi-parametric bootstrap of the estimated marginal means from a linear model fit using `anovan` or `fitlm`.  
 
 At the Octave command prompt, type `help function-name` for more information about the function and it's usage.
 
