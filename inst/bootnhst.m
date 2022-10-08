@@ -390,7 +390,7 @@
 %        Sampling vs. Smoothing, Proceedings of the Section on Statistics 
 %        and the Environment, American Statistical Association, 2924-2930.
 %
-%  bootnhst v2.1.0.0 (24/07/2022)
+%  bootnhst (version 2022.10.08)
 %  Author: Andrew Charles Penn
 %  https://www.researchgate.net/profile/Andrew_Penn/
 %

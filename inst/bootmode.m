@@ -33,7 +33,7 @@
 %    [1] Efron and Tibshirani. Chapter 16 Hypothesis testing with the
 %         bootstrap in An introduction to the bootstrap (CRC Press, 1994)
 %
-%  bootmode v1.2.0.0 (02/07/2022)
+%  bootmode (version 2022.07.02)
 %  Author: Andrew Charles Penn
 %  https://www.researchgate.net/profile/Andrew_Penn/
 %

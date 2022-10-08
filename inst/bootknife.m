@@ -82,7 +82,7 @@
 %  intervals will only be bias corrected.
 %
 %  stats = bootknife(data,nboot,bootfun,alpha) where alpha sets the lower 
-%  and upper bounds of the confidence interval(s). The value(s) in alpha must be 
+%  and upper bounds of the confidence interval(s). The value(s) of alpha must be 
 %  between 0 and 1. If alpha is a scalar value, the nominal lower and upper
 %  percentiles of the confidence are 100*(alpha/2)% and 100*(1-alpha/2)%
 %  respectively, and nominal central coverage of the intervals is 100*(1-alpha)%.
@@ -149,7 +149,7 @@
 %        Bootstrap: Resampling in the Undergraduate Statistics Curriculum, 
 %        http://arxiv.org/abs/1411.5279
 %
-%  bootknife v1.9.0.0 (27/09/2022)
+%  bootknife (version 2022.10.08)
 %  Author: Andrew Charles Penn
 %  https://www.researchgate.net/profile/Andrew_Penn/
 %
@@ -187,12 +187,12 @@ function [stats, bootstat, BOOTSAM] = bootknife (x, nboot, bootfun, alpha, strat
       if ~isa (nboot, 'numeric')
         error ('bootknife: nboot must be numeric');
       end
-      if any (nboot ~= abs (fix (nboot)))
-        error ('bootknife: nboot must contain positive integers');
-      end    
       if (numel (nboot) > 2)
         error ('bootknife: nboot cannot contain more than 2 values');
       end
+      if any (nboot ~= abs (fix (nboot)))
+        error ('bootknife: nboot must contain positive integers');
+      end    
     end
   end
   if (nargin < 3)

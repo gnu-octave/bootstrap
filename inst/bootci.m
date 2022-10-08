@@ -24,22 +24,30 @@
 %  that are used to create inputs for bootfun.
 %
 %  ci = bootci(...,'alpha',alpha) where alpha sets the lower and upper bounds of
-%  the confidence interval(s). The value(s) in alpha must be between 0
+%  the confidence interval(s). The value(s) of alpha must be between 0
 %  and 1. If alpha is a scalar value, the nominal lower and upper percentiles
 %  of the confidence are 100*(alpha/2)% and 100*(1-alpha/2)% respectively, and
 %  nominal central coverage of the intervals is 100*(1-alpha)%. If alpha is a
 %  vector with two elements, alpha becomes the quantiles for the confidence
 %  intervals, and the intervals become percentile bootstrap confidence
-%  intervals. Default alpha is 0.05.
+%  intervals. If alpha is empty, NaN is returned for the confidence interval
+%  ends. The default value for alpha is 0.05. 
 %
 %  ci = bootci(...,'type',type) computes the bootstrap confidence interval of
 %  the statistic defined by the function bootfun. type is one of the following
 %  methods used to construct confidence intervals:
-%    'bca': Bias-corrected and accelerated method (Default).
+%    'bca': Bias-corrected and accelerated method [5,6] (Default).
 %    'per' or 'percentile': Percentile method.
+%    'cal': Calibrated percentile method (by double bootstrap [7]).
 %  Note that when bootfun is the mean, BCa intervals are automatically expanded
 %  using Student's t-distribution in order to improve coverage for small samples
-%  [5].
+%  [8]. 
+%
+%  ci = bootci(...,'type','cal','nbootcal',nbootcal) computes the calibrated
+%  percentile bootstrap confidence intervals of the statistic defined by the
+%  function bootfun. The calibrated percentiles of the bootstrap statistics are
+%  estimated using bootstrap with nbootcal bootstrap data samples. bootcal is a 
+%  positive integer value. The default value of nbootcal is 200.
 %
 %  ci = bootci(...,'Options',paropt) specifies options that 
 %  govern if and how to perform bootstrap iterations using multiple 
@@ -74,11 +82,18 @@
 %  [4] Hesterberg T.C. (2004) Unbiasing the Bootstrap—Bootknife Sampling 
 %        vs. Smoothing; Proceedings of the Section on Statistics & the 
 %        Environment. Alexandria, VA: American Statistical Association.
-%  [5] Hesterberg, Tim (2014), What Teachers Should Know about the 
+%  [5] Efron (1987) Better Bootstrap Confidence Intervals. JASA, 
+%        82(397): 171-185 
+%  [6] Efron, and Tibshirani (1993) An Introduction to the
+%        Bootstrap. New York, NY: Chapman & Hall
+%  [7] Hall, Lee and Young (2000) Importance of interpolation when
+%        constructing double-bootstrap confidence intervals. Journal
+%        of the Royal Statistical Society. Series B. 62(3): 479-491
+%  [8] Hesterberg, Tim (2014), What Teachers Should Know about the 
 %        Bootstrap: Resampling in the Undergraduate Statistics Curriculum, 
 %        http://arxiv.org/abs/1411.5279
 %
-%  bootci v3.0.0.0 (03/01/2022)
+%  bootci (version 2022.10.08)
 %  Author: Andrew Charles Penn
 %  https://www.researchgate.net/profile/Andrew_Penn/
 %
@@ -112,6 +127,7 @@ function [ci,bootstat,bootsam] = bootci(argin1,argin2,varargin)
   bootfun = @mean;
   alpha = 0.05;
   type = 'bca';
+  nbootcal = 200;
   paropt = struct;
   paropt.UseParallel = false;
   if ~ISOCTAVE
@@ -143,6 +159,8 @@ function [ci,bootstat,bootsam] = bootci(argin1,argin2,varargin)
           alpha = argin3{end};
         elseif any(strcmpi('type',argin3{end-1}))
           type = argin3{end};
+        elseif any(strcmpi('nbootcal',argin3{end-1}))
+          nbootcal = argin3{end};
         else
           error('bootci: unrecognised input argument to bootci')
         end
@@ -159,9 +177,24 @@ function [ci,bootstat,bootsam] = bootci(argin1,argin2,varargin)
   end
 
   % Error checking
-  if ~all(size(nboot) == [1,1])
-    error('bootci: nboot must be a scalar value')
+  if ~isa (nboot, 'numeric')
+    error ('bootci: nboot must be numeric');
   end
+  if (numel (nboot) > 1)
+    error ('bootci: nboot must be a positive integer');
+  end
+  if (nboot ~= abs (fix (nboot)))
+    error ('bootci: nboot must contain positive integers');
+  end    
+  if ~isa (nbootcal, 'numeric')
+    error ('bootci: nbootcal must be numeric');
+  end
+  if (numel (nbootcal) > 1)
+    error ('bootci: nbootcal must be a scalar value');
+  end
+  if (nbootcal ~= abs (fix (nbootcal)))
+    error ('bootci: nbootcal must be a positive integer');
+  end    
 
   % Apply interval type
   switch lower(type)
@@ -170,6 +203,8 @@ function [ci,bootstat,bootsam] = bootci(argin1,argin2,varargin)
     case {'per','percentile'}
       % Set quantiles directly to calculate percentile intervals
       alpha = [alpha / 2, 1 - alpha / 2];
+    case 'cal'
+      nboot = cat (2, nboot, nbootcal);
     otherwise
       error ('bootci: interval type not supported')
   end

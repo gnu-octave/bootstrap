@@ -66,7 +66,7 @@
 %      Tests in Multiple Regression and ANOVA. In Bootstrapping and Related 
 %      Techniques. (K. J. Jockel, Ed.), Springer-Verlag, Berlin, pp. 79-86.
 %
-%  bootanovan v1.2.0.0 (25/07/2022)
+%  bootanovan (version 2022.10.08)
 %  Author: Andrew Charles Penn
 %  https://www.researchgate.net/profile/Andrew_Penn/
 %

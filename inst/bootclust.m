@@ -12,19 +12,15 @@
 %  ci = bootclust(data,groups) resamples both the group means of the data and 
 %  their residuals. Bootstrap samples are formed by adding the resampled residuals
 %  to the resampled means. Bootstrap statitistics are the means of the bootstrap 
-%  samples. The confidence intervals returned are 95% percentile intervals.
+%  samples. The confidence intervals returned are expanded percentile intervals [5].
 %
 %  ci = bootclust (data,groups,nboot) also specifies the number of bootstrap
 %  samples. nboot must be a positive finite scalar. By default, nboot is 2000.
 %
-%  ci = bootclust (data,groups,nboot,alpha) where alpha sets the lower 
-%  and upper bounds of the confidence interval(s). The value(s) in alpha must be 
-%  between 0 and 1. If alpha is a scalar value, the nominal lower and upper
-%  percentiles of the confidence are 100*(alpha/2)% and 100*(1-alpha/2)%
-%  respectively, and nominal central coverage of the intervals is 100*(1-alpha)%.
-%  If alpha is a vector with two elements, alpha becomes the quantiles for the
-%  confidence intervals, and the intervals become percentile bootstrap confidence
-%  intervals.
+%  ci = bootclust (data,groups,nboot,alpha) where alpha is a scalar value that
+%  sets the lower and upper bounds of the confidence interval(s). The value of
+%  alpha must be between 0 and 1 and the nominal central coverage of the intervals
+%  is 100*(1-alpha)%. The default value for alpha is 0.05. 
 %
 %  [ci, bootstat] = bootclust (...) also returns bootstat, a vector of
 %  statistics calculated over the bootstrap samples.
@@ -41,8 +37,11 @@
 %       13(1): 141-164
 %  [3] Gomes et al. (2012) Medical Decision Making. 32(2): 350-361
 %  [4] Gomes et al. (2012) Health Econ. 21(9):1101-18
+%  [5] Hesterberg, Tim (2014), What Teachers Should Know about the 
+%        Bootstrap: Resampling in the Undergraduate Statistics Curriculum, 
+%        http://arxiv.org/abs/1411.5279
 %
-%  bootclust v0.5.0.0 (06/10/2022)
+%  bootclust (version 2022.10.08)
 %  Author: Andrew Charles Penn
 %  https://www.researchgate.net/profile/Andrew_Penn/
 %
@@ -64,7 +63,7 @@ function [ci, bootstat] = bootclust(data,groups,nboot,alpha)
 
   % Error checking
   if nargin < 2
-    error('bootclust usage: ''bootci (data,groups)''; atleast 2 input arguments required');
+    error('bootclust usage: ''bootclust (data,groups)''; atleast 2 input arguments required');
   end
   if size (groups, 1) ~= size (data, 1)
     error ('bootclust: group should be a column vector or cell array with the same number of rows as the data');
@@ -92,18 +91,14 @@ function [ci, bootstat] = bootclust(data,groups,nboot,alpha)
   if (nargin < 4)
     alpha = 0.05;
   elseif ~isempty (alpha) 
-    if ~isa (alpha,'numeric') || numel (alpha) > 2
-      error ('bootclust: alpha must be a scalar (two-tailed probability) or a vector (pair of quantiles)');
+    if ~isa (alpha,'numeric') 
+      error ('bootclust: alpha must be numeric');
     end
     if any ((alpha < 0) | (alpha > 1))
       error ('bootclust: value(s) in alpha must be between 0 and 1');
     end
     if numel(alpha) > 1
-      % alpha is a pair of quantiles
-      % Make sure quantiles are in the correct order
-      if alpha(1) > alpha(2) 
-        error ('bootclust: the pair of quantiles must be in ascending numeric order');
-      end
+      error ('bootclust: alpha must be a scalar value')
     end
   end
   % Evaluate group input argument
@@ -113,15 +108,28 @@ function [ci, bootstat] = bootclust(data,groups,nboot,alpha)
     clear junk1 junk2;
   end
 
-  % If the alpha provided is scalar, convert it to quantiles
-  if numel(alpha) < 2
-    q = [alpha / 2, 1 - alpha / 2];
-  else
-    q = alpha;
-  end
-
   % Calculate the shrunken means and residuals for each group/cluster
   [mu,resid,K,g] = clustmean (data,groups);
+
+  % Calculate expanded percentiles
+  stdnormcdf = @(x) 0.5 * (1 + erf (x / sqrt (2)));
+  stdnorminv = @(p) sqrt (2) * erfinv (2 * p-1);
+  if exist('betaincinv','file')
+    studinv = @(p, df) - sqrt ( df ./ betaincinv (2 * p, df / 2, 0.5) - df);
+  else
+    % Earlier versions of matlab do not have betaincinv
+    % Instead, use betainv from the Statistics and Machine Learning Toolbox
+    try 
+      studinv = @(p, df) - sqrt ( df ./ betainv (2 * p, df / 2, 0.5) - df);
+    catch
+      % Use the Normal distribution (i.e. do not expand quantiles) if
+      % either betaincinv or betainv are not available
+      studinv = @(p,df) sqrt (2) * erfinv (2 * p-1);
+      warning ('bootclust could not expand the percentiles; interval coverage will be poor when thenumber of clusters is small')
+    end
+  end
+  adj_alpha = stdnormcdf (studinv (alpha / 2, K - 1)) * 2;
+  q = [adj_alpha / 2, 1 - adj_alpha / 2];
 
   % Redefine bootfun for two-stage balanced, bootknife resampling
   bootfun = @(resid) clustboot (mu,resid,K,g);
@@ -210,7 +218,7 @@ function T = clustboot (mu, resid, K, g)
   [n,nboot] = size(resid);
 
   % Balanced, bootknife resampling of cluster means
-  bootmu = boot(mu,nboot,false);
+  bootmu = boot(mu,nboot,true);
 
   % Combine residuals with resampled cluster means
   X = zeros(n,nboot);
