@@ -9,10 +9,12 @@
 %  [ci, bootstat] = bootclust (...)
 %  bootclust (data,groups,...)
 %
-%  ci = bootclust(data,groups) resamples both the group means of the data and 
+%  ci = bootclust(data,groups) resamples both the group means* of the data and
 %  their residuals. Bootstrap samples are formed by adding the resampled residuals
 %  to the resampled means. Bootstrap statitistics are the means of the bootstrap 
 %  samples. The confidence intervals returned are expanded percentile intervals [5].
+%
+%  * Bootknife resampling is used for resampling group means
 %
 %  ci = bootclust (data,groups,nboot) also specifies the number of bootstrap
 %  samples. nboot must be a positive finite scalar. By default, nboot is 2000.
@@ -132,7 +134,7 @@ function [ci, bootstat] = bootclust(data,groups,nboot,alpha)
   q = [adj_alpha / 2, 1 - adj_alpha / 2];
 
   % Redefine bootfun for two-stage balanced, bootknife resampling
-  bootfun = @(resid) clustboot (mu,resid,K,g);
+  bootfun = @(resid) clustboot (mu, resid, K, g);
 
   % Run resampling and calculation of bootstrao statistics
   bootstat = bootfun (boot (resid, nboot, false));
@@ -218,7 +220,11 @@ function T = clustboot (mu, resid, K, g)
   [n,nboot] = size(resid);
 
   % Balanced, bootknife resampling of cluster means
-  bootmu = boot(mu,nboot,true);
+  if K > 1
+    bootmu = boot(mu, nboot, true);
+  else
+    bootmu = boot(mu, nboot, false);
+  end
 
   % Combine residuals with resampled cluster means
   X = zeros(n,nboot);
