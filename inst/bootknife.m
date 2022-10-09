@@ -2,12 +2,12 @@
 %
 %  Bootknife (bootstrap) resampling and statistics
 %
-%  This function takes a data sample (containing n rows) and uses bootstrap
+%  This function takes a DATA sample (containing n rows) and uses bootstrap
 %  techniques to calculate a bias of the parameter estimate, a standard
 %  error, and 95% confidence intervals. Specifically, the method uses
 %  bootknife resampling [1], which involves creating leave-one-out
 %  jackknife samples of size n - 1 and then drawing samples of size n with
-%  replacement from the jackknife samples. The resampling of data rows is
+%  replacement from the jackknife samples. The resampling of DATA rows is
 %  balanced in order to reduce Monte Carlo error [2,3]. By default, the
 %  bootstrap confidence intervals are bias-corrected and accelerated (BCa)
 %  [4-5]. BCa intervals are fast to compute and have good coverage and
@@ -17,38 +17,38 @@
 %  to improve the accuracy of the bias estimate and confidence intervals
 %  for small-to-medium sample sizes [6-8]. 
 %
-%  stats = bootknife (data)
-%  stats = bootknife (data,nboot)
-%  stats = bootknife (data,nboot,bootfun)
-%  stats = bootknife (data,nboot,{bootfun,bootfun_args})
-%  stats = bootknife (data,nboot,bootfun,alpha)
-%  stats = bootknife (data,nboot,bootfun,alpha,strata)
-%  stats = bootknife (data,nboot,bootfun,alpha,strata,nproc)
-%  stats = bootknife (data,[2000,0],@mean,0.05,[],0)      % Default values
-%  [stats,bootstat] = bootknife (...)
-%  [stats,bootstat] = bootknife (...)
-%  [stats,bootstat,bootsam] = bootknife (...)
-%  bootknife(data,...);
+%  STATS = bootknife (DATA)
+%  STATS = bootknife (DATA, NBOOT)
+%  STATS = bootknife (DATA, NBOOT, BOOTFUN)
+%  STATS = bootknife (DATA, NBOOT,{BOOTFUN, ...})
+%  STATS = bootknife (DATA, NBOOT, BOOTFUN, ALPHA)
+%  STATS = bootknife (DATA, NBOOT, BOOTFUN, ALPHA, STRATA)
+%  STATS = bootknife (DATA, NBOOT, BOOTFUN, ALPHA, STRATA, NPROC)
+%  STATS = bootknife (DATA, [2000, 0], @mean, 0.05, [], 0)  % Default values
+%  [STATS, BOOTSTAT] = bootknife (...)
+%  [STATS, BOOTSTAT] = bootknife (...)
+%  [STATS, BOOTSTAT, BOOTSAM] = bootknife (...)
+%  bootknife (DATA,...);
 %
-%  stats = bootknife(data) resamples from the rows of a data sample (column 
+%  STATS = bootknife (DATA) resamples from the rows of a DATA sample (column 
 %  vector or a matrix) and returns a structure with the following fields:
-%    original: contains the result of applying bootfun to the data 
+%    original: contains the result of applying BOOTFUN to the DATA 
 %    bias: contains the bootstrap estimate of bias [7-8]
 %    std_error: contains the bootstrap standard error
 %    CI_lower: contains the lower bound of the bootstrap confidence interval
 %    CI_upper: contains the upper bound of the bootstrap confidence interval
-%  By default, the statistics relate to bootfun being @mean and the confidence
+%  By default, the statistics relate to BOOTFUN being @mean and the confidence
 %  intervals are 95% bias-corrected and accelerated (BCa) intervals [1,4-5,9].
-%  If data is a cell array of column vectors, the vectors are passed to bootfun
+%  If DATA is a cell array of column vectors, the vectors are passed to BOOTFUN
 %  as separate input arguments.
 %
-%  stats = bootknife(data,nboot) also specifies the number of bootstrap 
-%  samples. nboot can be a scalar, or vector of upto two positive integers. 
-%  By default, nboot is [2000,0], which implements a single bootstrap with 
+%  STATS = bootknife (DATA, NBOOT) also specifies the number of bootstrap 
+%  samples. NBOOT can be a scalar, or vector of upto two positive integers. 
+%  By default, NBOOT is [2000,0], which implements a single bootstrap with 
 %  the 2000 resamples, but larger numbers of resamples are recommended to  
 %  reduce the Monte Carlo error, particularly for confidence intervals. If  
-%  the second element of nboot is > 0, then the first and second elements  
-%  of nboot correspond to the number of outer (first) and inner (second) 
+%  the second element of NBOOT is > 0, then the first and second elements  
+%  of NBOOT correspond to the number of outer (first) and inner (second) 
 %  bootstrap resamples respectively. Double bootstrap is used to improve 
 %  the accuracy of the bias and the confidence intervals. For confidence 
 %  intervals, this is achieved by calibrating the lower and upper interval 
@@ -62,68 +62,68 @@
 %  compared to intervals derived from normal theory or to simple percentile
 %  bootstrap confidence intervals.
 %
-%  stats = bootknife(data,nboot,bootfun) also specifies bootfun, a function 
-%  handle, a string indicating the name of the function to apply to the data
+%  STATS = bootknife (DATA, NBOOT, BOOTFUN) also specifies BOOTFUN, a function 
+%  handle, a string indicating the name of the function to apply to the DATA
 %  (and each bootstrap resample), or a cell array where the first cell is the 
-%  function handle or string, and other cells being arguments for that function, 
-%  where the function must take data for the first input argument. bootfun can 
-%  return a scalar value or vector. The default value(s) of bootfun is/are the
-%  (column) mean(s). When bootfun is @mean or 'mean', residual narrowness
-%  bias of central coverage is almost eliminated by using the Student's 
+%  function handle or string, and other cells being additional input arguments 
+%  for BOOTFUN, where BOOTFUN must take DATA for the first input argument.
+%  BOOTFUN can return a scalar value or vector. The default value(s) of BOOTFUN 
+%  is/are the (column) mean(s). When BOOTFUN is @mean or 'mean', residual 
+%  narrowness bias of central coverage is almost eliminated by using Student's 
 %  t-distribution to expand the percentiles before applying the BCa 
 %  adjustments as described in [9].
-%    Note that bootfun MUST calculate a statistic representative of the 
-%  finite data sample, it should NOT be an estimate of a population 
-%  parameter. For example, for the variance, set bootfun to {@var,1}, not 
-%  @var or {@var,0}. Smooth functions of the data are preferable, (e.g. use
+%    Note that BOOTFUN must calculate a statistic representative of the 
+%  finite DATA sample, it should not be an estimate of a population 
+%  parameter. For example, for the variance, set BOOTFUN to {@var,1}, not 
+%  @var or {@var,0}. Smooth functions of the DATA are preferable, (e.g. use
 %  smoothmedian function instead of ordinary median). 
-%    If single bootstrap is requested and bootfun cannot be executed during
+%    If single bootstrap is requested and BOOTFUN cannot be executed during
 %  leave-one-out jackknife, the acceleration constant will be set to 0 and
 %  intervals will only be bias corrected.
 %
-%  stats = bootknife(data,nboot,bootfun,alpha) where alpha sets the lower 
-%  and upper bounds of the confidence interval(s). The value(s) of alpha must be 
-%  between 0 and 1. If alpha is a scalar value, the nominal lower and upper
-%  percentiles of the confidence are 100*(alpha/2)% and 100*(1-alpha/2)%
-%  respectively, and nominal central coverage of the intervals is 100*(1-alpha)%.
-%  If alpha is a vector with two elements, alpha becomes the quantiles for the
+%  STATS = bootknife (DATA, NBOOT, BOOTFUN, ALPHA) where ALPHA sets the lower 
+%  and upper bounds of the confidence interval(s). The value(s) of ALPHA must be 
+%  between 0 and 1. If ALPHA is a scalar value, the nominal lower and upper
+%  percentiles of the confidence are 100*(ALPHA/2)% and 100*(1-ALPHA/2)%
+%  respectively, and nominal central coverage of the intervals is 100*(1-ALPHA)%.
+%  If ALPHA is a vector with two elements, ALPHA becomes the quantiles for the
 %  confidence intervals, and the intervals become percentile bootstrap confidence
-%  intervals. If alpha is empty, NaN is returned for the confidence interval
-%  ends. The default value for alpha is 0.05. 
+%  intervals. If ALPHA is empty, NaN is returned for the confidence interval
+%  ends. The default value for ALPHA is 0.05. 
 %
-%  stats = bootknife(data,nboot,bootfun,alpha,strata) also sets strata, 
-%  which are identifiers that define the grouping of the data rows
-%  for stratified bootstrap resampling. strata should be a column vector 
-%  or cell array the same number of rows as the data. When resampling is 
-%  stratified, the groups (or stata) of data are equally represented across 
+%  STATS = bootknife (DATA, NBOOT, BOOTFUN, ALPHA, STRATA) also sets STRATA, 
+%  which are identifiers that define the grouping of the DATA rows
+%  for stratified bootstrap resampling. STRATA should be a column vector 
+%  or cell array the same number of rows as the DATA. When resampling is 
+%  stratified, the groups (or stata) of DATA are equally represented across 
 %  the bootstrap resamples. If this input argument is not specified or is 
 %  empty, no stratification of resampling is performed. 
 %
-%  stats = bootknife(data,nboot,bootfun,alpha,strata,nproc) sets the
+%  STATS = bootknife (DATA, NBOOT, BOOTFUN, ALPHA, STRATA, NPROC) sets the
 %  number of parallel processes to use to accelerate computations on 
 %  multicore machines, specifically non-vectorized function evaluations,
 %  double bootstrap resampling and jackknife function evaluations. This
 %  feature requires the Parallel package (in Octave), or the Parallel
 %  Computing Toolbox (in Matlab).
 %
-%  [stats,bootstat] = bootknife(...) also returns bootstat, a vector of
+%  [STATS, BOOTSTAT] = bootknife (...) also returns BOOTSTAT, a vector of
 %  statistics calculated over the (first, or outer layer of) bootstrap
 %  resamples. 
 %
-%  [stats,bootstat,bootsam] = bootknife(...) also returns bootsam, the
+%  [STATS, BOOTSTAT, BOOTSAM] = bootknife(...) also returns BOOTSAM, the
 %  matrix of indices (32-bit integers) used for the (first, or outer
-%  layer of) bootstrap resampling. Each column in bootsam corresponds
+%  layer of) bootstrap resampling. Each column in BOOTSAM corresponds
 %  to one bootstrap resample and contains the row indices of the values
-%  drawn from the nonscalar data argument to create that sample.
+%  drawn from the nonscalar DATA argument to create that sample.
 %
-%  bootknife(data,...); returns a pretty table of the output including
-%  the bootstrap settings and the result of evaluating bootfun on the
-%  data along with bootstrap estimates of bias, standard error, and
-%  lower and upper 100*(1-alpha)% confidence limits.
+%  bootknife (DATA, ...); returns a pretty table of the output including
+%  the bootstrap settings and the result of evaluating BOOTFUN on the
+%  DATA along with bootstrap estimates of bias, standard error, and
+%  lower and upper 100*(1-ALPHA)% confidence limits.
 %
 %  Requirements: The function file boot.m (or better boot.mex) also
 %  distributed in the statistics-bootstrap package. The 'robust' option
-%  for bootfun requires smoothmedian.m (or better smoothmedian.mex).
+%  for BOOTFUN requires smoothmedian.m (or better smoothmedian.mex).
 %
 %  Bibliography:
 %  [1] Hesterberg T.C. (2004) Unbiasing the Bootstrap—Bootknife Sampling 
@@ -149,7 +149,7 @@
 %        Bootstrap: Resampling in the Undergraduate Statistics Curriculum, 
 %        http://arxiv.org/abs/1411.5279
 %
-%  bootknife (version 2022.10.08)
+%  bootknife (version 2022.10.09)
 %  Author: Andrew Charles Penn
 %  https://www.researchgate.net/profile/Andrew_Penn/
 %
@@ -176,7 +176,7 @@ function [stats, bootstat, BOOTSAM] = bootknife (x, nboot, bootfun, alpha, strat
 
   % Set defaults and check for errors
   if (nargin < 1)
-    error ('bootknife: data must be provided');
+    error ('bootknife: DATA must be provided');
   end
   if (nargin < 2)
     nboot = [2000, 0];
@@ -185,13 +185,13 @@ function [stats, bootstat, BOOTSAM] = bootknife (x, nboot, bootfun, alpha, strat
       nboot = [2000, 0];
     else
       if ~isa (nboot, 'numeric')
-        error ('bootknife: nboot must be numeric');
+        error ('bootknife: NBOOT must be numeric');
       end
       if (numel (nboot) > 2)
-        error ('bootknife: nboot cannot contain more than 2 values');
+        error ('bootknife: NBOOT cannot contain more than 2 values');
       end
       if any (nboot ~= abs (fix (nboot)))
-        error ('bootknife: nboot must contain positive integers');
+        error ('bootknife: NBOOT must contain positive integers');
       end    
     end
   end
@@ -211,28 +211,28 @@ function [stats, bootstat, BOOTSAM] = bootknife (x, nboot, bootfun, alpha, strat
       bootfun = str2func (bootfun);
     end
     if ~isa (bootfun, 'function_handle')
-      error ('bootknife: bootfun must be a function name or function handle');
+      error ('bootknife: BOOTFUN must be a function name or function handle');
     end
   end
   % Store bootfun as string for printing output at the end
   bootfun_str = func2str(bootfun);
   if iscell(x)
-    % If data is a cell array of equal size colunmn vectors, convert the cell
+    % If DATA is a cell array of equal size colunmn vectors, convert the cell
     % array to a matrix and redefine bootfun to parse multiple input arguments
     x = [x{:}];
     bootfun = @(x) localfunc.col2args(bootfun, x);
   end
   if ~(size(x, 1) > 1)
-    error ('bootknife: data must contain more than one row');
+    error ('bootknife: DATA must contain more than one row');
   end
   if (nargin < 4)
     alpha = 0.05;
   elseif ~isempty (alpha) 
     if ~isa (alpha,'numeric') || numel (alpha) > 2
-      error ('bootknife: alpha must be a scalar (two-tailed probability) or a vector (pair of quantiles)');
+      error ('bootknife: ALPHA must be a scalar (two-tailed probability) or a vector (pair of quantiles)');
     end
     if any ((alpha < 0) | (alpha > 1))
-      error ('bootknife: value(s) in alpha must be between 0 and 1');
+      error ('bootknife: value(s) in ALPHA must be between 0 and 1');
     end
     if numel(alpha) > 1
       % alpha is a pair of quantiles
@@ -246,20 +246,20 @@ function [stats, bootstat, BOOTSAM] = bootknife (x, nboot, bootfun, alpha, strat
     strata = [];
   elseif ~isempty (strata) 
     if size (strata, 1) ~= size (x, 1)
-      error ('bootknife: strata should be a column vector or cell array with the same number of rows as the data');
+      error ('bootknife: STRATA should be a column vector or cell array with the same number of rows as the DATA');
     end
   end
   if (nargin < 6)
     ncpus = 0;    % Ignore parallel processing features
   elseif ~isempty (ncpus) 
     if ~isa (ncpus, 'numeric')
-      error('bootknife: ncpus must be numeric');
+      error('bootknife: NPROC must be numeric');
     end
     if any (ncpus ~= abs (fix (ncpus)))
-      error ('bootknife: ncpus must be a positive integer');
+      error ('bootknife: NPROC must be a positive integer');
     end    
     if (numel (ncpus) > 1)
-      error ('bootknife: ncpus must be a scalar value');
+      error ('bootknife: NPROC must be a scalar value');
     end
   end
   % REF, ISOCTAVE and BOOTSAM are undocumented input arguments required for some of the functionalities of bootknife
@@ -274,7 +274,7 @@ function [stats, bootstat, BOOTSAM] = bootknife (x, nboot, bootfun, alpha, strat
     ncpus = min(ncpus, feature('numcores'));
   end
 
-  % Determine properties of the data (x)
+  % Determine properties of the DATA (x)
   [n, nvar] = size (x);
 
   % Set number of outer and inner bootknife resamples
@@ -285,13 +285,13 @@ function [stats, bootstat, BOOTSAM] = bootknife (x, nboot, bootfun, alpha, strat
     C = 0;
   end
 
-  % Evaluate bootfun on the data
+  % Evaluate bootfun on the DATA
   T0 = bootfun (x);
   if all (size (T0) > 1)
-    error ('bootknife: bootfun must return either a scalar or a vector');
+    error ('bootknife: BOOTFUN must return either a scalar or a vector');
   end
 
-  % If data is univariate, check whether bootfun is vectorized
+  % If DATA is univariate, check whether bootfun is vectorized
   if (nvar == 1)
       try
         chk = bootfun (cat (2,x,x));
@@ -381,14 +381,14 @@ function [stats, bootstat, BOOTSAM] = bootknife (x, nboot, bootfun, alpha, strat
     end
   end
 
-  % If the function of the data is a matrix, calculate and return the bootstrap statistics for each column 
+  % If the function of the DATA is a matrix, calculate and return the bootstrap statistics for each column 
   sz = size (T0);
   m = prod (sz);
   if (m > 1)
     if (nvar == m)
       try
-        % If data is multivariate, check whether bootfun is vectorized
-        % Bootfun will be evaluated for each column of x, considering each of them as univariate data vectors
+        % If DATA is multivariate, check whether bootfun is vectorized
+        % Bootfun will be evaluated for each column of x, considering each of them as univariate DATA vectors
         chk = bootfun (cat (2,x(:,1),x(:,1)));
         if ( all (size (chk) == [1, 2]) && all (chk == bootfun (x(:,1))) )
           vectorized = true;
@@ -398,7 +398,7 @@ function [stats, bootstat, BOOTSAM] = bootknife (x, nboot, bootfun, alpha, strat
       end
     end
     % Use bootknife for each element of the output of bootfun
-    % Note that row indices in the resamples are the same for all columns of data
+    % Note that row indices in the resamples are the same for all columns of DATA
     stats = struct ('original',zeros(sz),...
                     'bias',zeros(sz),...
                     'std_error',zeros(sz),...
@@ -491,7 +491,7 @@ function [stats, bootstat, BOOTSAM] = bootknife (x, nboot, bootfun, alpha, strat
   end
   if isempty(BOOTSAM)
     if vectorized
-      % Vectorized evaluation of bootfun on the data resamples
+      % Vectorized evaluation of bootfun on the DATA resamples
       bootstat = bootfun (X);
     else
       if (ncpus > 1)
@@ -510,8 +510,8 @@ function [stats, bootstat, BOOTSAM] = bootknife (x, nboot, bootfun, alpha, strat
     end
   else
     if vectorized
-      % Vectorized implementation of data sampling (using BOOTSAM) and evaluation of bootfun on the data resamples 
-      % Perform data sampling
+      % Vectorized implementation of DATA sampling (using BOOTSAM) and evaluation of bootfun on the DATA resamples 
+      % Perform DATA sampling
       X = x(BOOTSAM);
       % Function evaluation on bootknife sample
       bootstat = bootfun (X);
@@ -841,10 +841,10 @@ function [F, x] = empcdf (bootstat, c)
 
   % Check input argument
   if ~isa(bootstat,'numeric')
-    error ('bootknife:empcdf: bootstat must be numeric');
+    error ('bootknife:empcdf: BOOTSTAT must be numeric');
   end
   if all(size(bootstat)>1)
-    error ('bootknife:empcdf: bootstat must be a vector');
+    error ('bootknife:empcdf: BOOTSTAT must be a vector');
   end
   if size(bootstat,2)>1
     bootstat = bootstat.';

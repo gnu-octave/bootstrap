@@ -1,31 +1,39 @@
 % Function file: bootmode
-% 
-% [H, P, h] = bootmode (x, m, B, kernel)
 %
-% This function tests whether the distribution underlying the univariate
-% data in vector x has m modes. The method employs the smooth bootstrap
-% as described [1].
+% [H, P, CRITVAL] = bootmode (X, M, NBOOT, KERNEL, NPROC)
 %
-% The parsimonious approach is to consider a successively increasing
-% number of modes until the null hypothesis (H0) is accepted (i.e. H=0),
-% where H0 corresponds to the number of modes being equal to m.
+% This function tests whether the distribution underlying the univariate data
+% in vector X has M modes. The method employs the smooth bootstrap as described
+% [1].
 %
-% x is the vector of data
+% The parsimonious approach is to consider a successively increasing number of
+% modes until the null hypothesis (H0) is accepted (i.e. H=0), where H0
+% corresponds to the number of modes being equal to M.
 %
-% m is the number of modes for hypothesis testing
+% INPUT arguments:
 %
-% B is the number of bootstrap replicates
+%   X is the vector of data
 %
-% kernel can be 'Gaussian' (default) or 'Epanechnikov'
+%   M is the number of modes for hypothesis testing.
 %
-% H=0 indicates that the null hypothesis cannot be rejected at the 5%
-% significance level.  H=1 indicates that the null hypothesis can be
-% rejected at the 5% level.
+%   NBOOT is the number of bootstrap replicates.
 %
-% P is the achieved significance level using the bootstrap test.
+%   KERNEL can be 'Gaussian' (default) or 'Epanechnikov'.
 %
-% h is the critical bandwidth (i.e. the smallest bandwidth achievable to
-% obtain a kernel density estimate with m modes)
+%   NPROC sets the number of parallel processes to use to accelerate
+%   computations. This feature requires the Parallel package (in Octave), or 
+%   the Parallel Computing Toolbox (in Matlab).
+%
+% OUTPUT arguments:
+%
+%   H = 0 indicates that the null hypothesis cannot be rejected at the 5%
+%   significance level.  H=1 indicates that the null hypothesis can be rejected
+%   at the 5% level.
+%
+%   P is the p-value of the bootstrap test.
+%
+%   CRITVAL is the critical bandwidth (i.e. the smallest bandwidth achievable to
+%   obtain a kernel density estimate with M modes)
 %
 % Bootstrap iteration is not implemented for this test.
 %
@@ -52,46 +60,45 @@
 %  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-%% Stamp data example used in reference [1]
-%% From stamp dataset in bootstrap R package
-%x=[0.060;0.064;0.064;0.065;0.066;0.068;0.069;0.069;0.069;0.069;0.069;0.069;0.069;0.070;0.070;0.070;
-%0.070;0.070;0.070;0.070;0.070;0.070;0.070;0.070;0.070;0.070;0.070;0.070;0.070;0.070;0.070;0.070;
-%0.070;0.070;0.070;0.070;0.070;0.070;0.070;0.071;0.071;0.071;0.071;0.071;0.071;0.071;0.071;0.071;
-%0.071;0.071;0.071;0.071;0.071;0.071;0.071;0.071;0.071;0.071;0.071;0.072;0.072;0.072;0.072;0.072;
-%0.072;0.072;0.072;0.072;0.072;0.072;0.072;0.072;0.072;0.072;0.072;0.072;0.072;0.072;0.072;0.072;
-%0.072;0.072;0.072;0.072;0.072;0.072;0.072;0.072;0.072;0.072;0.072;0.073;0.073;0.073;0.073;0.073;
-%0.073;0.073;0.073;0.073;0.073;0.073;0.074;0.074;0.074;0.074;0.074;0.074;0.074;0.074;0.074;0.074;
-%0.075;0.075;0.075;0.075;0.075;0.075;0.075;0.075;0.075;0.075;0.075;0.075;0.075;0.075;0.075;0.075;
-%0.075;0.075;0.075;0.075;0.076;0.076;0.076;0.076;0.076;0.076;0.076;0.076;0.076;0.076;0.076;0.076;
-%0.076;0.076;0.076;0.076;0.076;0.076;0.077;0.077;0.077;0.077;0.077;0.077;0.077;0.077;0.077;0.077;
-%0.077;0.078;0.078;0.078;0.078;0.078;0.078;0.078;0.078;0.078;0.078;0.078;0.078;0.078;0.078;0.078;
-%0.078;0.078;0.078;0.078;0.078;0.078;0.078;0.078;0.079;0.079;0.079;0.079;0.079;0.079;0.079;0.079;
-%0.079;0.079;0.079;0.079;0.079;0.079;0.079;0.079;0.079;0.079;0.079;0.079;0.079;0.079;0.079;0.079;
-%0.079;0.079;0.079;0.079;0.079;0.079;0.079;0.079;0.079;0.079;0.079;0.079;0.079;0.079;0.079;0.079;
-%0.079;0.079;0.080;0.080;0.080;0.080;0.080;0.080;0.080;0.080;0.080;0.080;0.080;0.080;0.080;0.080;
-%0.080;0.080;0.080;0.080;0.080;0.080;0.080;0.080;0.080;0.080;0.080;0.080;0.080;0.080;0.080;0.080;
-%0.080;0.080;0.080;0.080;0.080;0.080;0.080;0.081;0.081;0.081;0.081;0.081;0.081;0.081;0.081;0.081;
-%0.081;0.081;0.081;0.081;0.081;0.081;0.082;0.082;0.082;0.082;0.082;0.082;0.082;0.082;0.082;0.082;
-%0.082;0.082;0.082;0.082;0.082;0.082;0.082;0.082;0.083;0.083;0.083;0.083;0.083;0.083;0.083;0.084;
-%0.084;0.084;0.085;0.085;0.086;0.086;0.087;0.088;0.088;0.089;0.089;0.089;0.089;0.089;0.089;0.089;
-%0.089;0.089;0.089;0.090;0.090;0.090;0.090;0.090;0.090;0.090;0.090;0.090;0.091;0.091;0.091;0.092;
-%0.092;0.092;0.092;0.092;0.093;0.093;0.093;0.093;0.093;0.093;0.094;0.094;0.094;0.095;0.095;0.096;
-%0.096;0.096;0.097;0.097;0.097;0.097;0.097;0.097;0.097;0.098;0.098;0.098;0.098;0.098;0.099;0.099;
-%0.099;0.099;0.099;0.100;0.100;0.100;0.100;0.100;0.100;0.100;0.100;0.100;0.100;0.100;0.100;0.100;
-%0.100;0.100;0.101;0.101;0.101;0.101;0.101;0.101;0.101;0.101;0.101;0.102;0.102;0.102;0.102;0.102;
-%0.102;0.102;0.102;0.103;0.103;0.103;0.103;0.103;0.103;0.103;0.104;0.104;0.105;0.105;0.105;0.105;
-%0.105;0.106;0.106;0.106;0.106;0.107;0.107;0.107;0.108;0.108;0.108;0.108;0.108;0.108;0.108;0.109;
-%0.109;0.109;0.109;0.109;0.109;0.109;0.110;0.110;0.110;0.110;0.110;0.110;0.110;0.110;0.110;0.110;
-%0.110;0.111;0.111;0.111;0.111;0.112;0.112;0.112;0.112;0.112;0.114;0.114;0.114;0.115;0.115;0.115;
-%0.117;0.119;0.119;0.119;0.119;0.120;0.120;0.120;0.121;0.122;0.122;0.123;0.123;0.125;0.125;0.128;
-%0.129;0.129;0.129;0.130;0.131]
+%% Stamp data example used in reference [1] in bootstrap R package
+% x=[0.060;0.064;0.064;0.065;0.066;0.068;0.069;0.069;0.069;0.069;0.069;0.069;0.069;0.070;0.070;0.070;
+% 0.070;0.070;0.070;0.070;0.070;0.070;0.070;0.070;0.070;0.070;0.070;0.070;0.070;0.070;0.070;0.070;
+% 0.070;0.070;0.070;0.070;0.070;0.070;0.070;0.071;0.071;0.071;0.071;0.071;0.071;0.071;0.071;0.071;
+% 0.071;0.071;0.071;0.071;0.071;0.071;0.071;0.071;0.071;0.071;0.071;0.072;0.072;0.072;0.072;0.072;
+% 0.072;0.072;0.072;0.072;0.072;0.072;0.072;0.072;0.072;0.072;0.072;0.072;0.072;0.072;0.072;0.072;
+% 0.072;0.072;0.072;0.072;0.072;0.072;0.072;0.072;0.072;0.072;0.072;0.073;0.073;0.073;0.073;0.073;
+% 0.073;0.073;0.073;0.073;0.073;0.073;0.074;0.074;0.074;0.074;0.074;0.074;0.074;0.074;0.074;0.074;
+% 0.075;0.075;0.075;0.075;0.075;0.075;0.075;0.075;0.075;0.075;0.075;0.075;0.075;0.075;0.075;0.075;
+% 0.075;0.075;0.075;0.075;0.076;0.076;0.076;0.076;0.076;0.076;0.076;0.076;0.076;0.076;0.076;0.076;
+% 0.076;0.076;0.076;0.076;0.076;0.076;0.077;0.077;0.077;0.077;0.077;0.077;0.077;0.077;0.077;0.077;
+% 0.077;0.078;0.078;0.078;0.078;0.078;0.078;0.078;0.078;0.078;0.078;0.078;0.078;0.078;0.078;0.078;
+% 0.078;0.078;0.078;0.078;0.078;0.078;0.078;0.078;0.079;0.079;0.079;0.079;0.079;0.079;0.079;0.079;
+% 0.079;0.079;0.079;0.079;0.079;0.079;0.079;0.079;0.079;0.079;0.079;0.079;0.079;0.079;0.079;0.079;
+% 0.079;0.079;0.079;0.079;0.079;0.079;0.079;0.079;0.079;0.079;0.079;0.079;0.079;0.079;0.079;0.079;
+% 0.079;0.079;0.080;0.080;0.080;0.080;0.080;0.080;0.080;0.080;0.080;0.080;0.080;0.080;0.080;0.080;
+% 0.080;0.080;0.080;0.080;0.080;0.080;0.080;0.080;0.080;0.080;0.080;0.080;0.080;0.080;0.080;0.080;
+% 0.080;0.080;0.080;0.080;0.080;0.080;0.080;0.081;0.081;0.081;0.081;0.081;0.081;0.081;0.081;0.081;
+% 0.081;0.081;0.081;0.081;0.081;0.081;0.082;0.082;0.082;0.082;0.082;0.082;0.082;0.082;0.082;0.082;
+% 0.082;0.082;0.082;0.082;0.082;0.082;0.082;0.082;0.083;0.083;0.083;0.083;0.083;0.083;0.083;0.084;
+% 0.084;0.084;0.085;0.085;0.086;0.086;0.087;0.088;0.088;0.089;0.089;0.089;0.089;0.089;0.089;0.089;
+% 0.089;0.089;0.089;0.090;0.090;0.090;0.090;0.090;0.090;0.090;0.090;0.090;0.091;0.091;0.091;0.092;
+% 0.092;0.092;0.092;0.092;0.093;0.093;0.093;0.093;0.093;0.093;0.094;0.094;0.094;0.095;0.095;0.096;
+% 0.096;0.096;0.097;0.097;0.097;0.097;0.097;0.097;0.097;0.098;0.098;0.098;0.098;0.098;0.099;0.099;
+% 0.099;0.099;0.099;0.100;0.100;0.100;0.100;0.100;0.100;0.100;0.100;0.100;0.100;0.100;0.100;0.100;
+% 0.100;0.100;0.101;0.101;0.101;0.101;0.101;0.101;0.101;0.101;0.101;0.102;0.102;0.102;0.102;0.102;
+% 0.102;0.102;0.102;0.103;0.103;0.103;0.103;0.103;0.103;0.103;0.104;0.104;0.105;0.105;0.105;0.105;
+% 0.105;0.106;0.106;0.106;0.106;0.107;0.107;0.107;0.108;0.108;0.108;0.108;0.108;0.108;0.108;0.109;
+% 0.109;0.109;0.109;0.109;0.109;0.109;0.110;0.110;0.110;0.110;0.110;0.110;0.110;0.110;0.110;0.110;
+% 0.110;0.111;0.111;0.111;0.111;0.112;0.112;0.112;0.112;0.112;0.114;0.114;0.114;0.115;0.115;0.115;
+% 0.117;0.119;0.119;0.119;0.119;0.120;0.120;0.120;0.121;0.122;0.122;0.123;0.123;0.125;0.125;0.128;
+% 0.129;0.129;0.129;0.130;0.131]
 
 % Results from multimodality testing using this
 % function with the Gaussian kernel compare quantitatively with reference [1]
 % Inference is similar when using an Epanechnikov kernel
 %
 % [H, P, h] = bootmode(x,m,2000,'Gaussian')
-% m	 h       P     H
+% m  h       P     H
 % 1  0.0068  0.00  1
 % 2  0.0032  0.32  0 <- smallest m where H0 accepted
 % 3  0.0030  0.07  0
@@ -101,7 +108,7 @@
 % 7  0.0015  0.46  0
 %
 % [H, P, h] = bootmode(x,m,2000,'Epanechnikov')
-% m	 h       P     H
+% m  h       P     H
 % 1  0.0169  0.02  1
 % 2  0.0069  0.57  0 <- smallest m where H0 accepted
 % 3  0.0061  0.52  0
@@ -110,10 +117,17 @@
 % 6  0.0052  0.17  0
 % 7  0.0052  0.06  0
 
-function [H, P, h] = bootmode (x, m, B, kernel)
+function [H, P, h] = bootmode (x, m, B, kernel, ncpus)
 
+  % Store local functions in a stucture for parallel processes
+  localfunc = struct ('findCriticalBandwidth',@findCriticalBandwidth ,...
+                      'kde',@kde);
+
+  % Check if running in Octave (else assume Matlab)
+  info = ver; 
+  ISOCTAVE = any (ismember ({info.Name}, 'Octave'));
   if nargin < 2
-    error('A minimum of 2 input arguments are required')
+    error('bootmode usage: ''bootmode (X, M, varagin)''; a minimum of 2 input arguments are required')
   end
   if nargin < 3
     B = '2000';
@@ -121,13 +135,102 @@ function [H, P, h] = bootmode (x, m, B, kernel)
   if nargin < 4
     kernel = 'Gaussian';
   end
+  if nargin < 5
+    ncpus = 0;    % Ignore parallel processing features
+  elseif ~isempty (ncpus) 
+    if ~isa (ncpus, 'numeric')
+      error('bootmode: NPROC must be numeric');
+    end
+    if any (ncpus ~= abs (fix (ncpus)))
+      error ('bootmode: NPROC must be a positive integer');
+    end    
+    if (numel (ncpus) > 1)
+      error ('bootmode: NPROC must be a scalar value');
+    end
+  end
+  if ISOCTAVE
+    ncpus = min(ncpus, nproc);
+  else
+    ncpus = min(ncpus, feature('numcores'));
+  end
+
+  % If applicable, check we have parallel computing capabilities
+  if (ncpus > 1)
+    if ISOCTAVE  
+      pat = '^parallel';
+      software = pkg('list');
+      names = cellfun(@(S) S.name, software, 'UniformOutput', false);
+      status = cellfun(@(S) S.loaded, software, 'UniformOutput', false);
+      index = find(~cellfun(@isempty,regexpi(names,pat)));
+      if ~isempty(index)
+        if logical(status{index})
+          PARALLEL = true;
+        else
+          PARALLEL = false;
+        end
+      else
+        PARALLEL = false;
+      end
+    else
+      info = ver; 
+      if ismember ('Parallel Computing Toolbox', {info.Name})
+        PARALLEL = true;
+      else
+        PARALLEL = false;
+      end
+    end
+  end
+
+  % If applicable, setup a parallel pool (required for MATLAB)
+  if ~ISOCTAVE
+    % MATLAB
+    % bootfun is not vectorized
+    if (ncpus > 0) 
+      % MANUAL
+      try 
+        pool = gcp ('nocreate'); 
+        if isempty (pool)
+          if (ncpus > 1)
+            % Start parallel pool with ncpus workers
+            parpool (ncpus);
+          else
+            % Parallel pool is not running and ncpus is 1 so run function evaluations in serial
+            ncpus = 1;
+          end
+        else
+          if (pool.NumWorkers ~= ncpus)
+            % Check if number of workers matches ncpus and correct it accordingly if not
+            delete (pool);
+            if (ncpus > 1)
+              parpool (ncpus);
+            end
+          end
+        end
+      catch
+        % MATLAB Parallel Computing Toolbox is not installed
+        warning ('MATLAB Parallel Computing Toolbox is not installed or operational. Falling back to serial processing.');
+        ncpus = 1;
+      end
+    end
+  else
+    if (ncpus > 1) && ~PARALLEL
+      if ISOCTAVE
+        % OCTAVE Parallel Computing Package is not installed or loaded
+        warning ('OCTAVE Parallel Computing Package is not installed and/or loaded. Falling back to serial processing.');
+      else
+        % MATLAB Parallel Computing Toolbox is not installed or loaded
+        warning ('MATLAB Parallel Computing Toolbox is not installed and/or loaded. Falling back to serial processing.');
+      end
+      ncpus = 0;
+    end
+  end
 
   % Vectorize the data
   x = x(:);
   n = numel(x);
 
   % Find critical bandwidth
-  [criticalBandwidth] = findCriticalBandwidth (x, m, kernel);
+  [criticalBandwidth] = localfunc.findCriticalBandwidth (x, m, kernel);
   h = criticalBandwidth;
 
   % Random resampling with replacement from a smooth estimate of the distribution
@@ -138,11 +241,25 @@ function [H, P, h] = bootmode (x, m, B, kernel)
   X = Ymean + (1 + h^2/xvar)^(-0.5) * (Y - Ymean + (h * randn(n,B)));
 
   % Calculate bootstrap statistic of the bootstrap samples
-  % Boostrap statistic is the number of modes (faster)
-  f = zeros(200,B);
-  for j = 1:B
-    f(:,j) = kde(X(:,j),h, kernel);
+  % The boostrap statistic is the number of modes
+  if (ncpus > 1)
+    % PARALLEL
+    if ISOCTAVE
+      % OCTAVE
+      f = cell2mat (parcellfun (ncpus, ...
+                                @(j) localfunc.kde (X(:,j), h, kernel), ...
+                                num2cell (1:B), 'UniformOutput', false));
+    else
+      % MATLAB
+      f = zeros(200,B);
+      parfor j = 1:B; f(:,j) = localfunc.kde (X(:,j), h, kernel); end
+    end
+  else
+    % SERIAL
+    f = cell2mat (cellfun (@(j) localfunc.kde (X(:,j), h, kernel), ...
+                           num2cell (1:B), 'UniformOutput', false));
   end
+
   % Compute number of modes in the kernel density estimate of the bootstrap samples
   mboot = sum(diff(sign(diff(f)))<0);
   % Approximate achieved significance level (ASL) from bootstrapping number of modes
@@ -150,9 +267,9 @@ function [H, P, h] = bootmode (x, m, B, kernel)
 
   % Accept or reject null hypothesis
   if P > 0.05
-    H = 0;
+    H = false;
   elseif P < 0.05
-    H = 1;
+    H = true;
   end
 
 end
@@ -162,7 +279,7 @@ end
 function [criticalBandwidth] = findCriticalBandwidth (x, mref, kernel)
 
   if mref > numel(x)
-    error('the number of modes cannot exceed the number of datapoints')
+    error('the number of modes M cannot exceed the number of data points in X')
   end
 
   % Calculate starting value for bandwidth
@@ -213,3 +330,42 @@ function [f, t] = kde (x, h, kernel)
   f = f * 1/(n*h);
 
 end
+
+%!test
+%! % Stamp data example used in reference [1] in bootstrap R package
+%! x=[0.060;0.064;0.064;0.065;0.066;0.068;0.069;0.069;0.069;0.069;0.069;0.069;0.069;0.070;0.070;0.070;
+%! 0.070;0.070;0.070;0.070;0.070;0.070;0.070;0.070;0.070;0.070;0.070;0.070;0.070;0.070;0.070;0.070;
+%! 0.070;0.070;0.070;0.070;0.070;0.070;0.070;0.071;0.071;0.071;0.071;0.071;0.071;0.071;0.071;0.071;
+%! 0.071;0.071;0.071;0.071;0.071;0.071;0.071;0.071;0.071;0.071;0.071;0.072;0.072;0.072;0.072;0.072;
+%! 0.072;0.072;0.072;0.072;0.072;0.072;0.072;0.072;0.072;0.072;0.072;0.072;0.072;0.072;0.072;0.072;
+%! 0.072;0.072;0.072;0.072;0.072;0.072;0.072;0.072;0.072;0.072;0.072;0.073;0.073;0.073;0.073;0.073;
+%! 0.073;0.073;0.073;0.073;0.073;0.073;0.074;0.074;0.074;0.074;0.074;0.074;0.074;0.074;0.074;0.074;
+%! 0.075;0.075;0.075;0.075;0.075;0.075;0.075;0.075;0.075;0.075;0.075;0.075;0.075;0.075;0.075;0.075;
+%! 0.075;0.075;0.075;0.075;0.076;0.076;0.076;0.076;0.076;0.076;0.076;0.076;0.076;0.076;0.076;0.076;
+%! 0.076;0.076;0.076;0.076;0.076;0.076;0.077;0.077;0.077;0.077;0.077;0.077;0.077;0.077;0.077;0.077;
+%! 0.077;0.078;0.078;0.078;0.078;0.078;0.078;0.078;0.078;0.078;0.078;0.078;0.078;0.078;0.078;0.078;
+%! 0.078;0.078;0.078;0.078;0.078;0.078;0.078;0.078;0.079;0.079;0.079;0.079;0.079;0.079;0.079;0.079;
+%! 0.079;0.079;0.079;0.079;0.079;0.079;0.079;0.079;0.079;0.079;0.079;0.079;0.079;0.079;0.079;0.079;
+%! 0.079;0.079;0.079;0.079;0.079;0.079;0.079;0.079;0.079;0.079;0.079;0.079;0.079;0.079;0.079;0.079;
+%! 0.079;0.079;0.080;0.080;0.080;0.080;0.080;0.080;0.080;0.080;0.080;0.080;0.080;0.080;0.080;0.080;
+%! 0.080;0.080;0.080;0.080;0.080;0.080;0.080;0.080;0.080;0.080;0.080;0.080;0.080;0.080;0.080;0.080;
+%! 0.080;0.080;0.080;0.080;0.080;0.080;0.080;0.081;0.081;0.081;0.081;0.081;0.081;0.081;0.081;0.081;
+%! 0.081;0.081;0.081;0.081;0.081;0.081;0.082;0.082;0.082;0.082;0.082;0.082;0.082;0.082;0.082;0.082;
+%! 0.082;0.082;0.082;0.082;0.082;0.082;0.082;0.082;0.083;0.083;0.083;0.083;0.083;0.083;0.083;0.084;
+%! 0.084;0.084;0.085;0.085;0.086;0.086;0.087;0.088;0.088;0.089;0.089;0.089;0.089;0.089;0.089;0.089;
+%! 0.089;0.089;0.089;0.090;0.090;0.090;0.090;0.090;0.090;0.090;0.090;0.090;0.091;0.091;0.091;0.092;
+%! 0.092;0.092;0.092;0.092;0.093;0.093;0.093;0.093;0.093;0.093;0.094;0.094;0.094;0.095;0.095;0.096;
+%! 0.096;0.096;0.097;0.097;0.097;0.097;0.097;0.097;0.097;0.098;0.098;0.098;0.098;0.098;0.099;0.099;
+%! 0.099;0.099;0.099;0.100;0.100;0.100;0.100;0.100;0.100;0.100;0.100;0.100;0.100;0.100;0.100;0.100;
+%! 0.100;0.100;0.101;0.101;0.101;0.101;0.101;0.101;0.101;0.101;0.101;0.102;0.102;0.102;0.102;0.102;
+%! 0.102;0.102;0.102;0.103;0.103;0.103;0.103;0.103;0.103;0.103;0.104;0.104;0.105;0.105;0.105;0.105;
+%! 0.105;0.106;0.106;0.106;0.106;0.107;0.107;0.107;0.108;0.108;0.108;0.108;0.108;0.108;0.108;0.109;
+%! 0.109;0.109;0.109;0.109;0.109;0.109;0.110;0.110;0.110;0.110;0.110;0.110;0.110;0.110;0.110;0.110;
+%! 0.110;0.111;0.111;0.111;0.111;0.112;0.112;0.112;0.112;0.112;0.114;0.114;0.114;0.115;0.115;0.115;
+%! 0.117;0.119;0.119;0.119;0.119;0.120;0.120;0.120;0.121;0.122;0.122;0.123;0.123;0.125;0.125;0.128;
+%! 0.129;0.129;0.129;0.130;0.131];
+%! 
+%! [H, P, CRITVAL] = bootmode(x,1,2000,'Gaussian');
+%! assert (H, true);
+%! [H, P, CRITVAL] = bootmode(x,2,2000,'Gaussian');
+%! assert (H, false);

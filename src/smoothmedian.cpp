@@ -3,28 +3,27 @@
 //
 // mex -compatibleArrayDims smoothmedian.cpp
 //
-// smoothmedian.mex is a function file for calculating a smooth 
-// version of the median [1]
+// smoothmedian.mex is a function file for calculating a smooth version of the
+// median [1]
 //
 // M = smoothmedian (x)
 // M = smoothmedian (x, dim)
-// M = smoothmedian (x, dim, Tol)      
+// M = smoothmedian (x, dim, Tol)
 //
 // INPUT VARIABLES
-// x (double) is the data vector or matrix
-// dim (double) is the dimension (1 for columnwise, 2 for rowwise)
-// Tol (double) sets the step size that will to stop optimization 
+// x (double) is the data vector or matrix.
+// dim (double) is the dimension (1 for columnwise, 2 for rowwise).
+// Tol (double) sets the step size that will to stop optimization.
 //
 // OUTPUT VARIABLE
 // M (double) is vector of the smoothed median
 //
-// If x is a vector, find the univariate smoothed median (M) of x.
-// If x is a matrix, compute the univariate smoothed median value
-// for each column and return them in a row vector (default). The 
-// argument dim defines which dimension to operate along. Arrays  
-// of more than two dimensions are not currently supported. Tol 
-// configures the stopping criteria, in terms of the absolute 
-// change in the step size. By default, Tol = RANGE * 1e-4.
+// If x is a vector, find the univariate smoothed median (M) of x. If x is a
+// matrix, compute the univariate smoothed median value for each column and
+// return them in a row vector (default). The argument dim defines which
+// dimension to operate along. Arrays of more than two dimensions are not
+// currently supported. Tol configures the stopping criteria, in terms of the
+// absolute change in the step size. By default, Tol = RANGE * 1e-4.
 //
 // The smoothed median is a slightly smoothed version of the ordinary 
 // median and is an M-estimator that is both robust and efficient:
@@ -35,31 +34,29 @@
 // | Breakdown point       | 0.00 |      0.341 |      0.500 |
 // | Pitman efficacy       | 1.00 |      0.865 |      0.637 |
 //
-// Smoothing the median is achieved by minimizing the following
-// objective function:
+// Smoothing the median is achieved by minimizing the following objective
+// function:
 //
 //      S (M) = sum (((x(i) - M).^2 + (x(j) - M).^2).^ 0.5)
 //             i < j
 // 
-// where i and j refers to the indices of the Cartesian product 
-// of each column of x with itself. 
+// where i and j refers to the indices of the Cartesian product of each column
+// of x with itself.
 //
-// This function minimizes the above objective function by finding 
-// the root of the first derivative using a fast, but reliable, 
-// Newton-Bisection hybrid algorithm. The tolerance (Tol) is the 
-// maximum step size that is acceptable to break from optimization.
+// This function minimizes the above objective function by finding the root of
+// the first derivative using a fast, but reliable, Newton-Bisection hybrid
+// algorithm. The tolerance (Tol) is the maximum step size that is acceptable to
+// break from optimization.
 //
-// The smoothing works by slightly reducing the breakdown point
-// of the median. Bootstrap confidence intervals using the smoothed
-// median have good coverage for the ordinary median of the
-// population distribution and can be used to obtain second order
-// accurate intervals with Studentized bootstrap and calibrated
-// percentile bootstrap methods [1]. When the population distribution 
-// is thought to be strongly skewed, coverage errors can be reduced 
-// by improving symmetry through appropriate data transformation. 
-// Unlike kernel-based smoothing approaches, bootstrapping smoothmedian 
-// does not require explicit choice of a smoothing parameter or a 
-// probability density function. 
+// The smoothing works by slightly reducing the breakdown point of the median.
+// Bootstrap confidence intervals using the smoothed median have good coverage
+// for the ordinary median of the population distribution and can be used to
+// obtain second order accurate intervals with Studentized bootstrap and
+// calibrated percentile bootstrap methods [1]. When the population distribution
+// is thought to be strongly skewed, coverage errors can be reduced by improving
+// symmetry through appropriate data transformation. Unlike kernel-based
+// smoothing approaches, bootstrapping smoothmedian does not require explicit
+// choice of a smoothing parameter or a probability density function.
 //
 // Bibliography:
 // [1] Brown, Hall and Young (2001) The smoothed median and the
@@ -77,7 +74,7 @@ using namespace std;
 void mexFunction (int nlhs, mxArray* plhs[],
                   int nrhs, const mxArray* prhs[]) 
 {
-    
+
     // Input variables
     if ( nrhs < 1 ) {
         mexErrMsgTxt ("function requires at least 1 input argument");
@@ -149,12 +146,12 @@ void mexFunction (int nlhs, mxArray* plhs[],
     int N = mxGetNumberOfElements (prhs[0]);
     float mid = 0.5 * m;
     double *M = (double *) mxGetData(plhs[0]);
-    
+
     // Declare temporary variables needed for the optimization step
     vector<double> xvec;
     xvec.reserve (m);
     double a, b, range, S, T, U, D, R, step, nwt;
-    
+
     // Loop through the data and apply smoothing to the median (maximum 25 iterations)
     int MaxIter = 24;
     for ( int k = 0; k < n ; k++ ) {
@@ -166,24 +163,24 @@ void mexFunction (int nlhs, mxArray* plhs[],
             for ( int j = 0; j < m ; j++ ) {int i = j * n; xvec.push_back ( x[i + k] );};
         }
         sort(xvec.begin(), xvec.end());
-        
+
         // Set the (ordinary) median as the starting value
         M[k] = xvec[int(mid)];           // Median when m is odd
         if ( mid == int(mid) ) {      
             M[k] += xvec [int(mid) - 1];
             M[k] *= 0.5;                 // Median when m is even
         }
-        
+
         // Set initial bracket bounds
         a = xvec[0];                     // Minimum
         b = xvec[m - 1];                 // Maximimum
-        
+
         // Calculate range (and set stopping criteria if not specified)
         range = b - a;                   // Range
         if (nrhs < 3) {
             Tol = range * 1e-4; 
         }  
-        
+
         // Start iterations
         for ( int Iter = 0; Iter <= MaxIter ; Iter++ ) {
             
@@ -192,7 +189,7 @@ void mexFunction (int nlhs, mxArray* plhs[],
             if (range <= Tol) {
                 break;
             }   
-            
+
             // Calculate derivatives of the objective function for Newton-Raphson method
             //S = 0;
             T = 0;
@@ -213,11 +210,11 @@ void mexFunction (int nlhs, mxArray* plhs[],
                         U += pow (xvec[i] - xvec [j], 2) * R / pow (D, 2);
                     }
                 }
-            }          
+            }
 
             // Compute Newton step (fast quadratic convergence but unreliable)
             step = T / U;
-                        
+
             // Evaluate convergence
             if ( abs (step) <= Tol ) { 
                 break; // Break from optimization when converged to tolerance 
@@ -247,11 +244,11 @@ void mexFunction (int nlhs, mxArray* plhs[],
             }
             
         }
-        
+
         // Clear the temporary vector for the next cycle of the loop
         xvec.clear(); 
     }
-    
+
     return;
-    
+
 }

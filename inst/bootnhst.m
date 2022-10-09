@@ -2,28 +2,28 @@
 %
 %  Bootstrap null hypothesis significance test(s) (NHST)
 %
-%  bootnhst(DATA,GROUP,...);
-%  bootnhst(DATA,GROUP);
-%  bootnhst(DATA,GROUP);
-%  bootnhst(...,'bootfun',bootfun);
-%  bootnhst(...,'bootfun',{bootfun,bootfun_args});
-%  bootnhst(...,'nboot',nboot);
-%  bootnhst(...,'ref',ref);
-%  bootnhst(...,'Options',paropt);
-%  bootnhst(...,'alpha',alpha);
-%  p = bootnhst(...,'dim',dim)
-%  [p,c] = bootnhst(DATA,GROUP,...)
-%  [p,c,stats] = bootnhst(DATA,GROUP,...)
+%  bootnhst (DATA, GROUP, ...);
+%  bootnhst (DATA, GROUP);
+%  bootnhst (DATA, GROUP);
+%  bootnhst (..., 'bootfun', BOOTFUN);
+%  bootnhst (..., 'bootfun', {BOOTFUN,...});
+%  bootnhst (..., 'nboot', NBOOT);
+%  bootnhst (..., 'ref', REF);
+%  bootnhst (..., 'Options', PAROPT);
+%  bootnhst (..., 'alpha', ALPHA);
+%  [P, C] = bootnhst (DATA, GROUP,...)
+%  [P, C, STATS] = bootnhst (DATA, GROUP,...)
+%  [...] = bootnhst (..., 'DisplayOpt', DISPLAYOPT)
 %
 %  This function uses non-parametric bootstrap for null hypothesis (H0) 
 %  significance testing on univariate (vector) or multivatiate (matrix) 
-%  DATA, to compare bootfun (default is the 'mean') evaluated on 
+%  DATA, to compare BOOTFUN (default is the 'mean') evaluated on 
 %  independent GROUPs (i.e. samples) of data in a one-way layout [1].  
 %  This function is appropriate for post hoc comparisons among a family  
 %  of hypothesis tests and comparing groups. The family-wise error rates 
-%  (FWER) of pairwise comparisons, or comparisons to a reference group,
+%  (FWER) of pairwise comparisons, or comparisons to a reference group REF,
 %  are controlled by the single-step maxT procedure on bootstrap resamples.
-%  Thus, depending on the comparisons requested using the ref input   
+%  Thus, depending on the comparisons requested using the REF input   
 %  argument, the p-value adjustments are essentially bootstrap versions of 
 %  either Tukey-Kramer's or Dunnett's tests. Unlike these tests though, 
 %  bootnhst does not make the normality assumption. Since DATA across the 
@@ -33,7 +33,7 @@
 %  will return an error if any GROUP label is not represented by more than 
 %  one data row. 
 %
-%  bootnhst(DATA,GROUP) performs a k-sample bootstrap test where DATA is 
+%  bootnhst (DATA, GROUP) performs a k-sample bootstrap test where DATA is 
 %  a column vector or matrix, and GROUP is a vector or cell array the same 
 %  number of rows as DATA. GROUP contains numbers or strings which denote 
 %  GROUP labels. If the number of GROUPs (k) is 2, this is a 2-sample test. 
@@ -44,76 +44,76 @@
 %  statistics and multiplicity-adjusted p-values for both the overall 
 %  hypothesis test, and the post hoc tests for comparison between the 
 %  GROUPs, are returned in a pretty table. The differences between GROUPs 
-%  are also plot along with the symmetic 100*(1-alpha)% bootstrap-t 
+%  are also plot along with the symmetic 100*(1-ALPHA)% bootstrap-t 
 %  confidence intervals (also adjusted to control the FWER). Markers and 
-%  error bars are red if p < .05, or blue if p > .05. The default alpha 
+%  error bars are red if p < .05, or blue if p > .05. The default ALPHA 
 %  level is 0.05, which produces 95% confidence intervals.
 %
-%  bootnhst(...,'bootfun',bootfun) sets the statistic calculated from
+%  bootnhst (..., 'bootfun', BOOTFUN) sets the statistic calculated from
 %  the bootstrap samples. This can be a function handle, string or cell 
 %  array with the function handle or string in the first cell and input 
 %  arguments to that function in subsequent cells. The calculation of 
-%  bootfun on the DATA must return a scalar value. Note that bootfun MUST 
+%  BOOTFUN on the DATA must return a scalar value. Note that BOOTFUN MUST 
 %  calculate a statistic representative of the finite data sample, it 
 %  should NOT be an estimate of a population parameter. For example, for 
-%  the variance, set bootfun to {@var,1}, not @var or {@var,0}. The default 
-%  value of bootfun is 'mean'. If empty, the default is @mean or 'mean'. 
-%  If a robust statistic for central location is required, setting bootfun
+%  the variance, set BOOTFUN to {@var,1}, not @var or {@var,0}. The default 
+%  value of BOOTFUN is 'mean'. If empty, the default is @mean or 'mean'. 
+%  If a robust statistic for central location is required, setting BOOTFUN
 %  to 'robust' implements a smoothed version of the median (see function help
 %  for smoothmedian). Smooth functions of the data are preferable for bootstrap.
 %    Standard errors are estimated by bootknife resampling by default [2], 
-%  where nboot(2) corresponds to the number of bootknife resamples. If 
-%  nboot(2) is 0 and standard errors are calculated without resampling 
-%  (if bootfun is 'mean'), or using leave-one-out jackknife. Note that if 
-%  bootfun is not the mean, the t-statistics returned by this function  
+%  where NBOOT(2) corresponds to the number of bootknife resamples. If 
+%  NBOOT(2) is 0 and standard errors are calculated without resampling 
+%  (if BOOTFUN is 'mean'), or using leave-one-out jackknife. Note that if 
+%  BOOTFUN is not the mean, the t-statistics returned by this function  
 %  will not be comparable with tabulated values.
 %
-%  bootnhst(...,'nboot',nboot) is a vector of upto two positive integers
+%  bootnhst (..., 'nboot', NBOOT) is a vector of upto two positive integers
 %  indicating the number of replicate samples for the first (bootstrap) 
 %  and second (bootknife) levels of iterated resampling. The default
-%  value of nboot is [1000,200]. If a scalar value is provided for nboot,
+%  value of NBOOT is [1000,200]. If a scalar value is provided for NBOOT,
 %  the value will set the number of first level bootstrap samples; the 
 %  number of second level bootknife samples will assume the default of 
 %  200, except for the mean, where the default is 0. Increasing the values 
-%  of nboot reduces the Monte Carlo error of the p-value (and confidence 
+%  of NBOOT reduces the Monte Carlo error of the p-value (and confidence 
 %  interval) estimates but the calculations take longer to complete. If 
-%  nboot(2) is explicitly set to 0 then bootnhst calculates standard 
+%  NBOOT(2) is explicitly set to 0 then bootnhst calculates standard 
 %  errors for studentization using jackknife resampling instead.
 %
-%  bootnhst(...,'ref',ref) also sets the GROUP to use as the reference 
+%  bootnhst (..., 'ref', REF) also sets the GROUP to use as the reference 
 %  GROUP for post hoc tests. For a one-way experimental design or family 
 %  of tests, this will usually be a control GROUP. If all pairwise 
-%  comparisons are desired, then set ref to 'pairwise' or leave empty. 
+%  comparisons are desired, then set REF to 'pairwise' or leave empty. 
 %  By default, pairwise comparisons are computed for post hoc tests.
 %
-%  If the ref input argument is empty, the resampling procedure for 
+%  If the REF input argument is empty, the resampling procedure for 
 %  pairwise comparisons produces p-value adjustments analagous to the 
 %  Tukey-Kramer Honest Significance Difference (HSD) test. 
 %
-%  If the ref input argument is specified, then the resampling procedure 
+%  If the REF input argument is specified, then the resampling procedure 
 %  for treatment versus reference produces p-value adjustments analagous 
-%  to Dunnett's post hoc tests (since the range of bootfun in the null 
-%  distribution of test statistics is restricted to differences with 
+%  to Dunnett's post hoc tests (since the range of BOOTFUN in the null 
+%  distribution of test statistics is restricted to differences with REF,
 %  the reference GROUP).
 %
 %  The specification of H0 for the overall hypothesis test depends on whether 
-%  a reference GROUP is specified with the ref input argument.
+%  a reference GROUP is specified with the REF input argument.
 %
-%  If ref is empty: 
+%  If REF is empty: 
 %    H0: GROUPs of DATA are all sampled from the same population with respect
-%        to the parameter defined by bootfun (which by default is the mean). 
+%        to the parameter defined by BOOTFUN (which by default is the mean). 
 %
-%  If ref is specified:
+%  If REF is specified:
 %    H0: GROUPs of DATA are all sampled from the same population as DATA in 
-%        the GROUP ref with respect to the parameter defined by bootfun (which   
+%        the GROUP REF with respect to the parameter defined by BOOTFUN (which   
 %        by default is the mean).  
 %
-%  bootnhst(...,'Options',paropt) specifies options that govern if and 
+%  bootnhst (..., 'Options', PAROPT) specifies options that govern if and 
 %  how to perform bootstrap iterations using multiple processors (if the 
 %  Parallel Computing Toolbox or Octave Forge package is available). If 
 %  empty, calculations are performed in serial.
 %
-%  paropt argument is a structure with the following recognised fields:
+%  PAROPT argument is a structure with the following recognised fields:
 %
 %   'UseParallel' - If true, compute bootstrap iterations in parallel.
 %                   Default is false for serial computation. In MATLAB,
@@ -122,33 +122,26 @@
 %   'nproc'       - The number of processors to use to accelerate 
 %                   computations. 
 % 
-%  bootnhst(...,'alpha',alpha) specifies the two-tailed significance level
+%  bootnhst (..., 'alpha', ALPHA) specifies the two-tailed significance level
 %  for confidence interval coverage of 0 (in c).
 %
-%  bootnhst(...,'dim',dim) specifies which dimension to average over the
-%  DATA first when DATA is a matrix. dim can take values of 1 or 2. Note
-%  that while setting dim can affect the result when bootfun is the median,
-%  both values give the same result when bootfun is the mean (i.e. for the
-%  grand mean). This name-value pair is only used if bootfun is 'mean', 
-%  'median', 'smoothmedian', or 'robust'.
+%  P = bootnhst (DATA, GROUP) returns a single P-value for the overall, omnibus
+%  hypothesis test and represents the p-value for the maximum t-statistic
+%  from the set of comparisons (relevant to the test of the overall null
+%  hypothesis, see below). Note that the p-value returned will be truncated at
+%  the resolution limit determined by the number of bootstrap replicates,
+%  specifically 1/NBOOT(1). 
 %
-%  p = bootnhst(DATA,GROUP) returns a single p-value for the overall,
-%  omnibus hypothesis test and represents the multiplicity-adjusted p-value 
-%  for the maximum t-statistic from the set of comparisons (relevant to the 
-%  test of the overall null hypothesis, see below). Note that the p-value 
-%  returned will be truncated at the resolution limit determined by the 
-%  number of bootstrap replicates, specifically 1/nboot(1). 
-%
-%  [p, c] = bootnhst(DATA,GROUP,...) also returns a 9 column matrix that
-%  summarises post hoc test results. The family-wise error rate is 
-%  simultaneously controlled since the null distribution for each test 
+%  [P, C] = bootnhst (DATA, GROUP, ...) also returns a 9 column matrix that
+%  summarises post hoc test results. The family-wise error rate is
+%  simultaneously controlled since the null distribution for each test
 %  represents the maximum studentized test statistic of the resamples. 
 % 
 %  The columns of output argument c contain:
 %    column 1: reference GROUP number
 %    column 2: test GROUP number
-%    column 3: value of bootfun evaluated using reference GROUP DATA
-%    column 4: value of bootfun evaluated using test GROUP DATA
+%    column 3: value of BOOTFUN evaluated using reference GROUP DATA
+%    column 4: value of BOOTFUN evaluated using test GROUP DATA
 %    column 5: columns 4 minus column 3
 %    column 6: t-ratio
 %    column 7: p-adj 
@@ -159,7 +152,7 @@
 %  the confidence interval limits returned in columns 8 and 9 are 
 %  corrected/adjusted to control the FWER.
 %
-%  [p,c,stats] = bootnhst(DATA,GROUP,...) also returns a structure 
+%  [P, C, STATS] = bootnhst (DATA, GROUP, ...) also returns a structure 
 %  containing additional statistics. The stats structure contains the 
 %  following fields:
 %
@@ -167,7 +160,7 @@
 %              gnames corresponds to the numbers used to identify GROUPs
 %              in columns 1 and 2 of the output argument c
 %   ref      - reference group
-%   groups   - group number and bootfun for each group with sample size,
+%   groups   - group number and BOOTFUN for each group with sample size,
 %              standard error and confidence intervals that start to overlap
 %              at a FWER-controlled p-value of approximately 0.05
 %   Var      - weighted mean (pooled) sampling variance
@@ -178,7 +171,7 @@
 %              coverage of 0 (in c).
 %   bootstat - test statistic computed for each bootstrap resample 
 %
-%  [...] = bootnhst(...,'DisplayOpt',logical) a logical value (true or 
+%  [...] = bootnhst(..., 'DisplayOpt', DISPLAYOPT) a logical value (true or 
 %  false) is used to specify whether to display and graph the results in 
 %  addition to creating the output arguments. The default is true.
 %
@@ -211,7 +204,7 @@
 % ------------------------------------------------------------------------------
 % 
 % Overall hypothesis test from single-step maxT procedure
-% H0: Groups of data are all sampled from the same population as data in ref
+% H0: Groups of data are all sampled from the same population as data in REF
 % 
 % Maximum t(21) = 3.24, p-adj = .018
 % ------------------------------------------------------------------------------
@@ -251,7 +244,7 @@
 %           1 2 3 4 5 6 7;
 %           1 2 3 4 5 6 7;
 %           1 2 3 4 5 6 7];
-%   >> bootnhst (y(:),g(:),'ref',1,'nboot',5000,'bootfun','robust');
+%   >> bootnhst (y(:),g(:),'ref',1,'nboot',5000,'BOOTFUN','robust');
 %
 % Summary of bootstrap null hypothesis (H0) significance test(s)
 % ******************************************************************************
@@ -266,7 +259,7 @@
 % ------------------------------------------------------------------------------
 % 
 % Overall hypothesis test from single-step maxT procedure
-% H0: Groups of data are all sampled from the same population as data in ref
+% H0: Groups of data are all sampled from the same population as data in REF
 % 
 % Maximum t(21) = 2.79, p-adj = .022
 % ------------------------------------------------------------------------------
@@ -325,7 +318,7 @@
 % ------------------------------------------------------------------------------
 % 
 % Overall hypothesis test from single-step maxT procedure
-% H0: Groups of data are all sampled from the same population as data in ref
+% H0: Groups of data are all sampled from the same population as data in REF
 % 
 % Maximum t(9) = 1.20, p-adj = .256
 % ------------------------------------------------------------------------------
@@ -411,7 +404,7 @@ function [p, c, stats] = bootnhst (data, group, varargin)
 
   % Evaluate the number of function arguments
   if (nargin < 2)
-    error('bootnhst usage: ''bootnhst (data, group, varargin)''; atleast 2 input arguments required');
+    error('bootnhst usage: ''bootnhst (DATA, GROUP, varargin)''; atleast 2 input arguments required');
   end
 
   % Store local functions in a stucture for parallel processes
@@ -427,7 +420,6 @@ function [p, c, stats] = bootnhst (data, group, varargin)
   nboot = [1000,200];
   ref = [];
   alpha = 0.05;
-  dim = 1;
   DisplayOpt = true;
   paropt = struct;
   paropt.UseParallel = false;
@@ -452,8 +444,6 @@ function [p, c, stats] = bootnhst (data, group, varargin)
         paropt = argin3{end};
       elseif strcmpi(argin3{end-1},'alpha')
         alpha = argin3{end};
-      elseif strcmpi(argin3{end-1},'dim')
-        dim = argin3{end};
       elseif strcmpi(argin3{end-1},'DisplayOpt')
         DisplayOpt = argin3{end};
       else
@@ -490,10 +480,10 @@ function [p, c, stats] = bootnhst (data, group, varargin)
     bootfun = @(data) func (data, args{:});
   end
   if ~isa(nboot,'numeric')
-    error('bootnhst: nboot must be numeric');
+    error('bootnhst: NBOOT must be numeric');
   end
   if any(nboot~=abs(fix(nboot)))
-    error('bootnhst: nboot must contain positive integers')
+    error('bootnhst: NBOOT must contain positive integers')
   end
   if isa(bootfun,'char')
     if any(strcmpi(bootfun,'robust'))
@@ -502,7 +492,7 @@ function [p, c, stats] = bootnhst (data, group, varargin)
     bootfun = str2func(bootfun);
   end
   if numel(nboot) > 2
-    error('bootnhst: the vector nboot cannot have length > 2')
+    error('bootnhst: a vector for NBOOT cannot have length > 2')
   elseif numel(nboot) < 2
     if strcmp(func2str(bootfun),'mean')
       % Avoid resampling when estimating standard errors of the mean
@@ -515,7 +505,7 @@ function [p, c, stats] = bootnhst (data, group, varargin)
     end
   end
   if nboot(1) < 1000
-    error('bootnhst: the minimum allowable value of nboot(1) is 1000')
+    error('bootnhst: the minimum allowable value of NBOOT(1) is 1000')
   end 
   if (nboot(2) == 0) && ~strcmp(func2str(bootfun),'mean')
     if ISOCTAVE
@@ -534,17 +524,11 @@ function [p, c, stats] = bootnhst (data, group, varargin)
   if ~isempty(ref) && strcmpi(ref,'pairwise')
     ref = [];
   end
-  if ~isa(dim,'numeric')
-    error('bootnhst: dim must be numeric');
-  end
-  if (dim ~= 1) && (dim ~= 2)
-    error('bootnhst: dim must be either 1 or 2');
-  end
   if nargout > 3
     error('bootnhst only supports up to 3 output arguments')
   end
   if ~islogical(DisplayOpt) || (numel(DisplayOpt)>1)
-    error('bootnhst: the value for DisplayOpt must be a logical scalar value')
+    error('bootnhst: the value DISPLAYOPT must be a logical scalar value')
   end
 
   % Data or group exclusion using NaN 
@@ -826,7 +810,7 @@ function [p, c, stats] = bootnhst (data, group, varargin)
                'H0: Groups of data are all sampled from the same population\n\n']);
     else
       fprintf (['Overall hypothesis test from single-step maxT procedure\n',...
-               'H0: Groups of data are all sampled from the same population as data in ref\n\n']);
+               'H0: Groups of data are all sampled from the same population as data in REF\n\n']);
     end
     if (p <= 0.001)
       fprintf (['Maximum t(%u) = %.2f, p-adj = <.001 \n',...
@@ -1008,10 +992,10 @@ function [F, x] = empcdf (bootstat, c)
 
   % Check input argument
   if ~isa(bootstat,'numeric')
-    error('bootnhst:empcdf: bootstat must be numeric')
+    error('bootnhst:empcdf: BOOTSTAT must be numeric')
   end
   if all(size(bootstat)>1)
-    error('bootnhst:empcdf: bootstat must be a vector')
+    error('bootnhst:empcdf: BOOTSTAT must be a vector')
   end
   if size(bootstat,2)>1
     bootstat = bootstat.';

@@ -121,7 +121,7 @@ function [bootstat,bootsam] = bootstrp(argin1,argin2,varargin)
 
   % Error checking
   if ~all(size(nboot) == [1,1])
-    error('bootstrp: nboot must be a scalar value')
+    error('bootstrp: NBOOT must be a scalar value')
   end
 
   % Parse input arguments to the function bootknife
