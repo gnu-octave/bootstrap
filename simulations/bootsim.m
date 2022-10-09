@@ -29,7 +29,7 @@ below = 0;
 
 % Bootstrap resampling
 nboot = 2000;
-type = 'cal';
+type = 'bca';
 
 % Print settings
 fprintf('----- BOOTSTRAP CONFIDENCE INTERVAL SIMULATION -----\n')
