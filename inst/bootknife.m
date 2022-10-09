@@ -607,17 +607,17 @@ function [stats, bootstat, BOOTSAM] = bootknife (x, nboot, bootfun, alpha, strat
     end
   else
     %%%%%%%%%%%%%%%%%%%%%%%%%%% SINGLE BOOTSTRAP %%%%%%%%%%%%%%%%%%%%%%%%%%%
-    state = warning;
-    if ISOCTAVE
-      warning ('on', 'quiet');
-    else
-      warning off;
-    end
     % Bootstrap bias estimation
     bias = mean (bootstat) - T0;
     % Bootstrap standard error
     se = std (bootstat, 1);
     if ~isempty(alpha)
+      state = warning;
+      if ISOCTAVE
+        warning ('on', 'quiet');
+      else
+        warning off;
+      end
       switch (numel (alpha))
         case 1
           % Create distribution functions
