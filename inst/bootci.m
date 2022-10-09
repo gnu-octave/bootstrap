@@ -36,8 +36,8 @@
 %  ci = bootci(...,'type',type) computes the bootstrap confidence interval of
 %  the statistic defined by the function bootfun. type is one of the following
 %  methods used to construct confidence intervals:
-%    'bca': Bias-corrected and accelerated method [5,6] (Default).
 %    'per' or 'percentile': Percentile method.
+%    'bca': Bias-corrected and accelerated method [5,6] (Default).
 %    'cal': Calibrated percentile method (by double bootstrap [7]).
 %  Note that when bootfun is the mean, BCa intervals are automatically expanded
 %  using Student's t-distribution in order to improve coverage for small samples
