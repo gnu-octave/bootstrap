@@ -1,59 +1,52 @@
 %  Function File: bootci
 %
-%  Bootstrap sampling
+%  Bootstrap confidence intervals
 %
-%  ci = bootci(nboot,bootfun,d)
-%  ci = bootci(nboot,bootfun,d1,...,dN)
-%  ci = bootci(nboot,{bootfun,d},Name,Value)
-%  ci = bootci(nboot,{bootfun,d1,...,dN},Name,Value)
-%  ci = bootci(...,'type', type)
-%  ci = bootci(...,'alpha', alpha)
-%  ci = bootci(...,'Options', paropt)
-%  [ci,bootstat] = bootci(...)
+%  CI = bootci (NBOOT, BOOTFUN, D)
+%  CI = bootci (NBOOT, BOOTFUN, D1,...,DN)
+%  CI = bootci (NBOOT,{BOOTFUN, D}, Name,Value)
+%  CI = bootci (NBOOT,{BOOTFUN, D1,...,DN},Name,Value)
+%  CI = bootci (...,'type', TYPE)
+%  CI = bootci (...,'alpha', ALPHA)
+%  CI = bootci (...,'Options', PAROPT)
+%  [CI, BOOTSTAT] = bootci (...)
 %
-%  ci = bootci(nboot,bootfun,d,...) draws nboot bootstrap data resamples
-%  and returns the statistic computed by bootfun in bootstat [1]. bootstrp
-%  resamples from the rows of a data sample (column vector or a matrix). bootfun
-%  is a function handle (e.g. specified with @), or a string indicating the
-%  function name. The third input argument is data (column vector or a matrix),
-%  that is used to create inputs for bootfun. The resampling method used 
-%  throughout is balanced bootknife resampling [2-4].
+%  CI = bootci (NBOOT, BOOTFUN, D) draws nboot bootstrap resamples from the rows
+%  of a data sample D and returns confidence intervals CI for the bootstrap 
+%  statistics computed by BOOTFUN [1]. BOOTFUN is a function handle (e.g. specified 
+%  with @), or a string indicating the function name. The third input argument, 
+%  data D (a column vector or a matrix), is used as input for BOOTFUN. The
+%  resampling method used throughout is balanced bootknife resampling [2-4].
 %
-%  ci = bootci(nboot,bootfun,d1,...,dN) is as above except that 
-%  the third and subsequent numeric input arguments are data vectors
-%  that are used to create inputs for bootfun.
+%  CI = bootci (NBOOT, BOOTFUN, D1,...,DN) is as above except that the third and
+%  subsequent numeric input arguments are data vectors that are used to create
+%  inputs for bootfun.
 %
-%  ci = bootci(...,'alpha',alpha) where alpha sets the lower and upper bounds of
-%  the confidence interval(s). The value(s) of alpha must be between 0
-%  and 1. If alpha is a scalar value, the nominal lower and upper percentiles
-%  of the confidence are 100*(alpha/2)% and 100*(1-alpha/2)% respectively, and
-%  nominal central coverage of the intervals is 100*(1-alpha)%. If alpha is a
-%  vector with two elements, alpha becomes the quantiles for the confidence
-%  intervals, and the intervals become percentile bootstrap confidence
-%  intervals. If alpha is empty, NaN is returned for the confidence interval
-%  ends. The default value for alpha is 0.05. 
+%  CI = bootci(..., 'alpha', ALPHA) where ALPHA sets the lower and upper bounds 
+%  of the confidence interval(s). The value of ALPHA must be between 0 and 1.
+%  The nominal lower and upper percentiles of the confidence intervals CI are 
+%  then 100*(ALPHA/2)% and 100*(1-ALPHA/2)% respectively, and nominal central
+%  coverage of the intervals is 100*(1-ALPHA)%. 
 %
-%  ci = bootci(...,'type',type) computes the bootstrap confidence interval of
-%  the statistic defined by the function bootfun. type is one of the following
-%  methods used to construct confidence intervals:
+%  CI = bootci(..., 'type', TYPE) computes bootstrap confidence interval CI 
+%  using one of the following methods:
 %    'per' or 'percentile': Percentile method.
 %    'bca': Bias-corrected and accelerated method [5,6] (Default).
 %    'cal': Calibrated percentile method (by double bootstrap [7]).
-%  Note that when bootfun is the mean, BCa intervals are automatically expanded
+%  Note that when BOOTFUN is the mean, BCa intervals are automatically expanded
 %  using Student's t-distribution in order to improve coverage for small samples
 %  [8]. 
 %
-%  ci = bootci(...,'type','cal','nbootcal',nbootcal) computes the calibrated
-%  percentile bootstrap confidence intervals of the statistic defined by the
-%  function bootfun. The calibrated percentiles of the bootstrap statistics are
-%  estimated using bootstrap with nbootcal bootstrap data samples. bootcal is a 
-%  positive integer value. The default value of nbootcal is 200.
+%  CI = bootci(...,'type','cal','nbootcal',NBOOTCAL) computes the calibrated
+%  percentile bootstrap confidence intervals CI. The calibrated percentiles of
+%  the bootstrap statistics are estimated using bootstrap with NBOOTCAL bootstrap
+%  data samples. NBOOTCAL is a positive integer value. The default value of
+%  NBOOTCAL is 200.
 %
-%  ci = bootci(...,'Options',paropt) specifies options that 
-%  govern if and how to perform bootstrap iterations using multiple 
-%  processors (if the Parallel Computing Toolbox or Octave Forge 
-%  package is available). This argument is a structure with the 
-%  following recognised fields:
+%  CI = bootci(..., 'Options', PAROPT) specifies options that govern if and how
+%  to perform bootstrap iterations using multiple processors (if the Parallel 
+%  Computing Toolbox or Octave Parallel package is available). This argument is
+%  a structure with the following recognised fields:
 %
 %   'UseParallel' - If true, compute bootstrap iterations in parallel.
 %                   Default is false for serial computation. In MATLAB,
@@ -66,11 +59,13 @@
 %                   a parallel pool, else it will use the preferred number
 %                   of workers.
 %
-%  [bootstat,bootsam] = bootci(...) also returns bootsam, a  
-%  matrix of indices from the bootstrap. Each column in bootsam
-%  corresponds to one bootstrap sample and contains the row 
-%  indices of the values drawn from the nonscalar data argument 
-%  to create that sample.
+%  [CI, BOOTSTAT] = bootci(...) also returns the bootstrap statistics used to
+%  calculate the confidence intervals CI.
+%
+%  [CI, BOOTSTAT, BOOTSAM] = bootci(...) also returns BOOTSAM, a matrix of 
+%  indices from the bootstrap. Each column in BOOTSAM corresponds to one 
+%  bootstrap sample and contains the row indices of the values drawn from the 
+%  nonscalar data argument to create that sample.
 %
 %  Bibliography:
 %  [1] Efron, and Tibshirani (1993) An Introduction to the
@@ -116,7 +111,7 @@ function [ci,bootstat,bootsam] = bootci(argin1,argin2,varargin)
 
   % Evaluate the number of function arguments
   if nargin<2
-    error('bootci usage: ''bootci (nboot, {bootfun, data}, varargin)''; atleast 2 input arguments required');
+    error('bootci usage: ''bootci (NBOOT, {BOOTFUN, DATA}, varargin)''; atleast 2 input arguments required');
   end
 
   % Check if using MATLAB or Octave
@@ -182,23 +177,32 @@ function [ci,bootstat,bootsam] = bootci(argin1,argin2,varargin)
   end
 
   % Error checking
+  if (numel(alpha) > 1)
+    error ('bootci: ALPHA must be a scalar value');
+  end
+  if ~isa (alpha,'numeric')
+    error ('bootci: ALPHA must be a numeric');
+  end
+  if any ((alpha < 0) | (alpha > 1))
+    error ('bootci: ALPHA must be a value between 0 and 1');
+  end
   if ~isa (nboot, 'numeric')
-    error ('bootci: nboot must be numeric');
+    error ('bootci: NBOOT must be numeric');
   end
   if (numel (nboot) > 1)
-    error ('bootci: nboot must be a positive integer');
+    error ('bootci: NBOOT must be a positive integer');
   end
   if (nboot ~= abs (fix (nboot)))
-    error ('bootci: nboot must contain positive integers');
+    error ('bootci: NBOOT must contain positive integers');
   end    
   if ~isa (nbootcal, 'numeric')
-    error ('bootci: nbootcal must be numeric');
+    error ('bootci: NBOOTCAL must be numeric');
   end
   if (numel (nbootcal) > 1)
-    error ('bootci: nbootcal must be a scalar value');
+    error ('bootci: NBOOTCAL must be a scalar value');
   end
   if (nbootcal ~= abs (fix (nbootcal)))
-    error ('bootci: nbootcal must be a positive integer');
+    error ('bootci: NBOOTCAL must be a positive integer');
   end    
 
   % Apply interval type
@@ -211,7 +215,7 @@ function [ci,bootstat,bootsam] = bootci(argin1,argin2,varargin)
     case 'cal'
       nboot = cat (2, nboot, nbootcal);
     otherwise
-      error ('bootci: interval type not supported')
+      error ('bootci: interval TYPE not supported')
   end
 
   % Parse input arguments to the function bootknife

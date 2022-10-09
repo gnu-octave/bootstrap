@@ -2,28 +2,27 @@
 %
 %  Bootstrap sampling
 %
-%  bootstat = bootstrp(nboot,bootfun,d)
-%  bootstat = bootstrp(nboot,bootfun,d1,...,dN)
-%  bootstat = bootstrp(...,'Options', paropt)
-%  [bootstat,bootsam] = bootstrp(...)
+%  BOOTSTAT = bootstrp (NBOOT, BOOTFUN, D)
+%  BOOTSTAT = bootstrp (NBOOT, BOOTFUN, D1,...,DN)
+%  BOOTSTAT = bootstrp (..., 'Options', PAROPT)
+%  [BOOTSTAT, BOOTSAM] = bootstrp (...) 
 %
-%  bootstat = bootstrp(nboot,bootfun,d,...) draws nboot bootstrap data resamples
-%  and returns the statistic computed by bootfun in bootstat [1]. bootstrp
-%  resamples from the rows of a data sample (column vector or a matrix). bootfun
-%  is a function handle (e.g. specified with @), or a string indicating the
+%  BOOTSTAT = bootstrp (NBOOT, BOOTFUN, D) draws NBOOT bootstrap resamples from
+%  the data D and returns the statistic computed by BOOTFUN in BOOTSTAT [1]. 
+%  bootstrp resamples from the rows of a data sample D (column vector or a matrix). 
+%  BOOTFUN is a function handle (e.g. specified with @), or a string indicating the
 %  function name. The third input argument is data (column vector or a matrix),
-%  that is used to create inputs for bootfun. The resampling method used 
+%  that is used to create inputs for BOOTFUN. The resampling method used 
 %  throughout is balanced bootknife resampling [2-4].
 %
-%  bootstat = bootstrp(nboot,bootfun,d1,...,dN) is as above except that 
-%  the third and subsequent numeric input arguments are data vectors
-%  that are used to create inputs for bootfun.
+%  BOOTSTAT = bootstrp (NBOOT, BOOTFUN, D1,...,DN) is as above except that 
+%  the third and subsequent numeric input arguments are data vectors that
+%  are used to create inputs for BOOTFUN.
 %
-%  bootstat = bootstrp(...,'Options',paropt) specifies options that 
-%  govern if and how to perform bootstrap iterations using multiple 
-%  processors (if the Parallel Computing Toolbox or Octave Forge 
-%  package is available). This argument is a structure with the 
-%  following recognised fields:
+%  BOOTSTAT = bootstrp (..., 'Options', PAROPT) specifies options that govern if 
+%  and how to perform bootstrap iterations using multiple processors (if the 
+%  Parallel Computing Toolbox or Octave Parallel package is available). This 
+%  argument is a structure with the following recognised fields:
 %
 %   'UseParallel' - If true, compute bootstrap iterations in parallel.
 %                   Default is false for serial computation. In MATLAB,
@@ -36,10 +35,9 @@
 %                   a parallel pool, else it will use the preferred number
 %                   of workers.
 %
-%  [bootstat,bootsam] = bootstrp(...) also returns bootsam, a  
-%  matrix of indices from the bootstrap. Each column in bootsam
-%  corresponds to one bootstrap sample and contains the row 
-%  indices of the values drawn from the nonscalar data argument 
+%  [BOOTSTAT, BOOTSAM] = bootstrp (...) also returns BOOTSAM, a matrix of indices
+%  from the bootstrap. Each column in BOOTSAM corresponds to one bootstrap sample
+%  and contains the row indices of the values drawn from the nonscalar data argument 
 %  to create that sample.
 %
 %  Bibliography:

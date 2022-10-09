@@ -17,17 +17,17 @@
 %  to improve the accuracy of the bias estimate and confidence intervals
 %  for small-to-medium sample sizes [6-8]. 
 %
-%  stats = bootknife(data)
-%  stats = bootknife(data,nboot)
-%  stats = bootknife(data,nboot,bootfun)
-%  stats = bootknife(data,nboot,{bootfun,bootfun_args})
-%  stats = bootknife(data,nboot,bootfun,alpha)
-%  stats = bootknife(data,nboot,bootfun,alpha,strata)
-%  stats = bootknife(data,nboot,bootfun,alpha,strata,nproc)
-%  stats = bootknife(data,[2000,0],@mean,0.05,[],0)      % Default values
-%  [stats,bootstat] = bootknife(...)
-%  [stats,bootstat] = bootknife(...)
-%  [stats,bootstat,bootsam] = bootknife(...)
+%  stats = bootknife (data)
+%  stats = bootknife (data,nboot)
+%  stats = bootknife (data,nboot,bootfun)
+%  stats = bootknife (data,nboot,{bootfun,bootfun_args})
+%  stats = bootknife (data,nboot,bootfun,alpha)
+%  stats = bootknife (data,nboot,bootfun,alpha,strata)
+%  stats = bootknife (data,nboot,bootfun,alpha,strata,nproc)
+%  stats = bootknife (data,[2000,0],@mean,0.05,[],0)      % Default values
+%  [stats,bootstat] = bootknife (...)
+%  [stats,bootstat] = bootknife (...)
+%  [stats,bootstat,bootsam] = bootknife (...)
 %  bootknife(data,...);
 %
 %  stats = bootknife(data) resamples from the rows of a data sample (column 
