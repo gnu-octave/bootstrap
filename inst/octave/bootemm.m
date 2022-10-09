@@ -136,10 +136,9 @@ function emmeans = bootemm (stats, dim, nboot, alpha, ncpus, seed)
   % Perform bootstrap
   if nargout > 0
     warning ('off','bootknife:lastwarn')
-    coeffs = bootknife (resid, nboot, bootfun, alpha, [], ncpus);
+    emmeans = bootknife (resid, nboot, bootfun, alpha, [], ncpus);
     warning ('on','bootknife:lastwarn')
   else
-    coeffs = [];
     bootknife (resid, nboot, bootfun, alpha, [], ncpus);
   end
 
