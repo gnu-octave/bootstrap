@@ -3,7 +3,7 @@ dirname = fileparts (mfilename ('fullpath'));
 
 if ~exist (fullfile (dirname, 'inst'), 'dir')
   %% Run this if the package is installed
-  for ii=1:numel (dirlist)
+  for ii=1:numel(dirlist)
      addpath (fullfile (dirname, dirlist{ii}), '-end')
   end
 else
