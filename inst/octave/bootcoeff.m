@@ -114,7 +114,6 @@ function coeffs = bootcoeff (stats, nboot, alpha, ncpus, seed)
     [coeffs, bootstat] = bootknife (resid, nboot, bootfun, alpha, [], ncpus);
     warning ('on','bootknife:lastwarn')
   else
-    coeffs = [];
     bootknife (resid, nboot, bootfun, alpha, [], ncpus);
   end
 
