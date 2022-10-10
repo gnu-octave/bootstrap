@@ -125,7 +125,7 @@ function [bootstat,bootsam] = bootstrp(argin1,argin2,varargin)
   end
 
   % Parse input arguments to the function bootknife
-  [jnk, bootstat, bootsam] = bootknife(data, nboot, bootfun,[],[],nproc);
+  [jnk, bootstat, bootsam] = bootknife (data, nboot, bootfun, [], [], nproc);
 
   % Format output to be consistent with MATLAB's bootstrp
   bootstat = bootstat.';
