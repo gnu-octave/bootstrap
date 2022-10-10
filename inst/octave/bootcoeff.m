@@ -1,15 +1,15 @@
 %  Function File: bootcoeff
 %
-%  coeffs = bootcoeff (stats)
-%  coeffs = bootcoeff (stats, nboot)
-%  coeffs = bootcoeff (stats, nboot, alpha)
-%  coeffs = bootcoeff (stats, nboot, alpha, nproc)
-%  coeffs = bootcoeff (stats, nboot, alpha, nproc, seed)
+%  COEFFS = bootcoeff (STATS)
+%  COEFFS = bootcoeff (STATS, NBOOT)
+%  COEFFS = bootcoeff (STATS, NBOOT, ALPHA)
+%  COEFFS = bootcoeff (STATS, NBOOT, ALPHA, NPROC)
+%  COEFFS = bootcoeff (STATS, NBOOT, ALPHA, NPROC, SEED)
 %
 %  Semi-parametric bootstrap of the regression coefficients from a linear model.
-%  bootcoeff accepts as input the stats structure from fitlm or anovan functions
+%  bootcoeff accepts as input the STATS structure from fitlm or anovan functions
 %  (from the v1.5+ of the Statistics package in OCTAVE) and returns a structure,
-%  coeffs, which contains the following fields:
+%  COEFFS, which contains the following fields:
 %    original: contains the regression coefficients from the original data
 %    bias: contains the bootstrap estimate of bias
 %    std_error: contains the bootstrap standard error
@@ -18,27 +18,27 @@
 %  By default, the confidence intervals are 95% bias-corrected intervals. If
 %  no output is requested, the results are printed to stdout. The list of
 %  coefficients and their bootstrap statistics correspond to the names in
-%  stats.coeffnames, which are defined by the contrast coding in stats.contrasts.
-%  The rows of stats.contrasts correspond to the names in stats.grpnames.
+%  STATS.coeffnames, which are defined by the contrast coding in STATS.contrasts.
+%  The rows of STATS.contrasts correspond to the names in STATS.grpnames.
 %
-%  coeffs = bootcoeff (stats, nboot) also specifies the number of bootstrap
-%  samples. nboot must be a scalar. By default, nboot is 2000.
+%  COEFFS = bootcoeff (STATS, NBOOT) also specifies the number of bootstrap
+%  samples. NBOOT must be a scalar. By default, NBOOT is 2000.
 %
-%  coeffs = bootcoeff (stats, nboot, alpha) also sets the lower and upper
-%  confidence interval ends. The value(s) in alpha must be between 0 and 1.
-%  If alpha is a scalar value, the nominal lower and upper percentiles of
-%  the confidence are 100*(alpha/2)% and 100*(1-alpha/2)% respectively, and
-%  the intervals are bias-corrected with nominal central coverage 100*(1-alpha)%.
-%  If alpha is a vector with two elements, alpha becomes the quantiles for
-%  percentile bootstrap confidence intervals. If alpha is empty, NaN is returned
-%  for the confidence interval ends. The default value for alpha is 0.05. 
+%  COEFFS = bootcoeff (STATS, NBOOT, ALPHA) also sets the lower and upper
+%  confidence interval ends. The value(s) in ALPHA must be between 0 and 1.
+%  If ALPHA is a scalar value, the nominal lower and upper percentiles of
+%  the confidence are 100*(ALPHA/2)% and 100*(1-ALPHA/2)% respectively, and
+%  the intervals are bias-corrected with nominal central coverage 100*(1-ALPHA)%.
+%  If ALPHA is a vector with two elements, ALPHA becomes the quantiles for
+%  percentile bootstrap confidence intervals. If ALPHA is empty, NaN is returned
+%  for the confidence interval ends. The default value for ALPHA is 0.05. 
 %
-%  coeffs = bootcoeff (stats, nboot, alpha, nproc) also sets the number of
+%  COEFFS = bootcoeff (STATS, NBOOT, ALPHA, NPROC) also sets the number of
 %  parallel processes to use to accelerate computations on multicore machines.
 %  This feature requires the Parallel package (in Octave).
 %
-%  coeffs = bootcoeff (stats, nboot, alpha, nproc, seed) also sets the random
-%  seed for the random number generator used for the resampling. This feature
+%  COEFFS = bootcoeff (STATS, NBOOT, ALPHA, NPROC, SEED) also sets the random
+%  SEED for the random number generator used for the resampling. This feature
 %  can be used to make the results of the bootstrap reproducible.
 %
 %  bootcoef is only supported in GNU Octave and requires the Statistics package
@@ -111,10 +111,23 @@ function coeffs = bootcoeff (stats, nboot, alpha, ncpus, seed)
   % Perform bootstrap
   if nargout > 0
     warning ('off','bootknife:lastwarn')
-    [coeffs, bootstat] = bootknife (resid, nboot, bootfun, alpha, [], ncpus);
+    coeffs = bootknife (resid, nboot, bootfun, alpha, [], ncpus);
     warning ('on','bootknife:lastwarn')
   else
     bootknife (resid, nboot, bootfun, alpha, [], ncpus);
   end
 
 end
+
+%!demo
+%!
+%! dv =  [ 8.706 10.362 11.552  6.941 10.983 10.092  6.421 14.943 15.931 ...
+%!        22.968 18.590 16.567 15.944 21.637 14.492 17.965 18.851 22.891 ...
+%!        22.028 16.884 17.252 18.325 25.435 19.141 21.238 22.196 18.038 ...
+%!        22.628 31.163 26.053 24.419 32.145 28.966 30.207 29.142 33.212 ...
+%!        25.694 ]';
+%! g = [1 1 1 1 1 1 1 1 2 2 2 2 2 3 3 3 3 3 3 3 3 4 4 4 4 4 4 4 5 5 5 5 5 5 5 5 5]';
+%!
+%! [P,ATAB,STATS] = anovan (dv,g,'contrasts','simple','display','off');
+%! STATS.coeffnames
+%! bootcoeff (STATS)
