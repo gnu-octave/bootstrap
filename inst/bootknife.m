@@ -20,7 +20,7 @@
 %  STATS = bootknife (DATA)
 %  STATS = bootknife (DATA, NBOOT)
 %  STATS = bootknife (DATA, NBOOT, BOOTFUN)
-%  STATS = bootknife (DATA, NBOOT,{BOOTFUN, ...})
+%  STATS = bootknife (DATA, NBOOT, {BOOTFUN, ...})
 %  STATS = bootknife (DATA, NBOOT, BOOTFUN, ALPHA)
 %  STATS = bootknife (DATA, NBOOT, BOOTFUN, ALPHA, STRATA)
 %  STATS = bootknife (DATA, NBOOT, BOOTFUN, ALPHA, STRATA, NPROC)
