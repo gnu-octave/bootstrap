@@ -216,7 +216,7 @@ function [ci,bootstat,bootsam] = bootci(argin1,argin2,varargin)
   end
 
   % Parse input arguments to the function bootknife
-  [stats, bootstat] = bootknife(data, nboot, bootfun, alpha, [], ncpus);
+  [stats, bootstat] = bootknife (data, nboot, bootfun, alpha, [], ncpus);
 
   % Format output to be consistent with MATLAB's bootci
   ci = [stats.CI_lower; stats.CI_upper];
