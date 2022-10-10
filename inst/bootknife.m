@@ -444,8 +444,8 @@ function [stats, bootstat, BOOTSAM] = bootknife (x, nboot, bootfun, alpha, strat
   if ~isempty (strata)
     if ~isnumeric (strata)
       % Convert strata to numeric ID
-      [junk1,junk2,strata] = unique (strata,'legacy');
-      clear junk1 junk2;
+      [jnk1, jnk2, strata] = unique (strata,'legacy');
+      clear jnk1 jnk2;
     end
     % Get strata IDs
     gid = unique (strata,'legacy');  % strata ID
@@ -774,7 +774,7 @@ function [stats, bootstat, BOOTSAM] = bootknife (x, nboot, bootfun, alpha, strat
           if (numel (alpha) > 1)
             fprintf (' Confidence interval type: Percentile \n');
           else
-            [junk, warnID] = lastwarn;
+            [jnk, warnID] = lastwarn;
             switch warnID
               case 'bootknife:biasfail'
                 fprintf (' Confidence interval type: Percentile \n');
