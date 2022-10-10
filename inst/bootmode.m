@@ -252,7 +252,7 @@ function [H, P, h] = bootmode (x, m, B, kernel, ncpus)
     else
       % MATLAB
       f = zeros(200,B);
-      parfor j = 1:B; f(:,j) = localfunc.kde (X(:,j), h, kernel); end
+      parfor j = 1:B; f(:,j) = kde (X(:,j), h, kernel); end
     end
   else
     % SERIAL
