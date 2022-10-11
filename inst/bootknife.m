@@ -872,6 +872,61 @@ end
 
 %--------------------------------------------------------------------------
 
+%!demo
+%!
+%! # Input univariate dataset
+%! data = [48 36 20 29 42 42 20 42 22 41 45 14 6 ...
+%!         0 33 28 34 4 32 24 47 41 24 26 30 41]';
+%!
+%! # 95% BCa bootstrap confidence intervals for the mean
+%! bootknife (data, 2000, @mean);
+
+%!demo
+%!
+%! # Input univariate dataset
+%! data = [48 36 20 29 42 42 20 42 22 41 45 14 6 ...
+%!         0 33 28 34 4 32 24 47 41 24 26 30 41]';
+%!
+%! # 95% calibrated percentile bootstrap confidence intervals for the mean
+%! bootknife (data, [2000, 200], @mean);
+%!
+%! # Please be patient, these calculations will be completed soon...
+
+%!demo
+%!
+%! # Input univariate dataset
+%! data = [48 36 20 29 42 42 20 42 22 41 45 14 6 ...
+%!         0 33 28 34 4 32 24 47 41 24 26 30 41]';
+%!
+%! # 95% calibrated percentile bootstrap confidence intervals for the median
+%! # with smoothing
+%! bootknife (data, [2000, 200], 'robust');
+%!
+%! # Please be patient, these calculations will be completed soon...
+
+%!demo
+%!
+%! # Input univariate dataset
+%! data = [48 36 20 29 42 42 20 42 22 41 45 14 6 ...
+%!         0 33 28 34 4 32 24 47 41 24 26 30 41]';
+%!
+%! # 95% BCa bootstrap confidence intervals for the correlation coefficient
+%! bootknife (data, 2000, {@var, 1});
+
+%!demo
+%!
+%! # Input bivariate dataset
+%! x = [2.12,4.35,3.39,2.51,4.04,5.1,3.77,3.35,4.1,3.35, ...
+%!      4.15,3.56, 3.39,1.88,2.56,2.96,2.49,3.03,2.66,3]';
+%! y  = [2.47,4.61,5.26,3.02,6.36,5.93,3.93,4.09,4.88,3.81, ...
+%!       4.74,3.29,5.55,2.82,4.23,3.23,2.56,4.31,4.37,2.4]';
+%!
+%! # 95% calibrated percentile bootstrap confidence intervals for the variance
+%! bootknife({x,y},2000,@corr,0.1);
+%!
+%! # Please be patient, these calculations will be completed soon...
+
+
 %!test
 %! ## Spatial Test Data from Table 14.1 of Efron and Tibshirani (1993)
 %! ## An Introduction to the Bootstrap in Monographs on Statistics and Applied 

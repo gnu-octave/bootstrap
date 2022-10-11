@@ -1,5 +1,5 @@
 name: statistics-bootstrap
-version: 5.0.0
+version: 5.0.1
 date: 2022-10-10
 author: Andrew Penn <andy.c.penn@gmail.com>
 maintainer: Andrew Penn <andy.c.penn@gmail.com>
@@ -7,7 +7,8 @@ title: A statistics package with a variety of bootstrap resampling tools
 categories: package
 Description: This package of functions can be used to estimate 
  uncertainty (confidence intervals) and test hypotheses (p-values) 
- using bootstrap. Variations of the bootstrap are included that 
- improve the accuracy of bootstrap statistics for small samples.
+ using bootstrap resampling. Variations of the bootstrap are 
+ included that improve the coverage and accuracy of bootstrap 
+ confidence intervals for small samples.
 License: GPLv3+
 depends: octave (>= 6.1.0), statistics (>= 1.5.0)
