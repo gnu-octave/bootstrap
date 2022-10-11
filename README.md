@@ -16,7 +16,7 @@ This package is known to be compatible with versions of Octave v3.6.0+ and Matla
 
  * All parallel computing options require either the parallel package (in Octave) or the Parallel Computing Matlab Toolbox (in Matlab).  
  * The optional jackknife functionality in `bootnhst` requires the Statistics package (in Octave) or the Statistics and Machine Learning Toolbox (in Matlab).  
- * The `bootcoeff` and `bootemm` functions require Octave v6.1+ and the Statistics package version v1.5+. 
+ * The `bootcoeff` and `bootemm` functions require the Statistics package version v1.5+ and therefore also Octave v6.1.0+.  
  
 ## Installation
  
@@ -50,8 +50,8 @@ To install (or test) the statistics-bootstrap package at it's existing location 
 * `bootmode` uses bootstrap to evaluate the likely number of real modes in a distribution
 * `bootci` is a function for calculating bootstrap confidence intervals. This function is a wrapper of the `bootknife` function but has the same usage as the `bootci` function from Matlab's Statistics and Machine Learning toolbox.  
 * `bootstrp` is a function for calculating bootstrap statistics. This function is a wrapper of the `bootknife` function but has the same usage as the `bootstrp` function from Matlab's Statistics and Machine Learning toolbox.  
-* `bootcoeff` (Octave only) is a function for semi-parametric bootstrap of the regression coefficients from a linear model fit using `anovan` or `fitlm`.  
-* `bootemm` (Octave only) is a function for semi-parametric bootstrap of the estimated marginal means from a linear model fit using `anovan` or `fitlm`.  
+* `bootcoeff` (Octave only) is a function for calculating semi-parametric bootstrap confidence intervals for the regression coefficients of a linear model fit using `anovan` or `fitlm`.  
+* `bootemm` (Octave only) is a function for calculating semi-parametric bootstrap confidence intervals for the estimated marginal means of a linear model fit using `anovan` or `fitlm`.  
 
 At the Octave command prompt, type `help function-name` for more information about the function and it's usage.
 
