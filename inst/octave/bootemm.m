@@ -153,7 +153,7 @@ end
 %!        25.694 ]';
 %! g = [1 1 1 1 1 1 1 1 2 2 2 2 2 3 3 3 3 3 3 3 3 4 4 4 4 4 4 4 5 5 5 5 5 5 5 5 5]';
 %!
-%! [P,ATAB,STATS] = anovan (dv,g,'contrasts','simple','display','off');
+%! [P,ATAB,STATS] = anovan (dv,g);
 %! DIM = 1;
 %! STATS.grpnames{DIM}
 %! bootemm (STATS, DIM)

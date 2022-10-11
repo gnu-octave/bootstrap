@@ -127,3 +127,28 @@ function bootsam = boot (x, nboot, u, w, s)
       c(j) = c(j) - 1; 
     end
   end
+
+
+%!demo
+%!
+%! % N as input; balanced resampling with replacement
+%! boot(3,20,false)
+
+%!demo
+%!
+%! % N as input; balanced bootknife resampling with replacement
+%! boot(3,20,true)
+
+%!demo
+%! % Vector (X) as input;balanced resampling with replacement; setting weights
+%! x = [23; 44; 36];
+%! boot(x,10,false)            % equal weighting
+%! boot(x,10,false,[20;0;10])  % unequal weighting, no x(2) in BOOTSAM 
+
+%!demo
+%! 
+%! % N as input; balanced resampling with replacement; setting the random seed
+%! boot(3,20,false,[],1) % Set random seed
+%! boot(3,20,false,[],1) % Reset random seed, BOOTSAM is the same
+%! boot(3,20,false,[])   % Without setting random seed, BOOTSAM is different
+

@@ -890,7 +890,7 @@ end
 %! # 95% calibrated percentile bootstrap confidence intervals for the mean
 %! bootknife (data, [2000, 200], @mean);
 %!
-%! # Please be patient, these calculations will be completed soon...
+%! # Please be patient, the calculations will be completed soon...
 
 %!demo
 %!
@@ -902,7 +902,7 @@ end
 %! # with smoothing
 %! bootknife (data, [2000, 200], 'robust');
 %!
-%! # Please be patient, these calculations will be completed soon...
+%! # Please be patient, the calculations will be completed soon...
 
 %!demo
 %!
@@ -910,8 +910,29 @@ end
 %! data = [48 36 20 29 42 42 20 42 22 41 45 14 6 ...
 %!         0 33 28 34 4 32 24 47 41 24 26 30 41]';
 %!
-%! # 95% BCa bootstrap confidence intervals for the correlation coefficient
-%! bootknife (data, 2000, {@var, 1});
+%! # 95% percentile bootstrap confidence intervals for the variance
+%! bootknife (data, 2000, {@var, 1}, [0.025, 0.975]);
+
+%!demo
+%!
+%! # Input univariate dataset
+%! data = [48 36 20 29 42 42 20 42 22 41 45 14 6 ...
+%!         0 33 28 34 4 32 24 47 41 24 26 30 41]';
+%!
+%! # 95% BCa bootstrap confidence intervals for the variance
+%! bootknife (data, 2000, {@var, 1}, 0.05);
+
+%!demo
+%!
+%! # Input univariate dataset
+%! data = [48 36 20 29 42 42 20 42 22 41 45 14 6 ...
+%!         0 33 28 34 4 32 24 47 41 24 26 30 41]';
+%!
+%! # 95% calibrated percentile bootstrap confidence intervals for the variance
+%! bootknife (data, [2000, 200], {@var, 1}, 0.05);
+%!
+%! # Please be patient, the calculations will be completed soon...
+
 
 %!demo
 %!
@@ -921,10 +942,10 @@ end
 %! y  = [2.47,4.61,5.26,3.02,6.36,5.93,3.93,4.09,4.88,3.81, ...
 %!       4.74,3.29,5.55,2.82,4.23,3.23,2.56,4.31,4.37,2.4]';
 %!
-%! # 95% calibrated percentile bootstrap confidence intervals for the variance
-%! bootknife({x,y},2000,@corr,0.1);
+%! # 95% BCa bootstrap confidence intervals for the correlation coefficient
+%! bootknife ({x, y}, 2000, @corr);
 %!
-%! # Please be patient, these calculations will be completed soon...
+%! # Please be patient, the calculations will be completed soon...
 
 
 %!test
