@@ -3,7 +3,7 @@
 %  Bootstrap sampling
 %
 %  BOOTSTAT = bootstrp (NBOOT, BOOTFUN, D)
-%  BOOTSTAT = bootstrp (NBOOT, BOOTFUN, D1,...,DN)
+%  BOOTSTAT = bootstrp (NBOOT, BOOTFUN, D1, ..., DN)
 %  BOOTSTAT = bootstrp (..., 'Options', PAROPT)
 %  [BOOTSTAT, BOOTSAM] = bootstrp (...) 
 %
@@ -125,7 +125,7 @@ function [bootstat,bootsam] = bootstrp(argin1,argin2,varargin)
   end
 
   % Parse input arguments to the function bootknife
-  [jnk, bootstat, bootsam] = bootknife (data, nboot, bootfun, [], [], nproc);
+  [jnk, bootstat, bootsam] = bootknife (data, nboot, bootfun, [], [], ncpus);
 
   % Format output to be consistent with MATLAB's bootstrp
   bootstat = bootstat.';
@@ -133,3 +133,12 @@ function [bootstat,bootsam] = bootstrp(argin1,argin2,varargin)
 
 end
 
+%!demo
+%!
+%! # Input univariate dataset
+%! data = [48 36 20 29 42 42 20 42 22 41 45 14 6 ...
+%!         0 33 28 34 4 32 24 47 41 24 26 30 41]';
+%!
+%! # Compute 50 bootstrap statistics for the mean and calculate the bootstrap standard arror
+%! bootstat = bootstrp (50, @mean, data) 
+%! std (bootstat)

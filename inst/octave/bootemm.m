@@ -156,4 +156,18 @@ end
 %! [P,ATAB,STATS] = anovan (dv,g);
 %! DIM = 1;
 %! STATS.grpnames{DIM}
-%! bootemm (STATS, DIM)
+%! bootemm (STATS, DIM);              # 95% confidence intervals 
+
+%!demo
+%!
+%! dv =  [ 8.706 10.362 11.552  6.941 10.983 10.092  6.421 14.943 15.931 ...
+%!        22.968 18.590 16.567 15.944 21.637 14.492 17.965 18.851 22.891 ...
+%!        22.028 16.884 17.252 18.325 25.435 19.141 21.238 22.196 18.038 ...
+%!        22.628 31.163 26.053 24.419 32.145 28.966 30.207 29.142 33.212 ...
+%!        25.694 ]';
+%! g = [1 1 1 1 1 1 1 1 2 2 2 2 2 3 3 3 3 3 3 3 3 4 4 4 4 4 4 4 5 5 5 5 5 5 5 5 5]';
+%!
+%! [P,ATAB,STATS] = anovan (dv,g);
+%! DIM = 1;
+%! STATS.grpnames{DIM}
+%! bootemm (STATS, DIM, 2000, 0.166); # 83.4% confidence intervals (overlap at p > 0.05)

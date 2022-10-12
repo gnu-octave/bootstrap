@@ -444,7 +444,7 @@ function [stats, bootstat, BOOTSAM] = bootknife (x, nboot, bootfun, alpha, strat
   if ~isempty (strata)
     if ~isnumeric (strata)
       % Convert strata to numeric ID
-      [jnk1, jnk2, strata] = unique (strata,'legacy');
+      [jnk1, jnk2, strata] = unique (strata);
       clear jnk1 jnk2;
     end
     % Get strata IDs
@@ -767,7 +767,7 @@ function [stats, bootstat, BOOTSAM] = bootknife (x, nboot, bootfun, alpha, strat
       fprintf (' Resampling method: Balanced, bootknife resampling \n');
       fprintf (' Number of resamples (outer): %u \n', B);
       fprintf (' Number of resamples (inner): %u \n', C);
-      if ~isempty(alpha) & ~isnan(alpha)
+      if ~isempty(alpha) && ~all(isnan(alpha))
         if (C > 0)
           fprintf (' Confidence interval type: Calibrated \n');
         else
@@ -853,7 +853,7 @@ function [F, x] = empcdf (bootstat, c)
   % Create empirical CDF
   bootstat = sort(bootstat);
   N = sum(~isnan(bootstat));
-  [x,F] = unique(bootstat,'rows','last','legacy');
+  [x,F] = unique(bootstat,'last');
   F = F/(N+1);
 
   % Apply option to complete the CDF
@@ -958,28 +958,58 @@ end
 %! ## Table 14.2 percentile intervals are 100.8 - 233.9
 %! boot (1, 1, true, [], 1); # Set random seed
 %! stats = bootknife(A,2000,{@var,1},[0.05 0.95]);
-%! assert (stats.original, 171.534023668639, 1e-09);
-%! assert (stats.bias, -6.978681952662356, 1e-09);
-%! assert (stats.std_error, 43.09155390135619, 1e-09);
-%! assert (stats.CI_lower, 95.19578402366864, 1e-09);
-%! assert (stats.CI_upper, 238.9609467455621, 1e-09);
+%! try
+%!   # test boot mex file
+%!   assert (stats.original, 171.534023668639, 1e-09);
+%!   assert (stats.bias, -6.978681952662356, 1e-09);
+%!   assert (stats.std_error, 43.09155390135619, 1e-09);
+%!   assert (stats.CI_lower, 95.19578402366864, 1e-09);
+%!   assert (stats.CI_upper, 238.9609467455621, 1e-09);
+%! catch
+%!   # test boot m-file
+%!   assert (stats.original, 171.534023668639, 1e-09);
+%!   assert (stats.bias, -7.323387573964482, 1e-09);
+%!   assert (stats.std_error, 43.28997317046606, 1e-09);
+%!   assert (stats.CI_lower, 95.32928994082839, 1e-09);
+%!   assert (stats.CI_upper, 238.4062130177514, 1e-09);
+%! end
 %! ## Nonparametric 90% BCa confidence intervals (single bootstrap)
 %! ## Table 14.2 BCa intervals are 115.8 - 259.6
 %! boot (1, 1, true, [], 1); # Set random seed
 %! stats = bootknife(A,2000,{@var,1},0.1);
-%! assert (stats.original, 171.534023668639, 1e-09);
-%! assert (stats.bias, -6.978681952662356, 1e-09);
-%! assert (stats.std_error, 43.09155390135619, 1e-09);
-%! assert (stats.CI_lower, 115.6455796312253, 1e-09);
-%! assert (stats.CI_upper, 269.4469269661803, 1e-09);
+%! try
+%!   # test boot mex file
+%!   assert (stats.original, 171.534023668639, 1e-09);
+%!   assert (stats.bias, -6.978681952662356, 1e-09);
+%!   assert (stats.std_error, 43.09155390135619, 1e-09);
+%!   assert (stats.CI_lower, 115.6455796312253, 1e-09);
+%!   assert (stats.CI_upper, 269.4469269661803, 1e-09);
+%! catch
+%!   # test boot m-file
+%!   assert (stats.original, 171.534023668639, 1e-09);
+%!   assert (stats.bias, -7.323387573964482, 1e-09);
+%!   assert (stats.std_error, 43.28997317046606, 1e-09);
+%!   assert (stats.CI_lower, 112.9782684413938, 1e-09);
+%!   assert (stats.CI_upper, 265.6921865021881, 1e-09);
+%! end
 %! ## Nonparametric 90% calibrated confidence intervals (double bootstrap)
 %! boot (1, 1, true, [], 1); # Set random seed
 %! stats = bootknife(A,[2000,200],{@var,1},0.1);
-%! assert (stats.original, 171.534023668639, 1e-09);
-%! assert (stats.bias, -7.407638883135036, 1e-09);
-%! assert (stats.std_error, 43.09155390135619, 1e-09);
-%! assert (stats.CI_lower, 111.39427003007, 1e-09);
-%! assert (stats.CI_upper, 313.7115384615385, 1e-09);
+%! try
+%!   # test boot mex file
+%!   assert (stats.original, 171.534023668639, 1e-09);
+%!   assert (stats.bias, -7.407638883135036, 1e-09);
+%!   assert (stats.std_error, 43.09155390135619, 1e-09);
+%!   assert (stats.CI_lower, 111.39427003007, 1e-09);
+%!   assert (stats.CI_upper, 313.7115384615385, 1e-09);
+%! catch
+%!   # test boot m-file
+%!   assert (stats.original, 171.534023668639, 1e-09);
+%!   assert (stats.bias, -8.088193809171344, 1e-09);
+%!   assert (stats.std_error, 43.28997317046606, 1e-09);
+%!   assert (stats.CI_lower, 110.6138073406352, 1e-09);
+%!   assert (stats.CI_upper, 305.1908284023669, 1e-09);
+%! end
 %! # Exact intervals based on theory are 118.4 - 305.2 (Table 14.2)
 %! # Note that all of the bootknife intervals are slightly wider than the
 %! # non-parametric intervals in Table 14.2 because the bootknife (rather than
@@ -996,9 +1026,19 @@ end
 %! ## Table 2 BCa intervals are 0.55 - 0.85
 %! boot (1, 1, true, [], 1); # Set random seed
 %! stats = bootknife({baseline,oneyear},2000,@corr,0.1);
-%! assert (stats.original, 0.7231653678920302, 1e-09);
-%! assert (stats.bias, -0.007860430929598206, 1e-09);
-%! assert (stats.std_error, 0.09328837054352047, 1e-09);
-%! assert (stats.CI_lower, 0.5477225147834641, 1e-09);
-%! assert (stats.CI_upper, 0.8457573378934136, 1e-09);
+%! try
+%!   # test boot mex file
+%!   assert (stats.original, 0.7231653678920302, 1e-09);
+%!   assert (stats.bias, -0.007860430929598206, 1e-09);
+%!   assert (stats.std_error, 0.09328837054352047, 1e-09);
+%!   assert (stats.CI_lower, 0.5477225147834641, 1e-09);
+%!   assert (stats.CI_upper, 0.8457573378934136, 1e-09);
+%! catch
+%!   # test boot m-file
+%!   assert (stats.original, 0.7231653678920302, 1e-09);
+%!   assert (stats.bias, -0.006674075424458636, 1e-09);
+%!   assert (stats.std_error, 0.09435286454036543, 1e-09);
+%!   assert (stats.CI_lower, 0.5495318330432346, 1e-09);
+%!   assert (stats.CI_upper, 0.8460658696851905, 1e-09);
+%! end
 %! # Exact intervals based on theory are 0.47 - 0.86 (Table 14.2)

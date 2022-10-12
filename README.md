@@ -12,7 +12,7 @@ This package of functions can be used to estimate uncertainty (confidence interv
 
 ## Requirements and dependencies
 
-This package is known to be compatible with versions of Octave v3.6.0+ and Matlab v7.4.0+. Some features of this package have specific dependencies:
+Core functions in this package are known to be compatible with versions of Octave v3.6.0+ and Matlab v7.4.0+. Some features of this package have specific dependencies:
 
  * All parallel computing options require either the parallel package (in Octave) or the Parallel Computing Matlab Toolbox (in Matlab).  
  * The optional jackknife functionality in `bootnhst` requires the Statistics package (in Octave) or the Statistics and Machine Learning Toolbox (in Matlab).  

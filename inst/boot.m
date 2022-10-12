@@ -77,12 +77,12 @@ function bootsam = boot (x, nboot, u, w, s)
     end
     rand ('twister', s);
   end
-  
+
   % Preallocate bootsam
   bootsam = zeros (n, nboot);
-  
+
   % Initialize weight vector defining the available row counts remaining
-  if (nargin > 3)
+  if (nargin > 3) && ~isempty(w)
     % Assign user defined weights (counts)
     % Error checking
     if (numel(w) ~= n)
@@ -96,7 +96,7 @@ function bootsam = boot (x, nboot, u, w, s)
     % Assign weights (counts) for uniform sampling
     c = ones (n, 1) * nboot; 
   end
-  
+
   % Perform balanced sampling
   r = 0;
   for b = 1:nboot

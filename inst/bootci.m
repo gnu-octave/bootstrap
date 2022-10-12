@@ -4,8 +4,8 @@
 %
 %  CI = bootci (NBOOT, BOOTFUN, D)
 %  CI = bootci (NBOOT, BOOTFUN, D1,...,DN)
-%  CI = bootci (NBOOT,{BOOTFUN, D}, Name,Value)
-%  CI = bootci (NBOOT,{BOOTFUN, D1,...,DN},Name,Value)
+%  CI = bootci (NBOOT,{BOOTFUN, D}, Name, Value)
+%  CI = bootci (NBOOT,{BOOTFUN, D1,...,DN}, Name, Value)
 %  CI = bootci (...,'type', TYPE)
 %  CI = bootci (...,'alpha', ALPHA)
 %  CI = bootci (...,'Options', PAROPT)
@@ -167,7 +167,11 @@ function [ci,bootstat,bootsam] = bootci(argin1,argin2,varargin)
     end
   else
     bootfun = argin2;
-    data = argin3;
+    if (numel(argin3) > 1)
+      data = argin3;
+    else
+      data = argin3{1};
+    end
   end
   if ~paropt.UseParallel
     ncpus = 0;
@@ -309,14 +313,40 @@ end
 %! ## Table 14.2 percentile intervals are 100.8 - 233.9
 %! boot (1, 1, true, [], 1); # Set random seed
 %! ci = bootci(2000,{{@var,1},A},'alpha',0.1,'type','per');
-%! assert (ci(1), 95.19578402366864, 1e-09);
-%! assert (ci(2), 238.9609467455621, 1e-09);
+%! try
+%!   # test boot mex file
+%!   assert (ci(1), 95.19578402366864, 1e-09);
+%!   assert (ci(2), 238.9609467455621, 1e-09);
+%! catch
+%!   # test boot m-file
+%!   assert (ci(1), 95.32928994082839, 1e-09);
+%!   assert (ci(2), 238.4062130177514, 1e-09);
+%! end
 %! ## Nonparametric 90% BCa confidence intervals (single bootstrap)
 %! ## Table 14.2 BCa intervals are 115.8 - 259.6
 %! boot (1, 1, true, [], 1); # Set random seed
 %! ci = bootci(2000,{{@var,1},A},'alpha',0.1,'type','bca');
-%! assert (ci(1), 115.6455796312253, 1e-09);
-%! assert (ci(2), 269.4469269661803, 1e-09);
+%! try
+%!   # test boot mex file
+%!   assert (ci(1), 115.6455796312253, 1e-09);
+%!   assert (ci(2), 269.4469269661803, 1e-09);
+%! catch
+%!   # test boot m-file
+%!   assert (ci(1), 112.9782684413938, 1e-09);
+%!   assert (ci(2), 265.6921865021881, 1e-09);
+%! end
+%! ## Nonparametric 90% calibrated confidence intervals (double bootstrap)
+%! boot (1, 1, true, [], 1); # Set random seed
+%! ci = bootci(2000,{{@var,1},A},'alpha',0.1,'type','cal','nbootcal',200);
+%! try
+%!   # test boot mex file
+%!   assert (ci(1), 111.39427003007, 1e-09);
+%!   assert (ci(2), 313.7115384615385, 1e-09);
+%! catch
+%!   # test boot m-file
+%!   assert (ci(1), 110.6138073406352, 1e-09);
+%!   assert (ci(2), 305.1908284023669, 1e-09);
+%! end
 %! # Exact intervals based on theory are 118.4 - 305.2 (Table 14.2)
 %! # Note that all of the bootknife intervals are slightly wider than the
 %! # non-parametric intervals in Table 14.2 because the bootknife (rather than
@@ -333,6 +363,13 @@ end
 %! ## Table 2 BCa intervals are 0.55 - 0.85
 %! boot (1, 1, true, [], 1); # Set random seed
 %! ci = bootci(2000,{@corr,baseline,oneyear},'alpha',0.1);
-%! assert (ci(1), 0.5477225147834641, 1e-09);
-%! assert (ci(2), 0.8457573378934136, 1e-09);
+%! try
+%!   # test boot mex file
+%!   assert (ci(1), 0.5477225147834641, 1e-09);
+%!   assert (ci(2), 0.8457573378934136, 1e-09);
+%! catch
+%!   # test boot m-file
+%!   assert (ci(1), 0.5495318330432346, 1e-09);
+%!   assert (ci(2), 0.8460658696851905, 1e-09);
+%! end
 %! # Exact intervals based on theory are 0.47 - 0.86 (Table 14.2)
