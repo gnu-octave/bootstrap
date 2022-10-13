@@ -53,7 +53,7 @@ To install (or test) the statistics-bootstrap package at it's existing location 
 * `bootcoeff` (Octave only) is a function for calculating semi-parametric bootstrap confidence intervals for the regression coefficients of a linear model fit using `anovan` or `fitlm`.  
 * `bootemm` (Octave only) is a function for calculating semi-parametric bootstrap confidence intervals for the estimated marginal means of a linear model fit using `anovan` or `fitlm`.  
 
-At the Octave command prompt, type `help function-name` for more information about the function and it's usage.
+At the Octave/MATLAB command prompt, type `help function-name` for more information about the function and it's input and output arguments. In Octave, you can also request demonstrations of function usage through examples by typing 'demo function-name` at the command prompt.
 
 ## Development roadmap
  
