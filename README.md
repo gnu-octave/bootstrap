@@ -8,7 +8,7 @@ Andrew Penn
 
 ## A statistics package for Octave/Matlab providing a variety of bootstrap resampling tools
 
-This package of functions can be used to estimate uncertainty (confidence intervals) and test hypotheses (*p*-values) using bootstrap. Variations of the bootstrap are included that improve the accuracy of bootstrap statistics for small samples.
+This package of functions can be used to estimate bias, uncertainty (standard errors and confidence intervals) and test hypotheses (*p*-values) using bootstrap. Variations of the bootstrap are included that improve the accuracy of bootstrap statistics for small samples.
 
 ## Requirements and dependencies
 
