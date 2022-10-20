@@ -59,4 +59,4 @@ At the Octave/MATLAB command prompt, type `help function-name` for more informat
  
 * Create more documentation and guidance for using the functions in this package  
 * Add function equivalent to Matlab's `meanEffectSize` - use `bootknife` for effect size confidence intervals when n > 7.
-
+* Pay more attention to handling NaN and +/-Inf values  
