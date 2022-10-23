@@ -16,7 +16,7 @@
 // Tol (double) sets the step size that will to stop optimization.
 //
 // OUTPUT VARIABLE
-// M (double) is vector of the smoothed median
+// M (double) is a scalar or vector of the smoothed median(s)
 //
 // If x is a vector, find the univariate smoothed median (M) of x. If x is a
 // matrix, compute the univariate smoothed median value for each column and
@@ -46,7 +46,7 @@
 // This function minimizes the above objective function by finding the root of
 // the first derivative using a fast, but reliable, Newton-Bisection hybrid
 // algorithm. The tolerance (Tol) is the maximum step size that is acceptable to
-// break from optimization.
+// break from optimization. Data (x) values that are equal to NaN are ignored.
 //
 // The smoothing works by slightly reducing the breakdown point of the median.
 // Bootstrap confidence intervals using the smoothed median have good coverage
@@ -61,6 +61,8 @@
 // Bibliography:
 // [1] Brown, Hall and Young (2001) The smoothed median and the
 //      bootstrap. Biometrika 88(2):519-534
+//
+// Requirements: Compilation requires C++11
 //
 // Author: Andrew Charles Penn (2022)
 
@@ -133,7 +135,7 @@ void mexFunction (int nlhs, mxArray* plhs[],
     if ( sz[0] == 1 ) {
         dim = 2;
     }
-    int m, n;
+    int m, n, l;
     if ( dim == 1 ) {
         m = sz[0];
         n = sz[1];
@@ -144,36 +146,45 @@ void mexFunction (int nlhs, mxArray* plhs[],
         plhs[0] = mxCreateDoubleMatrix (n, 1, mxREAL);
     }
     int N = mxGetNumberOfElements (prhs[0]);
-    float mid = 0.5 * m;
     double *M = (double *) mxGetData(plhs[0]);
 
     // Declare temporary variables needed for the optimization step
     vector<double> xvec;
     xvec.reserve (m);
-    double a, b, range, S, T, U, D, R, step, nwt;
+    double a, b, mid, range, S, T, U, D, R, step, nwt;
 
     // Loop through the data and apply smoothing to the median (maximum 25 iterations)
     int MaxIter = 24;
     for ( int k = 0; k < n ; k++ ) {
 
-        // Copy the next row/column of the data to temporary vector and sort it
+        // Copy the next row/column of the data to temporary vector
         if ( dim == 1 ) {
             for (int j = 0; j < m ; j++) xvec.push_back ( x[k * m + j] );
         } else if ( dim == 2 ) { 
             for ( int j = 0; j < m ; j++ ) {int i = j * n; xvec.push_back ( x[i + k] );};
         }
-        sort(xvec.begin(), xvec.end());
+
+        // Omit NaN values and calculate the length of the resulting vector
+        xvec.erase (remove_if(xvec.begin(),
+                              xvec.end(),
+                              [](const double& value) { return mxIsNaN(value); }), 
+                    xvec.end());
+        l =  xvec.size ();
+
+        // Sort the values of the data vector in ascending order
+        sort (xvec.begin(), xvec.end());
 
         // Set the (ordinary) median as the starting value
-        M[k] = xvec[int(mid)];           // Median when m is odd
+        mid = 0.5 * l;
+        M[k] = xvec[int(mid)];           // Median when l is odd
         if ( mid == int(mid) ) {      
             M[k] += xvec [int(mid) - 1];
-            M[k] *= 0.5;                 // Median when m is even
+            M[k] *= 0.5;                 // Median when l is even
         }
 
         // Set initial bracket bounds
         a = xvec[0];                     // Minimum
-        b = xvec[m - 1];                 // Maximimum
+        b = xvec[l - 1];                 // Maximimum
 
         // Calculate range (and set stopping criteria if not specified)
         range = b - a;                   // Range
@@ -194,10 +205,7 @@ void mexFunction (int nlhs, mxArray* plhs[],
             //S = 0;
             T = 0;
             U = 0;
-            for ( int j = 0; j < m ; j++ ) {        
-                if ( !mxIsFinite(xvec[j]) ) {
-                    mexErrMsgTxt ("the first input argument (x) cannot contain NaN or Inf");
-                }
+            for ( int j = 0; j < l ; j++ ) {        
                 for ( int i = 0; i < j ; i++ ) {
                     D = pow (xvec[i] - M[k], 2) + pow (xvec [j] - M[k], 2);
                     R = sqrt(D);
@@ -240,7 +248,11 @@ void mexFunction (int nlhs, mxArray* plhs[],
             }
 
             if ( Iter == MaxIter ) {
-                mexPrintf ("warning: Root finding failed to reach tolerance for vector %d \n", k+1);
+                if (dim == 1) {
+                    mexPrintf ("warning: Root finding failed to reach tolerance for column %d \n", k+1);
+                } else {
+                    mexPrintf ("warning: Root finding failed to reach tolerance for row %d \n", k+1);
+                }
             }
             
         }

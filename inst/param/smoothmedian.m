@@ -116,7 +116,7 @@ function M = smoothmedian (x, dim, Tol)
   l = m*(m-1)/2;
 
   % Find column indices where smoothing is not possible
-  if any(isnan(x)) | any(isinf(x))
+  if any(isnan(x(:))) || any(isinf(x(:)))
      error('x cannot contain Inf or NaN values')
   end
   
