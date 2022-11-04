@@ -4,6 +4,7 @@
 %
 %  BOOTSTAT = bootstrp (NBOOT, BOOTFUN, D)
 %  BOOTSTAT = bootstrp (NBOOT, BOOTFUN, D1, ..., DN)
+%  BOOTSTAT = bootstrp (..., 'seed', SEED)
 %  BOOTSTAT = bootstrp (..., 'Options', PAROPT)
 %  [BOOTSTAT, BOOTSAM] = bootstrp (...) 
 %
@@ -18,6 +19,10 @@
 %  BOOTSTAT = bootstrp (NBOOT, BOOTFUN, D1,...,DN) is as above except that 
 %  the third and subsequent numeric input arguments are data vectors that
 %  are used to create inputs for BOOTFUN.
+%
+%  BOOTSTAT = bootstrp (..., 'seed', SEED) initialises the Mersenne Twister
+%  random number generator using an integer SEED value so that bootci results
+%  are reproducible.
 %
 %  BOOTSTAT = bootstrp (..., 'Options', PAROPT) specifies options that govern if 
 %  and how to perform bootstrap iterations using multiple processors (if the 
@@ -98,6 +103,10 @@ function [bootstat,bootsam] = bootstrp(argin1,argin2,varargin)
     while ischar(argin3{end-1})
       if any(strcmpi({'Options','Option'},argin3{end-1}))
         paropt = argin3{end};
+      elseif any(strcmpi('seed',argin3{end-1}))
+        seed = argin3{end};
+        % Initialise the random number generator with the seed
+        boot (1, 1, true, [], seed);
       else
         error('bootstrp: unrecognised input argument to bootstrp')
       end

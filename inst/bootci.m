@@ -7,7 +7,9 @@
 %  CI = bootci (NBOOT,{BOOTFUN, D}, Name, Value)
 %  CI = bootci (NBOOT,{BOOTFUN, D1,...,DN}, Name, Value)
 %  CI = bootci (...,'type', TYPE)
+%  CI = bootci (...,'type', 'cal', 'nbootcal', NBOOTCAL)
 %  CI = bootci (...,'alpha', ALPHA)
+%  CI = bootci (...,'seed', SEED)
 %  CI = bootci (...,'Options', PAROPT)
 %  [CI, BOOTSTAT] = bootci (...)
 %
@@ -22,13 +24,13 @@
 %  subsequent numeric input arguments are data vectors that are used to create
 %  inputs for bootfun.
 %
-%  CI = bootci(..., 'alpha', ALPHA) where ALPHA sets the lower and upper bounds 
+%  CI = bootci (..., 'alpha', ALPHA) where ALPHA sets the lower and upper bounds 
 %  of the confidence interval(s). The value of ALPHA must be between 0 and 1.
 %  The nominal lower and upper percentiles of the confidence intervals CI are 
 %  then 100*(ALPHA/2)% and 100*(1-ALPHA/2)% respectively, and nominal central
 %  coverage of the intervals is 100*(1-ALPHA)%. 
 %
-%  CI = bootci(..., 'type', TYPE) computes bootstrap confidence interval CI 
+%  CI = bootci (..., 'type', TYPE) computes bootstrap confidence interval CI 
 %  using one of the following methods:
 %    'per' or 'percentile': Percentile method.
 %    'bca': Bias-corrected and accelerated method [5,6] (Default).
@@ -37,13 +39,16 @@
 %  using Student's t-distribution in order to improve coverage for small samples
 %  [8]. 
 %
-%  CI = bootci(...,'type','cal','nbootcal',NBOOTCAL) computes the calibrated
+%  CI = bootci (..., 'type', 'cal', 'nbootcal', NBOOTCAL) computes the calibrated
 %  percentile bootstrap confidence intervals CI. The calibrated percentiles of
 %  the bootstrap statistics are estimated using bootstrap with NBOOTCAL bootstrap
 %  data samples. NBOOTCAL is a positive integer value. The default value of
 %  NBOOTCAL is 200.
 %
-%  CI = bootci(..., 'Options', PAROPT) specifies options that govern if and how
+%  CI = bootci (..., 'seed', SEED) initialises the Mersenne Twister random number
+%  generator using an integer SEED value so that bootci results are reproducible.
+%
+%  CI = bootci (..., 'Options', PAROPT) specifies options that govern if and how
 %  to perform bootstrap iterations using multiple processors (if the Parallel 
 %  Computing Toolbox or Octave Parallel package is available). This argument is
 %  a structure with the following recognised fields:
@@ -155,6 +160,10 @@ function [ci,bootstat,bootsam] = bootci(argin1,argin2,varargin)
           type = argin3{end};
         elseif any(strcmpi('nbootcal',argin3{end-1}))
           nbootcal = argin3{end};
+        elseif any(strcmpi('seed',argin3{end-1}))
+          seed = argin3{end};
+          % Initialise the random number generator with the seed
+          boot (1, 1, true, [], seed);
         else
           error('bootci: unrecognised input argument to bootci')
         end
@@ -311,8 +320,7 @@ end
 %!      0 33 28 34 4 32 24 47 41 24 26 30 41]';
 %! ## Nonparametric 90% percentile confidence intervals (single bootstrap)
 %! ## Table 14.2 percentile intervals are 100.8 - 233.9
-%! boot (1, 1, true, [], 1); # Set random seed
-%! ci = bootci(2000,{{@var,1},A},'alpha',0.1,'type','per');
+%! ci = bootci(2000,{{@var,1},A},'alpha',0.1,'type','per','seed',1);
 %! try
 %!   # test boot mex file
 %!   assert (ci(1), 95.19578402366864, 1e-09);
@@ -324,8 +332,7 @@ end
 %! end
 %! ## Nonparametric 90% BCa confidence intervals (single bootstrap)
 %! ## Table 14.2 BCa intervals are 115.8 - 259.6
-%! boot (1, 1, true, [], 1); # Set random seed
-%! ci = bootci(2000,{{@var,1},A},'alpha',0.1,'type','bca');
+%! ci = bootci(2000,{{@var,1},A},'alpha',0.1,'type','bca','seed',1);
 %! try
 %!   # test boot mex file
 %!   assert (ci(1), 115.6455796312253, 1e-09);
@@ -336,8 +343,7 @@ end
 %!   assert (ci(2), 265.6921865021881, 1e-09);
 %! end
 %! ## Nonparametric 90% calibrated confidence intervals (double bootstrap)
-%! boot (1, 1, true, [], 1); # Set random seed
-%! ci = bootci(2000,{{@var,1},A},'alpha',0.1,'type','cal','nbootcal',200);
+%! ci = bootci(2000,{{@var,1},A},'alpha',0.1,'type','cal','nbootcal',200,'seed',1);
 %! try
 %!   # test boot mex file
 %!   assert (ci(1), 111.39427003007, 1e-09);
@@ -361,8 +367,7 @@ end
 %!             4.74,3.29,5.55,2.82,4.23,3.23,2.56,4.31,4.37,2.4]';
 %! ## Nonparametric 90% BCa confidence intervals (single bootstrap)
 %! ## Table 2 BCa intervals are 0.55 - 0.85
-%! boot (1, 1, true, [], 1); # Set random seed
-%! ci = bootci(2000,{@corr,baseline,oneyear},'alpha',0.1);
+%! ci = bootci(2000,{@corr,baseline,oneyear},'alpha',0.1,'seed',1);
 %! try
 %!   # test boot mex file
 %!   assert (ci(1), 0.5477225147834641, 1e-09);
