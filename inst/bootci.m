@@ -4,8 +4,10 @@
 %
 %  CI = bootci (NBOOT, BOOTFUN, D)
 %  CI = bootci (NBOOT, BOOTFUN, D1,...,DN)
-%  CI = bootci (NBOOT,{BOOTFUN, D}, Name, Value)
-%  CI = bootci (NBOOT,{BOOTFUN, D1,...,DN}, Name, Value)
+%  CI = bootci (NBOOT, {BOOTFUN, D}, Name, Value)
+%  CI = bootci (NBOOT, {BOOTFUN, D1,...,DN}, Name, Value)
+%  CI = bootci (NBOOT, BOOTFUN, D, Name, Value)
+%  CI = bootci (NBOOT, BOOTFUN, D1,...,DN, Name, Value)
 %  CI = bootci (...,'type', TYPE)
 %  CI = bootci (...,'type', 'cal', 'nbootcal', NBOOTCAL)
 %  CI = bootci (...,'alpha', ALPHA)
@@ -136,11 +138,32 @@ function [ci,bootstat,bootsam] = bootci(argin1,argin2,varargin)
 
   % Assign input arguments to function variables
   nboot = argin1;
+  bootfun = argin2;
   argin3 = varargin;
-  if paropt.UseParallel
-    nproc = paropt.nproc;
-  else
-    nproc = 0;
+  narg = numel(argin3);
+  if narg > 1
+    while ischar(argin3{end-1})
+      if any(strcmpi({'Options','Option'},argin3{end-1}))
+        paropt = argin3{end};
+      elseif any(strcmpi('alpha',argin3{end-1}))
+        alpha = argin3{end};
+      elseif any(strcmpi('type',argin3{end-1}))
+        type = argin3{end};
+      elseif any(strcmpi('nbootcal',argin3{end-1}))
+        nbootcal = argin3{end};
+      elseif any(strcmpi('seed',argin3{end-1}))
+        seed = argin3{end};
+        % Initialise the random number generator with the seed
+        boot (1, 1, true, [], seed);
+      else
+        error('bootci: unrecognised input argument to bootci')
+      end
+      argin3 = {argin3{1:end-2}};
+      narg = numel(argin3);
+      if narg < 2
+        break
+      end
+    end
   end
   if iscell(argin2)
     bootfun = argin2{1};
@@ -148,31 +171,6 @@ function [ci,bootstat,bootsam] = bootci(argin1,argin2,varargin)
       data = argin2(2:end);
     else
       data = argin2{2};
-    end
-    narg = numel(argin3);
-    if narg > 1
-      while ischar(argin3{end-1})
-        if any(strcmpi({'Options','Option'},argin3{end-1}))
-          paropt = argin3{end};
-        elseif any(strcmpi('alpha',argin3{end-1}))
-          alpha = argin3{end};
-        elseif any(strcmpi('type',argin3{end-1}))
-          type = argin3{end};
-        elseif any(strcmpi('nbootcal',argin3{end-1}))
-          nbootcal = argin3{end};
-        elseif any(strcmpi('seed',argin3{end-1}))
-          seed = argin3{end};
-          % Initialise the random number generator with the seed
-          boot (1, 1, true, [], seed);
-        else
-          error('bootci: unrecognised input argument to bootci')
-        end
-        argin3(end-1:end) = [];
-        narg = numel(argin3);
-        if narg < 2
-          break
-        end
-      end
     end
   else
     bootfun = argin2;
@@ -182,7 +180,9 @@ function [ci,bootstat,bootsam] = bootci(argin1,argin2,varargin)
       data = argin3{1};
     end
   end
-  if ~paropt.UseParallel
+  if paropt.UseParallel
+    ncpus = paropt.nproc;
+  else
     ncpus = 0;
   end
 
