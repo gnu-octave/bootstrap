@@ -72,7 +72,7 @@
 %  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-function [bootstat,bootsam] = bootstrp(argin1,argin2,varargin)
+function [bootstat, bootsam] = bootstrp (argin1, argin2, varargin)
 
   % Evaluate the number of function arguments
   if nargin<2
@@ -123,7 +123,9 @@ function [bootstat,bootsam] = bootstrp(argin1,argin2,varargin)
   else
     data = argin3{1};
   end
-  if ~paropt.UseParallel
+  if paropt.UseParallel
+    ncpus = paropt.nproc;
+  else
     ncpus = 0;
   end
 
