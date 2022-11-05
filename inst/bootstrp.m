@@ -112,7 +112,7 @@ function [bootstat, bootsam] = bootstrp (argin1, argin2, varargin)
       end
       argin3 = {argin3{1:end-2}};
       narg = numel(argin3);
-      if narg < 3
+      if narg < 2
         break
       end
     end
