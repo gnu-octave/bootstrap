@@ -16,7 +16,7 @@
 %  [CI, BOOTSTAT] = bootci (...)
 %
 %  CI = bootci (NBOOT, BOOTFUN, D) draws nboot bootstrap resamples from the rows
-%  of a data sample D and returns confidence intervals CI for the bootstrap 
+%  of a data sample D and returns 95% confidence intervals (CI) for the bootstrap 
 %  statistics computed by BOOTFUN [1]. BOOTFUN is a function handle (e.g. specified 
 %  with @), or a string indicating the function name. The third input argument, 
 %  data D (a column vector or a matrix), is used as input for BOOTFUN. The
@@ -30,7 +30,7 @@
 %  of the confidence interval(s). The value of ALPHA must be between 0 and 1.
 %  The nominal lower and upper percentiles of the confidence intervals CI are 
 %  then 100*(ALPHA/2)% and 100*(1-ALPHA/2)% respectively, and nominal central
-%  coverage of the intervals is 100*(1-ALPHA)%. 
+%  coverage of the intervals is 100*(1-ALPHA)%. The default value of ALPHA is 0.05.
 %
 %  CI = bootci (..., 'type', TYPE) computes bootstrap confidence interval CI 
 %  using one of the following methods:
