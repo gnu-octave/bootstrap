@@ -108,7 +108,7 @@ function [bootstat, bootsam] = bootstrp (argin1, argin2, varargin)
         % Initialise the random number generator with the seed
         boot (1, 1, true, [], seed);
       else
-        error('bootstrp: unrecognised input argument to bootstrp')
+        error ('bootstrp: unrecognised input argument to bootstrp')
       end
       argin3 = {argin3{1:end-2}};
       narg = numel(argin3);
@@ -132,15 +132,15 @@ function [bootstat, bootsam] = bootstrp (argin1, argin2, varargin)
 
   % Error checking
   if ~all(size(nboot) == [1,1])
-    error('bootstrp: NBOOT must be a scalar value')
+    error ('bootstrp: NBOOT must be a scalar value')
   end
 
   % Parse input arguments to the function bootknife
-  [jnk, bootstat, bootsam] = bootknife (data, nboot, bootfun, [], [], ncpus);
+  [jnk, bootstat, bootsam] = bootknife (data, nboot, bootfun, NaN, [], ncpus);
 
   % Format output to be consistent with MATLAB's bootstrp
   bootstat = bootstat.';
-  bootsam = double(bootsam);
+  bootsam = double (bootsam);
 
 end
 

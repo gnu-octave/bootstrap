@@ -88,8 +88,8 @@
 %  respectively, and nominal central coverage of the intervals is 100*(1-ALPHA)%.
 %  If ALPHA is a vector with two elements, ALPHA becomes the quantiles for the
 %  confidence intervals, and the intervals become percentile bootstrap confidence
-%  intervals. If ALPHA is empty, NaN is returned for the confidence interval
-%  ends. The default value for ALPHA is 0.05. 
+%  intervals. If ALPHA is NaN, confidence intervals are not calculated. If empty
+%  or not specified, the default value for ALPHA is 0.05. 
 %
 %  STATS = bootknife (DATA, NBOOT, BOOTFUN, ALPHA, STRATA) also sets STRATA, 
 %  which are identifiers that define the grouping of the DATA rows
@@ -110,7 +110,7 @@
 %  statistics calculated over the (first, or outer layer of) bootstrap
 %  resamples. 
 %
-%  [STATS, BOOTSTAT, BOOTSAM] = bootknife(...) also returns BOOTSAM, the
+%  [STATS, BOOTSTAT, BOOTSAM] = bootknife (...) also returns BOOTSAM, the
 %  matrix of indices (32-bit integers) used for the (first, or outer
 %  layer of) bootstrap resampling. Each column in BOOTSAM corresponds
 %  to one bootstrap resample and contains the row indices of the values
@@ -241,6 +241,8 @@ function [stats, bootstat, BOOTSAM] = bootknife (x, nboot, bootfun, alpha, strat
         error ('bootknife: the pair of quantiles must be in ascending numeric order');
       end
     end
+  else
+    alpha = 0.05;
   end
   if (nargin < 5)
     strata = [];
@@ -544,10 +546,10 @@ function [stats, bootstat, BOOTSAM] = bootknife (x, nboot, bootfun, alpha, strat
         % Set unique random seed for each parallel thread
         pararrayfun(ncpus, @boot, 1, 1, false, 1, 1:ncpus);
         if vectorized && isempty(BOOTSAM)
-          cellfunc = @(x) bootknife (x, C, bootfun, [], strata, 0, T0, ISOCTAVE);
+          cellfunc = @(x) bootknife (x, C, bootfun, NaN, strata, 0, T0, ISOCTAVE);
           bootout = parcellfun (ncpus, cellfunc, num2cell (X,1));
         else
-          cellfunc = @(BOOTSAM) bootknife (x(BOOTSAM,:), C, bootfun, [], strata, 0, T0, ISOCTAVE);
+          cellfunc = @(BOOTSAM) bootknife (x(BOOTSAM,:), C, bootfun, NaN, strata, 0, T0, ISOCTAVE);
           bootout = parcellfun (ncpus, cellfunc, num2cell (BOOTSAM,1));
         end
       else
@@ -562,20 +564,20 @@ function [stats, bootstat, BOOTSAM] = bootknife (x, nboot, bootfun, alpha, strat
                           'CI_upper',zeros(1,B),...
                           'Pr',zeros(1,B));
         if vectorized && isempty(BOOTSAM)
-          cellfunc = @(x) bootknife (x, C, bootfun, [], strata, 0, T0, ISOCTAVE);
+          cellfunc = @(x) bootknife (x, C, bootfun, NaN, strata, 0, T0, ISOCTAVE);
           parfor b = 1:B; bootout(b) = cellfunc (X(:,b)); end
         else
-          cellfunc = @(BOOTSAM) bootknife (x(BOOTSAM,:), C, bootfun, [], strata, 0, T0, ISOCTAVE);
+          cellfunc = @(BOOTSAM) bootknife (x(BOOTSAM,:), C, bootfun, NaN, strata, 0, T0, ISOCTAVE);
           parfor b = 1:B; bootout(b) = cellfunc (BOOTSAM(:,b)); end
         end
       end
     else
       % SERIAL execution of inner layer resampling for double bootstrap
       if vectorized && isempty(BOOTSAM)
-        cellfunc = @(x) bootknife (x, C, bootfun, [], strata, 0, T0, ISOCTAVE);
+        cellfunc = @(x) bootknife (x, C, bootfun, NaN, strata, 0, T0, ISOCTAVE);
         bootout = cellfun (cellfunc, num2cell (X,1));
       else
-        cellfunc = @(BOOTSAM) bootknife (x(BOOTSAM,:), C, bootfun, [], strata, 0, T0, ISOCTAVE);
+        cellfunc = @(BOOTSAM) bootknife (x(BOOTSAM,:), C, bootfun, NaN, strata, 0, T0, ISOCTAVE);
         bootout = cellfun (cellfunc, num2cell (BOOTSAM,1));
       end
     end
@@ -588,7 +590,7 @@ function [stats, bootstat, BOOTSAM] = bootknife (x, nboot, bootfun, alpha, strat
     bias = b - c;
     % Bootstrap standard error
     se = std (bootstat, 1);
-    if ~isempty(alpha)
+    if ~isnan(alpha)
       % Calibrate tail probabilities
       [cdf, u] = localfunc.empcdf (Pr, 1);
       switch (numel (alpha))
@@ -611,7 +613,7 @@ function [stats, bootstat, BOOTSAM] = bootknife (x, nboot, bootfun, alpha, strat
     bias = mean (bootstat) - T0;
     % Bootstrap standard error
     se = std (bootstat, 1);
-    if ~isempty(alpha)
+    if ~isnan(alpha)
       state = warning;
       if ISOCTAVE
         warning ('on', 'quiet');
