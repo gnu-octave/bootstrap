@@ -9,6 +9,7 @@
 %  CI = bootci (NBOOT, BOOTFUN, D, Name, Value)
 %  CI = bootci (NBOOT, BOOTFUN, D1,...,DN, Name, Value)
 %  CI = bootci (...,'type', TYPE)
+%  CI = bootci (...,'type', 'stud', 'nbootstd', NBOOTSTD)
 %  CI = bootci (...,'type', 'cal', 'nbootcal', NBOOTCAL)
 %  CI = bootci (...,'alpha', ALPHA)
 %  CI = bootci (...,'seed', SEED)
@@ -36,16 +37,23 @@
 %  using one of the following methods:
 %    'per' or 'percentile': Percentile method.
 %    'bca': Bias-corrected and accelerated method [5,6] (Default).
+%    'stud' or 'student': Studentized (bootstrap-t) confidence interval.
 %    'cal': Calibrated percentile method (by double bootstrap [7]).
 %  Note that when BOOTFUN is the mean, BCa intervals are automatically expanded
 %  using Student's t-distribution in order to improve coverage for small samples
-%  [8]. 
+%  [8]. The bootstrap-t method includes an additive correction to stabilize
+%  the variance when the sample size is small [9].
+%
+%  CI = bootci (..., 'type', 'stud', 'nbootstd', NBOOTSTD) computes the
+%  Studentized bootstrap bootstrap confidence intervals CI, with the standard
+%  error of the bootstrap statistics estimated from NBOOTSTD bootstrap data
+%  samples. NBOOTSTD is a positive integer value. The default value of NBOOTSTD
+%  is 100.
 %
 %  CI = bootci (..., 'type', 'cal', 'nbootcal', NBOOTCAL) computes the calibrated
-%  percentile bootstrap confidence intervals CI. The calibrated percentiles of
-%  the bootstrap statistics are estimated using bootstrap with NBOOTCAL bootstrap
-%  data samples. NBOOTCAL is a positive integer value. The default value of
-%  NBOOTCAL is 200.
+%  percentile bootstrap confidence intervals CI, with the calibrated percentiles
+%  of the bootstrap statistics estimated from NBOOTCAL bootstrap data samples.
+%  NBOOTCAL is a positive integer value. The default value of NBOOTCAL is 200.
 %
 %  CI = bootci (..., 'seed', SEED) initialises the Mersenne Twister random number
 %  generator using an integer SEED value so that bootci results are reproducible.
@@ -60,7 +68,12 @@
 %                   non-vectorized function evaluations, double bootstrap
 %                   resampling and jackknife function evaluations. Default is
 %                   false for serial computation. In MATLAB, the default is
-%                   true if a parallel pool has already been started.
+%                   true if a parallel pool has already been started. 
+%
+%                   Note that the standard error calculations for Studentized
+%                   bootstrap confidence intervals are not accelerated by
+%                   parallel processing.
+%
 %   'nproc'       - nproc sets the number of parallel processes
 %
 %  [CI, BOOTSTAT] = bootci(...) also returns the bootstrap statistics used to
@@ -91,8 +104,10 @@
 %  [8] Hesterberg, Tim (2014), What Teachers Should Know about the 
 %        Bootstrap: Resampling in the Undergraduate Statistics Curriculum, 
 %        http://arxiv.org/abs/1411.5279
+%  [9] Polansky (2000) Stabilizing bootstrap-t confidence intervals
+%        for small samples. Can J Stat. 28(3):501-516
 %
-%  bootci (version 2022.10.08)
+%  bootci (version 2022.12.06)
 %  Author: Andrew Charles Penn
 %  https://www.researchgate.net/profile/Andrew_Penn/
 %
@@ -118,6 +133,10 @@ function [ci, bootstat, bootsam] = bootci (argin1, argin2, varargin)
     error('bootci usage: ''bootci (NBOOT, {BOOTFUN, DATA}, varargin)''; atleast 2 input arguments required');
   end
 
+  % Store local functions in a stucture for parallel processes
+  localfunc = struct ('col2args',@col2args,...
+                      'empcdf',@empcdf);
+
   % Check if using MATLAB or Octave
   info = ver; 
   ISOCTAVE = any (ismember ({info.Name}, 'Octave'));
@@ -126,6 +145,7 @@ function [ci, bootstat, bootsam] = bootci (argin1, argin2, varargin)
   bootfun = @mean;
   alpha = 0.05;
   type = 'bca';
+  nbootstd = 100;
   nbootcal = 200;
   paropt = struct;
   paropt.UseParallel = false;
@@ -149,6 +169,8 @@ function [ci, bootstat, bootsam] = bootci (argin1, argin2, varargin)
         alpha = argin3{end};
       elseif any(strcmpi('type',argin3{end-1}))
         type = argin3{end};
+      elseif any(strcmpi('nbootstd',argin3{end-1}))
+        nbootstd = argin3{end};
       elseif any(strcmpi('nbootcal',argin3{end-1}))
         nbootcal = argin3{end};
       elseif any(strcmpi('seed',argin3{end-1}))
@@ -169,8 +191,10 @@ function [ci, bootstat, bootsam] = bootci (argin1, argin2, varargin)
     bootfun = argin2{1};
     if (numel(argin2) > 2)
       data = argin2(2:end);
+      n = size (data{1},1);
     else
       data = argin2{2};
+      n = size (data,1);
     end
   else
     bootfun = argin2;
@@ -179,6 +203,7 @@ function [ci, bootstat, bootsam] = bootci (argin1, argin2, varargin)
     else
       data = argin3{1};
     end
+    n = size (data,1);
   end
   if paropt.UseParallel
     ncpus = paropt.nproc;
@@ -204,7 +229,16 @@ function [ci, bootstat, bootsam] = bootci (argin1, argin2, varargin)
   end
   if (nboot ~= abs (fix (nboot)))
     error ('bootci: NBOOT must contain positive integers');
-  end    
+  end
+  if ~isa (nbootstd, 'numeric')
+    error ('bootci: NBOOTSTD must be numeric');
+  end
+  if (numel (nbootstd) > 1)
+    error ('bootci: NBOOTSTD must be a scalar value');
+  end
+  if (nbootstd ~= abs (fix (nbootstd)))
+    error ('bootci: NBOOTSTD must be a positive integer');
+  end  
   if ~isa (nbootcal, 'numeric')
     error ('bootci: NBOOTCAL must be numeric');
   end
@@ -219,7 +253,7 @@ function [ci, bootstat, bootsam] = bootci (argin1, argin2, varargin)
   switch lower(type)
     case 'bca'
       % Do nothing, BCa intervals are the default in the bootknife function
-    case {'per','percentile'}
+    case {'per','percentile','stud','student'}
       % Set quantiles directly to calculate percentile intervals
       alpha = [alpha / 2, 1 - alpha / 2];
     case 'cal'
@@ -228,14 +262,99 @@ function [ci, bootstat, bootsam] = bootci (argin1, argin2, varargin)
       error ('bootci: interval TYPE not supported')
   end
 
-  % Parse input arguments to the function bootknife
-  [stats, bootstat] = bootknife (data, nboot, bootfun, alpha, [], ncpus);
+  % Parse input arguments to the bootknife function to calculate confidence intervals
+  switch lower(type)
+    case {'stud','student'}
+      % Use bootstrap-t method with variance stabilization for small samples
+      % Polansky (2000) Can J Stat. 28(3):501-516
+      [stats, bootstat, bootsam] = bootknife (data, nboot, bootfun, alpha, [], ncpus);
+      % If DATA is a cell array of equal size colunmn vectors, convert the cell
+      % array to a matrix and redefine bootfun to parse multiple input arguments
+      if iscell(data)
+        data = [data{:}];
+        bootfun = @(data) localfunc.col2args(bootfun, data);
+      end
+      % Calculate standard errors of the bootstrap statistics
+      bootse = @(BOOTSAM) getfield (bootknife (data(BOOTSAM,:), nbootstd, bootfun, NaN), 'std_error');
+      SE = cellfun (bootse, num2cell (bootsam,1));
+      a = n^(-3/2) * stats.std_error; % Additive constant to stabilize the variance
+      % Calculate Studentized statistics
+      ridx = isnan(bootstat); bootstat(ridx) = []; SE(ridx) = [];
+      T = (bootstat - stats.original) ./ (SE + a);
+      [cdf, T] = localfunc.empcdf (T, 1);
+      % Calculate intervals from empirical distribution of the Studentized bootstrap statistics
+      tmp = arrayfun ( @(p) stats.original - stats.std_error * interp1 (cdf, T, p, 'linear'), alpha);
+      stats.CI_upper = tmp(1); stats.CI_lower = tmp(2);
+    otherwise
+      [stats, bootstat] = bootknife (data, nboot, bootfun, alpha, [], ncpus);
+  end
 
   % Format output to be consistent with MATLAB's bootci
   ci = [stats.CI_lower; stats.CI_upper];
   bootstat = bootstat.';
 
 end
+
+%--------------------------------------------------------------------------
+
+function retval = col2args (func, x)
+
+  % Usage: retval = col2args (func, x)
+  % col2args evaluates func on the columns of x. Each columns of x is passed
+  % to func as a separate argument. 
+
+  % Extract columns of the matrix into a cell array
+  xcell = num2cell (x, 1);
+
+  % Evaluate column vectors as independent of arguments to bootfun
+  retval = func (xcell{:});
+
+end
+
+%--------------------------------------------------------------------------
+
+function [F, x] = empcdf (bootstat, c)
+
+  % Subfunction to calculate empirical cumulative distribution function of bootstat
+  %
+  % Set c to:
+  %  1 to have a complete distribution with F ranging from 0 to 1
+  %  0 to avoid duplicate values in x
+  %
+  % Unlike ecdf, empcdf uses a denominator of N+1
+
+  % Check input argument
+  if ~isa(bootstat,'numeric')
+    error ('bootknife:empcdf: BOOTSTAT must be numeric');
+  end
+  if all(size(bootstat)>1)
+    error ('bootknife:empcdf: BOOTSTAT must be a vector');
+  end
+  if size(bootstat,2)>1
+    bootstat = bootstat.';
+  end
+
+  % Create empirical CDF
+  bootstat = sort(bootstat);
+  N = sum(~isnan(bootstat));
+  [x,F] = unique(bootstat,'last');
+  F = F/(N+1);
+
+  % Apply option to complete the CDF
+  if c > 0
+    x = [x(1);x;x(end)];
+    F = [0;F;1];
+  end
+
+  % Remove impossible values
+  F(isnan(x)) = [];
+  x(isnan(x)) = [];
+  F(isinf(x)) = [];
+  x(isinf(x)) = [];
+
+end
+
+%--------------------------------------------------------------------------
 
 %!demo
 %!
@@ -341,6 +460,17 @@ end
 %!   # test boot m-file
 %!   assert (ci(1), 112.9782684413938, 1e-09);
 %!   assert (ci(2), 265.6921865021881, 1e-09);
+%! end
+%! ## Nonparametric 90% bootstrap-t confidence intervals (double bootstrap)
+%! ci = bootci(2000,{{@var,1},A},'alpha',0.1,'type','stud','nbootstd',100,'seed',1);
+%! try
+%!   # test boot mex file
+%!   assert (ci(1), 108.4723172106667, 1e-09);
+%!   assert (ci(2), 304.270263629396, 1e-09);
+%! catch
+%!   # test boot m-file
+%!   assert (ci(1), 109.0959028769563, 1e-09);
+%!   assert (ci(2), 307.4473656731515, 1e-09);
 %! end
 %! ## Nonparametric 90% calibrated confidence intervals (double bootstrap)
 %! ci = bootci(2000,{{@var,1},A},'alpha',0.1,'type','cal','nbootcal',200,'seed',1);

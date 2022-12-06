@@ -685,8 +685,7 @@ function [p, c, stats] = bootnhst (data, group, varargin)
       % Bootknife resampling involves less computation than Jackknife when sample sizes get larger
       theta(j) = bootfun(data(g==gk(j),:));
       nk(j) = sum(g==gk(j));
-      stats = bootknife(data(g==gk(j),:),[nboot(2),0],bootfun,NaN,[],0,[],ISOCTAVE);
-      SE(j) = stats.std_error;
+      SE(j) = getfield(bootknife(data(g==gk(j),:),[nboot(2),0],bootfun,NaN,[],0,[],ISOCTAVE),'std_error');
       if (j==1); se_method = 'Balanced, bootknife resampling'; end;
     end
     Var(j) = ((nk(j)-1)/(N-k)) * SE(j)^2;
@@ -943,8 +942,7 @@ function maxT = maxstat (Y, g, nboot, bootfun, ref, ISOCTAVE)
       % Bootknife resampling involves less computation than Jackknife when sample sizes get larger
       theta(j) = bootfun(Y(g==gk(j),:));
       nk(j) = sum(g==gk(j));
-      stats = bootknife(Y(g==gk(j),:),[nboot,0],bootfun,NaN,[],0,[],ISOCTAVE);
-      SE(j) = stats.std_error;
+      SE(j) = getfield(bootknife(Y(g==gk(j),:),[nboot,0],bootfun,NaN,[],0,[],ISOCTAVE),'std_error');
     end
     Var(j) = ((nk(j)-1)/(N-k)) * SE(j)^2;
   end
