@@ -6,24 +6,24 @@
 // smoothmedian.mex is a function file for calculating a smooth version of the
 // median [1]
 //
-// M = smoothmedian (x)
-// M = smoothmedian (x, dim)
-// M = smoothmedian (x, dim, Tol)
+// M = smoothmedian (X)
+// M = smoothmedian (X, DIM)
+// M = smoothmedian (X, DIM, TOL)
 //
 // INPUT VARIABLES
-// x (double) is the data vector or matrix.
-// dim (double) is the dimension (1 for columnwise, 2 for rowwise).
-// Tol (double) sets the step size that will to stop optimization.
+// X (double) is the data vector or matrix.
+// DIM (double) is the dimension (1 for columnwise, 2 for rowwise).
+// TOL (double) sets the step size that will to stop optimization.
 //
 // OUTPUT VARIABLE
 // M (double) is a scalar or vector of the smoothed median(s)
 //
-// If x is a vector, find the univariate smoothed median (M) of x. If x is a
+// If X is a vector, find the univariate smoothed median (M) of X. If X is a
 // matrix, compute the univariate smoothed median value for each column and
-// return them in a row vector (default). The argument dim defines which
+// return them in a row vector (default). The argument DIM defines which
 // dimension to operate along. Arrays of more than two dimensions are not
-// currently supported. Tol configures the stopping criteria, in terms of the
-// absolute change in the step size. By default, Tol = RANGE * 1e-4.
+// currently supported. TOL configures the stopping criteria, in terms of the
+// absolute change in the step size. By default, TOL = RANGE * 1e-4.
 //
 // The smoothed median is a slightly smoothed version of the ordinary 
 // median and is an M-estimator that is both robust and efficient:
@@ -37,16 +37,16 @@
 // Smoothing the median is achieved by minimizing the following objective
 // function:
 //
-//      S (M) = sum (((x(i) - M).^2 + (x(j) - M).^2).^ 0.5)
+//      S (M) = sum (((X(i) - M).^2 + (X(j) - M).^2).^ 0.5)
 //             i < j
 // 
 // where i and j refers to the indices of the Cartesian product of each column
-// of x with itself.
+// of X with itself.
 //
 // This function minimizes the above objective function by finding the root of
 // the first derivative using a fast, but reliable, Newton-Bisection hybrid
-// algorithm. The tolerance (Tol) is the maximum step size that is acceptable to
-// break from optimization. Data (x) values that are equal to NaN are ignored.
+// algorithm. The tolerance (TOL) is the maximum step size that is acceptable to
+// break from optimization. Data (X) values that are equal to NaN are ignored.
 //
 // The smoothing works by slightly reducing the breakdown point of the median.
 // Bootstrap confidence intervals using the smoothed median have good coverage
@@ -61,8 +61,6 @@
 // Bibliography:
 // [1] Brown, Hall and Young (2001) The smoothed median and the
 //      bootstrap. Biometrika 88(2):519-534
-//
-// Requirements: Compilation requires C++11
 //
 // Author: Andrew Charles Penn (2022)
 
@@ -165,10 +163,7 @@ void mexFunction (int nlhs, mxArray* plhs[],
         }
 
         // Omit NaN values and calculate the length of the resulting vector
-        xvec.erase (remove_if(xvec.begin(),
-                              xvec.end(),
-                              [](const double& value) { return mxIsNaN(value); }), 
-                    xvec.end());
+        xvec.erase (remove_if(xvec.begin(), xvec.end(), mxIsNaN), xvec.end());
         l =  xvec.size ();
 
         // Sort the values of the data vector in ascending order
