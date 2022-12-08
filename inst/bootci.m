@@ -440,11 +440,11 @@ end
 %! ## Nonparametric 90% percentile confidence intervals (single bootstrap)
 %! ## Table 14.2 percentile intervals are 100.8 - 233.9
 %! ci = bootci(2000,{{@var,1},A},'alpha',0.1,'type','per','seed',1);
-%! try
+%! if (!isempty (regexp (which ('boot'), 'mex$')))
 %!   # test boot mex file
 %!   assert (ci(1), 95.19578402366864, 1e-09);
 %!   assert (ci(2), 238.9609467455621, 1e-09);
-%! catch
+%! else
 %!   # test boot m-file
 %!   assert (ci(1), 95.32928994082839, 1e-09);
 %!   assert (ci(2), 238.4062130177514, 1e-09);
@@ -452,33 +452,33 @@ end
 %! ## Nonparametric 90% BCa confidence intervals (single bootstrap)
 %! ## Table 14.2 BCa intervals are 115.8 - 259.6
 %! ci = bootci(2000,{{@var,1},A},'alpha',0.1,'type','bca','seed',1);
-%! try
+%! if (!isempty (regexp (which ('boot'), 'mex$')))
 %!   # test boot mex file
 %!   assert (ci(1), 115.6455796312253, 1e-09);
 %!   assert (ci(2), 269.4469269661803, 1e-09);
-%! catch
+%! else
 %!   # test boot m-file
 %!   assert (ci(1), 112.9782684413938, 1e-09);
 %!   assert (ci(2), 265.6921865021881, 1e-09);
 %! end
 %! ## Nonparametric 90% bootstrap-t confidence intervals (double bootstrap)
 %! ci = bootci(2000,{{@var,1},A},'alpha',0.1,'type','stud','nbootstd',100,'seed',1);
-%! try
+%! if (!isempty (regexp (which ('boot'), 'mex$')))
 %!   # test boot mex file
 %!   assert (ci(1), 108.4723172106667, 1e-09);
 %!   assert (ci(2), 304.270263629396, 1e-09);
-%! catch
+%! else
 %!   # test boot m-file
 %!   assert (ci(1), 109.0959028769563, 1e-09);
 %!   assert (ci(2), 307.4473656731515, 1e-09);
 %! end
 %! ## Nonparametric 90% calibrated confidence intervals (double bootstrap)
 %! ci = bootci(2000,{{@var,1},A},'alpha',0.1,'type','cal','nbootcal',200,'seed',1);
-%! try
+%! if (!isempty (regexp (which ('boot'), 'mex$')))
 %!   # test boot mex file
 %!   assert (ci(1), 111.39427003007, 1e-09);
 %!   assert (ci(2), 313.7115384615385, 1e-09);
-%! catch
+%! else
 %!   # test boot m-file
 %!   assert (ci(1), 110.6138073406352, 1e-09);
 %!   assert (ci(2), 305.1908284023669, 1e-09);
@@ -498,11 +498,11 @@ end
 %! ## Nonparametric 90% BCa confidence intervals (single bootstrap)
 %! ## Table 2 BCa intervals are 0.55 - 0.85
 %! ci = bootci(2000,{@corr,baseline,oneyear},'alpha',0.1,'seed',1);
-%! try
+%! if (!isempty (regexp (which ('boot'), 'mex$')))
 %!   # test boot mex file
 %!   assert (ci(1), 0.5477225147834641, 1e-09);
 %!   assert (ci(2), 0.8457573378934136, 1e-09);
-%! catch
+%! else
 %!   # test boot m-file
 %!   assert (ci(1), 0.5495318330432346, 1e-09);
 %!   assert (ci(2), 0.8460658696851905, 1e-09);

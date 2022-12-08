@@ -1049,18 +1049,18 @@ end
 %!      1 2 3 4 5 6 7;
 %!      1 2 3 4 5 6 7];
 %! p = bootnhst (y(:),g(:),'ref',1,'nboot',[1000,0],'DisplayOpt',false);
-%! try
+%! if (!isempty (regexp (which ('boot'), 'mex$')))
 %!   # test boot mex file
 %!   assert (p, 0.01210939735473963, 1e-09);
-%! catch
+%! else
 %!   # test boot m-file
 %!   assert (p, 0.01741068999480916, 1e-09);
 %! end
 %! p = bootnhst (y(:),g(:),'nboot',[1000,0],'DisplayOpt',false);
-%! try
+%! if (!isempty (regexp (which ('boot'), 'mex$')))
 %!   # test boot mex file
 %!   assert (p, 0.04407742932277153, 1e-09);
-%! catch
+%! else
 %!   # test boot m-file
 %!   assert (p, 0.04864186049751608, 1e-09);
 %! end
@@ -1080,18 +1080,18 @@ end
 %!      'male' 'female'
 %!      'male' 'female'};
 %! p = bootnhst (y(:),g(:),'ref','male','nboot',[1000,0],'DisplayOpt',false);
-%! try
+%! if (!isempty (regexp (which ('boot'), 'mex$')))
 %!   # test boot mex file
 %!   assert (p, 0.2577543618442567, 1e-09);
-%! catch
+%! else
 %!   # test boot m-file
 %!   assert (p, 0.2494298028974493, 1e-09);
 %! end
 %! p = bootnhst (y(:),g(:),'nboot',[1000,0],'DisplayOpt',false);
-%! try
+%! if (!isempty (regexp (which ('boot'), 'mex$')))
 %!   # test boot mex file
 %!   assert (p, 0.2577543618442567, 1e-09);
-%! catch
+%! else
 %!   # test boot m-file
 %!   assert (p, 0.2494298028974493, 1e-09);
 %! end
@@ -1111,10 +1111,10 @@ end
 %!       1   2   3
 %!       1   2   3];
 %! p = bootnhst (y(:),g(:),'nboot',[1000,0],'DisplayOpt',false);
-%! try
+%! if (!isempty (regexp (which ('boot'), 'mex$')))
 %!   # test boot mex file
 %!   assert (p, 0.001, 1e-09); # truncated at 0.001
-%! catch
+%! else
 %!   # test boot m-file
 %!   assert (p, 0.001, 1e-09); # truncated at 0.001
 %! end
