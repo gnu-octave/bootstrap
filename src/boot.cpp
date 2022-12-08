@@ -6,42 +6,44 @@
 // boot.mex is a function file for generating balanced bootstrap sample indices
 //
 // USAGE
-// bootsam = boot (n, nboot)
-// bootsam = boot (x, nboot)
-// bootsam = boot (..., nboot, u)
-// bootsam = boot (..., nboot, u, w)
-// bootsam = boot (..., nboot, u, w, seed)
+// BOOTSAM = boot (N, NBOOT)
+// BOOTSAM = boot (X, NBOOT)
+// BOOTSAM = boot (..., NBOOT, UNBIASED)
+// BOOTSAM = boot (..., NBOOT, UNBIASED, WEIGHTS)
+// BOOTSAM = boot (..., NBOOT, UNBIASED, WEIGHTS, SEED)
 //
 // INPUT VARIABLES
-// n (double) is the number of rows (of the data vector)
-// x (double) is a data vector intended for resampling
-// nboot (double) is the number of bootstrap resamples
-// u (boolean) for unbiased: false (for bootstrap) or true (for bootknife)
-// w (double) is a weight vector of length n
-// seed (double) is a seed used to initialise the pseudo-random number generator
+// N (double) is the number of rows (of the data vector)
+// X (double) is a data vector intended for resampling
+// NBOOT (double) is the number of bootstrap resamples
+// UNBIASED (boolean) for unbiased resampling: false (for bootstrap) or true
+//   (for bootknife)
+// WEIGHTS (double) is a weight vector of length N
+// SEED (double) is a seed used to initialise the pseudo-random number generator
 //
 // OUTPUT VARIABLE
-// bootsam (double) is an n x nboot matrix of resampled data or indices
+// BOOTSAM (double) is an N x NBOOT matrix of sample indices (N) or resampled
+//   data (X)
 //
 // NOTES
-// u is an optional input argument. The default is false. If u is true then 
-// the sample index for omission in each bootknife resample is selected
-// systematically. If the remaining number of bootknife resamples is not
-// divisible by the sample size (n), then the sample index omitted is
+// UNBIASED is an optional input argument. The default is false. If UNBIASED is
+// true, then the sample index for omission in each bootknife resample is
+// selected systematically. When the remaining number of bootknife resamples is
+// not divisible by the sample size (N), then the sample index omitted is
 // selected randomly. 
-// w is an optional input argument. If w is empty or not provided, the default
-// is a vector of each element equal to nboot (i.e. uniform weighting). Each
-// element of w is the number of times that the corresponding index is
-// represented in bootsam. Therefore, the sum of w should equal n * nboot.
-// Note that the mex function compiled from this source code is not thread
-// safe. Below is an example of a line of code one can run in Octave/Matlab
-// before attempting parallel operation of boot.mex in order to ensure that
-// the initial random seeds of each thread are unique:
+// WEIGHTS is an optional input argument. If WEIGHTS is empty or not provided,
+// the default is a vector of each element equal to NBOOT (i.e. uniform
+// weighting). Each element of WEIGHTS is the number of times that the
+// corresponding index is represented in bootsam. Therefore, the sum of WEIGHTS
+// should equal N * NBOOT. Note that the mex function compiled from this source
+// code is not thread safe. Below is an example of a line of code one can run in
+// Octave/Matlab before attempting parallel operation of boot.mex in order to
+// ensure that the initial random seeds of each thread are unique:
+//
 // In Octave:
 // >> pararrayfun(nproc, @boot, 1, 1, false, [], 1:nproc)
 // In Matlab:
 // >> ncpus = feature('numcores'); parfor i = 1:ncpus; boot (1, 1, false, [], i); end;
-//
 //
 // Author: Andrew Charles Penn (2022)
 
