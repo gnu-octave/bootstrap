@@ -149,6 +149,6 @@ function bootsam = boot (x, nboot, u, w, s)
 %! 
 %! % N as input; balanced resampling with replacement; setting the random seed
 %! boot(3,20,false,[],1) % Set random seed
-%! boot(3,20,false,[],1) % Reset random seed, BOOTSAM is the same (if running on the same core)
+%! boot(3,20,false,[],1) % Reset random seed, BOOTSAM is the same
 %! boot(3,20,false,[])   % Without setting random seed, BOOTSAM is different
 
