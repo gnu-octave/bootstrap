@@ -181,7 +181,7 @@ void mexFunction (int nlhs, mxArray* plhs[],
 
     // Perform balanced sampling
     for ( int b = 0; b < nboot ; b++ ) { 
-        if (u) {    
+        if (u == true) {    
             if ( (b / n) == (nboot / n) ) {
                 r = rand () / (RAND_MAX / n + 1);  // random
             } else {
@@ -189,7 +189,7 @@ void mexFunction (int nlhs, mxArray* plhs[],
             }
         }
         for ( int i = 0; i < n ; i++ ) {
-            if (u) {
+            if (u == true) {
                 // Only LOO if sample index r doesn't account for all remaining 
                 // sampling counts
                 if (c[r] < N) {

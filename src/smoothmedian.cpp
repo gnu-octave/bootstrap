@@ -119,12 +119,12 @@ void mexFunction (int nlhs, mxArray* plhs[],
             mexErrMsgTxt ("the third input argument (Tol) cannot contain an imaginary part");
         }
         Tol = *(mxGetPr (prhs[2]));
-    }
-    if ( !mxIsFinite (Tol) ) {
-        mexErrMsgTxt ("the third input argument (Tol) cannot be NaN or Inf");    
-    }
-    if ( Tol < 0 ) {
-        mexErrMsgTxt ("the third input argument (Tol) must be a positive value");
+        if ( !mxIsFinite (Tol) ) {
+            mexErrMsgTxt ("the third input argument (Tol) cannot be NaN or Inf");    
+        }
+        if ( Tol < 0 ) {
+            mexErrMsgTxt ("the third input argument (Tol) must be a positive value");
+        }
     }
 
     // Get data dimensions and prepare output vector

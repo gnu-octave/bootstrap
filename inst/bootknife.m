@@ -431,7 +431,7 @@ function [stats, bootstat, BOOTSAM] = bootknife (x, nboot, bootfun, alpha, strat
       if (numel (alpha) > 1) && (C == 0)
         l = alpha;
       end
-      print_output(stats);
+      print_output (stats, B, C, alpha, l, m, bootfun_str);
     else
       [warnmsg, warnID] = lastwarn;
       if ismember (warnID, {'bootknife:biasfail','bootknife:jackfail'})
@@ -747,7 +747,7 @@ function [stats, bootstat, BOOTSAM] = bootknife (x, nboot, bootfun, alpha, strat
   
   % Print output if no output arguments are requested
   if (nargout == 0) 
-    print_output(stats);
+    print_output (stats, B, C, alpha, l, m, bootfun_str);
   else
     if isempty(BOOTSAM)
       [warnmsg, warnID] = lastwarn;
@@ -758,60 +758,61 @@ function [stats, bootstat, BOOTSAM] = bootknife (x, nboot, bootfun, alpha, strat
     end
   end
 
-  %--------------------------------------------------------------------------
+end
 
-  function print_output(stats)
+%--------------------------------------------------------------------------
 
-      fprintf (['\nSummary of non-parametric bootstrap estimates of bias and precision\n',...
-                '******************************************************************************\n\n']);
-      fprintf ('Bootstrap settings: \n');
-      fprintf (' Function: %s\n', bootfun_str);
-      fprintf (' Resampling method: Balanced, bootknife resampling \n');
-      fprintf (' Number of resamples (outer): %u \n', B);
-      fprintf (' Number of resamples (inner): %u \n', C);
-      if ~isempty(alpha) && ~all(isnan(alpha))
-        if (C > 0)
-          fprintf (' Confidence interval type: Calibrated \n');
+function print_output (stats, B, C, alpha, l, m, bootfun_str)
+
+    fprintf (['\nSummary of non-parametric bootstrap estimates of bias and precision\n',...
+              '******************************************************************************\n\n']);
+    fprintf ('Bootstrap settings: \n');
+    fprintf (' Function: %s\n', bootfun_str);
+    fprintf (' Resampling method: Balanced, bootknife resampling \n');
+    fprintf (' Number of resamples (outer): %u \n', B);
+    fprintf (' Number of resamples (inner): %u \n', C);
+    if ~isempty(alpha) && ~all(isnan(alpha))
+      if (C > 0)
+        fprintf (' Confidence interval type: Calibrated \n');
+      else
+        if (numel (alpha) > 1)
+          fprintf (' Confidence interval type: Percentile \n');
         else
-          if (numel (alpha) > 1)
-            fprintf (' Confidence interval type: Percentile \n');
-          else
-            [jnk, warnID] = lastwarn;
-            switch warnID
-              case 'bootknife:biasfail'
-                fprintf (' Confidence interval type: Percentile \n');
-              case 'bootknife:jackfail'
-                fprintf (' Confidence interval type: Bias-corrected (BC)\n');
-              otherwise
-                fprintf (' Confidence interval type: Bias-corrected and accelerated (BCa) \n');
-            end
+          [jnk, warnID] = lastwarn;
+          switch warnID
+            case 'bootknife:biasfail'
+              fprintf (' Confidence interval type: Percentile \n');
+            case 'bootknife:jackfail'
+              fprintf (' Confidence interval type: Bias-corrected (BC)\n');
+            otherwise
+              fprintf (' Confidence interval type: Bias-corrected and accelerated (BCa) \n');
           end
         end
-        if (numel (alpha) > 1)
-          % alpha is a vector of quantiles
-          coverage = 100*abs(alpha(2)-alpha(1));
-        else
-          % alpha is a two-tailed probability
-          coverage = 100*(1-alpha);
-        end
-        if isempty (l)
-          fprintf (' Confidence interval coverage: %g%%\n\n',coverage);
-        else
-          fprintf (' Confidence interval coverage: %g%% (%.1f%%, %.1f%%)\n\n',coverage,100*l);
-        end
       end
-      fprintf ('Bootstrap Statistics: \n');
-      fprintf (' original       bias           std_error      CI_lower       CI_upper    \n');
-      for i = 1:m
-        fprintf (' %#-+12.6g   %#-+12.6g   %#-+12.6g   %#-+12.6g   %#-+12.6g \n',... 
-                 [stats(i).original, stats(i).bias, stats(i).std_error, stats(i).CI_lower, stats(i).CI_upper]);
+      if (numel (alpha) > 1)
+        % alpha is a vector of quantiles
+        coverage = 100*abs(alpha(2)-alpha(1));
+      else
+        % alpha is a two-tailed probability
+        coverage = 100*(1-alpha);
       end
-      fprintf ('\n');
-      lastwarn ('', '');  % reset last warning
-
-  end
+      if isempty (l)
+        fprintf (' Confidence interval coverage: %g%%\n\n',coverage);
+      else
+        fprintf (' Confidence interval coverage: %g%% (%.1f%%, %.1f%%)\n\n',coverage,100*l);
+      end
+    end
+    fprintf ('Bootstrap Statistics: \n');
+    fprintf (' original       bias           std_error      CI_lower       CI_upper    \n');
+    for i = 1:m
+      fprintf (' %#-+12.6g   %#-+12.6g   %#-+12.6g   %#-+12.6g   %#-+12.6g \n',... 
+               [stats(i).original, stats(i).bias, stats(i).std_error, stats(i).CI_lower, stats(i).CI_upper]);
+    end
+    fprintf ('\n');
+    lastwarn ('', '');  % reset last warning
 
 end
+
 
 %--------------------------------------------------------------------------
 
@@ -912,8 +913,8 @@ end
 %! data = [48 36 20 29 42 42 20 42 22 41 45 14 6 ...
 %!         0 33 28 34 4 32 24 47 41 24 26 30 41]';
 %!
-%! # 95% percentile bootstrap confidence intervals for the variance
-%! bootknife (data, 2000, {@var, 1}, [0.025, 0.975]);
+%! # 90% percentile bootstrap confidence intervals for the variance
+%! bootknife (data, 2000, {@var, 1}, [0.05, 0.95]);
 
 %!demo
 %!
@@ -921,8 +922,8 @@ end
 %! data = [48 36 20 29 42 42 20 42 22 41 45 14 6 ...
 %!         0 33 28 34 4 32 24 47 41 24 26 30 41]';
 %!
-%! # 95% BCa bootstrap confidence intervals for the variance
-%! bootknife (data, 2000, {@var, 1}, 0.05);
+%! # 90% BCa bootstrap confidence intervals for the variance
+%! bootknife (data, 2000, {@var, 1}, 0.1);
 
 %!demo
 %!
@@ -930,8 +931,8 @@ end
 %! data = [48 36 20 29 42 42 20 42 22 41 45 14 6 ...
 %!         0 33 28 34 4 32 24 47 41 24 26 30 41]';
 %!
-%! # 95% calibrated percentile bootstrap confidence intervals for the variance
-%! bootknife (data, [2000, 200], {@var, 1}, 0.05);
+%! # 90% calibrated percentile bootstrap confidence intervals for the variance
+%! bootknife (data, [2000, 200], {@var, 1}, 0.1);
 %!
 %! # Please be patient, the calculations will be completed soon...
 
@@ -960,15 +961,8 @@ end
 %! ## Table 14.2 percentile intervals are 100.8 - 233.9
 %! boot (1, 1, true, [], 1); # Set random seed
 %! stats = bootknife(A,2000,{@var,1},[0.05 0.95]);
-%! if (!isempty (regexp (which ('boot'), 'mex$')))
-%!   # test boot mex file
-%!   assert (stats.original, 171.534023668639, 1e-09);
-%!   assert (stats.bias, -6.978681952662356, 1e-09);
-%!   assert (stats.std_error, 43.09155390135619, 1e-09);
-%!   assert (stats.CI_lower, 95.19578402366864, 1e-09);
-%!   assert (stats.CI_upper, 238.9609467455621, 1e-09);
-%! else
-%!   # test boot m-file
+%! if (isempty (regexp (which ('boot'), 'mex$')))
+%!   # test boot m-file result
 %!   assert (stats.original, 171.534023668639, 1e-09);
 %!   assert (stats.bias, -7.323387573964482, 1e-09);
 %!   assert (stats.std_error, 43.28997317046606, 1e-09);
@@ -979,15 +973,8 @@ end
 %! ## Table 14.2 BCa intervals are 115.8 - 259.6
 %! boot (1, 1, true, [], 1); # Set random seed
 %! stats = bootknife(A,2000,{@var,1},0.1);
-%! if (!isempty (regexp (which ('boot'), 'mex$')))
-%!   # test boot mex file
-%!   assert (stats.original, 171.534023668639, 1e-09);
-%!   assert (stats.bias, -6.978681952662356, 1e-09);
-%!   assert (stats.std_error, 43.09155390135619, 1e-09);
-%!   assert (stats.CI_lower, 115.6455796312253, 1e-09);
-%!   assert (stats.CI_upper, 269.4469269661803, 1e-09);
-%! else
-%!   # test boot m-file
+%! if (isempty (regexp (which ('boot'), 'mex$')))
+%!   # test boot m-file result
 %!   assert (stats.original, 171.534023668639, 1e-09);
 %!   assert (stats.bias, -7.323387573964482, 1e-09);
 %!   assert (stats.std_error, 43.28997317046606, 1e-09);
@@ -997,15 +984,8 @@ end
 %! ## Nonparametric 90% calibrated confidence intervals (double bootstrap)
 %! boot (1, 1, true, [], 1); # Set random seed
 %! stats = bootknife(A,[2000,200],{@var,1},0.1);
-%! if (!isempty (regexp (which ('boot'), 'mex$')))
-%!   # test boot mex file
-%!   assert (stats.original, 171.534023668639, 1e-09);
-%!   assert (stats.bias, -7.407638883135036, 1e-09);
-%!   assert (stats.std_error, 43.09155390135619, 1e-09);
-%!   assert (stats.CI_lower, 111.39427003007, 1e-09);
-%!   assert (stats.CI_upper, 313.7115384615385, 1e-09);
-%! else
-%!   # test boot m-file
+%! if (isempty (regexp (which ('boot'), 'mex$')))
+%!   # test boot m-file result
 %!   assert (stats.original, 171.534023668639, 1e-09);
 %!   assert (stats.bias, -8.088193809171344, 1e-09);
 %!   assert (stats.std_error, 43.28997317046606, 1e-09);
@@ -1028,15 +1008,8 @@ end
 %! ## Table 2 BCa intervals are 0.55 - 0.85
 %! boot (1, 1, true, [], 1); # Set random seed
 %! stats = bootknife({baseline,oneyear},2000,@corr,0.1);
-%! if (!isempty (regexp (which ('boot'), 'mex$')))
-%!   # test boot mex file
-%!   assert (stats.original, 0.7231653678920302, 1e-09);
-%!   assert (stats.bias, -0.007860430929598206, 1e-09);
-%!   assert (stats.std_error, 0.09328837054352047, 1e-09);
-%!   assert (stats.CI_lower, 0.5477225147834641, 1e-09);
-%!   assert (stats.CI_upper, 0.8457573378934136, 1e-09);
-%! else
-%!   # test boot m-file
+%! if (isempty (regexp (which ('boot'), 'mex$')))
+%!   # test boot m-file result
 %!   assert (stats.original, 0.7231653678920302, 1e-09);
 %!   assert (stats.bias, -0.006674075424458636, 1e-09);
 %!   assert (stats.std_error, 0.09435286454036543, 1e-09);
