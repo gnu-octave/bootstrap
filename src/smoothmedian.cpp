@@ -77,14 +77,14 @@ void mexFunction (int nlhs, mxArray* plhs[],
 
     // Input variables
     if ( nrhs < 1 ) {
-        mexErrMsgTxt ("function requires at least 1 input argument");
+        mexErrMsgTxt ("At least one input argument is required.");
     }
     // First input argument (x)
     if ( !mxIsClass (prhs[0], "double") ) {
-        mexErrMsgTxt ("the first input argument (x) must be of type double");
+        mexErrMsgTxt ("The first input argument (X) must be of type double");
     }
     if ( mxIsComplex (prhs[0]) ) {
-        mexErrMsgTxt ("the first input argument (x) cannot contain an imaginary part");
+        mexErrMsgTxt ("The first input argument (X) cannot contain an imaginary part");
     }
     double *x = (double *) mxGetData (prhs[0]);
     // Second input argument (dim)
@@ -93,37 +93,37 @@ void mexFunction (int nlhs, mxArray* plhs[],
         dim = 1;
     } else {
         if ( mxGetNumberOfElements (prhs[1]) > 1 ) {
-            mexErrMsgTxt ("the second input argument (dim) must be scalar");
+            mexErrMsgTxt ("The second input argument (DIM) must be scalar");
         }
         if ( !mxIsClass (prhs[1], "double") ) {
-            mexErrMsgTxt ("the second input argument (dim) must be of type double");
+            mexErrMsgTxt ("The second input argument (DIM) must be of type double");
         }
         if ( mxIsComplex (prhs[1]) ) {
-            mexErrMsgTxt ("the second input argument (dim) cannot contain an imaginary part");
+            mexErrMsgTxt ("The second input argument (DIM) cannot contain an imaginary part");
         }
         dim = *(mxGetPr (prhs[1]));
     }
     if ( dim != 1 && dim != 2) {
-        mexErrMsgTxt ("the second input argument (dim) must be 1 (column-wise) or 2 (row-wise)");
+        mexErrMsgTxt ("The second input argument (DIM) must be 1 (column-wise) or 2 (row-wise)");
     }
     // Third input argument (Tol)
     double Tol;
     if ( nrhs > 2 ) {
         if ( mxGetNumberOfElements (prhs[2]) > 1 ) {
-            mexErrMsgTxt ("the third input argument (Tol) must be scalar");
+            mexErrMsgTxt ("The third input argument (TOL) must be scalar");
         }
         if ( !mxIsClass (prhs[2], "double") ) {
-            mexErrMsgTxt ("the third input argument (Tol) must be of type double");
+            mexErrMsgTxt ("The third input argument (TOL) must be of type double");
         }
         if ( mxIsComplex (prhs[2]) ) {
-            mexErrMsgTxt ("the third input argument (Tol) cannot contain an imaginary part");
+            mexErrMsgTxt ("The third input argument (TOL) cannot contain an imaginary part");
         }
         Tol = *(mxGetPr (prhs[2]));
         if ( !mxIsFinite (Tol) ) {
-            mexErrMsgTxt ("the third input argument (Tol) cannot be NaN or Inf");    
+            mexErrMsgTxt ("The third input argument (TOL) cannot be NaN or Inf");    
         }
         if ( Tol < 0 ) {
-            mexErrMsgTxt ("the third input argument (Tol) must be a positive value");
+            mexErrMsgTxt ("The third input argument (TOL) must be a positive value");
         }
     }
 

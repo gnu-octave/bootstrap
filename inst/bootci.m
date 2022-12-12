@@ -35,20 +35,27 @@
 %
 %  CI = bootci (..., 'type', TYPE) computes bootstrap confidence interval CI 
 %  using one of the following methods:
-%    'per' or 'percentile': Percentile method.
-%    'bca': Bias-corrected and accelerated method [5,6] (Default).
-%    'stud' or 'student': Studentized (bootstrap-t) confidence interval.
-%    'cal': Calibrated percentile method (by double bootstrap [7]).
+%    'norm' or 'normal': normal (with bootstrapped bias and standard error) [5].
+%    'per' or 'percentile': Percentile method [1,5].
+%    'basic': Basic bootstrap method [1,5].
+%    'bca': Bias-corrected and accelerated method [6,7] (Default).
+%    'stud' or 'student': Studentized (bootstrap-t) confidence interval [1,5].
+%    'cal': Calibrated percentile method (by double bootstrap [8]).
 %  Note that when BOOTFUN is the mean, BCa intervals are automatically expanded
 %  using Student's t-distribution in order to improve coverage for small samples
-%  [8]. The bootstrap-t method includes an additive correction to stabilize
-%  the variance when the sample size is small [9].
+%  [9]. The bootstrap-t method includes an additive correction to stabilize
+%  the variance when the sample size is small [10].
 %
 %  CI = bootci (..., 'type', 'stud', 'nbootstd', NBOOTSTD) computes the
-%  Studentized bootstrap bootstrap confidence intervals CI, with the standard
-%  error of the bootstrap statistics estimated from NBOOTSTD bootstrap data
-%  samples. NBOOTSTD is a positive integer value. The default value of NBOOTSTD
-%  is 100.
+%  Studentized bootstrap confidence intervals CI, with the standard errors
+%  of the bootstrap statistics estimated automatically using resampling methods.
+%  NBOOTSTD is a positive integer value defining the number of resamples. If
+%  NBOOTSTD is non-zero, the unbiased standard errors are computed using
+%  NBOOTSTD bootknife resamples. If NBOOTSTD is zero, then the standard errors
+%  are computed using leave-one-out jackknife resampling. Jackknife is
+%  deterministic since it is not subject to Monte Carlo error, but may not be
+%  appropriate if bootfun computes a robust statistic. The default value of
+%  NBOOTSTD is 100.
 %
 %  CI = bootci (..., 'type', 'cal', 'nbootcal', NBOOTCAL) computes the calibrated
 %  percentile bootstrap confidence intervals CI, with the calibrated percentiles
@@ -94,17 +101,19 @@
 %  [4] Hesterberg T.C. (2004) Unbiasing the Bootstrap—Bootknife Sampling 
 %        vs. Smoothing; Proceedings of the Section on Statistics & the 
 %        Environment. Alexandria, VA: American Statistical Association.
-%  [5] Efron (1987) Better Bootstrap Confidence Intervals. JASA, 
+%  [5] Davison and Hinkley (1997) Bootstrap Methods and their Application.
+%        (Cambridge University Press)
+%  [6] Efron (1987) Better Bootstrap Confidence Intervals. JASA, 
 %        82(397): 171-185 
-%  [6] Efron, and Tibshirani (1993) An Introduction to the
+%  [7] Efron, and Tibshirani (1993) An Introduction to the
 %        Bootstrap. New York, NY: Chapman & Hall
-%  [7] Hall, Lee and Young (2000) Importance of interpolation when
+%  [8] Hall, Lee and Young (2000) Importance of interpolation when
 %        constructing double-bootstrap confidence intervals. Journal
 %        of the Royal Statistical Society. Series B. 62(3): 479-491
-%  [8] Hesterberg, Tim (2014), What Teachers Should Know about the 
+%  [9] Hesterberg, Tim (2014), What Teachers Should Know about the 
 %        Bootstrap: Resampling in the Undergraduate Statistics Curriculum, 
 %        http://arxiv.org/abs/1411.5279
-%  [9] Polansky (2000) Stabilizing bootstrap-t confidence intervals
+%  [10] Polansky (2000) Stabilizing bootstrap-t confidence intervals
 %        for small samples. Can J Stat. 28(3):501-516
 %
 %  bootci (version 2022.12.06)
@@ -135,7 +144,8 @@ function [ci, bootstat, bootsam] = bootci (argin1, argin2, varargin)
 
   % Store local functions in a stucture for parallel processes
   localfunc = struct ('col2args',@col2args,...
-                      'empcdf',@empcdf);
+                      'empcdf',@empcdf,...
+                      'jackse',@jackse);
 
   % Check if using MATLAB or Octave
   info = ver; 
@@ -176,7 +186,7 @@ function [ci, bootstat, bootsam] = bootci (argin1, argin2, varargin)
       elseif any(strcmpi('seed',argin3{end-1}))
         seed = argin3{end};
         % Initialise the random number generator with the seed
-        boot (1, 1, true, [], seed);
+        boot (1, 1, true, seed);
       else
         error('bootci: unrecognised input argument to bootci')
       end
@@ -251,9 +261,9 @@ function [ci, bootstat, bootsam] = bootci (argin1, argin2, varargin)
 
   % Apply interval type
   switch lower(type)
-    case 'bca'
-      % Do nothing, BCa intervals are the default in the bootknife function
-    case {'per','percentile','stud','student'}
+    case {'bca','norm','normal'}
+      % Do nothing
+    case {'per','perc','percentile','basic','stud','student'}
       % Set quantiles directly to calculate percentile intervals
       alpha = [alpha / 2, 1 - alpha / 2];
     case 'cal'
@@ -264,29 +274,70 @@ function [ci, bootstat, bootsam] = bootci (argin1, argin2, varargin)
 
   % Parse input arguments to the bootknife function to calculate confidence intervals
   switch lower(type)
+ 
+    case {'norm','normal'}
+      % Intervals constructed based on bootstrap estimates of bias and standard
+      % error assumming that the sampling distribution is Normal
+      [stats, bootstat, bootsam] = bootknife (data, nboot, bootfun, NaN, [], ncpus);
+      stdnorminv = @(p) sqrt (2) * erfinv (2 * p-1);
+      z = stdnorminv (alpha / 2);
+      stats.CI_lower = stats.original - stats.bias + stats.std_error * z;
+      stats.CI_upper = stats.original - stats.bias - stats.std_error * z;
+
+    case 'basic'
+      % The basic bootstrap method.
+      % Center bootstrap statistics
+      [stats, bootstat, bootsam] = bootknife (data, nboot, bootfun, NaN, [], ncpus);
+      T = bootstat - stats.original;
+      [cdf, T] = localfunc.empcdf (T, 1);
+      % Calculate intervals from empirical distribution of the centered bootstrap statistics
+      tmp = arrayfun ( @(p) stats.original - interp1 (cdf, T, p, 'linear'), alpha);
+      stats.CI_upper = tmp(1); stats.CI_lower = tmp(2);
+
     case {'stud','student'}
       % Use bootstrap-t method with variance stabilization for small samples
       % Polansky (2000) Can J Stat. 28(3):501-516
-      [stats, bootstat, bootsam] = bootknife (data, nboot, bootfun, alpha, [], ncpus);
-      % If DATA is a cell array of equal size colunmn vectors, convert the cell
-      % array to a matrix and redefine bootfun to parse multiple input arguments
-      if iscell(data)
-        data = [data{:}];
-        bootfun = @(data) localfunc.col2args(bootfun, data);
+      [stats, bootstat, bootsam] = bootknife (data, nboot, bootfun, NaN, [], ncpus);
+      % Automatically estimate standard errors of the bootstrap statistics
+      if (nbootstd > 0)
+        % Using bootknife resampling
+        if iscell(data)
+          % If DATA is a cell array of equal size colunmn vectors, convert the
+          % cell array to a matrix and redefine bootfun to parse multiple input
+          % arguments
+          data = [data{:}];
+          bootfun = @(data) localfunc.col2args(bootfun, data);
+        end
+        bootse = @(BOOTSAM) getfield (bootknife (data(BOOTSAM,:), nbootstd, bootfun, NaN), 'std_error');
+        SE = cellfun (bootse, num2cell (bootsam,1));
+      else
+        % Using jacknife resampling
+        if (iscell (data))
+          data = [data{:}];
+        end
+        if (iscell (bootfun))
+          jackfun = @(varargin) feval (bootfun{1}, varargin{:}, bootfun{2:end});
+        else
+          jackfun = @(varargin) feval (bootfun, varargin{:});
+        end
+        stats.std_error = localfunc.jackse (jackfun, data, ISOCTAVE);
+        SE = cellfun (@(BOOTSAM) localfunc.jackse (jackfun, data(BOOTSAM,:), ...
+                      ISOCTAVE), num2cell (bootsam,1));
       end
-      % Calculate standard errors of the bootstrap statistics
-      bootse = @(BOOTSAM) getfield (bootknife (data(BOOTSAM,:), nbootstd, bootfun, NaN), 'std_error');
-      SE = cellfun (bootse, num2cell (bootsam,1));
-      a = n^(-3/2) * stats.std_error; % Additive constant to stabilize the variance
-      % Calculate Studentized statistics
+      % Compute additive constant to stabilize the variance
+      a = n^(-3/2) * stats.std_error; 
+      % Calculate Studentized bootstrap statistics
       ridx = isnan(bootstat); bootstat(ridx) = []; SE(ridx) = [];
       T = (bootstat - stats.original) ./ (SE + a);
       [cdf, T] = localfunc.empcdf (T, 1);
       % Calculate intervals from empirical distribution of the Studentized bootstrap statistics
       tmp = arrayfun ( @(p) stats.original - stats.std_error * interp1 (cdf, T, p, 'linear'), alpha);
       stats.CI_upper = tmp(1); stats.CI_lower = tmp(2);
+
     otherwise
+      % Other interval types are natively supported in bootknife function
       [stats, bootstat] = bootknife (data, nboot, bootfun, alpha, [], ncpus);
+
   end
 
   % Format output to be consistent with MATLAB's bootci
@@ -356,90 +407,205 @@ end
 
 %--------------------------------------------------------------------------
 
+function SE = jackse (jackfun, data, ISOCTAVE)
+
+  % Subfunction to calculate standard errors using jackknife resampling
+  % Requires the jackknife function either from Octave Statistics package or
+  % from the Matlab Statistics and Machine Learning Toolbox
+  [n, m] = size (data);
+  if m > 1
+    celldata = num2cell (data, 1);
+    if ISOCTAVE
+      jackstat = jackknife (@(x) jackfun (x{:}), celldata{:});
+    else
+      jackstat = jackknife (jackfun, celldata{:});
+    end
+  else
+    jackstat = jackknife (jackfun, data);
+  end
+  SE = sqrt ((n- 1 ) / n * sum (((mean (jackstat) - jackstat)).^2));
+
+end
+
+%--------------------------------------------------------------------------
+
 %!demo
 %!
-%! # Input univariate dataset
+%! ## Input univariate dataset
 %! data = [48 36 20 29 42 42 20 42 22 41 45 14 6 ...
 %!         0 33 28 34 4 32 24 47 41 24 26 30 41]';
 %!
-%! # 95% BCa bootstrap confidence intervals for the mean
+%! ## 95% BCa bootstrap confidence intervals for the mean
 %! ci = bootci (2000, @mean, data)
 
 %!demo
 %!
-%! # Input univariate dataset
+%! ## Input univariate dataset
 %! data = [48 36 20 29 42 42 20 42 22 41 45 14 6 ...
 %!         0 33 28 34 4 32 24 47 41 24 26 30 41]';
 %!
-%! # 95% calibrated percentile bootstrap confidence intervals for the mean
+%! ## 95% calibrated percentile bootstrap confidence intervals for the mean
 %! ci = bootci (2000, {@mean, data}, 'type', 'cal','nbootcal',200)
 %!
-%! # Please be patient, the calculations will be completed soon...
+%! ## Please be patient, the calculations will be completed soon...
 
 %!demo
 %!
-%! # Input univariate dataset
+%! ## Input univariate dataset
 %! data = [48 36 20 29 42 42 20 42 22 41 45 14 6 ...
 %!         0 33 28 34 4 32 24 47 41 24 26 30 41]';
 %!
-%! # 95% calibrated percentile bootstrap confidence intervals for the median
-%! # with smoothing
+%! ## 95% calibrated percentile bootstrap confidence intervals for the median
+%! ## with smoothing
 %! ci = bootci (2000, {@smoothmedian, data}, 'type', 'cal', 'nbootcal', 200)
 %!
-%! # Please be patient, the calculations will be completed soon...
+%! ## Please be patient, the calculations will be completed soon...
 
 %!demo
 %!
-%! # Input univariate dataset
+%! ## Input univariate dataset
 %! data = [48 36 20 29 42 42 20 42 22 41 45 14 6 ...
 %!         0 33 28 34 4 32 24 47 41 24 26 30 41]';
 %!
-%! # 90% percentile bootstrap confidence intervals for the variance
+%! ## 90% percentile bootstrap confidence intervals for the variance
 %! ci = bootci (2000, {{@var,1}, data}, 'type', 'per', 'alpha', 0.1)
 
 %!demo
 %!
-%! # Input univariate dataset
+%! ## Input univariate dataset
 %! data = [48 36 20 29 42 42 20 42 22 41 45 14 6 ...
 %!         0 33 28 34 4 32 24 47 41 24 26 30 41]';
 %!
-%! # 90% BCa bootstrap confidence intervals for the variance
+%! ## 90% BCa bootstrap confidence intervals for the variance
 %! ci = bootci (2000, {{@var,1}, data}, 'type', 'bca', 'alpha', 0.1)
 
 %!demo
 %!
-%! # Input univariate dataset
+%! ## Input univariate dataset
 %! data = [48 36 20 29 42 42 20 42 22 41 45 14 6 ...
 %!         0 33 28 34 4 32 24 47 41 24 26 30 41]';
 %!
-%! # 90% Studentized bootstrap confidence intervals for the variance
+%! ## 90% Studentized bootstrap confidence intervals for the variance
 %! ci = bootci (2000, {{@var,1}, data}, 'type', 'stud', 'nbootstd', 50, 'alpha', 0.1)
 %!
-%! # Please be patient, the calculations will be completed soon...
+%! ## Please be patient, the calculations will be completed soon...
 
 %!demo
 %!
-%! # Input univariate dataset
+%! ## Input univariate dataset
 %! data = [48 36 20 29 42 42 20 42 22 41 45 14 6 ...
 %!         0 33 28 34 4 32 24 47 41 24 26 30 41]';
 %!
-%! # 90% calibrated percentile bootstrap confidence intervals for the variance
+%! ## 90% calibrated percentile bootstrap confidence intervals for the variance
 %! ci = bootci (2000, {{@var,1}, data}, 'type', 'cal', 'nbootcal', 200, 'alpha', 0.1)
 %!
-%! # Please be patient, the calculations will be completed soon...
+%! ## Please be patient, the calculations will be completed soon...
 
 %!demo
 %!
-%! # Input bivariate dataset
+%! ## Input bivariate dataset
 %! x = [2.12,4.35,3.39,2.51,4.04,5.1,3.77,3.35,4.1,3.35, ...
 %!      4.15,3.56, 3.39,1.88,2.56,2.96,2.49,3.03,2.66,3]';
 %! y  = [2.47,4.61,5.26,3.02,6.36,5.93,3.93,4.09,4.88,3.81, ...
 %!       4.74,3.29,5.55,2.82,4.23,3.23,2.56,4.31,4.37,2.4]';
 %!
-%! # 95% BCa bootstrap confidence intervals for the correlation coefficient
+%! ## 95% BCa bootstrap confidence intervals for the correlation coefficient
 %! ci = bootci (2000, @corr, x, y)
 %!
-%! # Please be patient, the calculations will be completed soon...
+%! ## Please be patient, the calculations will be completed soon...
+
+%!demo
+%!
+%! ## Spatial Test Data from Table 14.1 of Efron and Tibshirani (1993)
+%! ## An Introduction to the Bootstrap in Monographs on Statistics and Applied 
+%! ## Probability 57 (Springer)
+%!
+%! ## AIM: to construct 90% nonparametric bootstrap confidence intervals for var(A,1)
+%! ## var(A,1) = 171.5, and exact intervals based on Normal theory are [118.4, 305.2].
+%!
+%! ## Calculations using the Statistics and Machine Learning toolbox in Matlab R2020b
+%! ##
+%! ## A = [48 36 20 29 42 42 20 42 22 41 45 14 6 ...
+%! ##      0 33 28 34 4 32 24 47 41 24 26 30 41]';
+%! ## varfun = @(A) var(A, 1);
+%! ## rng('default'); % For reproducibility
+%! ## rng('default'); ci1 = bootci(20000,{varfun,A},'alpha',0.1,'type','norm');
+%! ## rng('default'); ci2 = bootci(20000,{varfun,A},'alpha',0.1,'type','per');
+%! ## rng('default'); ci4 = bootci(20000,{varfun,A},'alpha',0.1,'type','bca');
+%! ## rng('default'); ci5 = bootci(20000,{varfun,A},'alpha',0.1,'type','stud');
+%! ##
+%! ## Summary of results from the Statistics and Machine Learning toolbox in Matlab R2020b
+%! ##
+%! ## method             |   0.05 |   0.95 | length | shape |  
+%! ## -------------------|--------|--------|--------|-------|
+%! ## ci1 - normal       |  108.9 |  247.4 |  138.5 |  1.21 |
+%! ## ci2 - percentile   |   97.6 |  235.8 |  138.2 |  0.87 |
+%! ## ci3 - basic        |        |        |        |       |
+%! ## ci4 - BCa          |  114.9 |  260.5 |  145.6 |  1.57 |*
+%! ## ci5 - bootstrap-t  |   46.6 |  232.6 |  186.0 |  0.49 |** 
+%! ## ci6 - calibrated   |        |        |        |       |
+%! ## -------------------|--------|--------|--------|-------|
+%! ## parametric - exact |  118.4 |  305.2 |  186.8 |  2.52 |
+%! ##
+%! ## * Bug in the fx0 subfunction of bootci
+%! ## ** Bug in the bootstud subfunction of bootci
+%!
+%! ## Calculations using the boot package for R
+%! ##
+%! ## A <- c(48,36,20,29,42,42,20,42,22,41,45,14,6,0,33,28,34,4,32,24,47,41,24,26,30,41);
+%! ## n <- length(A)
+%! ## var.fun <- function(d, i) { var(d[i]) * (length(d)-1)/length(d) }
+%! ## t0 <- var.fun(A) # t0 is 171.534
+%! ## set.seed(1)
+%! ## var.boot <- boot (data = A, statistic = var.fun, R=20000, sim='balanced')
+%! ## ci1 <- boot.ci (var.boot, conf = 0.90, type = "norm")
+%! ## ci2 <- boot.ci (var.boot, conf = 0.90, type = "perc")
+%! ## ci3 <- boot.ci (var.boot, conf = 0.90, type = "basic")
+%! ## ci4 <- boot.ci (var.boot, conf = 0.90, type = "bca")
+%! ##
+%! ## Summary of results from boot package for R
+%! ##
+%! ## method             |   0.05 |   0.95 | length | shape |  
+%! ## -------------------|--------|--------|--------|-------|
+%! ## ci1 - normal       |  109.4 |  246.8 |  137.4 |  1.21 |
+%! ## ci2 - percentile   |   97.8 |  235.6 |  137.8 |  0.87 |
+%! ## ci3 - basic        |  107.4 |  245.3 |  137.9 |  1.15 |
+%! ## ci4 - BCa          |  116.9 |  264.0 |  147.1 |  1.69 |
+%! ## -------------------|--------|--------|--------|-------|
+%! ## parametric - exact |  118.4 |  305.2 |  186.8 |  2.52 |
+%! 
+%! ## Calculations using the statistics-bootstrap package for Octave/Matlab
+%! ##
+%! ## A = [48 36 20 29 42 42 20 42 22 41 45 14 6 ...
+%! ##      0 33 28 34 4 32 24 47 41 24 26 30 41]';
+%! ## ci1 = bootci(20000,{{@var,1},A},'alpha',0.1,'type','norm','seed',1);
+%! ## ci2 = bootci(20000,{{@var,1},A},'alpha',0.1,'type','per','seed',1);
+%! ## ci3 = bootci(20000,{{@var,1},A},'alpha',0.1,'type','basic','seed',1);
+%! ## ci4 = bootci(20000,{{@var,1},A},'alpha',0.1,'type','bca','seed',1);
+%! ## ci5 = bootci(20000,{{@var,1},A},'alpha',0.1,'type','stud','nbootstd',0,'seed',1);
+%! ## ci6 = bootci(20000,{{@var,1},A},'alpha',0.1,'type','cal','nbootcal',500,'seed',1);
+%! ##
+%! ## Summary of results from statistics-bootstrap package for Octave/Matlab
+%! ##
+%! ## method             |   0.05 |   0.95 | length | shape |  
+%! ## -------------------|--------|--------|--------|-------|
+%! ## ci1 - normal       |  108.2 |  248.3 |  140.1 |  1.21 |
+%! ## ci2 - percentile   |   96.2 |  237.2 |  141.0 |  0.87 |
+%! ## ci3 - basic        |  105.8 |  246.8 |  141.0 |  1.14 |
+%! ## ci4 - BCa          |  115.3 |  263.3 |  148.0 |  1.63 |
+%! ## ci5 - bootstrap-t  |  111.0 |  295.2 |  184.2 |  2.04 |
+%! ## ci6 - calibrated   |  114.4 |  294.9 |  180.5 |  2.16 |
+%! ## -------------------|--------|--------|--------|-------|
+%! ## parametric - exact |  118.4 |  305.2 |  186.8 |  2.52 |
+%!
+%! ## The equivalent methods for constructing bootstrap intervals in the boot
+%! ## package (in R) and the statistics-bootstrap package in (Octave/Matlab)
+%! ## produce intervals with very similar end points, length and shape. However,
+%! ## all intervals calculated using the statistics-bootstrap package are
+%! ## slightly longer than the intervals calculated in R because the statistics-
+%! ## bootstrap package uses bootknife resampling. The scale of the sampling
+%! ## distribution is better approximated for small samples by bootknife
+%! ## resampling. 
 
 %!test
 %! ## Spatial Test Data from Table 14.1 of Efron and Tibshirani (1993)
