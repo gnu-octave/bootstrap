@@ -550,8 +550,10 @@ end
 %! ## * Bug in the fx0 subfunction of bootci
 %! ## ** Bug in the bootstud subfunction of bootci
 %!
-%! ## Calculations using the boot package for R
-%! ##
+%! ## Calculations using the boot and bootstrap packages for R
+%! ## 
+%! ## library(boot)
+%! ## library(bootstrap)
 %! ## A <- c(48,36,20,29,42,42,20,42,22,41,45,14,6,0,33,28,34,4,32,24,47,41,24,26,30,41);
 %! ## n <- length(A)
 %! ## var.fun <- function(d, i) { var(d[i]) * (length(d)-1)/length(d) }
@@ -561,7 +563,8 @@ end
 %! ## ci1 <- boot.ci (var.boot, conf = 0.90, type = "norm")
 %! ## ci2 <- boot.ci (var.boot, conf = 0.90, type = "perc")
 %! ## ci3 <- boot.ci (var.boot, conf = 0.90, type = "basic")
-%! ## ci4 <- boot.ci (var.boot, conf = 0.90, type = "bca")
+%! ## set.seed(1); ci4 <- bcanon (A, 20000, var.fun, alpha=c(0.05,0.95))
+%! ## set.seed(1); ci5 <- boott (A, var.fun, nboott=20000, nbootsd=500, perc=c(.05,.95))
 %! ##
 %! ## Summary of results from boot package for R
 %! ##
@@ -570,7 +573,8 @@ end
 %! ## ci1 - normal       |  109.4 |  246.8 |  137.4 |  1.21 |
 %! ## ci2 - percentile   |   97.8 |  235.6 |  137.8 |  0.87 |
 %! ## ci3 - basic        |  107.4 |  245.3 |  137.9 |  1.15 |
-%! ## ci4 - BCa          |  116.9 |  264.0 |  147.1 |  1.69 |
+%! ## ci4 - BCa          |  116.2 |  264.0 |  147.8 |  1.67 |
+%! ## ci5 - bootstrap-t  |  112.7 |  292.6 |  179.9 |  2.06 |
 %! ## -------------------|--------|--------|--------|-------|
 %! ## parametric - exact |  118.4 |  305.2 |  186.8 |  2.52 |
 %! 
