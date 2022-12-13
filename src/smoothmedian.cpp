@@ -89,9 +89,7 @@ void mexFunction (int nlhs, mxArray* plhs[],
     double *x = (double *) mxGetData (prhs[0]);
     // Second input argument (dim)
     short int dim;
-    if ( nrhs < 2 ) {
-        dim = 1;
-    } else {
+    if ( nrhs > 1 && !mxIsEmpty (prhs[1]) ) {
         if ( mxGetNumberOfElements (prhs[1]) > 1 ) {
             mexErrMsgTxt ("The second input argument (DIM) must be scalar");
         }
@@ -102,13 +100,15 @@ void mexFunction (int nlhs, mxArray* plhs[],
             mexErrMsgTxt ("The second input argument (DIM) cannot contain an imaginary part");
         }
         dim = *(mxGetPr (prhs[1]));
+    } else {
+        dim = 1;
     }
     if ( dim != 1 && dim != 2) {
         mexErrMsgTxt ("The second input argument (DIM) must be 1 (column-wise) or 2 (row-wise)");
     }
     // Third input argument (Tol)
     double Tol;
-    if ( nrhs > 2 ) {
+    if ( nrhs > 2 && !mxIsEmpty (prhs[2]) ) {
         if ( mxGetNumberOfElements (prhs[2]) > 1 ) {
             mexErrMsgTxt ("The third input argument (TOL) must be scalar");
         }
@@ -181,17 +181,19 @@ void mexFunction (int nlhs, mxArray* plhs[],
         a = xvec[0];                     // Minimum
         b = xvec[l - 1];                 // Maximimum
 
-        // Calculate range (and set stopping criteria if not specified)
+        // Calculate range
         range = b - a;                   // Range
-        if (nrhs < 3) {
+        
+        // Set stopping criteria (if Tol is not already specified)
+        if (nrhs < 3 || mxIsEmpty (prhs[2])) {
             Tol = range * 1e-4; 
         }  
 
         // Start iterations
         for ( int Iter = 0; Iter <= MaxIter ; Iter++ ) {
             
-            // Break from iterations if the distance between the bracket bounds < Tol since
-            // the smoothed median will be equal to the median 
+            // Break from iterations if the distance between the bracket bounds 
+            // < Tol since the smoothed median will be equal to the median 
             if (range <= Tol) {
                 break;
             }   
@@ -203,7 +205,7 @@ void mexFunction (int nlhs, mxArray* plhs[],
             for ( int j = 0; j < l ; j++ ) {        
                 for ( int i = 0; i < j ; i++ ) {
                     D = pow (xvec[i] - M[k], 2) + pow (xvec [j] - M[k], 2);
-                    R = sqrt(D);
+                    R = sqrt (D);
                     // Objective function (S)
                     //S += R;
                     if ( D != 0 ) {

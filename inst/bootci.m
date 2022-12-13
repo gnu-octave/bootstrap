@@ -523,7 +523,7 @@ end
 %! ## AIM: to construct 90% nonparametric bootstrap confidence intervals for var(A,1)
 %! ## var(A,1) = 171.5, and exact intervals based on Normal theory are [118.4, 305.2].
 %!
-%! ## Calculations using the 'Statistics and Machine Learning toolbox' in Matlab R2020b
+%! ## Calculations using Matlab's 'Statistics and Machine Learning toolbox' (R2020b)
 %! ##
 %! ## A = [48 36 20 29 42 42 20 42 22 41 45 14 6 ...
 %! ##      0 33 28 34 4 32 24 47 41 24 26 30 41]';
@@ -534,7 +534,7 @@ end
 %! ## rng('default'); ci4 = bootci (20000,{varfun,A},'alpha',0.1,'type','bca');
 %! ## rng('default'); ci5 = bootci (20000,{varfun,A},'alpha',0.1,'type','stud');
 %! ##
-%! ## Summary of results from the 'Statistics and Machine Learning toolbox' in Matlab R2020b
+%! ## Summary of results from Matlab's 'Statistics and Machine Learning toolbox' (R2020b)
 %! ##
 %! ## method             |   0.05 |   0.95 | length | shape |  
 %! ## -------------------|--------|--------|--------|-------|
@@ -555,15 +555,15 @@ end
 %! ## n <- length(A)
 %! ##  var.fun <- function (d, i) { 
 %! ##                # Function to compute the population variance
-%! ##                n <- length(d); 
-%! ##                return (var (d[i]) * (n-1)/n) };
+%! ##                n <- length (d); 
+%! ##                return (var (d[i]) * (n - 1) / n) };
 %! ##  boot.fun <- function (d, i) {
 %! ##                # Compute the estimate
 %! ##                t <- var.fun (d, i);
-%! ##                # Compute sampling variance of the estimate by jackknife
-%! ##                n <- length(d);
+%! ##                # Compute sampling variance of the estimate with Tukey's jackknife
+%! ##                n <- length (d);
 %! ##                U <- empinf (data=d[i], statistic=var.fun, type="jack", stype="i");
-%! ##                var.t <- sum(U^2/(n*(n-1)));
+%! ##                var.t <- sum (U^2 / (n * (n - 1)));
 %! ##                return ( c(t, var.t) ) };
 %! ## set.seed(1)
 %! ## var.boot <- boot (data=A, statistic=boot.fun, R=20000, sim='balanced')
@@ -621,7 +621,7 @@ end
 %! ## shape. However, all intervals calculated using the 'statistics-bootstrap'
 %! ## package are slightly longer than the intervals calculated in R because
 %! ## the 'statistics-bootstrap' package uses bootknife resampling. The scale of
-%! ## the sampling distribution is better approximated for small samples by
+%! ## the sampling distribution for small samples is approximated better by
 %! ## bootknife (rather than bootstrap) resampling. 
 
 %!test
