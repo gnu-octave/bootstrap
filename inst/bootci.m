@@ -560,7 +560,7 @@ end
 %! ##  boot.fun <- function (d, i) {
 %! ##                # Compute the estimate
 %! ##                t <- var.fun (d, i);
-%! ##                # Compute sampling variance of the estimate with Tukey's jackknife
+%! ##                # Compute sampling variance of the estimate using Tukey's jackknife
 %! ##                n <- length (d);
 %! ##                U <- empinf (data=d[i], statistic=var.fun, type="jack", stype="i");
 %! ##                var.t <- sum (U^2 / (n * (n - 1)));
