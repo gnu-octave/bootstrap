@@ -79,7 +79,7 @@ function coeffs = bootcoeff (stats, nboot, alpha, ncpus, seed)
     ncpus = 0;
   end
   if (nargin > 4)
-    boot (1, 1, true, [], seed);
+    boot (1, 1, false, seed);
   end
 
   % Error checking

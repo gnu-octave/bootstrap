@@ -106,7 +106,7 @@ function [bootstat, bootsam] = bootstrp (argin1, argin2, varargin)
       elseif any(strcmpi('seed',argin3{end-1}))
         seed = argin3{end};
         % Initialise the random number generator with the seed
-        boot (1, 1, true, [], seed);
+        boot (1, 1, false, seed);
       else
         error ('bootstrp: unrecognised input argument to bootstrp')
       end

@@ -4,8 +4,8 @@
 % BOOTSAM = boot (N, NBOOT)
 % BOOTSAM = boot (X, NBOOT)
 % BOOTSAM = boot (..., NBOOT, UNBIASED)
-% BOOTSAM = boot (..., NBOOT, UNBIASED, WEIGHTS)
-% BOOTSAM = boot (..., NBOOT, UNBIASED, WEIGHTS, SEED)
+% BOOTSAM = boot (..., NBOOT, UNBIASED, SEED)
+% BOOTSAM = boot (..., NBOOT, UNBIASED, SEED, WEIGHTS)
 %
 % INPUT VARIABLES
 % N (double) is the number of rows (of the data vector)
@@ -31,6 +31,17 @@
 % weighting). Each element of WEIGHTS is the number of times that the
 % corresponding index is represented in bootsam. Therefore, the sum of WEIGHTS
 % should equal N * NBOOT. 
+%
+% Note that the mex function compiled from this source code is not thread safe.
+% Below is an example of a line of code one can run in Octave/Matlab before
+% attempting parallel operation of boot.mex in order to ensure that the initial
+% random seeds of each thread are unique:
+%
+% In Octave:
+% >> pararrayfun(nproc, @boot, 1, 1, false, 1:nproc)
+%
+% In Matlab:
+% >> ncpus = feature('numcores'); parfor i = 1:ncpus; boot (1, 1, false, i); end;
 %
 % Author: Andrew Charles Penn (2022)
 

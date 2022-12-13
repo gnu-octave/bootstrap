@@ -37,11 +37,24 @@ try
                         'precompiled_binaries/matlab/linux/glnx86/'};
       end
       if ~all(cellfun(@isempty,arch_idx))
-        copyfile (sprintf(repmat('%s',1,3), binary_paths{~cellfun(@isempty,arch_idx)}, 'boot.', mexext),...
-                  sprintf(repmat('%s',1,6), '.', filesep, 'inst', filesep, 'boot.', mexext), 'f');
-        copyfile (sprintf(repmat('%s',1,3), binary_paths{~cellfun(@isempty,arch_idx)}, 'smoothmedian.', mexext),... 
-                  sprintf(repmat('%s',1,8), '.', filesep, 'inst', filesep, 'param', filesep, 'smoothmedian.', mexext), 'f');
+        retval = '0';
+        while ~ismember (retval,{'1','2'})
+          retval = input (sprintf(['Potentially compatible precompiled mex files found.', ...
+                                   'Please select an option:\n', ...
+                                   ' 1) Use the precompiled mex files.\n', ...
+                                   ' 2) Compile new mex files from source code.\n', ...
+                                   'Answer (1 or 2): ']), 's');
+        end
+        if strcmpi(retval,'1')
+          copyfile (sprintf(repmat('%s',1,3), binary_paths{~cellfun(@isempty,arch_idx)}, 'boot.', mexext),...
+                    sprintf(repmat('%s',1,6), '.', filesep, 'inst', filesep, 'boot.', mexext), 'f');
+          copyfile (sprintf(repmat('%s',1,3), binary_paths{~cellfun(@isempty,arch_idx)}, 'smoothmedian.', mexext),... 
+                    sprintf(repmat('%s',1,8), '.', filesep, 'inst', filesep, 'param', filesep, 'smoothmedian.', mexext), 'f');
+        else
+          error ('Break from try-catch statement')
+        end
       else
+        disp('No precompiled binaries are available for this architecture.');
         binary = false;
       end
       binary = true;
@@ -60,7 +73,7 @@ if binary
   fprintf('%s%s%s%s%s\n', '.', filesep, binary_paths{~cellfun(@isempty,arch_idx)}, 'boot.', mexext);
   fprintf('%s%s%s%s%s\n', '.', filesep, binary_paths{~cellfun(@isempty,arch_idx)}, 'smoothmedian.', mexext);
 else
-  disp('No precompiled binaries are available for this architecture. Attempting to compile the source code...');
+  disp('Attempting to compile the source code...');
   if isoctave
     try
       mkoctfile --mex --output ./inst/boot ./src/boot.cpp
@@ -80,12 +93,12 @@ else
       warning ('Could not compile smoothmedian.%s. Falling back to the (slower) smoothmedian.m file.',mexext)
     end
     try
-      mkoctfile --output ./inst/helper/iboot ./src/iboot.cpp
+      mkoctfile --mex --output ./inst/boot ./src/boot.cpp
     catch
       errflag = true;
       err = lasterror();
       disp(err.message);
-      warning ('Could not compile iboot.oct. Falling back to the (slower) iboot.m file.')
+      warning ('Could not compile boot.oct. Falling back to the (slower) boot.m file.')
     end
   else
     try  
@@ -116,7 +129,7 @@ end
 if errflag
   fprintf('make completed with errors. Please review the details in the errors in the above output. \n')
 else
-  fprintf('make completed successfully. Please run the install command. \n')
+  fprintf('''make'' completed successfully. Please now run the ''install'' command. \n')
 end
 
 

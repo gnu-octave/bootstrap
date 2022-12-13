@@ -544,7 +544,7 @@ function [stats, bootstat, BOOTSAM] = bootknife (x, nboot, bootfun, alpha, strat
       if ISOCTAVE
         % OCTAVE
         % Set unique random seed for each parallel thread
-        pararrayfun(ncpus, @boot, 1, 1, false, 1, 1:ncpus);
+        pararrayfun(ncpus, @boot, 1, 1, false, 1:ncpus);
         if vectorized && isempty(BOOTSAM)
           cellfunc = @(x) bootknife (x, C, bootfun, NaN, strata, 0, T0, ISOCTAVE);
           bootout = parcellfun (ncpus, cellfunc, num2cell (X,1));
@@ -959,7 +959,7 @@ end
 %!      0 33 28 34 4 32 24 47 41 24 26 30 41]';
 %! ## Nonparametric 90% percentile confidence intervals (single bootstrap)
 %! ## Table 14.2 percentile intervals are 100.8 - 233.9
-%! boot (1, 1, true, 1); # Set random seed
+%! boot (1, 1, false, 1); # Set random seed
 %! stats = bootknife(A,2000,{@var,1},[0.05 0.95]);
 %! if (isempty (regexp (which ('boot'), 'mex$')))
 %!   # test boot m-file result
@@ -971,7 +971,7 @@ end
 %! end
 %! ## Nonparametric 90% BCa confidence intervals (single bootstrap)
 %! ## Table 14.2 BCa intervals are 115.8 - 259.6
-%! boot (1, 1, true, 1); # Set random seed
+%! boot (1, 1, false, 1); # Set random seed
 %! stats = bootknife(A,2000,{@var,1},0.1);
 %! if (isempty (regexp (which ('boot'), 'mex$')))
 %!   # test boot m-file result
@@ -982,7 +982,7 @@ end
 %!   assert (stats.CI_upper, 265.6921865021881, 1e-09);
 %! end
 %! ## Nonparametric 90% calibrated confidence intervals (double bootstrap)
-%! boot (1, 1, true, 1); # Set random seed
+%! boot (1, 1, false, 1); # Set random seed
 %! stats = bootknife(A,[2000,200],{@var,1},0.1);
 %! if (isempty (regexp (which ('boot'), 'mex$')))
 %!   # test boot m-file result
@@ -1006,7 +1006,7 @@ end
 %!             4.74,3.29,5.55,2.82,4.23,3.23,2.56,4.31,4.37,2.4]';
 %! ## Nonparametric 90% BCa confidence intervals (single bootstrap)
 %! ## Table 2 BCa intervals are 0.55 - 0.85
-%! boot (1, 1, true, 1); # Set random seed
+%! boot (1, 1, false, 1); # Set random seed
 %! stats = bootknife({baseline,oneyear},2000,@corr,0.1);
 %! if (isempty (regexp (which ('boot'), 'mex$')))
 %!   # test boot m-file result

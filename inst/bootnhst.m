@@ -507,6 +507,9 @@ function [p, c, stats] = bootnhst (data, group, varargin)
   if nboot(1) < 1000
     error('bootnhst: the minimum allowable value of NBOOT(1) is 1000')
   end 
+  if (nboot(2) == 0) && (nvar > 1)
+    error ('bootnhst: jackknife currently only available for analysis of univariate data.')
+  end
   if (nboot(2) == 0) && ~strcmp(func2str(bootfun),'mean')
     if ISOCTAVE
       statspackage = ismember ({info.Name}, 'statistics');
@@ -651,7 +654,7 @@ function [p, c, stats] = bootnhst (data, group, varargin)
   func = @(data) localfunc.maxstat (data, g, nboot(2), bootfun, ref, ISOCTAVE);
 
   % Perform resampling and calculate bootstrap statistics to estimate sampling distribution under the null hypothesis
-  boot (1, 1, true, 1, 0); % set random seed to make bootstrap resampling deterministic  
+  boot (1, 1, false, 1); % set random seed to make bootstrap resampling deterministic  
   % Use newer, faster and balanced (less biased) resampling functions (boot and bootknife)
   if paropt.UseParallel
     [null,Q] = bootknife(data,nboot(1),func,NaN,[],paropt.nproc,[],ISOCTAVE);
@@ -1051,12 +1054,12 @@ end
 %! p = bootnhst (y(:),g(:),'ref',1,'nboot',[1000,0],'DisplayOpt',false);
 %! if (isempty (regexp (which ('boot'), 'mex$')))
 %!   # test boot m-file result
-%!   assert (p, 0.01741068999480916, 1e-09);
+%!   assert (p, 0.012625, 1e-06);
 %! end
 %! p = bootnhst (y(:),g(:),'nboot',[1000,0],'DisplayOpt',false);
 %! if (isempty (regexp (which ('boot'), 'mex$')))
 %!   # test boot m-file result
-%!   assert (p, 0.04864186049751608, 1e-09);
+%!   assert (p, 0.040890, 1e-06);
 %! end
 %! # Result from anova1 is 0.0387
 
@@ -1076,12 +1079,12 @@ end
 %! p = bootnhst (y(:),g(:),'ref','male','nboot',[1000,0],'DisplayOpt',false);
 %! if (isempty (regexp (which ('boot'), 'mex$')))
 %!   # test boot m-file result
-%!   assert (p, 0.2494298028974493, 1e-09);
+%!   assert (p, 0.275970, 1e-06);
 %! end
 %! p = bootnhst (y(:),g(:),'nboot',[1000,0],'DisplayOpt',false);
 %! if (isempty (regexp (which ('boot'), 'mex$')))
 %!   # test boot m-file result
-%!   assert (p, 0.2494298028974493, 1e-09);
+%!   assert (p, 0.275970, 1e-06);
 %! end
 %! # Result from anova1 is 0.2613
 
@@ -1101,7 +1104,7 @@ end
 %! p = bootnhst (y(:),g(:),'nboot',[1000,0],'DisplayOpt',false);
 %! if (isempty (regexp (which ('boot'), 'mex$')))
 %!   # test boot m-file result
-%!   assert (p, 0.001, 1e-09); # truncated at 0.001
+%!   assert (p, 0.001, 1e-06); # truncated at 0.001
 %! end
 %! # Result from anova1 is 4.162704768129188e-05
 

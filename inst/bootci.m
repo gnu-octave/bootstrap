@@ -523,73 +523,86 @@ end
 %! ## AIM: to construct 90% nonparametric bootstrap confidence intervals for var(A,1)
 %! ## var(A,1) = 171.5, and exact intervals based on Normal theory are [118.4, 305.2].
 %!
-%! ## Calculations using the Statistics and Machine Learning toolbox in Matlab R2020b
+%! ## Calculations using the 'Statistics and Machine Learning toolbox' in Matlab R2020b
 %! ##
 %! ## A = [48 36 20 29 42 42 20 42 22 41 45 14 6 ...
 %! ##      0 33 28 34 4 32 24 47 41 24 26 30 41]';
 %! ## varfun = @(A) var(A, 1);
 %! ## rng('default'); % For reproducibility
-%! ## rng('default'); ci1 = bootci(20000,{varfun,A},'alpha',0.1,'type','norm');
-%! ## rng('default'); ci2 = bootci(20000,{varfun,A},'alpha',0.1,'type','per');
-%! ## rng('default'); ci4 = bootci(20000,{varfun,A},'alpha',0.1,'type','bca');
-%! ## rng('default'); ci5 = bootci(20000,{varfun,A},'alpha',0.1,'type','stud');
+%! ## rng('default'); ci1 = bootci (20000,{varfun,A},'alpha',0.1,'type','norm');
+%! ## rng('default'); ci2 = bootci (20000,{varfun,A},'alpha',0.1,'type','per');
+%! ## rng('default'); ci4 = bootci (20000,{varfun,A},'alpha',0.1,'type','bca');
+%! ## rng('default'); ci5 = bootci (20000,{varfun,A},'alpha',0.1,'type','stud');
 %! ##
-%! ## Summary of results from the Statistics and Machine Learning toolbox in Matlab R2020b
+%! ## Summary of results from the 'Statistics and Machine Learning toolbox' in Matlab R2020b
 %! ##
 %! ## method             |   0.05 |   0.95 | length | shape |  
 %! ## -------------------|--------|--------|--------|-------|
 %! ## ci1 - normal       |  108.9 |  247.4 |  138.5 |  1.21 |
 %! ## ci2 - percentile   |   97.6 |  235.8 |  138.2 |  0.87 |
-%! ## ci3 - basic        |        |        |        |       |
 %! ## ci4 - BCa          |  114.9 |  260.5 |  145.6 |  1.57 |*
 %! ## ci5 - bootstrap-t  |   46.6 |  232.6 |  186.0 |  0.49 |** 
-%! ## ci6 - calibrated   |        |        |        |       |
 %! ## -------------------|--------|--------|--------|-------|
 %! ## parametric - exact |  118.4 |  305.2 |  186.8 |  2.52 |
 %! ##
 %! ## * Bug in the fx0 subfunction of bootci
 %! ## ** Bug in the bootstud subfunction of bootci
 %!
-%! ## Calculations using the boot and bootstrap packages for R
+%! ## Calculations using the 'boot' and 'bootstrap' packages in R
 %! ## 
-%! ## library(boot)
-%! ## library(bootstrap)
+%! ## library (boot)       # Functions from Davison and Hinkley (1997)
 %! ## A <- c(48,36,20,29,42,42,20,42,22,41,45,14,6,0,33,28,34,4,32,24,47,41,24,26,30,41);
 %! ## n <- length(A)
-%! ## var.fun <- function(d, i) { var(d[i]) * (length(d)-1)/length(d) }
-%! ## t0 <- var.fun(A) # t0 is 171.534
+%! ##  var.fun <- function (d, i) { 
+%! ##                # Function to compute the population variance
+%! ##                n <- length(d); 
+%! ##                return (var (d[i]) * (n-1)/n) };
+%! ##  boot.fun <- function (d, i) {
+%! ##                # Compute the estimate
+%! ##                t <- var.fun (d, i);
+%! ##                # Compute sampling variance of the estimate by jackknife
+%! ##                n <- length(d);
+%! ##                U <- empinf (data=d[i], statistic=var.fun, type="jack", stype="i");
+%! ##                var.t <- sum(U^2/(n*(n-1)));
+%! ##                return ( c(t, var.t) ) };
 %! ## set.seed(1)
-%! ## var.boot <- boot (data = A, statistic = var.fun, R=20000, sim='balanced')
-%! ## ci1 <- boot.ci (var.boot, conf = 0.90, type = "norm")
-%! ## ci2 <- boot.ci (var.boot, conf = 0.90, type = "perc")
-%! ## ci3 <- boot.ci (var.boot, conf = 0.90, type = "basic")
-%! ## set.seed(1); ci4 <- bcanon (A, 20000, var.fun, alpha=c(0.05,0.95))
-%! ## set.seed(1); ci5 <- boott (A, var.fun, nboott=20000, nbootsd=500, perc=c(.05,.95))
+%! ## var.boot <- boot (data=A, statistic=boot.fun, R=20000, sim='balanced')
+%! ## ci1 <- boot.ci (var.boot, conf=0.90, type="norm")
+%! ## ci2 <- boot.ci (var.boot, conf=0.90, type="perc")
+%! ## ci3 <- boot.ci (var.boot, conf=0.90, type="basic")
+%! ## ci4 <- boot.ci (var.boot, conf=0.90, type="bca")
+%! ## ci5 <- boot.ci (var.boot, conf=0.90, type="stud")
 %! ##
-%! ## Summary of results from boot package for R
+%! ## library (bootstrap)  # Functions from Efron and Tibshirani (1993)
+%! ## set.seed(1); ci4a <- bcanon (A, 20000, var.fun, alpha=c(0.05,0.95))
+%! ## set.seed(1); ci5a <- boott (A, var.fun, nboott=20000, nbootsd=500, perc=c(.05,.95))
+%! ##
+%! ## Summary of results from 'boot' and 'bootstrap' packages in R
 %! ##
 %! ## method             |   0.05 |   0.95 | length | shape |  
 %! ## -------------------|--------|--------|--------|-------|
-%! ## ci1 - normal       |  109.4 |  246.8 |  137.4 |  1.21 |
-%! ## ci2 - percentile   |   97.8 |  235.6 |  137.8 |  0.87 |
-%! ## ci3 - basic        |  107.4 |  245.3 |  137.9 |  1.15 |
-%! ## ci4 - BCa          |  116.2 |  264.0 |  147.8 |  1.67 |
-%! ## ci5 - bootstrap-t  |  112.7 |  292.6 |  179.9 |  2.06 |
+%! ## ci1  - normal      |  109.4 |  246.8 |  137.4 |  1.21 |
+%! ## ci2  - percentile  |   97.8 |  235.6 |  137.8 |  0.87 |
+%! ## ci3  - basic       |  107.4 |  245.3 |  137.9 |  1.15 |
+%! ## ci4  - BCa         |  116.9 |  264.0 |  147.1 |  1.69 |
+%! ## ci4a - BCa         |  116.2 |  264.0 |  147.8 |  1.67 |
+%! ## ci5  - bootstrap-t |  111.8 |  291.2 |  179.4 |  2.01 |
+%! ## ci5a - bootstrap-t |  112.7 |  292.6 |  179.9 |  2.06 |
 %! ## -------------------|--------|--------|--------|-------|
 %! ## parametric - exact |  118.4 |  305.2 |  186.8 |  2.52 |
 %! 
-%! ## Calculations using the statistics-bootstrap package for Octave/Matlab
+%! ## Calculations using the 'statistics-bootstrap' package for Octave/Matlab
 %! ##
 %! ## A = [48 36 20 29 42 42 20 42 22 41 45 14 6 ...
 %! ##      0 33 28 34 4 32 24 47 41 24 26 30 41]';
-%! ## ci1 = bootci(20000,{{@var,1},A},'alpha',0.1,'type','norm','seed',1);
-%! ## ci2 = bootci(20000,{{@var,1},A},'alpha',0.1,'type','per','seed',1);
-%! ## ci3 = bootci(20000,{{@var,1},A},'alpha',0.1,'type','basic','seed',1);
-%! ## ci4 = bootci(20000,{{@var,1},A},'alpha',0.1,'type','bca','seed',1);
-%! ## ci5 = bootci(20000,{{@var,1},A},'alpha',0.1,'type','stud','nbootstd',0,'seed',1);
-%! ## ci6 = bootci(20000,{{@var,1},A},'alpha',0.1,'type','cal','nbootcal',500,'seed',1);
+%! ## ci1 = bootci (20000,{{@var,1},A},'alpha',0.1,'type','norm','seed',1);
+%! ## ci2 = bootci (20000,{{@var,1},A},'alpha',0.1,'type','per','seed',1);
+%! ## ci3 = bootci (20000,{{@var,1},A},'alpha',0.1,'type','basic','seed',1);
+%! ## ci4 = bootci (20000,{{@var,1},A},'alpha',0.1,'type','bca','seed',1);
+%! ## ci5 = bootci (20000,{{@var,1},A},'alpha',0.1,'type','stud','nbootstd',0,'seed',1);
+%! ## ci6 = bootci (20000,{{@var,1},A},'alpha',0.1,'type','cal','nbootcal',500,'seed',1);
 %! ##
-%! ## Summary of results from statistics-bootstrap package for Octave/Matlab
+%! ## Summary of results from 'statistics-bootstrap' package for Octave/Matlab
 %! ##
 %! ## method             |   0.05 |   0.95 | length | shape |  
 %! ## -------------------|--------|--------|--------|-------|
@@ -602,14 +615,14 @@ end
 %! ## -------------------|--------|--------|--------|-------|
 %! ## parametric - exact |  118.4 |  305.2 |  186.8 |  2.52 |
 %!
-%! ## The equivalent methods for constructing bootstrap intervals in the boot
-%! ## package (in R) and the statistics-bootstrap package in (Octave/Matlab)
-%! ## produce intervals with very similar end points, length and shape. However,
-%! ## all intervals calculated using the statistics-bootstrap package are
-%! ## slightly longer than the intervals calculated in R because the statistics-
-%! ## bootstrap package uses bootknife resampling. The scale of the sampling
-%! ## distribution is better approximated for small samples by bootknife
-%! ## resampling. 
+%! ## The equivalent methods for constructing bootstrap intervals in the 'boot'
+%! ## and 'bootstrap' packages (in R) and the statistics-bootstrap package (in
+%! ## Octave/Matlab) produce intervals with very similar end points, length and
+%! ## shape. However, all intervals calculated using the 'statistics-bootstrap'
+%! ## package are slightly longer than the intervals calculated in R because
+%! ## the 'statistics-bootstrap' package uses bootknife resampling. The scale of
+%! ## the sampling distribution is better approximated for small samples by
+%! ## bootknife (rather than bootstrap) resampling. 
 
 %!test
 %! ## Spatial Test Data from Table 14.1 of Efron and Tibshirani (1993)
