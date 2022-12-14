@@ -589,7 +589,7 @@ function [stats, bootstat, BOOTSAM] = bootknife (x, nboot, bootfun, alpha, strat
     c = mean (mu) - 2 * mean (bootstat) + T0;
     bias = b - c;
     % Bootstrap standard error
-    se = std (bootstat, 1);
+    se = std (bootstat);
     if ~isnan(alpha)
       % Calibrate tail probabilities
       [cdf, u] = localfunc.empcdf (Pr, 1);
@@ -612,7 +612,7 @@ function [stats, bootstat, BOOTSAM] = bootknife (x, nboot, bootfun, alpha, strat
     % Bootstrap bias estimation
     bias = mean (bootstat) - T0;
     % Bootstrap standard error
-    se = std (bootstat, 1);
+    se = std (bootstat);
     if ~isnan(alpha)
       state = warning;
       if ISOCTAVE
