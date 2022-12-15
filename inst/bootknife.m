@@ -27,8 +27,8 @@
 %  [STATS, BOOTSTAT] = bootknife (...)
 %  [STATS, BOOTSTAT, BOOTSAM] = bootknife (...)
 %  bootknife (DATA,...);
-%  bootknife (DATA, [2000, 0], @mean, 0.05, [], 0)            % Default (single)
-%  bootknife (DATA, [2000, 200], @mean, [0.025,0.975], [], 0) % Default (double)
+%  bootknife (DATA, [2000, 0], @mean, 0.05, [], 0)            % Defaults (single)
+%  bootknife (DATA, [2000, 200], @mean, [0.025,0.975], [], 0) % Defaults (double)
 %
 %  STATS = bootknife (DATA) resamples from the rows of a DATA sample (column 
 %  vector or a matrix) and returns a structure with the following fields:
@@ -38,7 +38,7 @@
 %    CI_lower: contains the lower bound of the bootstrap confidence interval
 %    CI_upper: contains the upper bound of the bootstrap confidence interval
 %  By default, the statistics relate to BOOTFUN being @mean and the confidence
-%  intervals are 95% bias-corrected and accelerated (BCa) intervals [1,4-5,9].
+%  intervals are 95% bias-corrected and accelerated (BCa) intervals [1,4-5,10].
 %  If DATA is a cell array of column vectors, the vectors are passed to BOOTFUN
 %  as separate input arguments.
 %
