@@ -116,7 +116,7 @@
 %  [10] Polansky (2000) Stabilizing bootstrap-t confidence intervals
 %        for small samples. Can J Stat. 28(3):501-516
 %
-%  bootci (version 2022.12.06)
+%  bootci (version 2022.12.15)
 %  Author: Andrew Charles Penn
 %  https://www.researchgate.net/profile/Andrew_Penn/
 %
@@ -267,6 +267,8 @@ function [ci, bootstat, bootsam] = bootci (argin1, argin2, varargin)
       % Set quantiles directly to calculate percentile intervals
       alpha = [alpha / 2, 1 - alpha / 2];
     case 'cal'
+      % Set quantiles directly to calibrate interval endpoints
+      alpha = [alpha / 2, 1 - alpha / 2];
       nboot = cat (2, nboot, nbootcal);
     otherwise
       error ('bootci: interval TYPE not supported')
@@ -614,6 +616,22 @@ end
 %! ## ci6 - calibrated   |  114.4 |  294.9 |  180.5 |  2.16 |
 %! ## -------------------|--------|--------|--------|-------|
 %! ## parametric - exact |  118.4 |  305.2 |  186.8 |  2.52 |
+%! ##
+%! ## Simulation results for constructing 90% confidence intervals for the
+%! ## variance of a population N(0,1) from 1000 random samples of size 26
+%! ## (analagous to the situation above). Simulation performed using the
+%! ## bootsim script with nboot of 2000.
+%! ##
+%! ## method               | coverage |  lower |  upper | length | shape |
+%! ## ---------------------|----------|--------|--------|--------|-------|
+%! ## normal               |    84.0% |   3.3% |  12.7% |   0.80 |  1.21 |
+%! ## percentile           |    81.1% |   1.2% |  17.7% |   0.77 |  0.92 |
+%! ## basic                |    79.5% |   2.6% |  17.9% |   0.78 |  1.09 |
+%! ## BCa                  |    85.0% |   4.3% |  10.7% |   0.84 |  1.63 |
+%! ## bootstrap-t          |    90.4% |   3.5% |   6.1% |   1.02 |  2.14 |
+%! ## calibrated           |    90.7% |   5.1% |   4.2% |   1.13 |  2.73 |
+%! ## ---------------------|----------|--------|--------|--------|-------|
+%! ## parametric - exact   |    90.8% |   3.7% |   5.5% |   0.99 |  2.52 |
 %!
 %! ## The equivalent methods for constructing bootstrap intervals in the 'boot'
 %! ## and 'bootstrap' packages (in R) and the statistics-bootstrap package (in
@@ -623,6 +641,8 @@ end
 %! ## the 'statistics-bootstrap' package uses bootknife resampling. The scale of
 %! ## the sampling distribution for small samples is approximated better by
 %! ## bootknife (rather than bootstrap) resampling. 
+%!
+
 
 %!test
 %! ## Spatial Test Data from Table 14.1 of Efron and Tibshirani (1993)
@@ -630,54 +650,69 @@ end
 %! ## Probability 57 (Springer)
 %! A = [48 36 20 29 42 42 20 42 22 41 45 14 6 ...
 %!      0 33 28 34 4 32 24 47 41 24 26 30 41]';
+%!
 %! ## Nonparametric 90% percentile confidence intervals (single bootstrap)
 %! ## Table 14.2 percentile intervals are 100.8 - 233.9
 %! ci = bootci(2000,{{@var,1},A},'alpha',0.1,'type','per','seed',1);
 %! if (isempty (regexp (which ('boot'), 'mex$')))
-%!   # test boot m-file result
+%!   ## test boot m-file result
 %!   assert (ci(1), 95.32928994082839, 1e-09);
 %!   assert (ci(2), 238.4062130177514, 1e-09);
 %! end
+%!
 %! ## Nonparametric 90% BCa confidence intervals (single bootstrap)
 %! ## Table 14.2 BCa intervals are 115.8 - 259.6
 %! ci = bootci(2000,{{@var,1},A},'alpha',0.1,'type','bca','seed',1);
 %! if (isempty (regexp (which ('boot'), 'mex$')))
-%!   # test boot m-file result
+%!   ## test boot m-file result
 %!   assert (ci(1), 112.9782684413938, 1e-09);
 %!   assert (ci(2), 265.6921865021881, 1e-09);
 %! end
+%!
 %! ## Nonparametric 90% bootstrap-t confidence intervals (double bootstrap)
 %! ci = bootci(2000,{{@var,1},A},'alpha',0.1,'type','stud','nbootstd',100,'seed',1);
 %! if (isempty (regexp (which ('boot'), 'mex$')))
-%!   # test boot m-file result
-%!   assert (ci(1), 109.0959028769563, 1e-09);
-%!   assert (ci(2), 307.4473656731515, 1e-09);
+%!   ## test boot m-file result
+%!   assert (ci(1), 109.3907006307414, 1e-09);
+%!   assert (ci(2), 306.8096054314711, 1e-09);
 %! end
-%! ## Nonparametric 90% calibrated confidence intervals (double bootstrap)
+%!
+%! ## Nonparametric 90% calibrated percentile confidence intervals (double bootstrap)
 %! ci = bootci(2000,{{@var,1},A},'alpha',0.1,'type','cal','nbootcal',200,'seed',1);
 %! if (isempty (regexp (which ('boot'), 'mex$')))
-%!   # test boot m-file result
+%!   ## test boot m-file result
 %!   assert (ci(1), 110.6138073406352, 1e-09);
 %!   assert (ci(2), 305.1908284023669, 1e-09);
 %! end
-%! # Exact intervals based on theory are 118.4 - 305.2 (Table 14.2)
-%! # Note that all of the bootknife intervals are slightly wider than the
-%! # non-parametric intervals in Table 14.2 because the bootknife (rather than
-%! # standard bootstrap) resampling used here reduces small sample bias
+%!
+%! ## Exact intervals based on normal theory are 118.4 - 305.2 (Table 14.2)
+%! ## Note that all of the bootknife intervals are slightly wider than the
+%! ## non-parametric intervals in Table 14.2 because the bootknife (rather than
+%! ## standard bootstrap) resampling used here reduces small sample bias
 
 %!test
-%! ## Data from Table 14.1: Spatial Test Data in DiCiccio and Efron (1996)
-%! ## Bootstrap Confidence Intervals. Statistical Science. 11(3):189-228
-%! baseline = [2.12,4.35,3.39,2.51,4.04,5.1,3.77,3.35,4.1,3.35, ...
-%!             4.15,3.56, 3.39,1.88,2.56,2.96,2.49,3.03,2.66,3]';
-%! oneyear  = [2.47,4.61,5.26,3.02,6.36,5.93,3.93,4.09,4.88,3.81, ...
-%!             4.74,3.29,5.55,2.82,4.23,3.23,2.56,4.31,4.37,2.4]';
-%! ## Nonparametric 90% BCa confidence intervals (single bootstrap)
-%! ## Table 2 BCa intervals are 0.55 - 0.85
-%! ci = bootci(2000,{@corr,baseline,oneyear},'alpha',0.1,'seed',1);
+%! ## Law school data from Table 3.1 of Efron and Tibshirani (1993)
+%! ## An Introduction to the Bootstrap in Monographs on Statistics and Applied 
+%! ## Probability 57 (Springer)
+%! LSAT = [576 635 558 578 666 580 555 661 651 605 653 575 545 572 594]';
+%! GPA = [3.39 3.3 2.81 3.03 3.44 3.07 3 3.43 3.36 3.13 3.12 2.74 2.76 2.88 2.96]'; 
+%!
+%! ## Nonparametric 90% percentile confidence intervals (single bootstrap)
+%! ## Percentile intervals on page 266 are 0.524 - 0.928
+%! boot (1, 1, false, 1); # Set random seed
+%! ci = bootci(2000,{@corr,LSAT,GPA},'alpha',0.1,'type','per','seed',1);
 %! if (isempty (regexp (which ('boot'), 'mex$')))
-%!   # test boot m-file result
-%!   assert (ci(1), 0.5495318330432346, 1e-09);
-%!   assert (ci(2), 0.8460658696851905, 1e-09);
+%!   ## test boot m-file result
+%!   assert (ci(1), 0.5010294986287188, 1e-09);
+%!   assert (ci(2), 0.9528636319119137, 1e-09);
 %! end
-%! # Exact intervals based on theory are 0.47 - 0.86 (Table 14.2)
+%!
+%! ## Nonparametric 90% BCa confidence intervals (single bootstrap)
+%! ## BCa intervals on page 266 are 0.410 - 0.923
+%! ci = bootci(2000,{@corr,LSAT,GPA},'alpha',0.1,'type','bca','seed',1);
+%! if (isempty (regexp (which ('boot'), 'mex$')))
+%!   ## test boot m-file result
+%!   assert (ci(1), 0.403132023170199, 1e-09);
+%!   assert (ci(2), 0.92985747006633835, 1e-09);
+%! end
+%! ## Exact intervals based on normal theory are 0.47 - 0.86 (Table 14.2)

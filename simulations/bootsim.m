@@ -7,16 +7,19 @@ state = warning('query','all');
 warning('off','all');
 
 % Set significance level
-alpha = 0.05;
+alpha = 0.1;
+%alpha = [0.05,0.95];
 
 % Function of the data
 func = @mean;
+func = @(x) var(x,1);
 
 % Population parameter
-population_param = 0;
+%population_param = 0; % for mean
+population_param = 1; % for variance
 
 % Define sample size
-n = 7;
+n = 26;
 
 % Define number of simulations
 sim = 1000;
@@ -29,7 +32,7 @@ below = 0;
 
 % Bootstrap resampling
 nboot = 2000;
-type = 'bca';
+type = 'stud';
 
 % Print settings
 fprintf('----- BOOTSTRAP CONFIDENCE INTERVAL SIMULATION -----\n')
@@ -47,7 +50,8 @@ shape  = nan(sim,1);
 coverage  = nan(sim,1);
 
 % Parallel processing
-paropt = struct ('UseParallel', true, 'nproc', 4);
+ncpus = 4;
+paropt = struct ('UseParallel', true, 'nproc', ncpus);
   
 % Start simulation
 for i=1:sim
@@ -56,7 +60,8 @@ for i=1:sim
   x = randn(n,1);
 
   % Bootstrap confidence interval
-  ci = bootci(nboot,{func,x},'alpha',alpha,'type',type,'Options',paropt);
+  ci = bootci (nboot, {func,x}, 'alpha', alpha, 'type', type, 'Options', paropt,'nbootstd',0);
+  %S  = bootknife (x, nboot, func, alpha, [], ncpus); ci = [S.CI_lower; S.CI_upper];
   stat = func(x);
 
   % Coverage counter
@@ -72,11 +77,11 @@ for i=1:sim
   end
   coverage(i) = accept/(accept+reject);
   if i>1
-    fprintf(repmat('\b', 1, 13))
+    fprintf(repmat('\b', 1, 14))
   end
-  fprintf('%s: %.1f%s',...
-          sprintf('%05s',num2str(i)),...
-          100*coverage(i),'%');
+  fprintf('%s: % 5s%s',...
+          sprintf('%06d',i),...
+          sprintf('%.1f',round(1000*coverage(i))/10),'%');
 
   % Interval lengths
   length(i) = ci(2) - ci(1);
@@ -87,7 +92,7 @@ for i=1:sim
 end
 
 % Print results
-fprintf(repmat('\b', 1, 13))
+fprintf(repmat('\b', 1, 14))
 fprintf(['%s: %.1f%s\n',...
          '%s: %.2f (%.2f-%.2f)\n',...
          '%s: %.2f (%.2f-%.2f)\n',...
