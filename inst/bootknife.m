@@ -104,10 +104,12 @@
 %
 %  - CALIBRATED PERCENTILE (coverage): ALPHA must be a scalar value and NBOOT
 %    must be a vector of two positive, non-zero integers (for double bootstrap).
+%    The method used corresponds to the two-sided intervals in [6].
 %
 %  - CALIBRATED PERCENTILE (endpoints): ALPHA must be must be a pair of
 %    quantiles and NBOOT must be a vector of two positive, non-zero integers
-%    (for double bootstrap). (Recommended)
+%    (for double bootstrap). The method used corresponds to the one-sided
+%    (lower and upper) intervals in [6]. (Recommended)
 %
 %  Confidence interval endpoints are not calculated when the value(s) of ALPHA
 %  is/are NaN. If empty (or not specified), the default value for ALPHA is 0.05
@@ -203,27 +205,23 @@ function [stats, bootstat, BOOTSAM] = bootknife (x, nboot, bootfun, alpha, strat
   if (nargin < 1)
     error ('bootknife: DATA must be provided');
   end
-  if (nargin < 2)
+  if ((nargin < 2) || isempty(nboot))
     nboot = [2000, 0];
   else
-    if isempty(nboot)
-      nboot = [2000, 0];
-    else
-      if ~isa (nboot, 'numeric')
-        error ('bootknife: NBOOT must be numeric');
-      end
-      if (numel (nboot) > 2)
-        error ('bootknife: NBOOT cannot contain more than 2 values');
-      end
-      if any (nboot ~= abs (fix (nboot)))
-        error ('bootknife: NBOOT must contain positive integers');
-      end    
-      if (numel(nboot) == 1)
-        nboot = [nboot, 0];
-      end
+    if ~isa (nboot, 'numeric')
+      error ('bootknife: NBOOT must be numeric');
+    end
+    if (numel (nboot) > 2)
+      error ('bootknife: NBOOT cannot contain more than 2 values');
+    end
+    if any (nboot ~= abs (fix (nboot)))
+      error ('bootknife: NBOOT must contain positive integers');
+    end    
+    if (numel(nboot) == 1)
+      nboot = [nboot, 0];
     end
   end
-  if (nargin < 3)
+  if ((nargin < 3) || isempty(bootfun))
     bootfun = @mean;
   else
     if iscell(bootfun)
@@ -253,13 +251,13 @@ function [stats, bootstat, BOOTSAM] = bootknife (x, nboot, bootfun, alpha, strat
   if ~(size(x, 1) > 1)
     error ('bootknife: DATA must contain more than one row');
   end
-  if (nargin < 4)
+  if ((nargin < 4) || isempty (alpha))
     if (nboot(2) > 0)
       alpha = [0.025, 0.975];
     else
       alpha = 0.05;
     end
-  elseif ~isempty (alpha) 
+  else
     if ~isa (alpha,'numeric') || numel (alpha) > 2
       error ('bootknife: ALPHA must be a scalar (two-tailed probability) or a vector (pair of quantiles)');
     end
@@ -273,23 +271,17 @@ function [stats, bootstat, BOOTSAM] = bootknife (x, nboot, bootfun, alpha, strat
         error ('bootknife: the pair of quantiles must be in ascending numeric order');
       end
     end
-  else
-    if (nboot(2) > 0)
-      alpha = [0.025, 0.975];
-    else
-      alpha = 0.05;
-    end
   end
-  if (nargin < 5)
+  if ((nargin < 5) || isempty (strata))
     strata = [];
-  elseif ~isempty (strata) 
+  else  
     if size (strata, 1) ~= size (x, 1)
       error ('bootknife: STRATA should be a column vector or cell array with the same number of rows as the DATA');
     end
   end
-  if (nargin < 6)
+  if ((nargin < 6) || isempty (ncpus)) 
     ncpus = 0;    % Ignore parallel processing features
-  elseif ~isempty (ncpus) 
+  else
     if ~isa (ncpus, 'numeric')
       error('bootknife: NPROC must be numeric');
     end
@@ -617,30 +609,31 @@ function [stats, bootstat, BOOTSAM] = bootknife (x, nboot, bootfun, alpha, strat
         bootout = cellfun (cellfunc, num2cell (BOOTSAM,1));
       end
     end
-    Pr = cell2mat(arrayfun(@(S) S.Pr, bootout, 'UniformOutput', false));
+    % Double bootstrap bias estimation
     mu = cell2mat(arrayfun(@(S) S.bias, bootout, 'UniformOutput', false)) + ...
          cell2mat(arrayfun(@(S) S.original, bootout, 'UniformOutput', false));
-    V = cell2mat(arrayfun(@(S) S.std_error^2, bootout, 'UniformOutput', false));
-    % Double bootstrap bias estimation
     b = mean (bootstat) - T0;
     c = mean (mu) - 2 * mean (bootstat) + T0;
     bias = b - c;
     % Double bootstrap multiplicative correction of the standard error
+    V = cell2mat(arrayfun(@(S) S.std_error^2, bootout, 'UniformOutput', false));
     se = sqrt (var (bootstat)^2 / mean (V));
+    % Double bootstrap confidence intervals
     if ~isnan(alpha)
+      U = cell2mat(arrayfun(@(S) S.Pr, bootout, 'UniformOutput', false));
       % Calibrate tail probabilities
       switch (numel (alpha))
         case 1
           % alpha is a two-tailed probability (scalar)
           % Calibrate central coverage
-          [cdf, v] = localfunc.empcdf (abs (2 * Pr - 1), 1);
+          [cdf, v] = localfunc.empcdf (abs (2 * U - 1), 1);
           vk = interp1 (cdf, v, 1 - alpha, 'linear');
           l = arrayfun (@(sign) 0.5 * (1 + sign * vk), [-1, 1]);
           l = max (l, 0); l = min (l, 1);
         case 2
           % alpha is a pair of quantiles (vector)
           % Calibrate interval end points separately
-          [cdf, u] = localfunc.empcdf (Pr, 1);
+          [cdf, u] = localfunc.empcdf (U, 1);
           l = arrayfun ( @(p) interp1 (cdf, u, p, 'linear'), alpha);
       end
       % Calibrated percentile bootstrap confidence intervals
@@ -815,7 +808,11 @@ function print_output (stats, B, C, alpha, l, m, bootfun_str)
     fprintf (' Number of resamples (inner): %u \n', C);
     if ~isempty(alpha) && ~all(isnan(alpha))
       if (C > 0)
-        fprintf (' Confidence interval type: Calibrated \n');
+        if (numel (alpha) > 1)
+          fprintf (' Confidence interval type: Calibrated percentile (endpoints)\n');
+        else
+          fprintf (' Confidence interval type: Calibrated percentile (central coverage)\n');
+        end
       else
         if (numel (alpha) > 1)
           fprintf (' Confidence interval type: Percentile \n');

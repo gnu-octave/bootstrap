@@ -60,7 +60,7 @@ for i=1:sim
   x = randn(n,1);
 
   % Bootstrap confidence interval
-  ci = bootci (nboot, {func,x}, 'alpha', alpha, 'type', type, 'Options', paropt,'nbootstd',0);
+  ci = bootci (nboot, {func,x}, 'alpha', alpha, 'type', type, 'Options', paropt, 'nbootstd', 0);
   %S  = bootknife (x, nboot, func, alpha, [], ncpus); ci = [S.CI_lower; S.CI_upper];
   stat = func(x);
 
