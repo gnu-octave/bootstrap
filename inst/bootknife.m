@@ -83,7 +83,7 @@
 %
 %  STATS = bootknife (DATA, NBOOT, BOOTFUN, ALPHA) where ALPHA is numeric and
 %  sets the lower and upper bounds of the confidence interval(s). The value(s)
-%  of ALPHA must be between 0 and 1.ALPHA can either be:
+%  of ALPHA must be between 0 and 1. ALPHA can either be:
 %
 %    1) a scalar value to set the (nominal) central coverage to 100*(1-ALPHA)%
 %  with (nominal) lower and upper percentiles of the confidence intervals at
