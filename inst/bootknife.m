@@ -85,11 +85,11 @@
 %  sets the lower and upper bounds of the confidence interval(s). The value(s)
 %  of ALPHA must be between 0 and 1. ALPHA can either be:
 %
-%    1) a scalar value to set the (nominal) central coverage to 100*(1-ALPHA)%
+%  1) a scalar value to set the (nominal) central coverage to 100*(1-ALPHA)%
 %  with (nominal) lower and upper percentiles of the confidence intervals at
 %  100*(ALPHA/2)% and 100*(1-ALPHA/2)% respectively, or
 %
-%    2) a vector containing a pair of quantiles to set the (nominal) lower and
+%  2) a vector containing a pair of quantiles to set the (nominal) lower and
 %  upper percentiles of the confidence interval(s) at 100*(ALPHA(1))% and
 %  100*(ALPHA(2))%.
 %
@@ -107,8 +107,7 @@
 %
 %  - CALIBRATED PERCENTILE (endpoints): ALPHA must be must be a pair of
 %    quantiles and NBOOT must be a vector of two positive, non-zero integers
-%    (for double bootstrap). Calibrating interval endpoints (rather than central
-%    coverage) is recommended [4,9].
+%    (for double bootstrap). (Recommended)
 %
 %  Confidence interval endpoints are not calculated when the value(s) of ALPHA
 %  is/are NaN. If empty (or not specified), the default value for ALPHA is 0.05
@@ -1118,7 +1117,6 @@ end
 %! ## the 'statistics-bootstrap' package uses bootknife resampling. The scale of
 %! ## the sampling distribution for small samples is approximated better by
 %! ## bootknife (rather than bootstrap) resampling. 
-
 
 %!test
 %! ## Spatial test data from Table 14.1 of Efron and Tibshirani (1993)
