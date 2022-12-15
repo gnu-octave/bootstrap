@@ -23,12 +23,12 @@
 %  STATS = bootknife (DATA, NBOOT, ..., ALPHA)
 %  STATS = bootknife (DATA, NBOOT, ..., ALPHA, STRATA)
 %  STATS = bootknife (DATA, NBOOT, ..., ALPHA, STRATA, NPROC)
-%  STATS = bootknife (DATA, [2000, 0], @mean, 0.05, [], 0)  % Default (single)
-%  STATS = bootknife (DATA, [2000, 200], @mean, 0.05, [], 0)  % Default (doubble)
 %  [STATS, BOOTSTAT] = bootknife (...)
 %  [STATS, BOOTSTAT] = bootknife (...)
 %  [STATS, BOOTSTAT, BOOTSAM] = bootknife (...)
 %  bootknife (DATA,...);
+%  bootknife (DATA, [2000, 0], @mean, 0.05, [], 0)            % Default (single)
+%  bootknife (DATA, [2000, 200], @mean, [0.025,0.975], [], 0) % Default (double)
 %
 %  STATS = bootknife (DATA) resamples from the rows of a DATA sample (column 
 %  vector or a matrix) and returns a structure with the following fields:
