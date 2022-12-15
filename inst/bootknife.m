@@ -84,28 +84,36 @@
 %  STATS = bootknife (DATA, NBOOT, BOOTFUN, ALPHA) where ALPHA is numeric and
 %  sets the lower and upper bounds of the confidence interval(s). The value(s)
 %  of ALPHA must be between 0 and 1.ALPHA can either be:
+%
 %    1) a scalar value to set the (nominal) central coverage to 100*(1-ALPHA)%
 %  with (nominal) lower and upper percentiles of the confidence intervals at
 %  100*(ALPHA/2)% and 100*(1-ALPHA/2)% respectively, or
+%
 %    2) a vector containing a pair of quantiles to set the (nominal) lower and
 %  upper percentiles of the confidence interval(s) at 100*(ALPHA(1))% and
 %  100*(ALPHA(2))%.
-%    The method for constructing confidence intervals is determined by the
+%
+%  The method for constructing confidence intervals is determined by the
 %  combined settings of ALPHA and NBOOT:
+%
 %  - PERCENTILE: ALPHA must be a pair of quantiles and NBOOT must be a scalar
 %    value (or the second element in NBOOT must be zero).
+%
 %  - BIAS-CORRECTED AND ACCELERATED (BCa): ALPHA must be a scalar value and
 %    NBOOT must be a scalar value (or the second element in NBOOT must be zero).
+%
 %  - CALIBRATED PERCENTILE (coverage): ALPHA must be a scalar value and NBOOT
 %    must be a vector of two positive, non-zero integers (for double bootstrap).
+%
 %  - CALIBRATED PERCENTILE (endpoints): ALPHA must be must be a pair of
 %    quantiles and NBOOT must be a vector of two positive, non-zero integers
 %    (for double bootstrap). Calibrating interval endpoints (rather than central
 %    coverage) is recommended [4,9].
+%
 %  Confidence interval endpoints are not calculated when the value(s) of ALPHA
 %  is/are NaN. If empty (or not specified), the default value for ALPHA is 0.05
-%  (for single bootstrap and BCa intervals) and [0.025, 0.975] (for double
-%  bootstrap with calibrated percentile endpoints). 
+%  when single bootstrap (for BCa intervals) and [0.025, 0.975] when double 
+%  bootstrap (for calibrated percentile endpoints). 
 %
 %  STATS = bootknife (DATA, NBOOT, BOOTFUN, ALPHA, STRATA) also sets STRATA, 
 %  which are identifiers that define the grouping of the DATA rows
