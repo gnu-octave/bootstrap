@@ -660,8 +660,9 @@ function [stats, bootstat, BOOTSAM] = bootknife (x, nboot, bootfun, alpha, strat
           % Create distribution functions
           stdnormcdf = @(x) 0.5 * (1 + erf (x / sqrt (2)));
           stdnorminv = @(p) sqrt (2) * erfinv (2 * p-1);
-          % If bootfun is the mean, expand percentiles using Student's 
-          % t-distribution to improve central coverage for small samples
+          % If bootfun is the mean, adjust alpha level to expand percentiles
+          % using Student's t-distribution for improved central coverage in
+          % when sample size is small
           if strcmp (func2str (bootfun), 'mean')
             if exist('betaincinv','file')
               studinv = @(p, df) - sqrt ( df ./ betaincinv (2 * p, df / 2, 0.5) - df);
@@ -836,9 +837,9 @@ function print_output (stats, B, C, alpha, l, m, bootfun_str)
         coverage = 100*(1-alpha);
       end
       if isempty (l)
-        fprintf (' Confidence interval coverage: %g%%\n\n',coverage);
+        fprintf (' Confidence interval coverage: %.3g%%\n\n',coverage);
       else
-        fprintf (' Confidence interval coverage: %g%% (%.1f%%, %.1f%%)\n\n',coverage,100*l);
+        fprintf (' Confidence interval coverage: %.3g%% (%.1f%%, %.1f%%)\n\n',coverage,100*l);
       end
     end
     fprintf ('Bootstrap Statistics: \n');

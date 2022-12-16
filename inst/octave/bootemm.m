@@ -5,6 +5,8 @@
 %  EMMEANS = bootemm (STATS, DIM, NBOOT, ALPHA)
 %  EMMEANS = bootemm (STATS, DIM, NBOOT, ALPHA, NPROC)
 %  EMMEANS = bootemm (STATS, DIM, NBOOT, ALPHA, NPROC, SEED)
+%  bootemm (STATS, DIM)
+%  bootemm (STATS, DIM, ...)
 %
 %  Semi-parametric bootstrap of the estimated marginal means from a linear model.
 %  bootemm accepts as input the STATS structure from fitlm or anovan functions
@@ -15,21 +17,37 @@
 %    std_error: contains the bootstrap standard error
 %    CI_lower: contains the lower bound of the bootstrap confidence interval
 %    CI_upper: contains the upper bound of the bootstrap confidence interval
-%  By default, the confidence intervals are 95% bias-corrected intervals. If
-%  no output is requested, the results are printed to stdout. The list of
-%  means and their bootstrap statistics correspond to the names STATS.grpnames.
+%  The method uses bootknife resampling [1], which involves creating leave-one-
+%  out jackknife samples of size n - 1 from the n residuals and then drawing
+%  samples of size n with replacement from the jackknife samples. The resampling
+%  of residuals is also balanced in order to reduce bias and Monte Carlo error
+%  [2,3]. By default, the confidence intervals constructed are expanded bias-
+%  corrected intervals [4,5]. The list of means and their bootstrap statistics
+%  correspond to the names STATS.grpnames. If no output is requested, the
+%  results are printed to stdout*. 
+%
+%  * Note that the confidence interval coverage printed reflects the coverage
+%  after expansion using Student's t-distribution (if applicable) [5].
 %
 %  EMMEANS = bootemm (STATS, NBOOT) also specifies the number of bootstrap
 %  samples. NBOOT must be a scalar. By default, NBOOT is 2000.
 %
-%  EMMEANS = bootemm (STATS, NBOOT, ALPHA) also sets the lower and upper
-%  confidence interval ends. The value(s) in ALPHA must be between 0 and 1.
-%  If ALPHA is a scalar value, the nominal lower and upper percentiles of
-%  the confidence are 100*(ALPHA/2)% and 100*(1-ALPHA/2)% respectively, and
-%  the intervals are bias-corrected with nominal central coverage 100*(1-ALPHA)%.
-%  If ALPHA is a vector with two elements, ALPHA becomes the quantiles for
-%  percentile bootstrap confidence intervals. If ALPHA is empty, NaN is returned
-%  for the confidence interval ends. The default value for ALPHA is 0.05. 
+%  EMMEANS = bootemm (STATS, NBOOT, ALPHA) where ALPHA is numeric and
+%  sets the lower and upper bounds of the confidence interval(s). The value(s)
+%  of ALPHA must be between 0 and 1. ALPHA can either be:
+%
+%  1) a scalar value to set the (nominal) central coverage to 100*(1-ALPHA)%
+%  with (nominal) lower and upper percentiles of the confidence intervals at
+%  100*(ALPHA/2)% and 100*(1-ALPHA/2)% respectively. The intervals constructed
+%  are expanded [5] and bias-corrected [4] to improve central coverage and
+%  accuracy.
+%
+%  2) a vector containing a pair of quantiles to set the (nominal) lower and
+%  upper percentiles of the confidence interval(s) at 100*(ALPHA(1))% and
+%  100*(ALPHA(2))%. The intervals constructed are simple percentile intervals.
+%  
+%  Confidence interval endpoints are not calculated when the value(s) of ALPHA
+%  is/are NaN. If empty (or not specified), the default value for ALPHA is 0.05
 %
 %  EMMEANS = bootemm (STATS, NBOOT, ALPHA, NPROC) also sets the number of
 %  parallel processes to use to accelerate computations on multicore machines.
@@ -39,10 +57,25 @@
 %  SEED for the random number generator used for the resampling. This feature
 %  can be used to make the results of the bootstrap reproducible.
 %
-%  bootemm is only supported in GNU Octave and requires the Statistics package
-%  version 1.5 or later.
+%  Requirements: The function file boot.m (or better boot.mex) and bootknife
+%  also distributed in the statistics-bootstrap package. bootcoeff is only
+%  supported in GNU Octave and requires the Statistics package version 1.5+.
 %
-%  bootemm (version 2022.10.08)
+%  Bibliography:
+%  [1] Hesterberg T.C. (2004) Unbiasing the Bootstrap—Bootknife Sampling 
+%        vs. Smoothing; Proceedings of the Section on Statistics & the 
+%        Environment. Alexandria, VA: American Statistical Association.
+%  [2] Davison et al. (1986) Efficient Bootstrap Simulation.
+%        Biometrika, 73: 555-66
+%  [3] Gleason, J.R. (1988) Algorithms for Balanced Bootstrap Simulations. 
+%        The American Statistician. Vol. 42, No. 4 pp. 263-266
+%  [4] Efron (1981) Nonparametric Standard Errors and Confidence Intervals.
+%        Can J Stat. 9(2:139-158
+%  [5] Hesterberg, Tim (2014), What Teachers Should Know about the 
+%        Bootstrap: Resampling in the Undergraduate Statistics Curriculum, 
+%        http://arxiv.org/abs/1411.5279
+%
+%  bootemm (version 2022.12.16)
 %  Author: Andrew Charles Penn
 %  https://www.researchgate.net/profile/Andrew_Penn/
 %
@@ -99,7 +132,7 @@ function emmeans = bootemm (stats, dim, nboot, alpha, ncpus, seed)
   if (ismember (dim, find (stats.continuous)))
     error ('bootemm: estimated marginal means are only calculated for categorical variables')
   end
-    
+
   % Fetch required information from stats structure
   X = stats.X;
   b = stats.coeffs(:,1);
@@ -108,6 +141,7 @@ function emmeans = bootemm (stats, dim, nboot, alpha, ncpus, seed)
   W = full (stats.W);
   se = diag (W).^(-0.5);
   resid = stats.resid;   % weighted residuals
+  dfe = stats.dfe;
 
   % Prepare the hypothesis matrix (H)
   Nd = numel (dim);
@@ -133,13 +167,42 @@ function emmeans = bootemm (stats, dim, nboot, alpha, ncpus, seed)
   % Define bootfun for bootstraping the model residuals and returning the group means
   bootfun = @(r) H * lmfit (X, fitted + r .* se, W);
 
+  % Perform adjustments to improve coverage for small samples
+  switch (numel (alpha))
+    case 1
+      % Expanded bias-corrected confidence intervals (recommended)
+      % Create distribution functions
+      stdnormcdf = @(x) 0.5 * (1 + erf (x / sqrt (2)));
+      % If bootfun is the mean, adjust alpha level to expand percentiles
+      % using Student's t-distribution for improved central coverage in
+      % when sample size is small
+      if exist('betaincinv','file')
+        studinv = @(p, df) - sqrt ( df ./ betaincinv (2 * p, df / 2, 0.5) - df);
+      else
+        % Earlier versions of matlab do not have betaincinv
+        % Instead, use betainv from the Statistics and Machine Learning Toolbox
+        try 
+          studinv = @(p, df) - sqrt ( df ./ betainv (2 * p, df / 2, 0.5) - df);
+        catch
+          % Use the Normal distribution (i.e. do not expand quantiles) if
+          % either betaincinv or betainv are not available
+          studinv = @(p,df) sqrt (2) * erfinv (2 * p-1);
+        end
+      end
+      adj_alpha = stdnormcdf (studinv (alpha / 2, stats.dfe)) * 2;
+    case 2
+      % Simple percentile confidence intervals (no adjustment)
+      % No adjustment
+      adj_alpha = alpha;
+  end
+
   % Perform bootstrap
   if nargout > 0
     warning ('off','bootknife:lastwarn')
-    emmeans = bootknife (resid, nboot, bootfun, alpha, [], ncpus);
+    emmeans = bootknife (resid, nboot, bootfun, adj_alpha, [], ncpus);
     warning ('on','bootknife:lastwarn')
   else
-    bootknife (resid, nboot, bootfun, alpha, [], ncpus);
+    bootknife (resid, nboot, bootfun, adj_alpha, [], ncpus);
   end
 
 end
