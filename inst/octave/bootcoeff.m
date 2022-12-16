@@ -22,15 +22,17 @@
 %  samples of size n with replacement from the jackknife samples. The resampling
 %  of residuals is also balanced in order to reduce bias and Monte Carlo error
 %  [2,3]. By default, the confidence intervals constructed are expanded bias-
-%  corrected intervals [4,5]. The list of coefficients and their bootstrap
-%  statistics correspond to the names in STATS.coeffnames, which are defined
-%  by the contrast coding in STATS.contrasts. The rows of STATS.contrasts 
+%  corrected percentile intervals [4,5]. The list of coefficients and their
+%  bootstrap statistics correspond to the names in STATS.coeffnames, which are
+%  defined by the contrast coding in STATS.contrasts. The rows of STATS.contrasts 
 %  correspond to the names in STATS.grpnames. If no output is requested, the
 %  results are printed to stdout*.
 %
 %  * Note that the confidence interval coverage printed reflects the coverage
-%  after expansion using Student's t-distribution (if applicable) [5].
-%
+%  after expansion using Student's t-distribution (if applicable) [5]. When
+%  reporting confidence intervals, the nominal coverage should be used, 
+%  e.g. 95% if alpha is 0.05.
+%  
 %  COEFFS = bootcoeff (STATS, NBOOT) also specifies the number of bootstrap
 %  samples. NBOOT must be a scalar. By default, NBOOT is 2000.
 %
