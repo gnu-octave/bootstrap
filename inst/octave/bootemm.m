@@ -15,8 +15,8 @@
 %    original: contains the estimated marginal means from the original model
 %    bias: contains the bootstrap estimate of bias
 %    std_error: contains the bootstrap standard error
-%    CI_lower: contains the lower bound of the bootstrap confidence interval
-%    CI_upper: contains the upper bound of the bootstrap confidence interval
+%    CI_lower: contains the lower bound of the 95% bootstrap confidence interval
+%    CI_upper: contains the upper bound of the 95% bootstrap confidence interval
 %  The method uses bootknife resampling [1], which involves creating leave-one-
 %  out jackknife samples of size n - 1 from the n residuals and then drawing
 %  samples of size n with replacement from the jackknife samples. The resampling

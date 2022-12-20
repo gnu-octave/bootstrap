@@ -708,7 +708,7 @@ function [p, c, stats] = bootnhst (data, group, varargin)
   w = nk_bar./nk;
 
   % Prepare to make symmetrical bootstrap-t confidence intervals
-  [cdf,QS] = empcdf(Q,0);
+  [cdf,QS] = empcdf (Q, 0);
   
   % Compute resolution limit of the p-values as determined by resampling with nboot(1) resamples
   res = 1/nboot(1);
@@ -981,9 +981,9 @@ end
 
 %--------------------------------------------------------------------------
 
-function [F, x] = empcdf (bootstat, c)
+function [F, x] = empcdf (y, c)
 
-  % Subfunction to calculate empirical cumulative distribution function of bootstat
+  % Subfunction to calculate empirical cumulative distribution function
   %
   % Set c to:
   %  1 to have a complete distribution with F ranging from 0 to 1
@@ -992,25 +992,25 @@ function [F, x] = empcdf (bootstat, c)
   % Unlike ecdf, empcdf uses a denominator of N+1
 
   % Check input argument
-  if ~isa(bootstat,'numeric')
-    error('bootnhst:empcdf: BOOTSTAT must be numeric')
+  if ~isa(y,'numeric')
+    error ('bootknife:empcdf: y must be numeric');
   end
-  if all(size(bootstat)>1)
-    error('bootnhst:empcdf: BOOTSTAT must be a vector')
+  if all(size(y)>1)
+    error ('bootknife:empcdf: y must be a vector');
   end
-  if size(bootstat,2)>1
-    bootstat = bootstat.';
+  if size(y,2)>1
+    y = y.';
   end
 
   % Create empirical CDF
-  bootstat = sort(bootstat);
-  N = sum(~isnan(bootstat));
-  [x,F] = unique(bootstat,'last');
-  F = F/(N+1);
+  ys = sort (y);
+  N = sum (~isnan (ys));
+  [x, F] = unique (ys, 'last');
+  F = F / (N + 1);
 
   % Apply option to complete the CDF
   if c > 0
-    x = [x(1);x;x(end)];
+    x = [x(1); x; x(end)];
     F = [0;F;1];
   end
 

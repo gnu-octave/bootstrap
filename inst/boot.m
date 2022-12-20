@@ -1,4 +1,5 @@
-% Function file for generating bootstrap sample indices
+% Function file for generating balanced bootstrap sample indices or for 
+% generating balanced bootstrap resamples of a data vector
 %
 % USAGE
 % BOOTSAM = boot (N, NBOOT)

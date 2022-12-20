@@ -329,7 +329,7 @@ function [ci, bootstat, bootsam] = bootci (argin1, argin2, varargin)
       % Compute additive constant to stabilize the variance
       a = n^(-3/2) * stats.std_error; 
       % Calculate Studentized bootstrap statistics
-      ridx = isnan(bootstat); bootstat(ridx) = []; SE(ridx) = [];
+      ridx = isnan (bootstat); bootstat(ridx) = []; SE(ridx) = [];
       T = (bootstat - stats.original) ./ (SE + a);
       [cdf, T] = localfunc.empcdf (T, 1);
       % Calculate intervals from empirical distribution of the Studentized bootstrap statistics
@@ -366,9 +366,9 @@ end
 
 %--------------------------------------------------------------------------
 
-function [F, x] = empcdf (bootstat, c)
+function [F, x] = empcdf (y, c)
 
-  % Subfunction to calculate empirical cumulative distribution function of bootstat
+  % Subfunction to calculate empirical cumulative distribution function
   %
   % Set c to:
   %  1 to have a complete distribution with F ranging from 0 to 1
@@ -377,25 +377,25 @@ function [F, x] = empcdf (bootstat, c)
   % Unlike ecdf, empcdf uses a denominator of N+1
 
   % Check input argument
-  if ~isa(bootstat,'numeric')
-    error ('bootknife:empcdf: BOOTSTAT must be numeric');
+  if ~isa(y,'numeric')
+    error ('bootknife:empcdf: y must be numeric');
   end
-  if all(size(bootstat)>1)
-    error ('bootknife:empcdf: BOOTSTAT must be a vector');
+  if all(size(y)>1)
+    error ('bootknife:empcdf: y must be a vector');
   end
-  if size(bootstat,2)>1
-    bootstat = bootstat.';
+  if size(y,2)>1
+    y = y.';
   end
 
   % Create empirical CDF
-  bootstat = sort(bootstat);
-  N = sum(~isnan(bootstat));
-  [x,F] = unique(bootstat,'last');
-  F = F/(N+1);
+  ys = sort (y);
+  N = sum (~isnan (ys));
+  [x, F] = unique (ys, 'last');
+  F = F / (N + 1);
 
   % Apply option to complete the CDF
   if c > 0
-    x = [x(1);x;x(end)];
+    x = [x(1); x; x(end)];
     F = [0;F;1];
   end
 
@@ -609,11 +609,11 @@ end
 %! ## method             |   0.05 |   0.95 | length | shape |  
 %! ## -------------------|--------|--------|--------|-------|
 %! ## ci1 - normal       |  108.2 |  248.3 |  140.1 |  1.21 |
-%! ## ci2 - percentile   |   96.2 |  237.2 |  141.0 |  0.87 |
-%! ## ci3 - basic        |  105.8 |  246.8 |  141.0 |  1.14 |
-%! ## ci4 - BCa          |  115.3 |  263.3 |  148.0 |  1.63 |
-%! ## ci5 - bootstrap-t  |  111.0 |  295.2 |  184.2 |  2.04 |
-%! ## ci6 - calibrated   |  114.4 |  294.9 |  180.5 |  2.16 |
+%! ## ci2 - percentile   |   96.5 |  237.2 |  140.7 |  0.88 |
+%! ## ci3 - basic        |  105.9 |  246.6 |  140.7 |  1.14 |
+%! ## ci4 - BCa          |  115.5 |  262.7 |  147.2 |  1.63 |
+%! ## ci5 - bootstrap-t  |  108.8 |  296.0 |  187.2 |  1.99 |
+%! ## ci6 - calibrated   |  114.6 |  293.5 |  178.9 |  2.14 |
 %! ## -------------------|--------|--------|--------|-------|
 %! ## parametric - exact |  118.4 |  305.2 |  186.8 |  2.52 |
 %! ##
@@ -656,8 +656,8 @@ end
 %! ci = bootci(2000,{{@var,1},A},'alpha',0.1,'type','per','seed',1);
 %! if (isempty (regexp (which ('boot'), 'mex$')))
 %!   ## test boot m-file result
-%!   assert (ci(1), 95.32928994082839, 1e-09);
-%!   assert (ci(2), 238.4062130177514, 1e-09);
+%!   assert (ci(1), 95.24158837039771, 1e-09);
+%!   assert (ci(2), 237.7156378257705, 1e-09);
 %! end
 %!
 %! ## Nonparametric 90% BCa confidence intervals (single bootstrap)
@@ -665,16 +665,16 @@ end
 %! ci = bootci(2000,{{@var,1},A},'alpha',0.1,'type','bca','seed',1);
 %! if (isempty (regexp (which ('boot'), 'mex$')))
 %!   ## test boot m-file result
-%!   assert (ci(1), 112.9782684413938, 1e-09);
-%!   assert (ci(2), 265.6921865021881, 1e-09);
+%!   assert (ci(1), 113.2388308884533, 1e-09);
+%!   assert (ci(2), 264.9901439787903, 1e-09);
 %! end
 %!
 %! ## Nonparametric 90% bootstrap-t confidence intervals (double bootstrap)
-%! ci = bootci(2000,{{@var,1},A},'alpha',0.1,'type','stud','nbootstd',100,'seed',1);
+%! ci = bootci(2000,{{@var,1},A},'alpha',0.1,'type','stud','nbootstd',0,'seed',1);
 %! if (isempty (regexp (which ('boot'), 'mex$')))
 %!   ## test boot m-file result
-%!   assert (ci(1), 109.3907006307414, 1e-09);
-%!   assert (ci(2), 306.8096054314711, 1e-09);
+%!   assert (ci(1), 107.3717655320226, 1e-09);
+%!   assert (ci(2), 302.1935354455533, 1e-09);
 %! end
 %!
 %! ## Nonparametric 90% calibrated percentile confidence intervals (double bootstrap)
@@ -699,12 +699,11 @@ end
 %!
 %! ## Nonparametric 90% percentile confidence intervals (single bootstrap)
 %! ## Percentile intervals on page 266 are 0.524 - 0.928
-%! boot (1, 1, false, 1); # Set random seed
 %! ci = bootci(2000,{@corr,LSAT,GPA},'alpha',0.1,'type','per','seed',1);
 %! if (isempty (regexp (which ('boot'), 'mex$')))
 %!   ## test boot m-file result
-%!   assert (ci(1), 0.5010294986287188, 1e-09);
-%!   assert (ci(2), 0.9528636319119137, 1e-09);
+%!   assert (ci(1), 0.5056363801008389, 1e-09);
+%!   assert (ci(2), 0.9586254199016857, 1e-09);
 %! end
 %!
 %! ## Nonparametric 90% BCa confidence intervals (single bootstrap)
@@ -712,7 +711,7 @@ end
 %! ci = bootci(2000,{@corr,LSAT,GPA},'alpha',0.1,'type','bca','seed',1);
 %! if (isempty (regexp (which ('boot'), 'mex$')))
 %!   ## test boot m-file result
-%!   assert (ci(1), 0.403132023170199, 1e-09);
-%!   assert (ci(2), 0.92985747006633835, 1e-09);
+%!   assert (ci(1), 0.4119228032301603, 1e-09);
+%!   assert (ci(2), 0.9300646701004257, 1e-09);
 %! end
 %! ## Exact intervals based on normal theory are 0.47 - 0.86 (Table 14.2)
