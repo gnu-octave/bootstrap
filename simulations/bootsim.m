@@ -19,7 +19,7 @@ population_param = 0; % for mean
 %population_param = 1; % for variance
 
 % Define sample size
-n = 2;
+n = 4;
 
 % Define number of simulations
 sim = 1000;
