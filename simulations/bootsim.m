@@ -12,14 +12,16 @@ alpha = [0.025,0.975];
 
 % Function of the data
 func = @mean;
+%func = 'mean';
+%func = @(x) mean(x);
 %func = @(x) var(x,1);
 
 % Population parameter
-population_param = 0; % for mean
-%population_param = 1; % for variance
+%population_param = 0; % for mean
+population_param = 1; % for variance
 
 % Define sample size
-n = 4;
+n = 12;
 
 % Define number of simulations
 sim = 1000;
@@ -31,8 +33,8 @@ above = 0;
 below = 0;
 
 % Bootstrap resampling
-nboot = [2000,0];
-type = 'per';
+nboot = [2000,200];
+type = 'cal';
 
 % Print settings
 fprintf('----- BOOTSTRAP CONFIDENCE INTERVAL SIMULATION -----\n')
@@ -45,9 +47,9 @@ fprintf('Statistic: %s\n',char(func));
 fprintf('Alpha: %.3f\n',alpha);
 
 % Initialize simulation variables
-length = nan(sim,1);
-shape  = nan(sim,1);
-coverage  = nan(sim,1);
+length = nan (sim,1);
+shape  = nan (sim,1);
+coverage  = nan (sim,1);
 
 % Parallel processing
 ncpus = 4;
@@ -57,12 +59,13 @@ paropt = struct ('UseParallel', true, 'nproc', ncpus);
 for i=1:sim
 
   % Create random sample
-  x = randn(n,1);
+  %x = randn (n,1);
+  x = exp (randn (n,1));
 
   % Bootstrap confidence interval
-  %ci = bootci (nboot, {func,x}, 'alpha', alpha, 'type', type, 'Options', paropt, 'nbootstd', 0);
-  S  = bootknife (x, nboot, func, alpha, [], ncpus); ci = [S.CI_lower; S.CI_upper];
-  stat = func(x);
+  ci = bootci (nboot, {func,x}, 'alpha', alpha, 'type', type, 'Options', paropt, 'nbootstd', 0);
+  %S  = bootknife (x, nboot, func, alpha, [], ncpus); ci = [S.CI_lower; S.CI_upper];
+  stat = feval(func, x);
 
   % Coverage counter
   if population_param >= ci(1) && population_param <= ci(2)

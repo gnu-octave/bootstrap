@@ -197,6 +197,10 @@ function emmeans = bootemm (stats, dim, nboot, alpha, ncpus, seed)
       % No adjustment
       adj_alpha = alpha;
   end
+  % Check that the tail probabilities are > 0 and < 1
+  if ~ all (adj_alpha > 0 & adj_alpha < 1)
+    error ('bootknife: the sample size is too small for the specified ALPHA')
+  end
 
   % Perform bootstrap
   if nargout > 0
