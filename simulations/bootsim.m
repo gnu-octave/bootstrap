@@ -7,8 +7,8 @@ state = warning('query','all');
 warning('off','all');
 
 % Set significance level
-%alpha = 0.05;
-alpha = [0.025,0.975];
+alpha = 0.05;
+%alpha = [0.025,0.975];
 
 % Function of the data
 func = @mean;
@@ -21,7 +21,7 @@ func = @mean;
 population_param = 1; % for variance
 
 % Define sample size
-n = 12;
+n = 9;
 
 % Define number of simulations
 sim = 1000;
@@ -33,7 +33,7 @@ above = 0;
 below = 0;
 
 % Bootstrap resampling
-nboot = [2000,200];
+nboot = [2000,2000];
 type = 'cal';
 
 % Print settings
@@ -63,8 +63,8 @@ for i=1:sim
   x = exp (randn (n,1));
 
   % Bootstrap confidence interval
-  ci = bootci (nboot, {func,x}, 'alpha', alpha, 'type', type, 'Options', paropt, 'nbootstd', 0);
-  %S  = bootknife (x, nboot, func, alpha, [], ncpus); ci = [S.CI_lower; S.CI_upper];
+  %ci = bootci (nboot, {func,x}, 'alpha', alpha, 'type', type, 'Options', paropt, 'nbootstd', 0);
+  S  = bootknife (x, nboot, func, alpha, [], ncpus); ci = [S.CI_lower; S.CI_upper];
   stat = feval(func, x);
 
   % Coverage counter

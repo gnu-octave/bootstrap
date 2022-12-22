@@ -27,8 +27,7 @@
 %  [STATS, BOOTSTAT] = bootknife (...)
 %  [STATS, BOOTSTAT, BOOTSAM] = bootknife (...)
 %  bootknife (DATA,...);
-%  bootknife (DATA, [2000, 0], @mean, 0.05, [], 0)            % Defaults (single)
-%  bootknife (DATA, [2000, 200], @mean, [0.025,0.975], [], 0) % Defaults (double)
+%  bootknife (DATA, [2000, 0], @mean, 0.05, [], 0)    % Defailts
 %
 %  STATS = bootknife (DATA) resamples from the rows of a DATA sample (column 
 %  vector or a matrix) and returns a structure with the following fields:
@@ -106,21 +105,19 @@
 %
 %  - CALIBRATED PERCENTILE (equal-tailed): ALPHA must be a scalar value and
 %    NBOOT must be a vector of two positive, non-zero integers (for double
-%    bootstrap). The method used corresponds to the two-sided intervals in [6].
+%    bootstrap). The method used corresponds to the 2-sided intervals in [6].
 %    The confidence intervals are constructed by linear interpolation from the
 %    empirical distribution of the bootstrap statistics. 
 %
-%  - CALIBRATED PERCENTILE (not equal-tailed): ALPHA must be must be a pair of
+%  - CALIBRATED PERCENTILE (assymetric): ALPHA must be must be a pair of
 %    quantiles and NBOOT must be a vector of two positive, non-zero integers
-%    (for double bootstrap). The method used corresponds to the one-sided
+%    (for double bootstrap). The method used corresponds to the 1-sided
 %    (lower and upper) intervals in [6]. The confidence intervals are
 %    constructed by linear interpolation from the empirical distribution of
 %    the bootstrap statistics.
 %
 %  Confidence interval endpoints are not calculated when the value(s) of ALPHA
-%  is/are NaN. If empty (or not specified), the default value for ALPHA is 0.05
-%  when single bootstrap (for BCa intervals) and [0.025, 0.975] when double 
-%  bootstrap (for calibrated percentile endpoints). 
+%  is/are NaN. If empty (or not specified), the default value for ALPHA is 0.05.
 %
 %  STATS = bootknife (DATA, NBOOT, BOOTFUN, ALPHA, STRATA) also sets STRATA, 
 %  which are identifiers that define the grouping of the DATA rows
@@ -252,11 +249,7 @@ function [stats, bootstat, BOOTSAM] = bootknife (x, nboot, bootfun, alpha, strat
     error ('bootknife: DATA must contain more than one row');
   end
   if ((nargin < 4) || isempty (alpha))
-    if (nboot(2) > 0)
-      alpha = [0.025, 0.975];
-    else
-      alpha = 0.05;
-    end
+    alpha = 0.05;
   else
     if ~isa (alpha,'numeric') || numel (alpha) > 2
       error ('bootknife: ALPHA must be a scalar (two-tailed probability) or a vector (pair of quantiles)');
@@ -1087,8 +1080,8 @@ end
 %! ## ----------------------------|--------|--------|--------|-------|
 %! ## ci2  - percentile           |   96.3 |  237.0 |  140.7 |  0.87 |
 %! ## ci4  - BCa                  |  115.3 |  263.0 |  147.7 |  1.63 |
-%! ## ci6a - calibrated coverage  |   81.8 |  254.4 |  172.6 |  0.92 |
-%! ## ci6b - calibrated endpoints |  114.3 |  295.5 |  181.2 |  2.17 |
+%! ## ci6a - calibrated (2-sided) |   81.8 |  254.4 |  172.6 |  0.92 |
+%! ## ci6b - calibrated (1-sided) |  114.3 |  295.5 |  181.2 |  2.17 |
 %! ## ----------------------------|--------|--------|--------|-------|
 %! ## parametric - exact          |  118.4 |  305.2 |  186.8 |  2.52 |
 %! ##
@@ -1102,8 +1095,8 @@ end
 %! ## ---------------------|----------|--------|--------|--------|-------|
 %! ## percentile           |    81.8% |   1.3% |  16.9% |   0.80 |  0.92 |
 %! ## BCa                  |    87.3% |   4.2% |   8.5% |   0.86 |  1.85 |
-%! ## calibrated coverage  |    90.5% |   0.5% |   9.0% |   1.06 |  1.06 |
-%! ## calibrated endpoints |    90.7% |   5.1% |   4.2% |   1.13 |  2.73 |
+%! ## calibrated (2-sided) |    90.5% |   0.5% |   9.0% |   1.06 |  1.06 |
+%! ## calibrated (1-sided) |    90.7% |   5.1% |   4.2% |   1.13 |  2.73 |
 %! ## ---------------------|----------|--------|--------|--------|-------|
 %! ## parametric - exact   |    90.8% |   3.7% |   5.5% |   0.99 |  2.52 |
 %!
