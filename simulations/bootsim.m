@@ -17,11 +17,11 @@ func = @mean;
 %func = @(x) var(x,1);
 
 % Population parameter
-%population_param = 0; % for mean
-population_param = 1; % for variance
+population_param = 0; % for mean
+%population_param = 1; % for variance
 
 % Define sample size
-n = 9;
+n = 10;
 
 % Define number of simulations
 sim = 1000;
@@ -33,7 +33,7 @@ above = 0;
 below = 0;
 
 % Bootstrap resampling
-nboot = [2000,2000];
+nboot = [2000,500];
 type = 'cal';
 
 % Print settings
@@ -52,15 +52,15 @@ shape  = nan (sim,1);
 coverage  = nan (sim,1);
 
 % Parallel processing
-ncpus = 4;
+ncpus = 0;
 paropt = struct ('UseParallel', true, 'nproc', ncpus);
   
 % Start simulation
 for i=1:sim
 
   % Create random sample
-  %x = randn (n,1);
-  x = exp (randn (n,1));
+  x = randn (n,1);
+  %x = exp (randn (n,1));
 
   % Bootstrap confidence interval
   %ci = bootci (nboot, {func,x}, 'alpha', alpha, 'type', type, 'Options', paropt, 'nbootstd', 0);

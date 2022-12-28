@@ -144,10 +144,10 @@ function emmeans = bootemm (stats, dim, nboot, alpha, ncpus, seed)
   se = diag (W).^(-0.5);
   resid = stats.resid;   % weighted residuals
   dfe = stats.dfe;
+  n = numel (resid);
 
   % Prepare the hypothesis matrix (H)
   Nd = numel (dim);
-  n = numel (stats.resid);
   df = stats.df;
   i = 1 + cumsum(df);
   k = find (sum (stats.terms(:,dim), 2) == sum (stats.terms, 2));
@@ -170,48 +170,58 @@ function emmeans = bootemm (stats, dim, nboot, alpha, ncpus, seed)
   bootfun = @(r) H * lmfit (X, fitted + r .* se, W);
 
   % Perform adjustments to improve coverage for small samples
-  switch (numel (alpha))
-    case 1
-      % Expanded bias-corrected confidence intervals (recommended)
-      % Create distribution functions
-      stdnormcdf = @(x) 0.5 * (1 + erf (x / sqrt (2)));
-      % If bootfun is the mean, adjust alpha level to expand percentiles
-      % using Student's t-distribution for improved central coverage in
-      % when sample size is small
-      if exist('betaincinv','file')
-        studinv = @(p, df) - sqrt ( df ./ betaincinv (2 * p, df / 2, 0.5) - df);
-      else
-        % Earlier versions of matlab do not have betaincinv
-        % Instead, use betainv from the Statistics and Machine Learning Toolbox
-        try 
-          studinv = @(p, df) - sqrt ( df ./ betainv (2 * p, df / 2, 0.5) - df);
-        catch
-          % Use the Normal distribution (i.e. do not expand quantiles) if
-          % either betaincinv or betainv are not available
-          studinv = @(p,df) sqrt (2) * erfinv (2 * p-1);
-        end
-      end
-      adj_alpha = stdnormcdf (studinv (alpha / 2, stats.dfe)) * 2;
-    case 2
-      % Simple percentile confidence intervals (no adjustment)
-      % No adjustment
-      adj_alpha = alpha;
-  end
-  % Check that the tail probabilities are > 0 and < 1
-  if ~ all (adj_alpha > 0 & adj_alpha < 1)
-    error ('bootknife: the sample size is too small for the specified ALPHA')
-  end
+  nalpha = numel (alpha);
+  alpha = (3 - nalpha) * ExpandProbs (alpha / (3 - nalpha), dfe);
 
   % Perform bootstrap
   if nargout > 0
     warning ('off','bootknife:lastwarn')
-    emmeans = bootknife (resid, nboot, bootfun, adj_alpha, [], ncpus);
+    emmeans = bootknife (resid, nboot, bootfun, alpha, [], ncpus);
     warning ('on','bootknife:lastwarn')
   else
-    bootknife (resid, nboot, bootfun, adj_alpha, [], ncpus);
+    bootknife (resid, nboot, bootfun, alpha, [], ncpus);
   end
 
 end
+
+%--------------------------------------------------------------------------
+
+function PX = ExpandProbs (P, DF)
+
+  % Modify ALPHA to adjust tail probabilities assuming that the kurtosis of the
+  % sampling distribution scales with degrees of freedom like the t-distribution.
+  % This is related in concept to ExpandProbs in the resample R package:
+  % https://www.rdocumentation.org/packages/resample/versions/0.6/topics/ExpandProbs
+
+  % Get size of P
+  sz = size (P);
+
+  % Create required distribution functions
+  stdnormcdf = @(X) 0.5 * (1 + erf (X / sqrt (2)));
+  stdnorminv = @(P) sqrt (2) * erfinv (2 * P - 1);
+  if exist('betaincinv','file')
+    studinv = @(P, DF) sign (P - 0.5) * ...
+                       sqrt ( DF ./ betaincinv (2 * min (P, 1 - P), DF / 2, 0.5) - DF);
+  else
+    % Earlier versions of matlab do not have betaincinv
+    % Instead, use betainv from the Statistics and Machine Learning Toolbox
+    try 
+      studinv = @(P, DF) sign (P - 0.5) * ...
+                         sqrt ( DF ./ betainv (2 * min (P, 1 - P), DF / 2, 0.5) - DF);
+    catch
+      % Use the Normal distribution (i.e. do not expand quantiles) if
+      % either betaincinv or betainv are not available
+      studinv = @(P, DF) stdnorminv (P);
+      warning ('Could not create studinv function. Intervals will not be expanded.');
+    end
+  end
+ 
+  % Calculate statistics of the data
+  PX = stdnormcdf (arrayfun (studinv, P, repmat (DF, sz)));
+
+end
+
+%--------------------------------------------------------------------------
 
 %!demo
 %!

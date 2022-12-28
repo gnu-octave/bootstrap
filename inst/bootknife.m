@@ -8,13 +8,14 @@
 %  resampling [1], which involves creating leave-one-out jackknife samples
 %  of size n - 1 and then drawing samples of size n with replacement from the
 %  jackknife samples. The resampling of DATA rows is balanced in order to
-%  reduce Monte Carlo error [2,3]. By default, the bootstrap confidence
-%  intervals are bias-corrected and accelerated (BCa) [4-5]. BCa intervals are
-%  fast to compute and have good coverage and correctness when combined with
-%  bootknife resampling as it is here [1], but it may not have the intended
-%  coverage when sample size gets very small. If double bootstrap is requested,
-%  the algorithm uses calibration to improve the accuracy of the bias and
-%  standard error, and the coverage of the confidence intervals [6-9]. 
+%  reduce Monte Carlo error [2,3] and the confidence intervals are obtained
+%  from the quantiles of a kernel density estimate of bootstrap statistics (with
+%  shrinkage corrrection). By default, the confidence intervals are bias-
+%  corrected and accelerated (BCa) [4-5]. BCa intervals are fast to compute and
+%  have good coverage and correctness when combined with bootknife resampling
+%  as it is here [1]. If double bootstrap is requested, the algorithm uses
+%  calibration to improve the accuracy of the bias and standard error, and the
+%  coverage of the confidence intervals [6-10]. 
 %
 %  STATS = bootknife (DATA)
 %  STATS = bootknife (DATA, NBOOT)
@@ -27,17 +28,17 @@
 %  [STATS, BOOTSTAT] = bootknife (...)
 %  [STATS, BOOTSTAT, BOOTSAM] = bootknife (...)
 %  bootknife (DATA,...);
-%  bootknife (DATA, [2000, 0], @mean, 0.05, [], 0)    % Defailts
+%  bootknife (DATA, [2000, 0], @mean, 0.05, [], 0)    % Defaults
 %
 %  STATS = bootknife (DATA) resamples from the rows of a DATA sample (column 
 %  vector or a matrix) and returns a structure with the following fields:
 %    original: contains the result of applying BOOTFUN to the DATA 
-%    bias: contains the bootstrap estimate of bias [7-8]
+%    bias: contains the bootstrap estimate of bias [9-10]
 %    std_error: contains the bootstrap standard error
 %    CI_lower: contains the lower bound of the bootstrap confidence interval
 %    CI_upper: contains the upper bound of the bootstrap confidence interval
 %  By default, the statistics relate to BOOTFUN being @mean and the confidence
-%  intervals are 95% bias-corrected and accelerated (BCa) intervals [1,4-5,10].
+%  intervals are 95% bias-corrected and accelerated (BCa) intervals [1,4-5].
 %  If DATA is a cell array of column vectors, the vectors are passed to BOOTFUN
 %  as separate input arguments.
 %
@@ -57,10 +58,9 @@
 %  200]), since the algorithm uses linear interpolation to achieve near-
 %  asymptotic calibration of confidence intervals [3]. The confidence 
 %  intervals calculated (with either single or double bootstrap) are 
-%  transformation invariant and can have more accuracy and correctness 
+%  transformation invariant and can have better coverage and/or accuracy
 %  compared to intervals derived from normal theory or to simple percentile
-%  bootstrap confidence intervals. The intervals are constructed from a kernel
-%  density estimate of the bootstrap statistics.
+%  bootstrap confidence intervals.
 %
 %  STATS = bootknife (DATA, NBOOT, BOOTFUN) also specifies BOOTFUN, a function 
 %  handle, a string indicating the name of the function to apply to the DATA
@@ -68,12 +68,14 @@
 %  function handle or string, and other cells being additional input arguments 
 %  for BOOTFUN, where BOOTFUN must take DATA for the first input argument.
 %  BOOTFUN can return a scalar value or vector. The default value(s) of BOOTFUN 
-%  is/are the (column) mean(s). 
+%  is/are the (column) mean(s). When BOOTFUN is @mean or 'mean', residual 
+%  narrowness bias of central coverage is almost eliminated by using Student's 
+%  t-distribution to expand the nominal tail probabilities [11].
 %    Note that BOOTFUN must calculate a statistic representative of the 
 %  finite DATA sample, it should not be an unbiased estimate of a population 
 %  parameter. For example, for the variance, set BOOTFUN to {@var,1}, not 
 %  @var or {@var,0}. Smooth functions of the DATA are preferable, (e.g. use
-%  smoothmedian function instead of ordinary median). 
+%  smoothmedian function instead of the ordinary median). 
 %    If single bootstrap is requested and BOOTFUN cannot be executed during
 %  leave-one-out jackknife, the acceleration constant will be set to 0 and
 %  intervals will be bias-corrected only.
@@ -94,27 +96,20 @@
 %  combined settings of ALPHA and NBOOT:
 %
 %  - PERCENTILE: ALPHA must be a pair of quantiles and NBOOT must be a scalar
-%    value (or the second element in NBOOT must be zero). The confidence
-%    intervals are constructed from a smooth, kernel density estimate of the
-%    bootstrap statistics.
+%    value (or the second element in NBOOT must be zero).
 %
 %  - BIAS-CORRECTED AND ACCELERATED (BCa): ALPHA must be a scalar value and
 %    NBOOT must be a scalar value (or the second element in NBOOT must be zero).
-%    The confidence intervals are constructed from a smooth, kernel density
-%    estimate of the bootstrap statistics.
 %
-%  - CALIBRATED PERCENTILE (equal-tailed): ALPHA must be a scalar value and
-%    NBOOT must be a vector of two positive, non-zero integers (for double
-%    bootstrap). The method used corresponds to the 2-sided intervals in [6].
-%    The confidence intervals are constructed by linear interpolation from the
-%    empirical distribution of the bootstrap statistics. 
+%  - CALIBRATED PERCENTILE (symmetric, equal-tailed): ALPHA must be a scalar
+%    value and NBOOT must be a vector of two positive, non-zero integers (for
+%    double bootstrap). The method used corresponds to the 2-sided intervals in
+%    [6-8].
 %
-%  - CALIBRATED PERCENTILE (assymetric): ALPHA must be must be a pair of
+%  - CALIBRATED PERCENTILE (asymmetric): ALPHA must be must be a pair of
 %    quantiles and NBOOT must be a vector of two positive, non-zero integers
 %    (for double bootstrap). The method used corresponds to the 1-sided
-%    (lower and upper) intervals in [6]. The confidence intervals are
-%    constructed by linear interpolation from the empirical distribution of
-%    the bootstrap statistics.
+%    (lower and upper) intervals in [6-8].
 %
 %  Confidence interval endpoints are not calculated when the value(s) of ALPHA
 %  is/are NaN. If empty (or not specified), the default value for ALPHA is 0.05.
@@ -167,15 +162,21 @@
 %  [6] Hall, Lee and Young (2000) Importance of interpolation when
 %        constructing double-bootstrap confidence intervals. Journal
 %        of the Royal Statistical Society. Series B. 62(3): 479-491
-%  [7] Ouysee, R. (2011) Computationally efficient approximation for 
+%  [7] Lee and Young (􏰒1999) The e􏰚ect of Monte Carlo approximation on coverage
+%        error of double-bootstrap con®dence intervals. J R Statist Soc B. 
+%        61:353-366.
+%  [8] Booth J. and Presnell B. (1998) Allocation of Monte Carlo Resources for
+%        the Iterated Bootstrap. J. Comput. Graph. Stat. 7(1):92-112 
+%  [9] Ouysee, R. (2011) Computationally efficient approximation for 
 %        the double bootstrap mean bias correction. Economics Bulletin, 
 %        AccessEcon, vol. 31(3), pages 2388-2403.
-%  [8] Davison A.C. and Hinkley D.V (1997) Bootstrap Methods And Their 
+%  [10] Davison A.C. and Hinkley D.V (1997) Bootstrap Methods And Their 
 %        Application. Chapter 3, pg. 104
-%  [9] Booth J. and Presnell B. (1998) Allocation of Monte Carlo Resources for
-%        the Iterated Bootstrap. J. Comput. Graph. Stat. 7(1):92-112 
+%  [11] Hesterberg, Tim (2014), What Teachers Should Know about the 
+%        Bootstrap: Resampling in the Undergraduate Statistics Curriculum, 
+%        http://arxiv.org/abs/1411.5279
 %
-%  bootknife (version 2022.12.15)
+%  bootknife (version 2022.12.25)
 %  Author: Andrew Charles Penn
 %  https://www.researchgate.net/profile/Andrew_Penn/
 %
@@ -197,9 +198,10 @@
 function [stats, bootstat, BOOTSAM] = bootknife (x, nboot, bootfun, alpha, strata, ncpus, REF, ISOCTAVE, BOOTSAM)
 
   % Store local functions in a stucture for parallel processes
-  localfunc = struct ('col2args',@col2args,...
-                      'empcdf',@empcdf,...
-                      'kdeinv',@kdeinv);
+  localfunc = struct ('col2args',@col2args, ...
+                      'empcdf',@empcdf, ...
+                      'kdeinv',@kdeinv, ...
+                      'ExpandProbs',@ExpandProbs);
 
   % Set defaults and check for errors
   if (nargin < 1)
@@ -250,14 +252,16 @@ function [stats, bootstat, BOOTSAM] = bootknife (x, nboot, bootfun, alpha, strat
   end
   if ((nargin < 4) || isempty (alpha))
     alpha = 0.05;
+    nalpha = 1;
   else
-    if ~isa (alpha,'numeric') || numel (alpha) > 2
+    nalpha = numel (alpha);
+    if (~isa (alpha,'numeric') || nalpha > 2)
       error ('bootknife: ALPHA must be a scalar (two-tailed probability) or a vector (pair of quantiles)');
     end
     if any ((alpha < 0) | (alpha > 1))
       error ('bootknife: value(s) in ALPHA must be between 0 and 1');
     end
-    if numel(alpha) > 1
+    if (nalpha > 1)
       % alpha is a pair of quantiles
       % Make sure quantiles are in the correct order
       if alpha(1) > alpha(2) 
@@ -452,7 +456,7 @@ function [stats, bootstat, BOOTSAM] = bootknife (x, nboot, bootfun, alpha, strat
     end
     % Print output if no output arguments are requested
     if (nargout == 0) 
-      if (numel (alpha) > 1) && (C == 0)
+      if (nalpha > 1) && (C == 0)
         l = alpha;
       end
       print_output (stats, B, C, alpha, l, m, bootfun_str);
@@ -484,6 +488,7 @@ function [stats, bootstat, BOOTSAM] = bootknife (x, nboot, bootfun, alpha, strat
     nk = sum(g).';          % strata sample sizes
   else 
     g = ones(n,1);
+    K = 1;
   end
 
   % Perform balanced bootknife resampling
@@ -615,26 +620,24 @@ function [stats, bootstat, BOOTSAM] = bootknife (x, nboot, bootfun, alpha, strat
     V = cell2mat(arrayfun(@(S) S.std_error^2, bootout, 'UniformOutput', false));
     se = sqrt (var (bootstat)^2 / mean (V));
     % Double bootstrap confidence intervals
-    if ~isnan(alpha)
+    if ~isnan (alpha)
       U = cell2mat(arrayfun(@(S) S.Pr, bootout, 'UniformOutput', false));
       % Calibrate tail probabilities
-      switch (numel (alpha))
+      switch (nalpha)
         case 1
           % alpha is a two-tailed probability (scalar)
-          % Calibrate central coverage and construct equal-tailed intervals
+          % Calibrate central coverage and construct equal-tailed intervals (2-sided)
           [cdf, v] = localfunc.empcdf (abs (2 * U - 1), 1);
           vk = interp1 (cdf, v, 1 - alpha, 'linear');
           l = arrayfun (@(sign) 0.5 * (1 + sign * vk), [-1, 1]);
-          l = max (l, 0); l = min (l, 1);
         case 2
           % alpha is a pair of quantiles (vector)
-          % Calibrate coverage but construct endpoints separately
+          % Calibrate coverage but construct endpoints separately (1-sided)
           [cdf, u] = localfunc.empcdf (U, 1);
           l = arrayfun ( @(p) interp1 (cdf, u, p, 'linear'), alpha);
       end
       % Calibrated percentile bootstrap confidence intervals
-      [cdf, t1] = localfunc.empcdf (bootstat, 1);
-      ci = arrayfun ( @(p) interp1 (cdf, t1, p, 'linear'), l);
+      ci = localfunc.kdeinv (l, bootstat, se * sqrt (1 / (n - K)), 1 - 1 / (n - K));
     else
       ci = nan (1, 2);
     end
@@ -645,6 +648,10 @@ function [stats, bootstat, BOOTSAM] = bootknife (x, nboot, bootfun, alpha, strat
     % Bootstrap standard error
     se = std (bootstat);
     if ~isnan(alpha)
+      % If bootfun is the arithmetic meam, perform expansion based on t-distribution
+      if (strcmp (func2str (bootfun), 'mean'))
+        alpha = (3 - nalpha) * localfunc.ExpandProbs (alpha / (3 - nalpha), n - K);
+      end
       state = warning;
       if ISOCTAVE
         warning ('on', 'quiet');
@@ -654,7 +661,7 @@ function [stats, bootstat, BOOTSAM] = bootknife (x, nboot, bootfun, alpha, strat
       % Create distribution functions
       stdnormcdf = @(x) 0.5 * (1 + erf (x / sqrt (2)));
       stdnorminv = @(p) sqrt (2) * erfinv (2 * p-1);
-      switch (numel (alpha))
+      switch (nalpha)
         case 1
           % Attempt to form bias-corrected and accelerated (BCa) bootstrap confidence intervals. 
           % Use the Jackknife to calculate the acceleration constant (a)
@@ -697,7 +704,7 @@ function [stats, bootstat, BOOTSAM] = bootknife (x, nboot, bootfun, alpha, strat
             a = 0; 
             l = [alpha / 2, 1 - alpha / 2];
           end
-          if isempty(l)
+          if (isempty (l))
             % Calculate BCa or BC percentiles
             z1 = stdnorminv (alpha / 2);
             z2 = stdnorminv (1 - alpha / 2);
@@ -709,7 +716,7 @@ function [stats, bootstat, BOOTSAM] = bootknife (x, nboot, bootfun, alpha, strat
           l = alpha;
       end
       % Intervals constructed from kernel density estimate of the bootstrap statistics
-      ci = localfunc.kdeinv (l, bootstat, se * sqrt (1 / (n - 1)), 1 - 1 / (n - 1));
+      ci = localfunc.kdeinv (l, bootstat, se * sqrt (1 / (n - K)), 1 - 1 / (n - K));
       warning (state);
       if ISOCTAVE
         warning ('off', 'quiet');
@@ -718,8 +725,8 @@ function [stats, bootstat, BOOTSAM] = bootknife (x, nboot, bootfun, alpha, strat
       ci = nan (1, 2);
     end
   end
-  ci(alpha == 0) = -inf;
-  ci(alpha == 1) = +inf;
+  ci(l == 0) = -inf; 
+  ci(l == 1) = +inf;
 
   % Use quick interpolation to find the proportion (Pr) of bootstat <= REF
   if (nargin < 7)
@@ -779,14 +786,15 @@ function print_output (stats, B, C, alpha, l, m, bootfun_str)
     fprintf (' Number of resamples (outer): %u \n', B);
     fprintf (' Number of resamples (inner): %u \n', C);
     if ~isempty(alpha) && ~all(isnan(alpha))
+      nalpha = numel (alpha);
       if (C > 0)
-        if (numel (alpha) > 1)
-          fprintf (' Confidence interval type: Calibrated percentile (endpoints)\n');
+        if (nalpha > 1)
+          fprintf (' Confidence interval type: Calibrated percentile (asymmetric, 1-sided)\n');
         else
-          fprintf (' Confidence interval type: Calibrated percentile (central coverage)\n');
+          fprintf (' Confidence interval type: Calibrated percentile (symmetric, 2-sided)\n');
         end
       else
-        if (numel (alpha) > 1)
+        if (nalpha > 1)
           fprintf (' Confidence interval type: Percentile \n');
         else
           [jnk, warnID] = lastwarn;
@@ -800,7 +808,7 @@ function print_output (stats, B, C, alpha, l, m, bootfun_str)
           end
         end
       end
-      if (numel (alpha) > 1)
+      if (nalpha > 1)
         % alpha is a vector of quantiles
         coverage = 100*abs(alpha(2)-alpha(1));
       else
@@ -863,6 +871,11 @@ function [F, x] = empcdf (y, c)
     y = y.';
   end
 
+  % Set defaults for optional input arguments
+  if (nargin < 2)
+    c = 1;
+  end
+
   % Create empirical CDF
   ys = sort (y);
   N = sum (~isnan (ys));
@@ -894,6 +907,11 @@ function X = kdeinv (P, Y, BW, CF)
   % BW evaluated at the values in P. CF is a shrinkage factor for the variance
   % of the data in Y
 
+  % Set defaults for optional input arguments
+  if (nargin < 4)
+    CF = 1;
+  end
+
   % Create Normal CDF function
   pnorm = @(X, MU, SD) (0.5 * (1 + erf ((X - MU) / (SD * sqrt (2)))));
 
@@ -912,6 +930,43 @@ function X = kdeinv (P, Y, BW, CF)
   % Perform root finding to get quantiles of the KDE at values of P
   findroot = @(X0, P) fzero (@(X) sum (pnorm (X - Y, 0, BW)) / N - P, X0);
   X = arrayfun (findroot, X0, P);
+
+end
+
+%--------------------------------------------------------------------------
+
+function PX = ExpandProbs (P, DF)
+
+  % Modify ALPHA to adjust tail probabilities assuming that the kurtosis of the
+  % sampling distribution scales with degrees of freedom like the t-distribution.
+  % This is related in concept to ExpandProbs in the resample R package:
+  % https://www.rdocumentation.org/packages/resample/versions/0.6/topics/ExpandProbs
+
+  % Get size of P
+  sz = size (P);
+
+  % Create required distribution functions
+  stdnormcdf = @(X) 0.5 * (1 + erf (X / sqrt (2)));
+  stdnorminv = @(P) sqrt (2) * erfinv (2 * P - 1);
+  if exist('betaincinv','file')
+    studinv = @(P, DF) sign (P - 0.5) * ...
+                       sqrt ( DF ./ betaincinv (2 * min (P, 1 - P), DF / 2, 0.5) - DF);
+  else
+    % Earlier versions of matlab do not have betaincinv
+    % Instead, use betainv from the Statistics and Machine Learning Toolbox
+    try 
+      studinv = @(P, DF) sign (P - 0.5) * ...
+                         sqrt ( DF ./ betainv (2 * min (P, 1 - P), DF / 2, 0.5) - DF);
+    catch
+      % Use the Normal distribution (i.e. do not expand quantiles) if
+      % either betaincinv or betainv are not available
+      studinv = @(P, DF) stdnorminv (P);
+      warning ('Could not create studinv function. Intervals will not be expanded.');
+    end
+  end
+ 
+  % Calculate statistics of the data
+  PX = stdnormcdf (arrayfun (studinv, P, repmat (DF, sz)));
 
 end
 
@@ -975,7 +1030,7 @@ end
 %!         0 33 28 34 4 32 24 47 41 24 26 30 41]';
 %!
 %! ## 90% calibrated percentile bootstrap confidence intervals for the variance
-%! ## Calibration of central coverage by specifying two-tailed probability
+%! ## Calibration of central coverage (2-sided)
 %! bootknife (data, [2000, 200], {@var, 1}, 0.1);
 %!
 %! ## Please be patient, the calculations will be completed soon...
@@ -987,7 +1042,7 @@ end
 %!         0 33 28 34 4 32 24 47 41 24 26 30 41]';
 %!
 %! ## 90% calibrated percentile bootstrap confidence intervals for the variance
-%! ## Calibration of interval endpoints by specifying quantiles
+%! ## Calibration of central coverage (1-sided)
 %! bootknife (data, [2000, 200], {@var, 1}, [0.05, 0.95]);
 %!
 %! ## Please be patient, the calculations will be completed soon...
@@ -1151,7 +1206,7 @@ end
 %!   assert (stats.CI_upper, 264.9901439787903, 1e-09);
 %! end
 %!
-%! ## Nonparametric 90% calibrated percentile confidence intervals (coverage)
+%! ## Nonparametric 90% calibrated percentile confidence intervals (2-sided)
 %! boot (1, 1, false, 1); # Set random seed
 %! stats = bootknife(A,[2000,200],{@var,1},0.1);
 %! if (isempty (regexp (which ('boot'), 'mex$')))
@@ -1159,11 +1214,11 @@ end
 %!   assert (stats.original, 171.534023668639, 1e-09);
 %!   assert (stats.bias, -8.088193809171344, 1e-09);
 %!   assert (stats.std_error, 46.53418481731099, 1e-09);
-%!   assert (stats.CI_lower, 79.46067430166357, 1e-09);
-%!   assert (stats.CI_upper, 260.9171292390822, 1e-09);
+%!   assert (stats.CI_lower, 78.7080103220452, 1e-09);
+%!   assert (stats.CI_upper, 260.8289943527518, 1e-09);
 %! end
 %!
-%! ## Nonparametric 90% calibrated percentile confidence intervals (endpoints)
+%! ## Nonparametric 90% calibrated percentile confidence intervals (1-sided)
 %! boot (1, 1, false, 1); # Set random seed
 %! stats = bootknife(A,[2000,200],{@var,1},[0.05,0.95]);
 %! if (isempty (regexp (which ('boot'), 'mex$')))
@@ -1171,8 +1226,8 @@ end
 %!   assert (stats.original, 171.534023668639, 1e-09);
 %!   assert (stats.bias, -8.088193809171344, 1e-09);
 %!   assert (stats.std_error, 46.53418481731099, 1e-09);
-%!   assert (stats.CI_lower, 110.6138073406352, 1e-09);
-%!   assert (stats.CI_upper, 305.1908284023669, 1e-09);
+%!   assert (stats.CI_lower, 110.7774121402538, 1e-09);
+%!   assert (stats.CI_upper, 303.7824606292835, 1e-09);
 %! end
 %!
 %! ## Exact intervals based on normal theory are 118.4 - 305.2 (Table 14.2)

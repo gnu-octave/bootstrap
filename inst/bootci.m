@@ -289,12 +289,10 @@ function [ci, bootstat, bootsam] = bootci (argin1, argin2, varargin)
     case 'basic'
       % The basic bootstrap method.
       % Center bootstrap statistics
-      [stats, bootstat, bootsam] = bootknife (data, nboot, bootfun, NaN, [], ncpus);
-      T = bootstat - stats.original;
-      [cdf, T] = localfunc.empcdf (T, 1);
-      % Calculate intervals from empirical distribution of the centered bootstrap statistics
-      tmp = arrayfun ( @(p) stats.original - interp1 (cdf, T, p, 'linear'), alpha);
-      stats.CI_upper = tmp(1); stats.CI_lower = tmp(2);
+      [stats, bootstat, bootsam] = bootknife (data, nboot, bootfun, alpha, [], ncpus);
+      tmp = [2 * stats.original - stats.CI_upper, ...
+             2 * stats.original - stats.CI_lower];
+      stats.CI_lower = tmp(1); stats.CI_upper = tmp(2);
 
     case {'stud','student'}
       % Use bootstrap-t method with variance stabilization for small samples
@@ -681,8 +679,8 @@ end
 %! ci = bootci(2000,{{@var,1},A},'alpha',0.1,'type','cal','nbootcal',200,'seed',1);
 %! if (isempty (regexp (which ('boot'), 'mex$')))
 %!   ## test boot m-file result
-%!   assert (ci(1), 110.6138073406352, 1e-09);
-%!   assert (ci(2), 305.1908284023669, 1e-09);
+%!   assert (ci(1), 110.7774121402538, 1e-09);
+%!   assert (ci(2), 303.7824606292835, 1e-09);
 %! end
 %!
 %! ## Exact intervals based on normal theory are 118.4 - 305.2 (Table 14.2)
