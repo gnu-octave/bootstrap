@@ -198,10 +198,10 @@
 function [stats, bootstat, BOOTSAM] = bootknife (x, nboot, bootfun, alpha, strata, ncpus, REF, ISOCTAVE, BOOTSAM)
 
   % Store local functions in a stucture for parallel processes
-  localfunc = struct ('col2args',@col2args, ...
-                      'empcdf',@empcdf, ...
-                      'kdeinv',@kdeinv, ...
-                      'ExpandProbs',@ExpandProbs);
+  localfunc = struct ('col2args', @col2args, ...
+                      'empcdf', @empcdf, ...
+                      'kdeinv', @kdeinv, ...
+                      'ExpandProbs', @ExpandProbs);
 
   % Set defaults and check for errors
   if (nargin < 1)
@@ -228,7 +228,7 @@ function [stats, bootstat, BOOTSAM] = bootknife (x, nboot, bootfun, alpha, strat
   else
     if iscell(bootfun)
       func = bootfun{1};
-      args = bootfun(2:end);
+      args = bootfun (2:end);
       bootfun = @(x) func (x, args{:});
     end
     if ischar (bootfun)
@@ -240,7 +240,7 @@ function [stats, bootstat, BOOTSAM] = bootknife (x, nboot, bootfun, alpha, strat
     end
   end
   % Store bootfun as string for printing output at the end
-  bootfun_str = func2str(bootfun);
+  bootfun_str = func2str (bootfun);
   if iscell(x)
     % If DATA is a cell array of equal size colunmn vectors, convert the cell
     % array to a matrix and redefine bootfun to parse multiple input arguments
@@ -296,9 +296,9 @@ function [stats, bootstat, BOOTSAM] = bootknife (x, nboot, bootfun, alpha, strat
     ISOCTAVE = any (ismember ({info.Name}, 'Octave'));
   end
   if ISOCTAVE
-    ncpus = min(ncpus, nproc);
+    ncpus = min (ncpus, nproc);
   else
-    ncpus = min(ncpus, feature('numcores'));
+    ncpus = min (ncpus, feature('numcores'));
   end
 
   % Determine properties of the DATA (x)
@@ -345,11 +345,11 @@ function [stats, bootstat, BOOTSAM] = bootknife (x, nboot, bootfun, alpha, strat
     if ISOCTAVE  
       pat = '^parallel';
       software = pkg('list');
-      names = cellfun(@(S) S.name, software, 'UniformOutput', false);
-      status = cellfun(@(S) S.loaded, software, 'UniformOutput', false);
-      index = find(~cellfun(@isempty,regexpi(names,pat)));
+      names = cellfun (@(S) S.name, software, 'UniformOutput', false);
+      status = cellfun (@(S) S.loaded, software, 'UniformOutput', false);
+      index = find (~cellfun(@isempty,regexpi(names,pat)));
       if ~isempty(index)
-        if logical(status{index})
+        if logical (status{index})
           PARALLEL = true;
         else
           PARALLEL = false;
@@ -429,11 +429,11 @@ function [stats, bootstat, BOOTSAM] = bootknife (x, nboot, bootfun, alpha, strat
     end
     % Use bootknife for each element of the output of bootfun
     % Note that row indices in the resamples are the same for all columns of DATA
-    stats = struct ('original',zeros(sz),...
-                    'bias',zeros(sz),...
-                    'std_error',zeros(sz),...
-                    'CI_lower',zeros(sz),...
-                    'CI_upper',zeros(sz));
+    stats = struct ('original', zeros(sz),...
+                    'bias', zeros(sz),...
+                    'std_error', zeros(sz),...
+                    'CI_lower', zeros(sz),...
+                    'CI_upper', zeros(sz));
     bootstat = zeros (m, B);
     if vectorized
       for j = 1:m
@@ -573,7 +573,7 @@ function [stats, bootstat, BOOTSAM] = bootknife (x, nboot, bootfun, alpha, strat
       if ISOCTAVE
         % OCTAVE
         % Set unique random seed for each parallel thread
-        pararrayfun(ncpus, @boot, 1, 1, false, 1:ncpus);
+        pararrayfun (ncpus, @boot, 1, 1, false, 1:ncpus);
         if vectorized && isempty(BOOTSAM)
           cellfunc = @(x) bootknife (x, C, bootfun, NaN, strata, 0, T0, ISOCTAVE);
           bootout = parcellfun (ncpus, cellfunc, num2cell (X,1));
@@ -617,11 +617,11 @@ function [stats, bootstat, BOOTSAM] = bootknife (x, nboot, bootfun, alpha, strat
     c = mean (mu) - 2 * mean (bootstat) + T0;
     bias = b - c;
     % Double bootstrap multiplicative correction of the standard error
-    V = cell2mat(arrayfun(@(S) S.std_error^2, bootout, 'UniformOutput', false));
+    V = cell2mat (arrayfun(@(S) S.std_error^2, bootout, 'UniformOutput', false));
     se = sqrt (var (bootstat)^2 / mean (V));
     % Double bootstrap confidence intervals
     if ~isnan (alpha)
-      U = cell2mat(arrayfun(@(S) S.Pr, bootout, 'UniformOutput', false));
+      U = cell2mat (arrayfun(@(S) S.Pr, bootout, 'UniformOutput', false));
       % Calibrate tail probabilities
       switch (nalpha)
         case 1
@@ -647,7 +647,7 @@ function [stats, bootstat, BOOTSAM] = bootknife (x, nboot, bootfun, alpha, strat
     bias = mean (bootstat) - T0;
     % Bootstrap standard error
     se = std (bootstat);
-    if ~isnan(alpha)
+    if (~ isnan (alpha))
       % If bootfun is the arithmetic meam, perform expansion based on t-distribution
       if (strcmp (func2str (bootfun), 'mean'))
         alpha = (3 - nalpha) * localfunc.ExpandProbs (alpha / (3 - nalpha), n - K);
@@ -737,8 +737,8 @@ function [stats, bootstat, BOOTSAM] = bootknife (x, nboot, bootfun, alpha, strat
     else
       I = (bootstat <= REF);
       pr = sum (I);
-      t = [max([min(bootstat), max(bootstat(I))]),...
-           min([max(bootstat), min(bootstat(~I))])];
+      t = [max ([min (bootstat), max (bootstat(I))]),...
+           min ([max (bootstat), min (bootstat(~I))])];
       if (pr < B) && ((t(2) - t(1)) > 0)
         % Linear interpolation to calculate Pr, which is required to calibrate alpha and improving confidence interval coverage 
         Pr = ((t(2) - REF) * pr / B + (REF - t(1)) * min ((pr + 1) / B, 1)) / (t(2) - t(1));

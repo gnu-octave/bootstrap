@@ -11,17 +11,17 @@ alpha = 0.05;
 %alpha = [0.025,0.975];
 
 % Function of the data
-func = @mean;
+%func = @mean;
 %func = 'mean';
 %func = @(x) mean(x);
-%func = @(x) var(x,1);
+func = @(x) var(x,1);
 
 % Population parameter
-population_param = 0; % for mean
-%population_param = 1; % for variance
+%population_param = 0; % for mean
+population_param = 1; % for variance
 
 % Define sample size
-n = 10;
+n = 20;
 
 % Define number of simulations
 sim = 1000;
@@ -52,7 +52,7 @@ shape  = nan (sim,1);
 coverage  = nan (sim,1);
 
 % Parallel processing
-ncpus = 0;
+ncpus = 4;
 paropt = struct ('UseParallel', true, 'nproc', ncpus);
   
 % Start simulation
