@@ -15,7 +15,7 @@
 %  have good coverage and correctness when combined with bootknife resampling
 %  as it is here [1]. If double bootstrap is requested, the algorithm uses
 %  calibration to improve the accuracy of the bias and standard error, and the
-%  coverage of the confidence intervals [6-10]. 
+%  coverage of the confidence intervals [6-11]. 
 %
 %  STATS = bootknife (DATA)
 %  STATS = bootknife (DATA, NBOOT)
@@ -33,7 +33,7 @@
 %  STATS = bootknife (DATA) resamples from the rows of a DATA sample (column 
 %  vector or a matrix) and returns a structure with the following fields:
 %    original: contains the result of applying BOOTFUN to the DATA 
-%    bias: contains the bootstrap estimate of bias [9-10]
+%    bias: contains the bootstrap estimate of bias [10-11]
 %    std_error: contains the bootstrap standard error
 %    CI_lower: contains the lower bound of the bootstrap confidence interval
 %    CI_upper: contains the upper bound of the bootstrap confidence interval
@@ -70,7 +70,7 @@
 %  BOOTFUN can return a scalar value or vector. The default value(s) of BOOTFUN 
 %  is/are the (column) mean(s). When BOOTFUN is @mean or 'mean', residual 
 %  narrowness bias of central coverage is almost eliminated by using Student's 
-%  t-distribution to expand the nominal tail probabilities [11].
+%  t-distribution to expand the nominal tail probabilities [12].
 %    Note that BOOTFUN must calculate a statistic representative of the 
 %  finite DATA sample, it should not be an unbiased estimate of a population 
 %  parameter. For example, for the variance, set BOOTFUN to {@var,1}, not 
@@ -84,19 +84,19 @@
 %  sets the lower and upper bounds of the confidence interval(s). The value(s)
 %  of ALPHA must be between 0 and 1. ALPHA can either be:
 %
-%  1) a scalar value to set the (nominal) central coverage to 100*(1-ALPHA)%
-%  with (nominal) lower and upper percentiles of the confidence intervals at
-%  100*(ALPHA/2)% and 100*(1-ALPHA/2)% respectively, or
+%  1) a scalar value to set the (nominal) central coverage (e.g. .05) to
+%  100*(1-ALPHA)% with (nominal) lower and upper percentiles of the confidence
+%  intervals at 100*(ALPHA/2)% and 100*(1-ALPHA/2)% respectively, or
 %
-%  2) a vector containing a pair of quantiles to set the (nominal) lower and
-%  upper percentiles of the confidence interval(s) at 100*(ALPHA(1))% and
-%  100*(ALPHA(2))%.
+%  2) a vector containing a pair of probabilities (e.g. [.025, .975]) to set
+%  the (nominal) lower and upper percentiles of the confidence interval(s) at
+%  100*(ALPHA(1))% and 100*(ALPHA(2))%.
 %
 %  The method for constructing confidence intervals is determined by the
 %  combined settings of ALPHA and NBOOT:
 %
-%  - PERCENTILE: ALPHA must be a pair of quantiles and NBOOT must be a scalar
-%    value (or the second element in NBOOT must be zero).
+%  - PERCENTILE: ALPHA must be a pair of probabilities and NBOOT must be a
+%    scalar value (or the second element in NBOOT must be zero).
 %
 %  - BIAS-CORRECTED AND ACCELERATED (BCa): ALPHA must be a scalar value and
 %    NBOOT must be a scalar value (or the second element in NBOOT must be zero).
@@ -104,12 +104,12 @@
 %  - CALIBRATED PERCENTILE (symmetric, equal-tailed): ALPHA must be a scalar
 %    value and NBOOT must be a vector of two positive, non-zero integers (for
 %    double bootstrap). The method used corresponds to the 2-sided intervals in
-%    [6-8].
+%    [7,9].
 %
 %  - CALIBRATED PERCENTILE (asymmetric): ALPHA must be must be a pair of
-%    quantiles and NBOOT must be a vector of two positive, non-zero integers
-%    (for double bootstrap). The method used corresponds to the 1-sided
-%    (lower and upper) intervals in [6-8].
+%    probabilities and NBOOT must be a vector of two positive, non-zero integers
+%    (for double bootstrap). The method used corresponds to the 1-sided (lower
+%    and upper) intervals in [7,9].
 %
 %  Confidence interval endpoints are not calculated when the value(s) of ALPHA
 %  is/are NaN. If empty (or not specified), the default value for ALPHA is 0.05.
@@ -159,20 +159,22 @@
 %        82(397): 171-185 
 %  [5] Efron, and Tibshirani (1993) An Introduction to the
 %        Bootstrap. New York, NY: Chapman & Hall
-%  [6] Hall, Lee and Young (2000) Importance of interpolation when
-%        constructing double-bootstrap confidence intervals. Journal
-%        of the Royal Statistical Society. Series B. 62(3): 479-491
-%  [7] Lee and Young (􏰒1999) The e􏰚ect of Monte Carlo approximation on coverage
+%  [6] Beran (1987). Prepivoting to Reduce Level Error of Confidence Sets.
+%        Biometrika, 74(3), 457–468.
+%  [7] Lee and Young (􏰒1999) The e􏰚ffect of Monte Carlo approximation on coverage
 %        error of double-bootstrap con®dence intervals. J R Statist Soc B. 
 %        61:353-366.
 %  [8] Booth J. and Presnell B. (1998) Allocation of Monte Carlo Resources for
 %        the Iterated Bootstrap. J. Comput. Graph. Stat. 7(1):92-112 
-%  [9] Ouysee, R. (2011) Computationally efficient approximation for 
+%  [9] Hall, Lee and Young (2000) Importance of interpolation when
+%        constructing double-bootstrap confidence intervals. Journal
+%        of the Royal Statistical Society. Series B. 62(3): 479-491
+%  [10] Ouysee, R. (2011) Computationally efficient approximation for 
 %        the double bootstrap mean bias correction. Economics Bulletin, 
 %        AccessEcon, vol. 31(3), pages 2388-2403.
-%  [10] Davison A.C. and Hinkley D.V (1997) Bootstrap Methods And Their 
+%  [11] Davison A.C. and Hinkley D.V (1997) Bootstrap Methods And Their 
 %        Application. Chapter 3, pg. 104
-%  [11] Hesterberg, Tim (2014), What Teachers Should Know about the 
+%  [12] Hesterberg, Tim (2014), What Teachers Should Know about the 
 %        Bootstrap: Resampling in the Undergraduate Statistics Curriculum, 
 %        http://arxiv.org/abs/1411.5279
 %
@@ -586,12 +588,12 @@ function [stats, bootstat, BOOTSAM] = bootknife (x, nboot, bootfun, alpha, strat
         % Set unique random seed for each parallel thread
         parfor i = 1:ncpus; boot (1, 1, false, i); end
         % Perform inner layer of resampling
-        bootout = struct ('original', zeros(1,B),...
-                          'bias', zeros(1,B),...
-                          'std_error', zeros(1,B),...
-                          'CI_lower', zeros(1,B),...
-                          'CI_upper', zeros(1,B),...
-                          'Pr', zeros(1,B));
+        bootout = struct ('original', zeros (1,B),...
+                          'bias', zeros (1,B),...
+                          'std_error', zeros (1,B),...
+                          'CI_lower', zeros (1,B),...
+                          'CI_upper', zeros (1,B),...
+                          'Pr', zeros (1,B));
         if vectorized && isempty(BOOTSAM)
           cellfunc = @(x) bootknife (x, C, bootfun, NaN, strata, 0, T0, ISOCTAVE);
           parfor b = 1:B; bootout(b) = cellfunc (X(:,b)); end
@@ -611,17 +613,17 @@ function [stats, bootstat, BOOTSAM] = bootknife (x, nboot, bootfun, alpha, strat
       end
     end
     % Double bootstrap bias estimation
-    mu = cell2mat(arrayfun(@(S) S.bias, bootout, 'UniformOutput', false)) + ...
-         cell2mat(arrayfun(@(S) S.original, bootout, 'UniformOutput', false));
+    mu = cell2mat (arrayfun (@(S) S.bias, bootout, 'UniformOutput', false)) + ...
+         cell2mat (arrayfun (@(S) S.original, bootout, 'UniformOutput', false));
     b = mean (bootstat) - T0;
     c = mean (mu) - 2 * mean (bootstat) + T0;
     bias = b - c;
     % Double bootstrap multiplicative correction of the standard error
-    V = cell2mat (arrayfun(@(S) S.std_error^2, bootout, 'UniformOutput', false));
+    V = cell2mat (arrayfun (@(S) S.std_error^2, bootout, 'UniformOutput', false));
     se = sqrt (var (bootstat)^2 / mean (V));
     % Double bootstrap confidence intervals
-    if ~isnan (alpha)
-      U = cell2mat (arrayfun(@(S) S.Pr, bootout, 'UniformOutput', false));
+    if (~ isnan (alpha))
+      U = cell2mat (arrayfun (@(S) S.Pr, bootout, 'UniformOutput', false));
       % Calibrate tail probabilities
       switch (nalpha)
         case 1
@@ -697,7 +699,7 @@ function [stats, bootstat, BOOTSAM] = bootknife (x, nboot, bootfun, alpha, strat
           % Calculate the bias correction constant (z0)
           % Calculate the median bias correction z0
           z0 = stdnorminv (sum (bootstat < T0) / B);
-          if isinf (z0) || isnan (z0)
+          if (isinf (z0) || isnan (z0))
             % Revert to percentile bootstrap confidence intervals
             warning ('bootknife:biasfail','unable to calculate the bias correction constant, reverting to percentile intervals\n');
             z0 = 0;
@@ -755,7 +757,7 @@ function [stats, bootstat, BOOTSAM] = bootknife (x, nboot, bootfun, alpha, strat
   stats.std_error = se;
   stats.CI_lower = ci(1);
   stats.CI_upper = ci(2);
-  if ~isnan(Pr)
+  if (~ isnan (Pr))
     stats.Pr = Pr;
   end
   
@@ -785,7 +787,7 @@ function print_output (stats, B, C, alpha, l, m, bootfun_str)
     fprintf (' Resampling method: Balanced, bootknife resampling \n');
     fprintf (' Number of resamples (outer): %u \n', B);
     fprintf (' Number of resamples (inner): %u \n', C);
-    if ~isempty(alpha) && ~all(isnan(alpha))
+    if (~ isempty (alpha) && ~ all (isnan (alpha)))
       nalpha = numel (alpha);
       if (C > 0)
         if (nalpha > 1)
@@ -878,7 +880,7 @@ function [F, x] = empcdf (y, c)
 
   % Create empirical CDF
   ys = sort (y);
-  N = sum (~isnan (ys));
+  N = sum (~ isnan (ys));
   [x, F] = unique (ys, 'last');
   F = F / (N + 1);
 
@@ -889,10 +891,10 @@ function [F, x] = empcdf (y, c)
   end
 
   % Remove impossible values
-  F(isnan(x)) = [];
-  x(isnan(x)) = [];
-  F(isinf(x)) = [];
-  x(isinf(x)) = [];
+  F(isnan (x)) = [];
+  x(isnan (x)) = [];
+  F(isinf (x)) = [];
+  x(isinf (x)) = [];
 
 end
 
