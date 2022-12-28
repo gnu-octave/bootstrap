@@ -737,8 +737,8 @@ function [stats, bootstat, BOOTSAM] = bootknife (x, nboot, bootfun, alpha, strat
     else
       I = (bootstat <= REF);
       pr = sum (I);
-      t = [max ([min (bootstat), max (bootstat(I))]),...
-           min ([max (bootstat), min (bootstat(~I))])];
+      t = [max([min(bootstat), max(bootstat(I))]),...
+           min([max(bootstat), min(bootstat(~I))])];
       if (pr < B) && ((t(2) - t(1)) > 0)
         % Linear interpolation to calculate Pr, which is required to calibrate alpha and improving confidence interval coverage 
         Pr = ((t(2) - REF) * pr / B + (REF - t(1)) * min ((pr + 1) / B, 1)) / (t(2) - t(1));
