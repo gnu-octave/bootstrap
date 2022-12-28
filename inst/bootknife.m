@@ -258,16 +258,16 @@ function [stats, bootstat, BOOTSAM] = bootknife (x, nboot, bootfun, alpha, strat
   else
     nalpha = numel (alpha);
     if (~isa (alpha,'numeric') || nalpha > 2)
-      error ('bootknife: ALPHA must be a scalar (two-tailed probability) or a vector (pair of quantiles)');
+      error ('bootknife: ALPHA must be a scalar (two-tailed probability) or a vector (pair of probabilities)');
     end
     if any ((alpha < 0) | (alpha > 1))
       error ('bootknife: value(s) in ALPHA must be between 0 and 1');
     end
     if (nalpha > 1)
-      % alpha is a pair of quantiles
-      % Make sure quantiles are in the correct order
+      % alpha is a pair of probabilities
+      % Make sure probabilities are in the correct order
       if alpha(1) > alpha(2) 
-        error ('bootknife: the pair of quantiles must be in ascending numeric order');
+        error ('bootknife: the pair of probabilities must be in ascending numeric order');
       end
     end
   end
@@ -339,7 +339,7 @@ function [stats, bootstat, BOOTSAM] = bootknife (x, nboot, bootfun, alpha, strat
     vectorized = false;
   end
 
-  % Initialize quantiles
+  % Initialize probabilities
   l = [];
 
   % If applicable, check we have parallel computing capabilities
@@ -633,7 +633,7 @@ function [stats, bootstat, BOOTSAM] = bootknife (x, nboot, bootfun, alpha, strat
           vk = interp1 (cdf, v, 1 - alpha, 'linear');
           l = arrayfun (@(sign) 0.5 * (1 + sign * vk), [-1, 1]);
         case 2
-          % alpha is a pair of quantiles (vector)
+          % alpha is a pair of probabilities (vector)
           % Calibrate coverage but construct endpoints separately (1-sided)
           [cdf, u] = localfunc.empcdf (U, 1);
           l = arrayfun ( @(p) interp1 (cdf, u, p, 'linear'), alpha);
@@ -714,7 +714,7 @@ function [stats, bootstat, BOOTSAM] = bootknife (x, nboot, bootfun, alpha, strat
                         stdnormcdf (z0 + ((z0 + z2) / (1 - a * (z0 + z2)))));
           end
         case 2
-          % alpha is a vector of quantiles
+          % alpha is a vector of probabilities
           l = alpha;
       end
       % Intervals constructed from kernel density estimate of the bootstrap statistics
@@ -811,7 +811,7 @@ function print_output (stats, B, C, alpha, l, m, bootfun_str)
         end
       end
       if (nalpha > 1)
-        % alpha is a vector of quantiles
+        % alpha is a vector of probabilities
         coverage = 100*abs(alpha(2)-alpha(1));
       else
         % alpha is a two-tailed probability
@@ -960,7 +960,7 @@ function PX = ExpandProbs (P, DF)
       studinv = @(P, DF) sign (P - 0.5) * ...
                          sqrt ( DF ./ betainv (2 * min (P, 1 - P), DF / 2, 0.5) - DF);
     catch
-      % Use the Normal distribution (i.e. do not expand quantiles) if
+      % Use the Normal distribution (i.e. do not expand probabilities) if
       % either betaincinv or betainv are not available
       studinv = @(P, DF) stdnorminv (P);
       warning ('Could not create studinv function. Intervals will not be expanded.');

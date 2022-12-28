@@ -46,7 +46,7 @@
 %  are expanded [5] and bias-corrected [4] to improve central coverage and
 %  accuracy.
 %
-%  2) a vector containing a pair of quantiles to set the (nominal) lower and
+%  2) a vector containing a pair of probabilities to set the (nominal) lower and
 %  upper percentiles of the confidence interval(s) at 100*(ALPHA(1))% and
 %  100*(ALPHA(2))%. The intervals constructed are simple percentile intervals.
 %
@@ -184,7 +184,7 @@ function PX = ExpandProbs (P, DF)
       studinv = @(P, DF) sign (P - 0.5) * ...
                          sqrt ( DF ./ betainv (2 * min (P, 1 - P), DF / 2, 0.5) - DF);
     catch
-      % Use the Normal distribution (i.e. do not expand quantiles) if
+      % Use the Normal distribution (i.e. do not expand probabilities) if
       % either betaincinv or betainv are not available
       studinv = @(P, DF) stdnorminv (P);
       warning ('Could not create studinv function. Intervals will not be expanded.');
