@@ -28,7 +28,8 @@
 %  [STATS, BOOTSTAT] = bootknife (...)
 %  [STATS, BOOTSTAT, BOOTSAM] = bootknife (...)
 %  bootknife (DATA,...);
-%  bootknife (DATA, [2000, 0], @mean, 0.05, [], 0)    % Defaults
+%  bootknife (DATA, [2000, 0], @mean, 0.05, [], 0)            % Defaults (single)
+%  bootknife (DATA, [2000, 200], @mean, [0.025,0.975], [], 0) % Defaults (double)
 %
 %  STATS = bootknife (DATA) resamples from the rows of a DATA sample (column 
 %  vector or a matrix) and returns a structure with the following fields:
@@ -109,10 +110,14 @@
 %  - CALIBRATED PERCENTILE (asymmetric): ALPHA must be must be a pair of
 %    probabilities and NBOOT must be a vector of two positive, non-zero integers
 %    (for double bootstrap). The method used corresponds to the 1-sided (lower
-%    and upper) intervals in [7,9].
+%    and upper) intervals in [7-9] and is equivalent to the confidence point
+%    calibration in algorithm 18.1 in [5].
 %
 %  Confidence interval endpoints are not calculated when the value(s) of ALPHA
-%  is/are NaN. If empty (or not specified), the default value for ALPHA is 0.05.
+%  is/are NaN. If empty (or not specified), the default value of ALPHA is 0.05
+%  for single bootstrap (i.e. 95% BCa intervals), or [0.025, 0.975] for double 
+%  bootstrap (i.e. 95% calibrated intervals, with 2.5% and 97.5% confidence
+%  point calibration). 
 %
 %  STATS = bootknife (DATA, NBOOT, BOOTFUN, ALPHA, STRATA) also sets STRATA, 
 %  which are identifiers that define the grouping of the DATA rows
@@ -253,8 +258,13 @@ function [stats, bootstat, BOOTSAM] = bootknife (x, nboot, bootfun, alpha, strat
     error ('bootknife: DATA must contain more than one row');
   end
   if ((nargin < 4) || isempty (alpha))
-    alpha = 0.05;
-    nalpha = 1;
+    if (nboot(2) > 0)
+      alpha = [0.025, 0.975];
+      nalpha = 2;
+    else
+      alpha = 0.05;
+      nalpha = 1;
+    end
   else
     nalpha = numel (alpha);
     if (~isa (alpha,'numeric') || nalpha > 2)
@@ -635,6 +645,7 @@ function [stats, bootstat, BOOTSAM] = bootknife (x, nboot, bootfun, alpha, strat
         case 2
           % alpha is a pair of probabilities (vector)
           % Calibrate coverage but construct endpoints separately (1-sided)
+          % This is equivalent to algorithm 18.1 in Efron, and Tibshirani (1993)
           [cdf, u] = localfunc.empcdf (U, 1);
           l = arrayfun ( @(p) interp1 (cdf, u, p, 'linear'), alpha);
       end
