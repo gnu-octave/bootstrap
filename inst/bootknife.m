@@ -111,7 +111,7 @@
 %    probabilities and NBOOT must be a vector of two positive, non-zero integers
 %    (for double bootstrap). The method used corresponds to the 1-sided (lower
 %    and upper) intervals in [7-9] and is equivalent to the confidence point
-%    calibration in algorithm 18.1 in [5].
+%    calibration of algorithm 18.1 in [5].
 %
 %  Confidence interval endpoints are not calculated when the value(s) of ALPHA
 %  is/are NaN. If empty (or not specified), the default value of ALPHA is 0.05
