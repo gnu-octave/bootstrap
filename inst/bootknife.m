@@ -61,7 +61,7 @@
 %  intervals calculated (with either single or double bootstrap) are 
 %  transformation invariant and can have better coverage and/or accuracy
 %  compared to intervals derived from normal theory or to simple percentile
-%  bootstrap confidence intervals.
+%  bootstrap confidence intervals [5,7,9].
 %
 %  STATS = bootknife (DATA, NBOOT, BOOTFUN) also specifies BOOTFUN, a function 
 %  handle, a string indicating the name of the function to apply to the DATA
@@ -202,7 +202,12 @@
 %  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-function [stats, bootstat, BOOTSAM] = bootknife (x, nboot, bootfun, alpha, strata, ncpus, REF, ISOCTAVE, BOOTSAM)
+function [stats, bootstat, BOOTSAM] = bootknife (x, nboot, bootfun, alpha, ...
+                              strata, ncpus, REF, ISOCTAVE, BOOTSAM, ERRCHK)
+
+  % Input argument names in all-caps are for internal use only
+  % REF, ISOCTAVE, BOOTSAM, ERRCHK are undocumented input arguments required
+  % for some of the functionalities of bootknife
 
   % Store local functions in a stucture for parallel processes
   localfunc = struct ('col2args', @col2args, ...
@@ -210,107 +215,108 @@ function [stats, bootstat, BOOTSAM] = bootknife (x, nboot, bootfun, alpha, strat
                       'kdeinv', @kdeinv, ...
                       'ExpandProbs', @ExpandProbs);
 
-  % Set defaults and check for errors
-  if (nargin < 1)
-    error ('bootknife: DATA must be provided');
-  end
-  if ((nargin < 2) || isempty(nboot))
-    nboot = [2000, 0];
-  else
-    if ~isa (nboot, 'numeric')
-      error ('bootknife: NBOOT must be numeric');
+  % Set defaults and check for errors (if applicable)
+  if ((nargin < 10) || ERRCHK || isempty (ERRCHK))
+    if (nargin < 1)
+      error ('bootknife: DATA must be provided');
     end
-    if (numel (nboot) > 2)
-      error ('bootknife: NBOOT cannot contain more than 2 values');
-    end
-    if any (nboot ~= abs (fix (nboot)))
-      error ('bootknife: NBOOT must contain positive integers');
-    end    
-    if (numel(nboot) == 1)
-      nboot = [nboot, 0];
-    end
-  end
-  if ((nargin < 3) || isempty(bootfun))
-    bootfun = @mean;
-  else
-    if iscell(bootfun)
-      func = bootfun{1};
-      args = bootfun (2:end);
-      bootfun = @(x) func (x, args{:});
-    end
-    if ischar (bootfun)
-      % Convert character string of a function name to a function handle
-      bootfun = str2func (bootfun);
-    end
-    if ~isa (bootfun, 'function_handle')
-      error ('bootknife: BOOTFUN must be a function name or function handle');
-    end
-  end
-  % Store bootfun as string for printing output at the end
-  bootfun_str = func2str (bootfun);
-  if iscell(x)
-    % If DATA is a cell array of equal size colunmn vectors, convert the cell
-    % array to a matrix and redefine bootfun to parse multiple input arguments
-    x = [x{:}];
-    bootfun = @(x) localfunc.col2args(bootfun, x);
-  end
-  if ~(size(x, 1) > 1)
-    error ('bootknife: DATA must contain more than one row');
-  end
-  if ((nargin < 4) || isempty (alpha))
-    if (nboot(2) > 0)
-      alpha = [0.025, 0.975];
-      nalpha = 2;
+    if ((nargin < 2) || isempty(nboot))
+      nboot = [2000, 0];
     else
-      alpha = 0.05;
-      nalpha = 1;
-    end
-  else
-    nalpha = numel (alpha);
-    if (~isa (alpha,'numeric') || nalpha > 2)
-      error ('bootknife: ALPHA must be a scalar (two-tailed probability) or a vector (pair of probabilities)');
-    end
-    if any ((alpha < 0) | (alpha > 1))
-      error ('bootknife: value(s) in ALPHA must be between 0 and 1');
-    end
-    if (nalpha > 1)
-      % alpha is a pair of probabilities
-      % Make sure probabilities are in the correct order
-      if alpha(1) > alpha(2) 
-        error ('bootknife: the pair of probabilities must be in ascending numeric order');
+      if (~ isa (nboot, 'numeric'))
+        error ('bootknife: NBOOT must be numeric');
+      end
+      if (numel (nboot) > 2)
+        error ('bootknife: NBOOT cannot contain more than 2 values');
+      end
+      if (any (nboot ~= abs (fix (nboot))))
+        error ('bootknife: NBOOT must contain positive integers');
+      end    
+      if (numel(nboot) == 1)
+        nboot = [nboot, 0];
       end
     end
-  end
-  if ((nargin < 5) || isempty (strata))
-    strata = [];
-  else  
-    if size (strata, 1) ~= size (x, 1)
-      error ('bootknife: STRATA should be a column vector or cell array with the same number of rows as the DATA');
+    if ((nargin < 3) || isempty (bootfun))
+      bootfun = @mean;
+    else
+      if (iscell (bootfun))
+        func = bootfun{1};
+        args = bootfun (2:end);
+        bootfun = @(x) func (x, args{:});
+      end
+      if (ischar (bootfun))
+        % Convert character string of a function name to a function handle
+        bootfun = str2func (bootfun);
+      end
+      if (~ isa (bootfun, 'function_handle'))
+        error ('bootknife: BOOTFUN must be a function name or function handle');
+      end
     end
-  end
-  if ((nargin < 6) || isempty (ncpus)) 
-    ncpus = 0;    % Ignore parallel processing features
-  else
-    if ~isa (ncpus, 'numeric')
-      error('bootknife: NPROC must be numeric');
+    % Store bootfun as string for printing output at the end
+    bootfun_str = func2str (bootfun);
+    if (iscell (x))
+      % If DATA is a cell array of equal size colunmn vectors, convert the cell
+      % array to a matrix and redefine bootfun to parse multiple input arguments
+      x = [x{:}];
+      bootfun = @(x) localfunc.col2args(bootfun, x);
     end
-    if any (ncpus ~= abs (fix (ncpus)))
-      error ('bootknife: NPROC must be a positive integer');
-    end    
-    if (numel (ncpus) > 1)
-      error ('bootknife: NPROC must be a scalar value');
+    if (~ (size(x, 1) > 1))
+      error ('bootknife: DATA must contain more than one row');
     end
-  end
-  % REF, ISOCTAVE and BOOTSAM are undocumented input arguments required for some of the functionalities of bootknife
-  if (nargin < 8)
-    % Check if running in Octave (else assume Matlab)
-    info = ver; 
-    ISOCTAVE = any (ismember ({info.Name}, 'Octave'));
-  end
-  if ISOCTAVE
-    ncpus = min (ncpus, nproc);
-  else
-    ncpus = min (ncpus, feature('numcores'));
+    if ((nargin < 4) || isempty (alpha))
+      if (nboot(2) > 0)
+        alpha = [0.025, 0.975];
+        nalpha = 2;
+      else
+        alpha = 0.05;
+        nalpha = 1;
+      end
+    else
+      nalpha = numel (alpha);
+      if (~isa (alpha,'numeric') || nalpha > 2)
+        error ('bootknife: ALPHA must be a scalar (two-tailed probability) or a vector (pair of probabilities)');
+      end
+      if any ((alpha < 0) | (alpha > 1))
+        error ('bootknife: value(s) in ALPHA must be between 0 and 1');
+      end
+      if (nalpha > 1)
+        % alpha is a pair of probabilities
+        % Make sure probabilities are in the correct order
+        if alpha(1) > alpha(2) 
+          error ('bootknife: the pair of probabilities must be in ascending numeric order');
+        end
+      end
+    end
+    if ((nargin < 5) || isempty (strata))
+      strata = [];
+    else  
+      if (size (strata, 1) ~= size (x, 1))
+        error ('bootknife: STRATA should be a column vector or cell array with the same number of rows as the DATA');
+      end
+    end
+    if ((nargin < 6) || isempty (ncpus)) 
+      ncpus = 0;    % Ignore parallel processing features
+    else
+      if ~isa (ncpus, 'numeric')
+        error('bootknife: NPROC must be numeric');
+      end
+      if any (ncpus ~= abs (fix (ncpus)))
+        error ('bootknife: NPROC must be a positive integer');
+      end    
+      if (numel (ncpus) > 1)
+        error ('bootknife: NPROC must be a scalar value');
+      end
+    end
+    if ((nargin < 8) || isempty (ISOCTAVE))
+      % Check if running in Octave (else assume Matlab)
+      info = ver; 
+      ISOCTAVE = any (ismember ({info.Name}, 'Octave'));
+    end
+    if ISOCTAVE
+      ncpus = min (ncpus, nproc);
+    else
+      ncpus = min (ncpus, feature ('numcores'));
+    end
   end
 
   % Determine properties of the DATA (x)
@@ -322,7 +328,7 @@ function [stats, bootstat, BOOTSAM] = bootknife (x, nboot, bootfun, alpha, strat
   % Set number of outer and inner bootknife resamples
   B = nboot(1);
   if (numel (nboot) > 1)
-    C =  nboot(2);
+    C = nboot(2);
   else
     C = 0;
   end
@@ -450,9 +456,9 @@ function [stats, bootstat, BOOTSAM] = bootknife (x, nboot, bootfun, alpha, strat
     if vectorized
       for j = 1:m
         if j > 1
-          [stats(j), bootstat(j,:)] = bootknife (x(:,j), nboot, bootfun, alpha, strata, ncpus, [], ISOCTAVE, BOOTSAM);
+          [stats(j), bootstat(j,:)] = bootknife (x(:,j), nboot, bootfun, alpha, strata, ncpus, [], ISOCTAVE, BOOTSAM, false);
         else
-          [stats(j), bootstat(j,:), BOOTSAM] = bootknife (x(:,j), nboot, bootfun, alpha, strata, ncpus, [], ISOCTAVE);
+          [stats(j), bootstat(j,:), BOOTSAM] = bootknife (x(:,j), nboot, bootfun, alpha, strata, ncpus, [], ISOCTAVE, [], false);
         end
       end
     else
@@ -460,9 +466,9 @@ function [stats, bootstat, BOOTSAM] = bootknife (x, nboot, bootfun, alpha, strat
         out = @(t) t(j);
         func = @(x) out (bootfun (x));
         if j > 1
-          [stats(j), bootstat(j,:)] = bootknife (x, nboot, func, alpha, strata, ncpus, [], ISOCTAVE, BOOTSAM);
+          [stats(j), bootstat(j,:)] = bootknife (x, nboot, func, alpha, strata, ncpus, [], ISOCTAVE, BOOTSAM, false);
         else
-          [stats(j), bootstat(j,:), BOOTSAM] = bootknife (x, nboot, func, alpha, strata, ncpus, [], ISOCTAVE);
+          [stats(j), bootstat(j,:), BOOTSAM] = bootknife (x, nboot, func, alpha, strata, ncpus, [], ISOCTAVE, false);
         end
       end
     end
@@ -483,7 +489,7 @@ function [stats, bootstat, BOOTSAM] = bootknife (x, nboot, bootfun, alpha, strat
   end
 
   % Evaluate strata input argument
-  if ~isempty (strata)
+  if (~ isempty (strata))
     if ~isnumeric (strata)
       % Convert strata to numeric ID
       [jnk1, jnk2, strata] = unique (strata);
@@ -504,7 +510,7 @@ function [stats, bootstat, BOOTSAM] = bootknife (x, nboot, bootfun, alpha, strat
   end
 
   % Perform balanced bootknife resampling
-  if nargin < 9
+  if ((nargin < 9) || isempty (BOOTSAM))
     if ~isempty (strata)
       if (nvar > 1) || (nargout > 2)
         % If we need BOOTSAM, can save some memory by making BOOTSAM an int32 datatype
@@ -532,7 +538,7 @@ function [stats, bootstat, BOOTSAM] = bootknife (x, nboot, bootfun, alpha, strat
       end
     end
   end
-  if isempty(BOOTSAM)
+  if (isempty (BOOTSAM))
     if vectorized
       % Vectorized evaluation of bootfun on the DATA resamples
       bootstat = bootfun (X);
@@ -578,7 +584,7 @@ function [stats, bootstat, BOOTSAM] = bootknife (x, nboot, bootfun, alpha, strat
   end
 
   % Calculate the bootstrap bias, standard error and confidence intervals 
-  if C > 0
+  if (C > 0)
     %%%%%%%%%%%%%%%%%%%%%%%%%%% DOUBLE BOOTSTRAP %%%%%%%%%%%%%%%%%%%%%%%%%%%
     if (ncpus > 1)
       % PARALLEL execution of inner layer resampling for double (i.e. iterated) bootstrap
@@ -587,10 +593,10 @@ function [stats, bootstat, BOOTSAM] = bootknife (x, nboot, bootfun, alpha, strat
         % Set unique random seed for each parallel thread
         pararrayfun (ncpus, @boot, 1, 1, false, 1:ncpus);
         if vectorized && isempty(BOOTSAM)
-          cellfunc = @(x) bootknife (x, C, bootfun, NaN, strata, 0, T0, ISOCTAVE);
+          cellfunc = @(x) bootknife (x, C, bootfun, NaN, strata, 0, T0, ISOCTAVE, [], false);
           bootout = parcellfun (ncpus, cellfunc, num2cell (X,1));
         else
-          cellfunc = @(BOOTSAM) bootknife (x(BOOTSAM,:), C, bootfun, NaN, strata, 0, T0, ISOCTAVE);
+          cellfunc = @(BOOTSAM) bootknife (x(BOOTSAM,:), C, bootfun, NaN, strata, 0, T0, ISOCTAVE, [], false);
           bootout = parcellfun (ncpus, cellfunc, num2cell (BOOTSAM,1));
         end
       else
@@ -605,20 +611,20 @@ function [stats, bootstat, BOOTSAM] = bootknife (x, nboot, bootfun, alpha, strat
                           'CI_upper', zeros (1,B),...
                           'Pr', zeros (1,B));
         if vectorized && isempty(BOOTSAM)
-          cellfunc = @(x) bootknife (x, C, bootfun, NaN, strata, 0, T0, ISOCTAVE);
+          cellfunc = @(x) bootknife (x, C, bootfun, NaN, strata, 0, T0, ISOCTAVE, [], false);
           parfor b = 1:B; bootout(b) = cellfunc (X(:,b)); end
         else
-          cellfunc = @(BOOTSAM) bootknife (x(BOOTSAM,:), C, bootfun, NaN, strata, 0, T0, ISOCTAVE);
+          cellfunc = @(BOOTSAM) bootknife (x(BOOTSAM,:), C, bootfun, NaN, strata, 0, T0, ISOCTAVE, [], false);
           parfor b = 1:B; bootout(b) = cellfunc (BOOTSAM(:,b)); end
         end
       end
     else
       % SERIAL execution of inner layer resampling for double bootstrap
       if vectorized && isempty(BOOTSAM)
-        cellfunc = @(x) bootknife (x, C, bootfun, NaN, strata, 0, T0, ISOCTAVE);
+        cellfunc = @(x) bootknife (x, C, bootfun, NaN, strata, 0, T0, ISOCTAVE, [], false);
         bootout = cellfun (cellfunc, num2cell (X,1));
       else
-        cellfunc = @(BOOTSAM) bootknife (x(BOOTSAM,:), C, bootfun, NaN, strata, 0, T0, ISOCTAVE);
+        cellfunc = @(BOOTSAM) bootknife (x(BOOTSAM,:), C, bootfun, NaN, strata, 0, T0, ISOCTAVE, [], false);
         bootout = cellfun (cellfunc, num2cell (BOOTSAM,1));
       end
     end
@@ -742,7 +748,7 @@ function [stats, bootstat, BOOTSAM] = bootknife (x, nboot, bootfun, alpha, strat
   ci(l == 1) = +inf;
 
   % Use quick interpolation to find the proportion (Pr) of bootstat <= REF
-  if (nargin < 7)
+  if ((nargin < 7) || isempty (REF))
     Pr = NaN;
   else
     if isempty(REF)
@@ -823,12 +829,12 @@ function print_output (stats, B, C, alpha, l, m, bootfun_str)
       end
       if (nalpha > 1)
         % alpha is a vector of probabilities
-        coverage = 100*abs(alpha(2)-alpha(1));
+        coverage = 100 * abs (alpha(2) - alpha(1));
       else
         % alpha is a two-tailed probability
-        coverage = 100*(1-alpha);
+        coverage = 100 * (1 - alpha);
       end
-      if isempty (l)
+      if (isempty (l))
         fprintf (' Confidence interval coverage: %.3g%%\n\n',coverage);
       else
         fprintf (' Confidence interval coverage: %.3g%% (%.1f%%, %.1f%%)\n\n',coverage,100*l);
