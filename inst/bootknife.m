@@ -68,18 +68,18 @@
 %  (and each bootstrap resample), or a cell array where the first cell is the 
 %  function handle or string, and other cells being additional input arguments 
 %  for BOOTFUN, where BOOTFUN must take DATA for the first input argument.
-%  BOOTFUN can return a scalar value or vector. The default value(s) of BOOTFUN 
-%  is/are the (column) mean(s). When BOOTFUN is @mean or 'mean', residual 
-%  narrowness bias of central coverage is almost eliminated by using Student's 
-%  t-distribution to expand the nominal tail probabilities [12].
-%    Note that BOOTFUN must calculate a statistic representative of the 
-%  finite DATA sample, it should not be an unbiased estimate of a population 
-%  parameter. For example, for the variance, set BOOTFUN to {@var,1}, not 
-%  @var or {@var,0}. Smooth functions of the DATA are preferable, (e.g. use
-%  smoothmedian function instead of the ordinary median). 
-%    If single bootstrap is requested and BOOTFUN cannot be executed during
-%  leave-one-out jackknife, the acceleration constant will be set to 0 and
-%  intervals will be bias-corrected only.
+%  BOOTFUN can return a scalar value or vector. BOOTFUN must calculate a
+%  statistic representative of the finite DATA sample, it should not be an
+%  unbiased estimate of a population parameter. For example, for the variance,
+%  set BOOTFUN to {@var,1}, not @var or {@var,0}. Smooth functions of the DATA
+%  are preferable, (e.g. use smoothmedian function instead of the ordinary
+%  median). The default value(s) of BOOTFUN is/are the (column) mean(s).
+%    When BOOTFUN is @mean or 'mean', residual narrowness bias of central
+%  coverage is almost eliminated by using Student's t-distribution to expand
+%  the nominal tail probabilities [12].
+%    Note that if single bootstrap is requested and BOOTFUN cannot be executed
+%  during leave-one-out jackknife, the acceleration constant will be set to 0
+%  and intervals will be bias-corrected only.
 %
 %  STATS = bootknife (DATA, NBOOT, BOOTFUN, ALPHA) where ALPHA is numeric and
 %  sets the lower and upper bounds of the confidence interval(s). The value(s)
@@ -216,7 +216,7 @@ function [stats, bootstat, BOOTSAM] = bootknife (x, nboot, bootfun, alpha, ...
                       'ExpandProbs', @ExpandProbs);
 
   % Set defaults and check for errors (if applicable)
-  if ((nargin < 10) || ERRCHK || isempty (ERRCHK))
+  if ((nargin < 10) || isempty (ERRCHK) || ERRCHK)
     if (nargin < 1)
       error ('bootknife: DATA must be provided');
     end
@@ -701,7 +701,7 @@ function [stats, bootstat, BOOTSAM] = bootknife (x, nboot, bootfun, alpha, ...
               T = arrayfun (jackfun, 1:n);
             end
             % Calculate empirical influence function
-            if ~isempty(strata)
+            if (~ isempty(strata))
               gk = sum (g .* repmat (sum (g), n, 1), 2).';
               U = (gk - 1) .* (mean (T) - T);   
             else
