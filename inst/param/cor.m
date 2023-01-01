@@ -1,6 +1,6 @@
 %  Function file: cor
 %
-%  RHO = cor (X, Y, TYPE)
+%  RHO = cor (X, Y)
 %
 %  If X and Y are column vectors, a scalar value is returned represnting the 
 %  correlation coefficient RHO. If X and Y are matrices, then RHO will be a
@@ -52,20 +52,6 @@ function RHO = cor (X, Y, TYPE)
   end
   if (numel (sz) > 2)
     error ('cor: arrays of more than 2 dimensions are not supported')
-  end
-
-  % If TYPE is Spearman, convert X and Y to ranks
-  if (nargin < 3)
-    TYPE = 'Pearson';
-  end
-  switch (lower (TYPE))
-  case {'spearman', 'spearmans'}
-    for i = 1:sz(2)
-      X(:,i) = tiedrank (X(:,i));
-      Y(:,i) = tiedrank (Y(:,i));
-    end
-  case {'pearson', 'pearsons'}
-    % Do nothing
   end
 
   % Calculate correlation coefficient
