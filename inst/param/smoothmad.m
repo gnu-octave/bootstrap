@@ -1,7 +1,5 @@
 %  Function file: smoothmad
 %
-%  Function file: smoothmad
-%
 %  MAD = smoothmad (x)
 %  MAD = smoothmad (x, group)
 %  MAD = smoothmad (x, group, constant)
@@ -48,23 +46,23 @@ function PMAD = smoothmad(x,group,constant)
 
   % Evaluate input arguments
   if (nargin < 1) || (nargin > 3)
-    error('Invalid number of input arguments')
+    error ('Invalid number of input arguments')
   end
 
   if (nargout > 1)
-    error('Invalid number of output arguments')
+    error ('Invalid number of output arguments')
   end
 
-  if numel(size(x)) > 2
-    error('arrays of more than 2 dimensions are not supported')
+  if numel (size (x)) > 2
+    error ('arrays of more than 2 dimensions are not supported')
   end
 
   [m,n] = size(x);
-  if nargin < 2 || isempty(group)
+  if (nargin < 2 || isempty (group))
     group = ones(m,1);
   else
     if size (group, 1) ~= size (x, 1)
-      error('group must be a column vector with the same number of rows as the data')
+      error ('group must be a column vector with the same number of rows as the data')
     end
   end
 
