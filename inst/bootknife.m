@@ -67,7 +67,7 @@
 %  handle, a string indicating the name of the function to apply to the DATA
 %  (and each bootstrap resample), or a cell array where the first cell is the 
 %  function handle or string, and other cells being additional input arguments 
-%  for BOOTFUN, where BOOTFUN must take DATA for the first input argument.
+%  for BOOTFUN, where BOOTFUN must take DATA for the first input arguments.
 %  BOOTFUN can return a scalar value or vector. BOOTFUN must calculate a
 %  statistic representative of the finite DATA sample, it should not be an
 %  unbiased estimate of a population parameter. For example, for the variance,
@@ -242,8 +242,8 @@ function [stats, bootstat, BOOTSAM] = bootknife (x, nboot, bootfun, alpha, ...
     else
       if (iscell (bootfun))
         func = bootfun{1};
-        args = bootfun (2:end);
-        bootfun = @(x) func (x, args{:});
+        args = bootfun(2:end);
+        bootfun = @(varargin) func (varargin{:}, args{:});
       end
       if (ischar (bootfun))
         % Convert character string of a function name to a function handle
@@ -259,10 +259,10 @@ function [stats, bootstat, BOOTSAM] = bootknife (x, nboot, bootfun, alpha, ...
       % If DATA is a cell array of equal size colunmn vectors, convert the cell
       % array to a matrix and redefine bootfun to parse multiple input arguments
       x = [x{:}];
-      nvar = size (x,2);
+      nvar = size (x, 2);
       bootfun = @(x) localfunc.col2args (bootfun, x, nvar);
     end
-    if (~ (size(x, 1) > 1))
+    if (~ (size (x, 1) > 1))
       error ('bootknife: DATA must contain more than one row');
     end
     if ((nargin < 4) || isempty (alpha))
@@ -275,7 +275,7 @@ function [stats, bootstat, BOOTSAM] = bootknife (x, nboot, bootfun, alpha, ...
       end
     else
       nalpha = numel (alpha);
-      if (~isa (alpha,'numeric') || nalpha > 2)
+      if (~isa (alpha,'numeric') || (nalpha > 2))
         error ('bootknife: ALPHA must be a scalar (two-tailed probability) or a vector (pair of probabilities)');
       end
       if any ((alpha < 0) | (alpha > 1))
@@ -284,7 +284,7 @@ function [stats, bootstat, BOOTSAM] = bootknife (x, nboot, bootfun, alpha, ...
       if (nalpha > 1)
         % alpha is a pair of probabilities
         % Make sure probabilities are in the correct order
-        if alpha(1) > alpha(2) 
+        if (alpha(1) > alpha(2) )
           error ('bootknife: the pair of probabilities must be in ascending numeric order');
         end
       end
@@ -342,8 +342,12 @@ function [stats, bootstat, BOOTSAM] = bootknife (x, nboot, bootfun, alpha, ...
   end
 
   % Check whether bootfun is vectorized
-  M = cell2mat (cellfun (@(i) repmat (x(:,i), 1, 2), ...
-                num2cell (1:nvar), 'UniformOutput', false));
+  if (nvar > 1)
+    M = cell2mat (cellfun (@(i) repmat (x(:,i), 1, 2), ...
+                  num2cell (1:nvar), 'UniformOutput', false));
+  else
+    M = repmat (x, 1, 2);
+  end
   chk = bootfun (M);
   if (all (size (chk) == [1, 2]) && all (chk == bootfun (x)))
     vectorized = true;
@@ -553,7 +557,8 @@ function [stats, bootstat, BOOTSAM] = bootknife (x, nboot, bootfun, alpha, ...
     end
   else
     if vectorized
-      % Vectorized implementation of DATA sampling (using BOOTSAM) and evaluation of bootfun on the DATA resamples 
+      % DATA resampling (using BOOTSAM) and vectorized evaluation of bootfun on 
+      % the DATA resamples 
       if (nvar > 1)
         % Multivariate
         % Perform DATA sampling
