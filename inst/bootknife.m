@@ -71,7 +71,8 @@
 %  BOOTFUN can return a scalar value or vector. BOOTFUN must calculate a
 %  statistic representative of the finite DATA sample, it should not be an
 %  unbiased estimate of a population parameter. For example, for the variance,
-%  set BOOTFUN to {@var,1}, not @var or {@var,0}. Smooth functions of the DATA
+%  set BOOTFUN to {@var,1} (not @var or {@var,0}), and for the correlation
+%  coefficient, use the provided @cor function. Smooth functions of the DATA
 %  are preferable, (e.g. use smoothmedian function instead of the ordinary
 %  median). The default value(s) of BOOTFUN is/are the (column) mean(s).
 %    When BOOTFUN is @mean or 'mean', residual narrowness bias of central
@@ -344,7 +345,7 @@ function [stats, bootstat, BOOTSAM] = bootknife (x, nboot, bootfun, alpha, ...
   M = cell2mat (cellfun (@(i) repmat (x(:,i), 1, 2), ...
                 num2cell (1:nvar), 'UniformOutput', false));
   chk = bootfun (M);
-  if (all (size (chk) == [1, 2]))
+  if (all (size (chk) == [1, 2]) && all (chk == bootfun (x)))
     vectorized = true;
   else
     vectorized = false;
@@ -856,7 +857,7 @@ end
 
 function retval = col2args (func, x, nvar)
 
-  % Usage: retval = col2args (func, x)
+  % Usage: retval = col2args (func, x, nvar)
   % col2args evaluates func on the columns of x. When nvar > 1, each of the
   % nvar equal-sized blacks of x are passed to func as a separate argument. 
 
@@ -1261,46 +1262,43 @@ end
 %! ## An Introduction to the Bootstrap in Monographs on Statistics and Applied 
 %! ## Probability 57 (Springer)
 %! LSAT = [576 635 558 578 666 580 555 661 651 605 653 575 545 572 594]';
-%! GPA = [3.39 3.3 2.81 3.03 3.44 3.07 3 3.43 3.36 3.13 3.12 2.74 2.76 2.88 2.96]'; 
+%! GPA = [3.39 3.3 2.81 3.03 3.44 3.07 3 3.43 3.36 3.13 3.12 2.74 2.76 2.88 2.96]';
 %!
 %! ## Nonparametric 90% percentile confidence intervals
 %! ## Percentile intervals on page 266 are 0.524 - 0.928
 %! boot (1, 1, false, 1); # Set random seed
-%! corrcoef =  @(x, y) diag (corr (x, y)).';    % faster than @corr
-%! stats = bootknife({LSAT,GPA},2000,corrcoef,[0.05,0.95]);
+%! stats = bootknife({LSAT,GPA},2000,@cor,[0.05,0.95]);
 %! if (isempty (regexp (which ('boot'), 'mex$')))
 %!   ## test boot m-file result
-%!   assert (stats.original, 0.7763744912894072, 1e-09);
-%!   assert (stats.bias, -0.008259337758777074, 1e-09);
+%!   assert (stats.original, 0.7763744912894069, 1e-09);
+%!   assert (stats.bias, -0.008259337758776852, 1e-09);
 %!   assert (stats.std_error, 0.1420949476115542, 1e-09);
-%!   assert (stats.CI_lower, 0.5056363801008389, 1e-09);
-%!   assert (stats.CI_upper, 0.9586254199016857, 1e-09);
+%!   assert (stats.CI_lower, 0.5056363801008388, 1e-09);
+%!   assert (stats.CI_upper, 0.9586254199016858, 1e-09);
 %! end
 %!
 %! ## Nonparametric 90% BCa confidence intervals
 %! ## BCa intervals on page 266 are 0.410 - 0.923
 %! boot (1, 1, false, 1); # Set random seed
-%! corrcoef =  @(x, y) diag (corr (x, y)).';    % faster than @corr
-%! stats = bootknife({LSAT,GPA},2000,corrcoef,0.1);
+%! stats = bootknife({LSAT,GPA},2000,@cor,0.1);
 %! if (isempty (regexp (which ('boot'), 'mex$')))
 %!   ## test boot m-file result
-%!   assert (stats.original, 0.7763744912894072, 1e-09);
-%!   assert (stats.bias, -0.008259337758777074, 1e-09);
+%!   assert (stats.original, 0.7763744912894069, 1e-09);
+%!   assert (stats.bias, -0.008259337758776852, 1e-09);
 %!   assert (stats.std_error, 0.1420949476115542, 1e-09);
-%!   assert (stats.CI_lower, 0.4119228032301603, 1e-09);
-%!   assert (stats.CI_upper, 0.9300646701004257, 1e-09);
+%!   assert (stats.CI_lower, 0.4119228032301614, 1e-09);
+%!   assert (stats.CI_upper, 0.9300646701004258, 1e-09);
 %! end
 %!
 %! ## Nonparametric 90% calibrated percentile confidence intervals (1-sided)
 %! boot (1, 1, false, 1); # Set random seed
-%! corrcoef =  @(x, y) diag (corr (x, y)).';    % faster than @corr
-%! stats = bootknife({LSAT,GPA},[2000,500],corrcoef,[0.05,0.95]);
+%! stats = bootknife({LSAT,GPA},[2000,500],@cor,[0.05,0.95]);
 %! if (isempty (regexp (which ('boot'), 'mex$')))
 %!   ## test boot m-file result
-%!   assert (stats.original, 0.7763744912894072, 1e-09);
-%!   assert (stats.bias, -0.009420108365348012, 1e-09);
+%!   assert (stats.original, 0.7763744912894069, 1e-09);
+%!   assert (stats.bias, -0.009420108365347568, 1e-09);
 %!   assert (stats.std_error, 0.1438249935781226, 1e-09);
-%!   assert (stats.CI_lower, 0.2544450536278069, 1e-09);
+%!   assert (stats.CI_lower, 0.254445053627807, 1e-09);
 %!   assert (stats.CI_upper, 0.9469388762553252, 1e-09);
 %! end
 %! ## Exact intervals based on normal theory are 0.51 - 0.91
