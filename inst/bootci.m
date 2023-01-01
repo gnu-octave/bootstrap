@@ -301,12 +301,12 @@ function [ci, bootstat, bootsam] = bootci (argin1, argin2, varargin)
       % Automatically estimate standard errors of the bootstrap statistics
       if (nbootstd > 0)
         % Using bootknife resampling
-        if iscell(data)
+        if (iscell (data))
           % If DATA is a cell array of equal size colunmn vectors, convert the
           % cell array to a matrix and redefine bootfun to parse multiple input
           % arguments
           data = [data{:}];
-          bootfun = @(data) localfunc.col2args(bootfun, data);
+          bootfun = @(data) localfunc.col2args (bootfun, data);
         end
         bootse = @(BOOTSAM) getfield (bootknife (data(BOOTSAM,:), nbootstd, bootfun, NaN), 'std_error');
         SE = cellfun (bootse, num2cell (bootsam,1));
@@ -697,19 +697,28 @@ end
 %!
 %! ## Nonparametric 90% percentile confidence intervals (single bootstrap)
 %! ## Percentile intervals on page 266 are 0.524 - 0.928
-%! ci = bootci(2000,{@corr,LSAT,GPA},'alpha',0.1,'type','per','seed',1);
+%! ci = bootci(2000,{@cor,LSAT,GPA},'alpha',0.1,'type','per','seed',1);
 %! if (isempty (regexp (which ('boot'), 'mex$')))
 %!   ## test boot m-file result
-%!   assert (ci(1), 0.5056363801008389, 1e-09);
-%!   assert (ci(2), 0.9586254199016857, 1e-09);
+%!   assert (ci(1), 0.5056363801008388, 1e-09);
+%!   assert (ci(2), 0.9586254199016858, 1e-09);
 %! end
 %!
 %! ## Nonparametric 90% BCa confidence intervals (single bootstrap)
 %! ## BCa intervals on page 266 are 0.410 - 0.923
-%! ci = bootci(2000,{@corr,LSAT,GPA},'alpha',0.1,'type','bca','seed',1);
+%! ci = bootci(2000,{@cor,LSAT,GPA},'alpha',0.1,'type','bca','seed',1);
 %! if (isempty (regexp (which ('boot'), 'mex$')))
 %!   ## test boot m-file result
-%!   assert (ci(1), 0.4119228032301603, 1e-09);
-%!   assert (ci(2), 0.9300646701004257, 1e-09);
+%!   assert (ci(1), 0.4119228032301614, 1e-09);
+%!   assert (ci(2), 0.9300646701004258, 1e-09);
 %! end
-%! ## Exact intervals based on normal theory are 0.47 - 0.86 (Table 14.2)
+%!
+%! ## Nonparametric 90% calibrated percentile confidence intervals (double bootstrap)
+%! ci = bootci(2000,{@cor,LSAT,GPA},'alpha',0.1,'type','cal','nbootcal',500,'seed',1);
+%! if (isempty (regexp (which ('boot'), 'mex$')))
+%!   ## test boot m-file result
+%!   ## test boot m-file result
+%!   assert (ci(1), 0.254445053627807, 1e-09);
+%!   assert (ci(2), 0.9469388762553252, 1e-09);
+%! end
+%! ## Exact intervals based on normal theory are 0.51 - 0.91
