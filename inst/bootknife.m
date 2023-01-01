@@ -258,7 +258,8 @@ function [stats, bootstat, BOOTSAM] = bootknife (x, nboot, bootfun, alpha, ...
       % If DATA is a cell array of equal size colunmn vectors, convert the cell
       % array to a matrix and redefine bootfun to parse multiple input arguments
       x = [x{:}];
-      bootfun = @(x) localfunc.col2args(bootfun, x);
+      nvar = size (x,2);
+      bootfun = @(x) localfunc.col2args (bootfun, x, nvar);
     end
     if (~ (size(x, 1) > 1))
       error ('bootknife: DATA must contain more than one row');
@@ -339,18 +340,12 @@ function [stats, bootstat, BOOTSAM] = bootknife (x, nboot, bootfun, alpha, ...
     error ('bootknife: BOOTFUN must return either a scalar or a vector');
   end
 
-  % If DATA is univariate, check whether bootfun is vectorized
-  if (nvar == 1)
-      try
-        chk = bootfun (cat (2,x,x));
-        if ( all (size (chk) == [1, 2]) && all (chk == bootfun (x)) )
-          vectorized = true;
-        else
-          vectorized = false;
-        end
-      catch
-        vectorized = false;
-      end
+  % Check whether bootfun is vectorized
+  M = cell2mat (cellfun (@(i) repmat (x(:,i), 1, 2), ...
+                num2cell (1:nvar), 'UniformOutput', false));
+  chk = bootfun (M);
+  if (all (size (chk) == [1, 2]))
+    vectorized = true;
   else
     vectorized = false;
   end
@@ -365,8 +360,8 @@ function [stats, bootstat, BOOTSAM] = bootknife (x, nboot, bootfun, alpha, ...
       software = pkg('list');
       names = cellfun (@(S) S.name, software, 'UniformOutput', false);
       status = cellfun (@(S) S.loaded, software, 'UniformOutput', false);
-      index = find (~cellfun(@isempty,regexpi(names,pat)));
-      if ~isempty(index)
+      index = find (~cellfun (@isempty, regexpi (names,pat)));
+      if (~ isempty (index))
         if logical (status{index})
           PARALLEL = true;
         else
@@ -434,15 +429,13 @@ function [stats, bootstat, BOOTSAM] = bootknife (x, nboot, bootfun, alpha, ...
   m = prod (sz);
   if (m > 1)
     if (nvar == m)
-      try
-        % If DATA is multivariate, check whether bootfun is vectorized
-        % Bootfun will be evaluated for each column of x, considering each of them as univariate DATA vectors
-        chk = bootfun (cat (2,x(:,1),x(:,1)));
-        if ( all (size (chk) == [1, 2]) && all (chk == bootfun (x(:,1))) )
-          vectorized = true;
-        end
-      catch
-        % Do nothing
+      % Confirm whether bootfun is vectorized when bootfun is evaluated across
+      % all columns of x, considering each of them as univariate DATA vectors
+      chk = bootfun (cat (2, x(:,1), x(:,1)));
+      if ( all (size (chk) == [1, 2]) && all (chk == bootfun (x(:,1))) )
+        vectorized = true;
+      else
+        vectorized = false;
       end
     end
     % Use bootknife for each element of the output of bootfun
@@ -456,9 +449,9 @@ function [stats, bootstat, BOOTSAM] = bootknife (x, nboot, bootfun, alpha, ...
     if vectorized
       for j = 1:m
         if j > 1
-          [stats(j), bootstat(j,:)] = bootknife (x(:,j), nboot, bootfun, alpha, strata, ncpus, [], ISOCTAVE, BOOTSAM, false);
+          [stats(j), bootstat(j,:)] = bootknife (x(:,j), nboot, bootfun, alpha, strata, ncpus, [], ISOCTAVE, BOOTSAM);
         else
-          [stats(j), bootstat(j,:), BOOTSAM] = bootknife (x(:,j), nboot, bootfun, alpha, strata, ncpus, [], ISOCTAVE, [], false);
+          [stats(j), bootstat(j,:), BOOTSAM] = bootknife (x(:,j), nboot, bootfun, alpha, strata, ncpus, [], ISOCTAVE);
         end
       end
     else
@@ -466,9 +459,9 @@ function [stats, bootstat, BOOTSAM] = bootknife (x, nboot, bootfun, alpha, ...
         out = @(t) t(j);
         func = @(x) out (bootfun (x));
         if j > 1
-          [stats(j), bootstat(j,:)] = bootknife (x, nboot, func, alpha, strata, ncpus, [], ISOCTAVE, BOOTSAM, false);
+          [stats(j), bootstat(j,:)] = bootknife (x, nboot, func, alpha, strata, ncpus, [], ISOCTAVE, BOOTSAM);
         else
-          [stats(j), bootstat(j,:), BOOTSAM] = bootknife (x, nboot, func, alpha, strata, ncpus, [], ISOCTAVE, false);
+          [stats(j), bootstat(j,:), BOOTSAM] = bootknife (x, nboot, func, alpha, strata, ncpus, [], ISOCTAVE);
         end
       end
     end
@@ -560,10 +553,18 @@ function [stats, bootstat, BOOTSAM] = bootknife (x, nboot, bootfun, alpha, ...
   else
     if vectorized
       % Vectorized implementation of DATA sampling (using BOOTSAM) and evaluation of bootfun on the DATA resamples 
-      % Perform DATA sampling
-      X = x(BOOTSAM);
-      % Function evaluation on bootknife sample
-      bootstat = bootfun (X);
+      if (nvar > 1)
+        % Multivariate
+        % Perform DATA sampling
+        X = cell2mat (cellfun (@(i) reshape (x(BOOTSAM,i), n, B), ...
+                      num2cell (1:nvar), 'UniformOutput', false));
+      else
+        % Univariate
+        % Perform DATA sampling
+        X = x(BOOTSAM);
+      end
+        % Function evaluation on bootknife samples
+        bootstat = bootfun (X);
     else 
       cellfunc = @(BOOTSAM) bootfun (x(BOOTSAM, :));
       if (ncpus > 1)
@@ -853,14 +854,15 @@ end
 
 %--------------------------------------------------------------------------
 
-function retval = col2args (func, x)
+function retval = col2args (func, x, nvar)
 
   % Usage: retval = col2args (func, x)
-  % col2args evaluates func on the columns of x. Each columns of x is passed
-  % to func as a separate argument. 
+  % col2args evaluates func on the columns of x. When nvar > 1, each of the
+  % nvar equal-sized blacks of x are passed to func as a separate argument. 
 
   % Extract columns of the matrix into a cell array
-  xcell = num2cell (x, 1);
+  [n, ncols] = size (x);
+  xcell = mat2cell (x, n, repmat (ncols / nvar, 1, 2));
 
   % Evaluate column vectors as independent of arguments to bootfun
   retval = func (xcell{:});
@@ -1264,7 +1266,8 @@ end
 %! ## Nonparametric 90% percentile confidence intervals
 %! ## Percentile intervals on page 266 are 0.524 - 0.928
 %! boot (1, 1, false, 1); # Set random seed
-%! stats = bootknife({LSAT,GPA},2000,@corr,[0.05,0.95]);
+%! corrcoef =  @(x, y) diag (corr (x, y)).';    % faster than @corr
+%! stats = bootknife({LSAT,GPA},2000,corrcoef,[0.05,0.95]);
 %! if (isempty (regexp (which ('boot'), 'mex$')))
 %!   ## test boot m-file result
 %!   assert (stats.original, 0.7763744912894072, 1e-09);
@@ -1277,7 +1280,8 @@ end
 %! ## Nonparametric 90% BCa confidence intervals
 %! ## BCa intervals on page 266 are 0.410 - 0.923
 %! boot (1, 1, false, 1); # Set random seed
-%! stats = bootknife({LSAT,GPA},2000,@corr,0.1);
+%! corrcoef =  @(x, y) diag (corr (x, y)).';    % faster than @corr
+%! stats = bootknife({LSAT,GPA},2000,corrcoef,0.1);
 %! if (isempty (regexp (which ('boot'), 'mex$')))
 %!   ## test boot m-file result
 %!   assert (stats.original, 0.7763744912894072, 1e-09);
@@ -1285,5 +1289,18 @@ end
 %!   assert (stats.std_error, 0.1420949476115542, 1e-09);
 %!   assert (stats.CI_lower, 0.4119228032301603, 1e-09);
 %!   assert (stats.CI_upper, 0.9300646701004257, 1e-09);
+%! end
+%!
+%! ## Nonparametric 90% calibrated percentile confidence intervals (1-sided)
+%! boot (1, 1, false, 1); # Set random seed
+%! corrcoef =  @(x, y) diag (corr (x, y)).';    % faster than @corr
+%! stats = bootknife({LSAT,GPA},[2000,500],corrcoef,[0.05,0.95]);
+%! if (isempty (regexp (which ('boot'), 'mex$')))
+%!   ## test boot m-file result
+%!   assert (stats.original, 0.7763744912894072, 1e-09);
+%!   assert (stats.bias, -0.009420108365348012, 1e-09);
+%!   assert (stats.std_error, 0.1438249935781226, 1e-09);
+%!   assert (stats.CI_lower, 0.2544450536278069, 1e-09);
+%!   assert (stats.CI_upper, 0.9469388762553252, 1e-09);
 %! end
 %! ## Exact intervals based on normal theory are 0.51 - 0.91
