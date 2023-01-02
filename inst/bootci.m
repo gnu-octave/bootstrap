@@ -331,7 +331,6 @@ function [ci, bootstat, bootsam] = bootci (argin1, argin2, varargin)
       % Compute additive constant to stabilize the variance
       a = n^(-3/2) * stats.std_error; 
       % Calculate Studentized bootstrap statistics
-      ridx = isnan (bootstat); bootstat(ridx) = []; SE(ridx) = [];
       T = (bootstat - stats.original) ./ (SE + a);
       [cdf, T] = localfunc.empcdf (T, 1);
       % Calculate intervals from empirical distribution of the Studentized bootstrap statistics
