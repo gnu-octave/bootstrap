@@ -643,7 +643,8 @@ function [stats, bootstat, BOOTSAM] = bootknife (x, nboot, bootfun, alpha, ...
     bias = b - c;
     % Double bootstrap multiplicative correction of the standard error
     V = cell2mat (arrayfun (@(S) S.std_error^2, bootout, 'UniformOutput', false));
-    se = sqrt (var (bootstat)^2 / mean (V(~ isnan (V))));
+    I = ~ (isnan (V) | isinf (V));
+    se = sqrt (var (bootstat)^2 / mean (V(I)));
     % Double bootstrap confidence intervals
     if (~ isnan (alpha))
       U = cell2mat (arrayfun (@(S) S.Pr, bootout, 'UniformOutput', false));
@@ -663,7 +664,11 @@ function [stats, bootstat, BOOTSAM] = bootknife (x, nboot, bootfun, alpha, ...
           l = arrayfun ( @(p) interp1 (cdf, u, p, 'linear'), alpha);
       end
       % Calibrated percentile bootstrap confidence intervals
+      % Kernel density estimate (with shrinkage correction)
       ci = localfunc.kdeinv (l, bootstat, se * sqrt (1 / (n - K)), 1 - 1 / (n - K));
+      % Linear interpolation (legacy)
+      %[cdf, t1] = localfunc.empcdf (bootstat, 1);
+      %ci = arrayfun ( @(p) interp1 (cdf, t1, p, 'linear'), l);
     else
       ci = nan (1, 2);
     end
@@ -672,7 +677,7 @@ function [stats, bootstat, BOOTSAM] = bootknife (x, nboot, bootfun, alpha, ...
     % Bootstrap bias estimation
     bias = mean (bootstat) - T0;
     % Bootstrap standard error
-    se = std (bootstat);
+    se = std (bootstat);  % Unbiased estimate since we used bootknife resampling
     if (~ isnan (alpha))
       % If bootfun is the arithmetic meam, perform expansion based on t-distribution
       if (strcmp (func2str (bootfun), 'mean'))
@@ -741,7 +746,8 @@ function [stats, bootstat, BOOTSAM] = bootknife (x, nboot, bootfun, alpha, ...
           % alpha is a vector of probabilities
           l = alpha;
       end
-      % Intervals constructed from kernel density estimate of the bootstrap statistics
+      % Intervals constructed from kernel density estimate of the bootstrap
+      % (with shrinkage correction)
       ci = localfunc.kdeinv (l, bootstat, se * sqrt (1 / (n - K)), 1 - 1 / (n - K));
       warning (state);
       if ISOCTAVE
@@ -868,7 +874,7 @@ function retval = col2args (func, x, nvar)
 
   % Extract columns of the matrix into a cell array
   [n, ncols] = size (x);
-  xcell = mat2cell (x, n, repmat (ncols / nvar, 1, 2));
+  xcell = mat2cell (x, n, ncols / nvar * ones (1, nvar));
 
   % Evaluate column vectors as independent of arguments to bootfun
   retval = func (xcell{:});
