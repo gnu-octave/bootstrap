@@ -60,4 +60,4 @@ function RHO = cor (X, Y, TYPE)
   % and so are omitted for efficiency
   XERR = X - mean (X);
   YERR = Y - mean (Y);
-  RHO = sum ( XERR .* YERR ) ./ (sqrt (sum (XERR.^2)) .* sqrt (sum (YERR.^2) ));
+  RHO = sum ( XERR .* YERR ) ./ sqrt (sum (XERR.^2) .* sum (YERR.^2));
