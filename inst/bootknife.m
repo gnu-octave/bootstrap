@@ -15,7 +15,7 @@
 %  have good coverage and correctness when combined with bootknife resampling
 %  as it is here [1]. If double bootstrap is requested, the algorithm uses
 %  calibration to improve the accuracy of the bias and standard error, and the
-%  coverage of the confidence intervals [6-11]. 
+%  coverage of the confidence intervals [6-12]. 
 %
 %  STATS = bootknife (DATA)
 %  STATS = bootknife (DATA, NBOOT)
@@ -34,7 +34,7 @@
 %  STATS = bootknife (DATA) resamples from the rows of a DATA sample (column 
 %  vector or a matrix) and returns a structure with the following fields:
 %    original: contains the result of applying BOOTFUN to the DATA 
-%    bias: contains the bootstrap estimate of bias [10-11]
+%    bias: contains the bootstrap estimate of bias [11-12]
 %    std_error: contains the bootstrap standard error
 %    CI_lower: contains the lower bound of the bootstrap confidence interval
 %    CI_upper: contains the upper bound of the bootstrap confidence interval
@@ -61,7 +61,7 @@
 %  intervals calculated (with either single or double bootstrap) are 
 %  transformation invariant and can have better coverage and/or accuracy
 %  compared to intervals derived from normal theory or to simple percentile
-%  bootstrap confidence intervals [5,7,9].
+%  bootstrap confidence intervals [5-10].
 %
 %  STATS = bootknife (DATA, NBOOT, BOOTFUN) also specifies BOOTFUN, a function 
 %  handle, a string indicating the name of the function to apply to the DATA
@@ -77,7 +77,7 @@
 %  median). The default value(s) of BOOTFUN is/are the (column) mean(s).
 %    When BOOTFUN is @mean or 'mean', residual narrowness bias of central
 %  coverage is almost eliminated by using Student's t-distribution to expand
-%  the nominal tail probabilities [12].
+%  the nominal tail probabilities [13].
 %    Note that if single bootstrap is requested and BOOTFUN cannot be executed
 %  during leave-one-out jackknife, the acceleration constant will be set to 0
 %  and intervals will be bias-corrected only.
@@ -111,8 +111,8 @@
 %  - CALIBRATED PERCENTILE (asymmetric): ALPHA must be must be a pair of
 %    probabilities and NBOOT must be a vector of two positive, non-zero integers
 %    (for double bootstrap). The method used corresponds to the 1-sided (lower
-%    and upper) intervals in [7-9] and is equivalent to the confidence point
-%    calibration of algorithm 18.1 in [5].
+%    and upper) intervals in [7-10], which are a fast and accurate approximation
+%    to the confidence point calibration algorithm 18.1 in [5].
 %
 %  Confidence interval endpoints are not calculated when the value(s) of ALPHA
 %  is/are NaN. If empty (or not specified), the default value of ALPHA is 0.05
@@ -175,12 +175,14 @@
 %  [9] Hall, Lee and Young (2000) Importance of interpolation when
 %        constructing double-bootstrap confidence intervals. Journal
 %        of the Royal Statistical Society. Series B. 62(3): 479-491
-%  [10] Ouysee, R. (2011) Computationally efficient approximation for 
+%  [10] DiCiccio, Martin and Young (1992) Fast and accurate approximate double
+%        bootstrap confidence intervals. Biometrika. 79(2):285-95
+%  [11] Ouysee, R. (2011) Computationally efficient approximation for 
 %        the double bootstrap mean bias correction. Economics Bulletin, 
 %        AccessEcon, vol. 31(3), pages 2388-2403.
-%  [11] Davison A.C. and Hinkley D.V (1997) Bootstrap Methods And Their 
+%  [12] Davison A.C. and Hinkley D.V (1997) Bootstrap Methods And Their 
 %        Application. Chapter 3, pg. 104
-%  [12] Hesterberg, Tim (2014), What Teachers Should Know about the 
+%  [13] Hesterberg, Tim (2014), What Teachers Should Know about the 
 %        Bootstrap: Resampling in the Undergraduate Statistics Curriculum, 
 %        http://arxiv.org/abs/1411.5279
 %
