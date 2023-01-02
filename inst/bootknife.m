@@ -350,10 +350,14 @@ function [stats, bootstat, BOOTSAM] = bootknife (x, nboot, bootfun, alpha, ...
   else
     M = repmat (x, 1, 2);
   end
-  chk = bootfun (M);
-  if (all (size (chk) == [1, 2]) && all (chk == bootfun (x)))
-    vectorized = true;
-  else
+  try
+    chk = bootfun (M);
+    if (all (size (chk) == [1, 2]) && all (chk == bootfun (x)))
+      vectorized = true;
+    else
+      vectorized = false;
+    end
+  catch
     vectorized = false;
   end
 
