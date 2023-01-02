@@ -539,6 +539,8 @@ function [stats, bootstat, BOOTSAM] = bootknife (x, nboot, bootfun, alpha, ...
       end
     end
   end
+
+  % Evaluate bootfun each bootstrap resample
   if (isempty (BOOTSAM))
     if vectorized
       % Vectorized evaluation of bootfun on the DATA resamples
