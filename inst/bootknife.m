@@ -508,31 +508,32 @@ function [stats, bootstat, BOOTSAM] = bootknife (x, nboot, bootfun, alpha, ...
   end
 
   % Perform balanced bootknife resampling
+  unbiased = true;  % Set to true for bootknife resampling
   if ((nargin < 9) || isempty (BOOTSAM))
     if ~isempty (strata)
       if (nvar > 1) || (nargout > 2)
         % If we need BOOTSAM, can save some memory by making BOOTSAM an int32 datatype
         BOOTSAM = zeros (n, B, 'int32'); 
         for k = 1:K
-          BOOTSAM(g(:, k),:) = boot (find (g(:, k)), B, true);
+          BOOTSAM(g(:, k),:) = boot (find (g(:, k)), B, unbiased);
         end
       else
         % For more efficiency, if we don't need BOOTSAM, we can directly resample values of x
         BOOTSAM = [];
         X = zeros (n, B);
         for k = 1:K
-          X(g(:, k),:) = boot (x(g(:, k),:), B, true);
+          X(g(:, k),:) = boot (x(g(:, k),:), B, unbiased);
         end
       end
     else
       if (nvar > 1) || (nargout > 2)
         % If we need BOOTSAM, can save some memory by making BOOTSAM an int32 datatype
         BOOTSAM = zeros (n, B, 'int32');
-        BOOTSAM(:,:) = boot (n, B, true);
+        BOOTSAM(:,:) = boot (n, B, unbiased);
       else
         % For more efficiency, if we don't need BOOTSAM, we can directly resample values of x
         BOOTSAM = [];
-        X = boot (x, B, true);
+        X = boot (x, B, unbiased);
       end
     end
   end
