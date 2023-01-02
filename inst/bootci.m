@@ -201,19 +201,22 @@ function [ci, bootstat, bootsam] = bootci (argin1, argin2, varargin)
     bootfun = argin2{1};
     if (numel(argin2) > 2)
       data = argin2(2:end);
-      n = size (data{1},1);
+      n = size (data{1}, 1);
+      nvar = numel (data);
     else
       data = argin2{2};
-      n = size (data,1);
+      [n, nvar] = size (data);
     end
   else
     bootfun = argin2;
     if (numel(argin3) > 1)
       data = argin3;
+      n = size (data{1}, 1);
+      nvar = numel (data);
     else
       data = argin3{1};
+      [n, nvar] = size (data);
     end
-    n = size (data,1);
   end
   if paropt.UseParallel
     ncpus = paropt.nproc;
@@ -303,12 +306,13 @@ function [ci, bootstat, bootsam] = bootci (argin1, argin2, varargin)
         % Using bootknife resampling
         if (iscell (data))
           % If DATA is a cell array of equal size colunmn vectors, convert the
-          % cell array to a matrix and redefine bootfun to parse multiple input
-          % arguments
+          % cell array to a matrix and define function to calculate an unbiased 
+          % estimate of the standard error using bootknife resampling
           data = [data{:}];
-          bootfun = @(data) localfunc.col2args (bootfun, data);
+          bootse = @(BOOTSAM) getfield (bootknife (num2cell (data (BOOTSAM,:), 1), nbootstd, bootfun, NaN), 'std_error');
+        else
+          bootse = @(BOOTSAM) getfield (bootknife (data (BOOTSAM,:), nbootstd, bootfun, NaN), 'std_error');
         end
-        bootse = @(BOOTSAM) getfield (bootknife (data(BOOTSAM,:), nbootstd, bootfun, NaN), 'std_error');
         SE = cellfun (bootse, num2cell (bootsam,1));
       else
         % Using jacknife resampling
