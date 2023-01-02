@@ -591,6 +591,16 @@ function [stats, bootstat, BOOTSAM] = bootknife (x, nboot, bootfun, alpha, ...
     end
   end
 
+  % Remove bootstrap statistics that are NaN and their associated DATA resamples
+  ridx = isnan (bootstat);
+  bootstat(ridx) = [];
+  if isempty(BOOTSAM)
+    X(:,ridx) = [];
+  else
+    BOOTSAM(:,ridx) = [];
+  end
+  B = B - sum (ridx);
+
   % Calculate the bootstrap bias, standard error and confidence intervals 
   if (C > 0)
     %%%%%%%%%%%%%%%%%%%%%%%%%%% DOUBLE BOOTSTRAP %%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -644,8 +654,7 @@ function [stats, bootstat, BOOTSAM] = bootknife (x, nboot, bootfun, alpha, ...
     bias = b - c;
     % Double bootstrap multiplicative correction of the standard error
     V = cell2mat (arrayfun (@(S) S.std_error^2, bootout, 'UniformOutput', false));
-    I = ~ (isnan (V) | isinf (V));
-    se = sqrt (var (bootstat)^2 / mean (V(I)));
+    se = sqrt (var (bootstat)^2 / mean (V));
     % Double bootstrap confidence intervals
     if (~ isnan (alpha))
       U = cell2mat (arrayfun (@(S) S.Pr, bootout, 'UniformOutput', false));
