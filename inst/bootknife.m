@@ -643,7 +643,7 @@ function [stats, bootstat, BOOTSAM] = bootknife (x, nboot, bootfun, alpha, ...
     bias = b - c;
     % Double bootstrap multiplicative correction of the standard error
     V = cell2mat (arrayfun (@(S) S.std_error^2, bootout, 'UniformOutput', false));
-    se = sqrt (var (bootstat)^2 / mean (V));
+    se = sqrt (var (bootstat)^2 / mean (V(~ isnan (V))));
     % Double bootstrap confidence intervals
     if (~ isnan (alpha))
       U = cell2mat (arrayfun (@(S) S.Pr, bootout, 'UniformOutput', false));
@@ -950,10 +950,9 @@ function X = kdeinv (P, Y, BW, CF)
   % Apply shrinkage correction
   Y = ((Y - MU) * sqrt (CF)) + MU;
 
-  % Estimate starting values X0
-  YS = sort (Y);
-  X0 = YS(fix ((N - 1) * P) + 1);
-  
+  % Set lower and upper bounds of X0 to range of Y
+  X0 = [min(Y), max(Y)];
+
   % Perform root finding to get quantiles of the KDE at values of P
   findroot = @(X0, P) fzero (@(X) sum (pnorm (X - Y, 0, BW)) / N - P, X0);
   X = arrayfun (findroot, X0, P);
