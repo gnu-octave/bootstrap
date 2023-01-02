@@ -54,7 +54,10 @@ function RHO = cor (X, Y, TYPE)
     error ('cor: arrays of more than 2 dimensions are not supported')
   end
 
-  % Calculate correlation coefficient
+  % Calculate correlation coefficient 
+  % Note that the factor of 1/n in the terms for the mean and standard
+  % deviations in the numerator and denominator respectively cancel out
+  % and so are omitted for efficiency
   XERR = X - mean (X);
   YERR = Y - mean (Y);
   RHO = sum ( XERR .* YERR ) ./ (sqrt (sum (XERR.^2)) .* sqrt (sum (YERR.^2) ));
