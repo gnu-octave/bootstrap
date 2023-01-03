@@ -7,24 +7,39 @@ state = warning('query','all');
 warning('off','all');
 
 % Set significance level
-alpha = 0.05;
-%alpha = [0.025,0.975];
+%alpha = .1;       % 90% confidence interval
+alpha = [.05,.95]; % 90% confidence interval
 
-% Function of the data
-%func = @mean;
-%func = 'mean';
-%func = @(x) mean(x);
-func = @(x) var(x,1);
+%--------------------------------------------------------------
+% Uncomment one of the following example simulation conditions
 
-% Population parameter
-%population_param = 0; % for mean
-population_param = 1; % for variance
+% 1) Mean of a normal distribution (no skewness or excess kurtosis)
+%bootfun = @mean; nvar = 1; rnd = @(n) random ('norm', 0, 1, [n, 1]); theta = 0;
+
+% 2) Mean of a folded normal distribution (high skewness, low excess kurtosis)
+%bootfun = @mean; nvar = 1; rnd = @(n) abs (random ('norm', 0, 1, [n, 1])); theta = sqrt (2/pi);
+
+% 3) Mean of an exponential distribution (no skewness, high excess kurtosis)
+%bootfun = @mean; nvar = 1; rnd = @(n) random ('exp', 1, [n, 1]); theta = 1;   
+
+% 4) Mean of a log-normal distribution (high skewness, high kurtosis)
+%bootfun = @mean; nvar = 1; rnd = @(n) random ('logn', 0, 1, [n, 1]); theta = exp (0.5); 
+
+% 5) Variance of a normal distribution
+bootfun = @(x) var(x,1); nvar = 1; rnd = @(n) random ('norm', 0, 1, [n, 1]); theta = 1;
+
+% 6) Correlation coefficient of bivariate normal distribution (rho = 0)
+%bootfun =  @cor; nvar = 2; rnd = @(n) random ('norm', 0, 1, [n, 1]); theta = 0;
+
+% 7) Linear regression (through the origin) of bivariate normal distribution (rho = 0)
+%bootfun =  @regress; nvar = 2; rnd = @(n) random ('norm', 0, 1, [n, 1]); theta = 0;
+%--------------------------------------------------------------
 
 % Define sample size
-n = 20;
+n = 10;
 
 % Define number of simulations
-sim = 1000;
+sim = 2000;
 
 % Reset outcome counters
 accept = 0;
@@ -43,7 +58,7 @@ fprintf('Sample size: %u\n',n);
 fprintf('Algorithm: bootci\n');
 fprintf('nboot: %u\n',nboot);
 fprintf('Type: %s\n',type);
-fprintf('Statistic: %s\n',char(func));
+fprintf('Statistic: %s\n',char(bootfun));
 fprintf('Alpha: %.3f\n',alpha);
 
 % Initialize simulation variables
@@ -59,23 +74,36 @@ paropt = struct ('UseParallel', true, 'nproc', ncpus);
 for i=1:sim
 
   % Create random sample
-  x = randn (n,1);
-  %x = exp (randn (n,1));
+  x = rnd (n);
+  if (nvar > 1)
+    y = rnd (n);
+  end
 
+  % Calculate statistic from the sample
+  if (nvar > 1)
+    stat = feval (bootfun, x, y);
+  else
+    stat = feval (bootfun, x);
+  end
+  
   % Bootstrap confidence interval
-  %ci = bootci (nboot, {func,x}, 'alpha', alpha, 'type', type, 'Options', paropt, 'nbootstd', 0);
-  S  = bootknife (x, nboot, func, alpha, [], ncpus); ci = [S.CI_lower; S.CI_upper];
-  stat = feval(func, x);
+  %ci = bootci (nboot, {bootfun,x}, 'alpha', alpha, 'type', type, 'Options', paropt, 'nbootstd', 0);
+  if (nvar > 1)
+    S = bootknife ({x, y}, nboot, bootfun, alpha, [], ncpus); ci = [S.CI_lower; S.CI_upper];
+  else
+    S = bootknife (x, nboot, bootfun, alpha, [], ncpus); ci = [S.CI_lower; S.CI_upper];
+  end
+  
 
   % Coverage counter
-  if population_param >= ci(1) && population_param <= ci(2)
+  if theta >= ci(1) && theta <= ci(2)
    accept = accept + 1;
   else
    reject = reject + 1;
   end
-  if population_param < ci(1)
+  if theta < ci(1)
     below = below + 1;
-  elseif population_param > ci(2)
+  elseif theta > ci(2)
     above = above + 1;
   end
   coverage(i) = accept/(accept+reject);
