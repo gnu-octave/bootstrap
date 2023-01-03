@@ -366,7 +366,7 @@ function [stats, bootstat, BOOTSAM] = bootknife (x, nboot, bootfun, alpha, ...
 
   % If applicable, check we have parallel computing capabilities
   if (ncpus > 1)
-    if ISOCTAVE  
+    if ISOCTAVE
       pat = '^parallel';
       software = pkg('list');
       names = cellfun (@(S) S.name, software, 'UniformOutput', false);
@@ -392,7 +392,7 @@ function [stats, bootstat, BOOTSAM] = bootknife (x, nboot, bootfun, alpha, ...
   end
   
   % If applicable, setup a parallel pool (required for MATLAB)
-  if ~ISOCTAVE
+  if (~ ISOCTAVE)
     % MATLAB
     % bootfun is not vectorized
     if (ncpus > 0) 
@@ -423,7 +423,7 @@ function [stats, bootstat, BOOTSAM] = bootknife (x, nboot, bootfun, alpha, ...
       end
     end
   else
-    if (ncpus > 1) && ~PARALLEL
+    if ((ncpus > 1) && ~ PARALLEL)
       if ISOCTAVE
         % OCTAVE Parallel Computing Package is not installed or loaded
         warning ('OCTAVE Parallel Computing Package is not installed and/or loaded. Falling back to serial processing.');
