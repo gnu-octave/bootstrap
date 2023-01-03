@@ -724,14 +724,14 @@ function [stats, bootstat, BOOTSAM] = bootknife (x, nboot, bootfun, alpha, ...
               else
                 % MATLAB
                 T = zeros (n, 1);
-                parfor i = 1:n; T(i) = feval(jackfun, i); end
+                parfor i = 1:n; T(i) = jackfun (i); end
               end
             else
               % SERIAL evaluation of bootfun on each jackknife resample
               T = arrayfun (jackfun, 1:n);
             end
             % Calculate empirical influence function
-            if (~ isempty(strata))
+            if (~ isempty (strata))
               gk = sum (g .* repmat (sum (g), n, 1), 2).';
               U = (gk - 1) .* (mean (T) - T);   
             else
