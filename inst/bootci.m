@@ -322,7 +322,7 @@ function [ci, bootstat, bootsam] = bootci (argin1, argin2, varargin)
         if (iscell (bootfun))
           jackfun = @(varargin) feval (bootfun{1}, varargin{:}, bootfun{2:end});
         else
-          jackfun = @(varargin) feval (bootfun, varargin{:});
+          jackfun = @(varargin) bootfun (varargin{:});
         end
         stats.std_error = localfunc.jackse (jackfun, data, ISOCTAVE);
         SE = cellfun (@(BOOTSAM) localfunc.jackse (jackfun, data(BOOTSAM,:), ...
