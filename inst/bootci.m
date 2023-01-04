@@ -664,7 +664,7 @@ end
 %! ## Test for errors when using some different functionalities of bootci
 %! Y = randn (20); 
 %! bootci (2000, @mean, Y);
-%! x = randn (20,1); y = randn (20,1); X = [ones(20,1),x];
+%! y = randn (20,1); x = randn (20,1); X = [ones(20,1),x];
 %! bootci (2000, @cor, x, y);
 %! bootci (2000, @regress, y, X);
 %! bootci (2000, @regress, y, X, 'alpha', 0.1);
