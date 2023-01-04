@@ -18,6 +18,7 @@
 %  coverage of the confidence intervals [6-12]. 
 %
 %  STATS = bootknife (DATA)
+%  STATS = bootknife ({DATA})
 %  STATS = bootknife (DATA, NBOOT)
 %  STATS = bootknife (DATA, NBOOT, BOOTFUN)
 %  STATS = bootknife (DATA, NBOOT, {BOOTFUN, ...})
@@ -32,7 +33,7 @@
 %  bootknife (DATA, [2000, 200], @mean, [0.025,0.975], [], 0) % Defaults (double)
 %
 %  STATS = bootknife (DATA) resamples from the rows of a DATA sample (column 
-%  vector or a matrix) and returns a structure with the following fields:
+%  vector or matrix) and returns a structure with the following fields:
 %    original: contains the result of applying BOOTFUN to the DATA 
 %    bias: contains the bootstrap estimate of bias [11-12]
 %    std_error: contains the bootstrap standard error
@@ -40,8 +41,12 @@
 %    CI_upper: contains the upper bound of the bootstrap confidence interval
 %  By default, the statistics relate to BOOTFUN being @mean and the confidence
 %  intervals are 95% bias-corrected and accelerated (BCa) intervals [1,4-5].
-%  If DATA is a cell array of column vectors, the vectors are passed to BOOTFUN
-%  as separate input arguments.
+%
+%  STATS = bootknife ({DATA}) resamples from the rows of DATA as above. If
+%  DATA (in the cell array) is multiple column vectors and/or matrices, then
+%  bootknife resamples the rows across all the column vectors or matrices, and
+%  the resamples are passed to BOOTFUN as multiple data input arguments. All
+%  DATA column vectors and matrices must have the same number of rows.
 %
 %  STATS = bootknife (DATA, NBOOT) also specifies the number of bootstrap 
 %  samples. NBOOT can be a scalar, or vector of upto two positive integers. 
@@ -81,6 +86,15 @@
 %    Note that if single bootstrap is requested and BOOTFUN cannot be executed
 %  during leave-one-out jackknife, the acceleration constant will be set to 0
 %  and intervals will be bias-corrected only.
+%    Recommended BOOFUN for some commonly used statistics:
+%      - Mean: @mean
+%      - Standard deviation: {@std,1}
+%      - Variance: {@var,1}
+%      - Correlation coefficient: @cor
+%      - Linear regression: @regress
+%      - Median: @median or @smoothmedian
+%      - Median absolute deviation: @mad or @smoothmad
+%    See code comments or demos for examples of usage
 %
 %  STATS = bootknife (DATA, NBOOT, BOOTFUN, ALPHA) where ALPHA is numeric and
 %  sets the lower and upper bounds of the confidence interval(s). The value(s)
@@ -243,7 +257,12 @@ function [stats, bootstat, BOOTSAM] = bootknife (x, nboot, bootfun, alpha, ...
       bootfun = @mean;
     else
       if (iscell (bootfun))
-        func = bootfun{1};
+        if (ischar (bootfun{1}))
+          % Convert character string of a function name to a function handle
+          func = str2func (bootfun{1});
+        else
+          func = bootfun{1};
+        end
         args = bootfun(2:end);
         bootfun = @(varargin) func (varargin{:}, args{:});
       end
@@ -1107,6 +1126,14 @@ end
 %!
 %! ## Please be patient, the calculations will be completed soon...
 
+%!demo
+%!
+%! ## Input dataset
+%! y = randn (20,1); x = randn (20,1); X = [ones(20,1), x];
+%!
+%! ## 90% BCa confidence interval for regression coefficients 
+%! bootknife ({y,X}, 2000, @regress, 0.1);
+
 
 %!demo
 %!
@@ -1238,15 +1265,19 @@ end
 %! Y = randn (20); 
 %! strata = [1;1;1;1;1;1;1;1;1;1;2;2;2;2;2;3;3;3;3;3];
 %! stats = bootknife (Y, 2000, @var);
+%! stats = bootknife (Y, 2000, 'var');
 %! stats = bootknife (Y, 2000, {@var,1});
+%! stats = bootknife (Y, 2000, {'var',1});
 %! stats = bootknife (Y, 2000, @var, [], strata);
 %! stats = bootknife (Y, 2000, {@var,1}, [], strata);
-%! x = randn (20,1); y = randn (20,1); X = [ones(20,1), x];
+%! y = randn (20,1); x = randn (20,1); X = [ones(20,1), x];
 %! stats = bootknife ({x,y}, 2000, @cor);
 %! stats = bootknife ({x,y}, 2000, @cor, [], strata);
 %! stats = bootknife ({y,x}, 2000, @regress);
 %! stats = bootknife ({y,X}, 2000, @regress);
 %! stats = bootknife ({y,X}, 2000, @regress, [], strata);
+%! stats = bootknife ({y,X}, 2000, {@regress, 0.1}, [], strata);
+%! stats = bootknife ({y,X}, 2000, {@regress, 0.1}, [.05,.95], strata);
 
 %!test
 %! ## Spatial test data from Table 14.1 of Efron and Tibshirani (1993)
