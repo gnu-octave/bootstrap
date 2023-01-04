@@ -317,6 +317,7 @@ function [ci, bootstat, bootsam] = bootci (argin1, argin2, varargin)
         m = numel (stats);
         SE = zeros (m, nboot);
         for i = 1:nboot
+          boot (1, 1, false, 1); # Set random seed
           S = cellfun (cellfunc, {bootsam(:, i)},'UniformOutput', false);
           SE(:,i) = [S{1}(:).std_error]';
         end
@@ -666,9 +667,9 @@ end
 %! bootci (2000, @mean, Y);
 %! y = randn (20,1); x = randn (20,1); X = [ones(20,1),x];
 %! bootci (2000, @cor, x, y);
-%! bootci (2000, @regress, y, X);
-%! bootci (2000, @regress, y, X, 'alpha', 0.1);
-%! bootci (2000, {@regress, y, X}, 'alpha', 0.1);
+%! bootci (2000, @(y,X) X\y, y, X);
+%! bootci (2000, @(y,X) X\y, y, X, 'alpha', 0.1);
+%! bootci (2000, {@(y,X) X\y, y, X}, 'alpha', 0.1);
 
 %!test
 %! ## Spatial Test Data from Table 14.1 of Efron and Tibshirani (1993)
@@ -696,11 +697,11 @@ end
 %! end
 %!
 %! ## Nonparametric 90% bootstrap-t confidence intervals (double bootstrap)
-%! ci = bootci(2000,{{@var,1},A},'alpha',0.1,'type','stud','nbootstd',0,'seed',1);
+%! ci = bootci(2000,{{@var,1},A},'alpha',0.1,'type','stud','nbootstd',100,'seed',1);
 %! if (isempty (regexp (which ('boot'), 'mex$')))
 %!   ## test boot m-file result
-%!   assert (ci(1), 107.3717655320226, 1e-09);
-%!   assert (ci(2), 302.1935354455533, 1e-09);
+%!   assert (ci(1), 106.4125067739996, 1e-09);
+%!   assert (ci(2), 304.0348370656702, 1e-09);
 %! end
 %!
 %! ## Nonparametric 90% calibrated percentile confidence intervals (double bootstrap)
