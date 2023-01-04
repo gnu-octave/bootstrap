@@ -91,7 +91,7 @@
 %      - Standard deviation: {@std,1}
 %      - Variance: {@var,1}
 %      - Correlation coefficient: @cor
-%      - Linear regression: @regress
+%      - Linear regression: @(y,X) X\y or @regress
 %      - Median: @median or @smoothmedian
 %      - Median absolute deviation: @mad or @smoothmad
 %    See code comments or demos for examples of usage
@@ -363,6 +363,9 @@ function [stats, bootstat, BOOTSAM] = bootknife (x, nboot, bootfun, alpha, ...
 
   % Evaluate bootfun on the DATA
   T0 = bootfun (x);
+  if (isnan (T0))
+    error ('bootknife: Evaluating BOOTFUN on the DATA returns NaN')
+  end
   if all (size (T0) > 1)
     error ('bootknife: BOOTFUN must return either a scalar or a vector');
   end
@@ -1270,14 +1273,16 @@ end
 %! stats = bootknife (Y, 2000, {'var',1});
 %! stats = bootknife (Y, 2000, @var, [], strata);
 %! stats = bootknife (Y, 2000, {@var,1}, [], strata);
+%! stats = bootknife (Y, 2000, @(Y) mean(Y(:),1)); % Cluster/block resampling
+%! # Y(1,end) = NaN; % Unequal clustersize
+%! #stats = bootknife (Y, 2000, @(Y) mean(Y(:),1,'omitnan'));
 %! y = randn (20,1); x = randn (20,1); X = [ones(20,1), x];
 %! stats = bootknife ({x,y}, 2000, @cor);
 %! stats = bootknife ({x,y}, 2000, @cor, [], strata);
-%! stats = bootknife ({y,x}, 2000, @regress);
-%! stats = bootknife ({y,X}, 2000, @regress);
-%! stats = bootknife ({y,X}, 2000, @regress, [], strata);
-%! stats = bootknife ({y,X}, 2000, {@regress, 0.1}, [], strata);
-%! stats = bootknife ({y,X}, 2000, {@regress, 0.1}, [.05,.95], strata);
+%! stats = bootknife ({y,x}, 2000, @(y,x) x\y); % Could also use @regress
+%! stats = bootknife ({y,X}, 2000, @(y,X) X\y);
+%! stats = bootknife ({y,X}, 2000, @(y,X) X\y, [], strata);
+%! stats = bootknife ({y,X}, 2000, @(y,X) X\y, [.05,.95], strata);
 
 %!test
 %! ## Spatial test data from Table 14.1 of Efron and Tibshirani (1993)
