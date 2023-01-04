@@ -26,7 +26,7 @@
 %  Thus, depending on the comparisons requested using the REF input   
 %  argument, the p-value adjustments are essentially bootstrap versions of 
 %  either Tukey-Kramer's or Dunnett's tests. Unlike these tests though, 
-%  bootnhst does not make the normality assumption. Since DATA across the 
+%  bootnhst does not make the normality assumptions. Since DATA across the 
 %  GROUPs are resampled, as for a permutation test, bootnhst assumes  
 %  exchangeability among the groups under the null hypothesis. The sampling 
 %  method used is balanced bootknife resampling. Note that this function 
@@ -50,17 +50,18 @@
 %  level is 0.05, which produces 95% confidence intervals.
 %
 %  bootnhst (..., 'bootfun', BOOTFUN) sets the statistic calculated from
-%  the bootstrap samples. This can be a function handle, string or cell 
-%  array with the function handle or string in the first cell and input 
-%  arguments to that function in subsequent cells. The calculation of 
-%  BOOTFUN on the DATA must return a scalar value. Note that BOOTFUN MUST 
-%  calculate a statistic representative of the finite data sample, it 
-%  should NOT be an estimate of a population parameter. For example, for 
-%  the variance, set BOOTFUN to {@var,1}, not @var or {@var,0}. The default 
-%  value of BOOTFUN is 'mean'. If empty, the default is @mean or 'mean'. 
-%  If a robust statistic for central location is required, setting BOOTFUN
-%  to 'robust' implements a smoothed version of the median (see function help
-%  for smoothmedian). Smooth functions of the data are preferable for bootstrap.
+%  the bootstrap samples. This can be a function handle, string or cell
+%  array with the function handle or string in the first cell and input
+%  arguments to that function in subsequent cells. The calculation of
+%  BOOTFUN on the DATA must accept a single column vector or matrix input
+%  and return a scalar value. Note that BOOTFUN MUST calculate a statistic
+%  representative of the finite data sample, it should NOT be an estimate of
+%  a population parameter. For example, for the variance, set BOOTFUN to
+%  {@var,1}, not @var or {@var,0}. The default value of BOOTFUN is 'mean'.
+%  If empty, the default is @mean or 'mean'. If a robust statistic for central
+%  location is required, setting BOOTFUN to 'robust' implements a smoothed
+%  version of the median (see function help for smoothmedian). Smooth
+%  functions of the data are preferable for bootstrap.
 %    Standard errors are estimated by bootknife resampling by default [2], 
 %  where NBOOT(2) corresponds to the number of bootknife resamples. If 
 %  NBOOT(2) is 0 and standard errors are calculated without resampling 
@@ -551,12 +552,16 @@ function [p, c, stats] = bootnhst (data, group, varargin)
   clear junk;
   gk = unique (g);
   k = numel (gk);
-  if (~ isempty (ref))
-    if isnumeric(ref)
-      ref = gk(ismember (gnames, ref));
-    else
-      ref = gk(strcmp (gnames, ref));
+  if (k > 1)
+    if (~ isempty (ref))
+      if isnumeric(ref)
+        ref = gk(ismember (gnames, ref));
+      else
+        ref = gk(strcmp (gnames, ref));
+      end
     end
+  else
+    error ('bootnhst: GROUP must define atleast two groups')
   end
   N = numel (g);
   
@@ -824,7 +829,7 @@ function [p, c, stats] = bootnhst (data, group, varargin)
       fprintf (['Maximum t(%u) = %.2f, p-adj = .%03u \n', ...
                 '------------------------------------------------------------------------------\n'],[df,maxT,round(p*1000)]);
     end
-    if (size (c,1) > 1)
+    if (size (c,1) >= 1)
       fprintf (['POST HOC TESTS with control of the FWER by the single-step maxT procedure\n', ...
                 '------------------------------------------------------------------------------\n', ...
                 '| Comparison |  Reference # |       Test # |  Difference |    t(df)|   p-adj |\n', ...
@@ -1113,3 +1118,7 @@ end
 %! end
 %! # Result from anova1 is 4.162704768129188e-05
 
+%!test
+%! Y = randn (12, 2); g = [1; 1; 1; 1; 1; 1; 2; 2; 2; 2; 2; 2];
+%! func = @(M) cor (M(:,1), M(:,2));
+%! p = bootnhst (Y, g, 'bootfun', func, 'DisplayOpt',false);
