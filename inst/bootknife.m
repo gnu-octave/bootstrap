@@ -421,7 +421,7 @@ function [stats, bootstat, BOOTSAM] = bootknife (x, nboot, bootfun, alpha, ...
       end
     end
   end
-  
+
   % If applicable, setup a parallel pool (required for MATLAB)
   if (~ ISOCTAVE)
     % MATLAB
