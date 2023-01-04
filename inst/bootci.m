@@ -270,7 +270,7 @@ function [ci, bootstat, bootsam] = bootci (argin1, argin2, varargin)
       % Set quantiles directly to calculate percentile intervals
       alpha = [alpha / 2, 1 - alpha / 2];
     case 'cal'
-      % Set quantiles directly to calibrate interval endpoints
+      % Set quantiles directly to calibrate confidence intervals
       alpha = [alpha / 2, 1 - alpha / 2];
       nboot = cat (2, nboot, nbootcal);
     otherwise
@@ -278,6 +278,7 @@ function [ci, bootstat, bootsam] = bootci (argin1, argin2, varargin)
   end
 
   % Parse input arguments to the bootknife function to calculate confidence intervals
+  ci = [];
   switch lower(type)
  
     case {'norm','normal'}
@@ -286,16 +287,15 @@ function [ci, bootstat, bootsam] = bootci (argin1, argin2, varargin)
       [stats, bootstat, bootsam] = bootknife (data, nboot, bootfun, NaN, [], ncpus);
       stdnorminv = @(p) sqrt (2) * erfinv (2 * p-1);
       z = stdnorminv (alpha / 2);
-      stats.CI_lower = stats.original - stats.bias + stats.std_error * z;
-      stats.CI_upper = stats.original - stats.bias - stats.std_error * z;
+      ci = [[stats.original] - [stats.bias] + [stats.std_error] * z;
+            [stats.original] - [stats.bias] - [stats.std_error] * z];
 
     case 'basic'
       % The basic bootstrap method.
       % Center bootstrap statistics
       [stats, bootstat, bootsam] = bootknife (data, nboot, bootfun, alpha, [], ncpus);
-      tmp = [2 * stats.original - stats.CI_upper, ...
-             2 * stats.original - stats.CI_lower];
-      stats.CI_lower = tmp(1); stats.CI_upper = tmp(2);
+      ci = [2 * [stats.original] - [stats.CI_upper]; 
+            2 * [stats.original] - [stats.CI_lower]];
 
     case {'stud','student'}
       % Use bootstrap-t method with variance stabilization for small samples
@@ -308,12 +308,18 @@ function [ci, bootstat, bootsam] = bootci (argin1, argin2, varargin)
           % If DATA is a cell array of equal size colunmn vectors, convert the
           % cell array to a matrix and define function to calculate an unbiased 
           % estimate of the standard error using bootknife resampling
+          szx = cellfun (@(x) size (x, 2), data);
           data = [data{:}];
-          bootse = @(BOOTSAM) getfield (bootknife (num2cell (data (BOOTSAM,:), 1), nbootstd, bootfun, NaN), 'std_error');
+          cellfunc = @(BOOTSAM) bootknife (mat2cell (data (BOOTSAM,:), n, szx), nbootstd, bootfun, NaN);
         else
-          bootse = @(BOOTSAM) getfield (bootknife (data (BOOTSAM,:), nbootstd, bootfun, NaN), 'std_error');
+          cellfunc = @(BOOTSAM) bootknife (data (BOOTSAM,:), nbootstd, bootfun, NaN);
         end
-        SE = cellfun (bootse, num2cell (bootsam,1));
+        m = numel (stats);
+        SE = zeros (m, nboot);
+        for i = 1:nboot
+          tmp = cellfun (cellfunc, {bootsam(:, i)},'UniformOutput', false);
+          SE(:,i) = [tmp{1}(:).std_error]';
+        end
       else
         % Using jacknife resampling
         if (iscell (data))
@@ -324,27 +330,37 @@ function [ci, bootstat, bootsam] = bootci (argin1, argin2, varargin)
         else
           jackfun = @(varargin) bootfun (varargin{:});
         end
+        try
+          localfunc.jackse (jackfun, data, ISOCTAVE);
+        catch
+          error ('bootci:jackfail','bootfun failed during jackknife. Set nbootstd to > 0.\n')
+        end
         stats.std_error = localfunc.jackse (jackfun, data, ISOCTAVE);
         SE = cellfun (@(BOOTSAM) localfunc.jackse (jackfun, data(BOOTSAM,:), ...
                       ISOCTAVE), num2cell (bootsam,1));
       end
       % Compute additive constant to stabilize the variance
-      a = n^(-3/2) * stats.std_error; 
+      a = n^(-3/2) * [stats.std_error]'; 
       % Calculate Studentized bootstrap statistics
-      T = (bootstat - stats.original) ./ (SE + a);
-      [cdf, T] = localfunc.empcdf (T, 1);
+      T = bsxfun (@minus, bootstat, [stats.original]') ./ bsxfun (@plus, SE, a);
       % Calculate intervals from empirical distribution of the Studentized bootstrap statistics
-      tmp = arrayfun ( @(p) stats.original - stats.std_error * interp1 (cdf, T, p, 'linear'), alpha);
-      stats.CI_upper = tmp(1); stats.CI_lower = tmp(2);
+      ci = zeros (2, m);
+      for j = 1:m
+        [cdf, t] = localfunc.empcdf (T(j,:), 1);
+        ci(:,j) = fliplr (arrayfun ( @(p) stats(j).original - stats(j).std_error * interp1 (cdf, t, p, 'linear'), alpha));
+      end
 
     otherwise
+
       % Other interval types are natively supported in bootknife function
       [stats, bootstat] = bootknife (data, nboot, bootfun, alpha, [], ncpus);
 
   end
 
   % Format output to be consistent with MATLAB's bootci
-  ci = [stats.CI_lower; stats.CI_upper];
+  if (isempty (ci))
+    ci = [stats.CI_lower; stats.CI_upper];
+  end
   bootstat = bootstat.';
 
 end
@@ -644,6 +660,15 @@ end
 %! ## bootknife (rather than bootstrap) resampling. 
 %!
 
+%!test
+%! ## Test for errors when using some different functionalities of bootci
+%! Y = randn (20); 
+%! bootci (2000, @mean, Y);
+%! x = randn (20,1); y = randn (20,1); X = [ones(20,1),x];
+%! bootci (2000, @cor, x, y);
+%! bootci (2000, @regress, y, X);
+%! bootci (2000, @regress, y, X, 'alpha', 0.1);
+%! bootci (2000, {@regress, y, X}, 'alpha', 0.1);
 
 %!test
 %! ## Spatial Test Data from Table 14.1 of Efron and Tibshirani (1993)

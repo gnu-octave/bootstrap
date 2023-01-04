@@ -260,9 +260,12 @@ function [stats, bootstat, BOOTSAM] = bootknife (x, nboot, bootfun, alpha, ...
     if (iscell (x))
       % If DATA is a cell array of equal size colunmn vectors, convert the cell
       % array to a matrix and redefine bootfun to parse multiple input arguments
+      szx = cellfun (@(x) size (x,2), x);
       x = [x{:}];
       nvar = size (x, 2);
-      bootfun = @(x) localfunc.col2args (bootfun, x, nvar);
+      bootfun = @(x) localfunc.col2args (bootfun, x, nvar, szx);
+    else
+      szx = size (x, 2);
     end
     if (~ (size (x, 1) > 1))
       error ('bootknife: DATA must contain more than one row');
@@ -321,6 +324,8 @@ function [stats, bootstat, BOOTSAM] = bootknife (x, nboot, bootfun, alpha, ...
     else
       ncpus = min (ncpus, feature ('numcores'));
     end
+  else
+    szx = 1;
   end
 
   % Determine properties of the DATA (x)
@@ -350,15 +355,19 @@ function [stats, bootstat, BOOTSAM] = bootknife (x, nboot, bootfun, alpha, ...
   else
     M = repmat (x, 1, 2);
   end
-  try
-    chk = bootfun (M);
-    if (all (size (chk) == [1, 2]) && all (chk == bootfun (x)))
-      vectorized = true;
-    else
+  if (any (szx > 1))
+    vectorized = false;
+  else
+    try
+      chk = bootfun (M);
+      if (all (size (chk) == [1, 2]) && all (chk == bootfun (x)))
+        vectorized = true;
+      else
+        vectorized = false;
+      end
+    catch
       vectorized = false;
     end
-  catch
-    vectorized = false;
   end
 
   % Initialize probabilities
@@ -667,7 +676,7 @@ function [stats, bootstat, BOOTSAM] = bootknife (x, nboot, bootfun, alpha, ...
     if (~ isnan (alpha))
       U = cell2mat (arrayfun (@(S) S.Pr, bootout, 'UniformOutput', false));
       % Calibrate tail probabilities
-      switch (nalpha)
+      switch nalpha
         case 1
           % alpha is a two-tailed probability (scalar)
           % Calibrate central coverage and construct equal-tailed intervals (2-sided)
@@ -710,7 +719,7 @@ function [stats, bootstat, BOOTSAM] = bootknife (x, nboot, bootfun, alpha, ...
       % Create distribution functions
       stdnormcdf = @(x) 0.5 * (1 + erf (x / sqrt (2)));
       stdnorminv = @(p) sqrt (2) * erfinv (2 * p-1);
-      switch (nalpha)
+      switch nalpha
         case 1
           % Attempt to form bias-corrected and accelerated (BCa) bootstrap confidence intervals. 
           % Use the Jackknife to calculate the acceleration constant (a)
@@ -885,15 +894,15 @@ end
 
 %--------------------------------------------------------------------------
 
-function retval = col2args (func, x, nvar)
+function retval = col2args (func, x, nvar, szx)
 
   % Usage: retval = col2args (func, x, nvar)
   % col2args evaluates func on the columns of x. When nvar > 1, each of the
-  % nvar equal-sized blacks of x are passed to func as a separate argument. 
+  % blocks of x are passed to func as a separate arguments. 
 
   % Extract columns of the matrix into a cell array
   [n, ncols] = size (x);
-  xcell = mat2cell (x, n, ncols / nvar * ones (1, nvar));
+  xcell = mat2cell (x, n, ncols / sum (szx) * szx);
 
   % Evaluate column vectors as independent of arguments to bootfun
   retval = func (xcell{:});
@@ -1039,7 +1048,7 @@ end
 %!         0 33 28 34 4 32 24 47 41 24 26 30 41]';
 %!
 %! ## 95% calibrated percentile bootstrap confidence intervals for the mean
-%! ## Calibration is of interval endpoints
+%! ## Calibration of central coverage (1-sided)
 %! bootknife (data, [2000, 200], @mean);
 %!
 %! ## Please be patient, the calculations will be completed soon...
@@ -1051,7 +1060,7 @@ end
 %!         0 33 28 34 4 32 24 47 41 24 26 30 41]';
 %!
 %! ## 95% calibrated percentile bootstrap confidence intervals for the median
-%! ## with smoothing. Calibration is of interval endpoints
+%! ## with smoothing. Calibration of central coverage (1-sided)
 %! bootknife (data, [2000, 200], @smoothmedian);
 %!
 %! ## Please be patient, the calculations will be completed soon...
@@ -1223,6 +1232,21 @@ end
 %! ## the 'statistics-bootstrap' package uses bootknife resampling. The scale of
 %! ## the sampling distribution for small samples is approximated better by
 %! ## bootknife (rather than bootstrap) resampling. 
+
+%!test
+%! ## Test for errors when using different functionalities of bootknife
+%! Y = randn (20); 
+%! strata = [1;1;1;1;1;1;1;1;1;1;2;2;2;2;2;3;3;3;3;3];
+%! stats = bootknife (Y, 2000, @var);
+%! stats = bootknife (Y, 2000, {@var,1});
+%! stats = bootknife (Y, 2000, @var, [], strata);
+%! stats = bootknife (Y, 2000, {@var,1}, [], strata);
+%! x = randn (20,1); y = randn (20,1); X = [ones(20,1), x];
+%! stats = bootknife ({x,y}, 2000, @cor);
+%! stats = bootknife ({x,y}, 2000, @cor, [], strata);
+%! stats = bootknife ({y,x}, 2000, @regress);
+%! stats = bootknife ({y,X}, 2000, @regress);
+%! stats = bootknife ({y,X}, 2000, @regress, [], strata);
 
 %!test
 %! ## Spatial test data from Table 14.1 of Efron and Tibshirani (1993)
