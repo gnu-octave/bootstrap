@@ -317,8 +317,8 @@ function [ci, bootstat, bootsam] = bootci (argin1, argin2, varargin)
         m = numel (stats);
         SE = zeros (m, nboot);
         for i = 1:nboot
-          tmp = cellfun (cellfunc, {bootsam(:, i)},'UniformOutput', false);
-          SE(:,i) = [tmp{1}(:).std_error]';
+          S = cellfun (cellfunc, {bootsam(:, i)},'UniformOutput', false);
+          SE(:,i) = [S{1}(:).std_error]';
         end
       else
         % Using jacknife resampling
