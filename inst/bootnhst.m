@@ -530,7 +530,7 @@ function [p, c, stats] = bootnhst (data, group, varargin)
   if (nargout > 3)
     error ('bootnhst only supports up to 3 output arguments')
   end
-  if ((~ islogical (DisplayOpt) || (numel (DisplayOpt) > 1))
+  if (~ islogical (DisplayOpt) || (numel (DisplayOpt) > 1))
     error ('bootnhst: the value DISPLAYOPT must be a logical scalar value')
   end
 
@@ -622,7 +622,7 @@ function [p, c, stats] = bootnhst (data, group, varargin)
         % AUTOMATIC
         try 
           pool = gcp ('nocreate'); 
-          if (isempty (pool)
+          if (isempty (pool))
             % Parallel pool not running, start parallel pool using all available workers
             parpool;
           else
