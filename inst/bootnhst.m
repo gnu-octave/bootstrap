@@ -166,7 +166,7 @@
 %              at a FWER-controlled p-value of approximately 0.05
 %   Var      - weighted mean (pooled) sampling variance
 %   maxT     - omnibus test statistic (maxT) 
-%   df       - degrees of freedom (if bootfun is the mean)
+%   df       - degrees of freedom (if bootfun is 'mean' or 'robust')
 %   nboot    - number of bootstrap resamples
 %   alpha    - two-tailed significance level for the confidence interval 
 %              coverage of 0 (in c).
@@ -262,6 +262,7 @@
 % H0: Groups of data are all sampled from the same population as data in REF
 % 
 % Maximum t = 2.76, p = .025
+% Degrees of freedom = 21
 % ------------------------------------------------------------------------------
 % POST HOC TESTS with control of the FWER by the single-step maxT procedure
 % ------------------------------------------------------------------------------
@@ -790,7 +791,7 @@ function [p, c, stats] = bootnhst (data, group, varargin)
   stats.groups(:,6) = theta + sqrt((0.5 * (w + 1)) .* Var / 2) * interp1 (cdf, QS, 1-alpha, 'linear');
   stats.Var = Var;
   stats.maxT = maxT;
-  if strcmp (func2str (bootfun), 'mean')
+  if (any (strcmp (func2str (bootfun), {'mean','smoothmedian'})))
     stats.df = df;
   else
     stats.df = [];
@@ -830,7 +831,7 @@ function [p, c, stats] = bootnhst (data, group, varargin)
       fprintf (['Overall hypothesis test from single-step maxT procedure\n', ...
                'H0: Groups of data are all sampled from the same population as data in REF\n\n']);
     end
-    if strcmp (func2str (bootfun), 'mean')
+    if (any (strcmp (func2str (bootfun), {'mean','smoothmedian'})))
       dfstr = sprintf ('Degrees of freedom = %u\n', df);
     else
       dfstr = '';

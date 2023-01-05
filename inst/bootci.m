@@ -301,6 +301,7 @@ function [ci, bootstat, bootsam] = bootci (argin1, argin2, varargin)
       % Use bootstrap-t method with variance stabilization for small samples
       % Polansky (2000) Can J Stat. 28(3):501-516
       [stats, bootstat, bootsam] = bootknife (data, nboot, bootfun, NaN, [], ncpus);
+      m = numel (stats); % Number of statistics
       % Automatically estimate standard errors of the bootstrap statistics
       if (nbootstd > 0)
         % Using bootknife resampling
@@ -314,10 +315,9 @@ function [ci, bootstat, bootsam] = bootci (argin1, argin2, varargin)
         else
           cellfunc = @(BOOTSAM) bootknife (data (BOOTSAM,:), nbootstd, bootfun, NaN);
         end
-        m = numel (stats);
         SE = zeros (m, nboot);
         for i = 1:nboot
-          boot (1, 1, false, 1); # Set random seed
+          boot (1, 1, false, 1); % Set random seed
           S = cellfun (cellfunc, {bootsam(:, i)},'UniformOutput', false);
           SE(:,i) = [S{1}(:).std_error]';
         end
@@ -334,7 +334,7 @@ function [ci, bootstat, bootsam] = bootci (argin1, argin2, varargin)
         try
           localfunc.jackse (jackfun, data, ISOCTAVE);
         catch
-          error ('bootci:jackfail','bootfun failed during jackknife. Set nbootstd to > 0.\n')
+          error ('bootci:jackfail','jackknife function could not be used. Set nbootstd to > 0.\n')
         end
         stats.std_error = localfunc.jackse (jackfun, data, ISOCTAVE);
         SE = cellfun (@(BOOTSAM) localfunc.jackse (jackfun, data(BOOTSAM,:), ...
@@ -663,13 +663,46 @@ end
 
 %!test
 %! ## Test for errors when using some different functionalities of bootci
+%! y = randn (20, 1); 
+%! bootci (2000, 'mean', y);
+%! bootci (2000, @mean, y);
+%! bootci (2000, @mean, y, 'alpha', 0.1);
+%! bootci (2000, {@mean, y}, 'alpha', 0.1);
+%! bootci (2000, {@mean, y}, 'alpha', 0.1, 'seed', 1);
+%! bootci (2000, {@mean, y}, 'alpha', 0.1, 'type', 'norm');
+%! bootci (2000, {@mean, y}, 'alpha', 0.1, 'type', 'per');
+%! bootci (2000, {@mean, y}, 'alpha', 0.1, 'type', 'basic');
+%! bootci (2000, {@mean, y}, 'alpha', 0.1, 'type', 'bca');
+%! bootci (2000, {@mean, y}, 'alpha', 0.1, 'type', 'stud');
+%! bootci (2000, {@mean, y}, 'alpha', 0.1, 'type', 'stud', 'nbootstd', 0);
+%! bootci (2000, {@mean, y}, 'alpha', 0.1, 'type', 'stud', 'nbootstd', 100);
+%! bootci (2000, {@mean, y}, 'alpha', 0.1, 'type', 'cal');
+%! bootci (2000, {@mean, y}, 'alpha', 0.1, 'type', 'cal', 'nbootcal', 200);
 %! Y = randn (20); 
+%! bootci (2000, 'mean', Y);
 %! bootci (2000, @mean, Y);
+%! bootci (2000, @mean, Y, 'alpha', 0.1);
+%! bootci (2000, {@mean, Y}, 'alpha', 0.1);
+%! bootci (2000, {@mean, Y}, 'alpha', 0.1, 'seed', 1);
+%! bootci (2000, {@mean, Y}, 'alpha', 0.1, 'type', 'norm');
+%! bootci (2000, {@mean, Y}, 'alpha', 0.1, 'type', 'per');
+%! bootci (2000, {@mean, Y}, 'alpha', 0.1, 'type', 'basic');
+%! bootci (2000, {@mean, Y}, 'alpha', 0.1, 'type', 'bca');
+%! bootci (2000, {@mean, Y}, 'alpha', 0.1, 'type', 'stud');
+%! bootci (2000, {@mean, Y}, 'alpha', 0.1, 'type', 'stud', 'nbootstd', 100);
+%! bootci (2000, {@mean, Y}, 'alpha', 0.1, 'type', 'cal');
+%! bootci (2000, {@mean, Y}, 'alpha', 0.1, 'type', 'cal', 'nbootcal', 200);
 %! y = randn (20,1); x = randn (20,1); X = [ones(20,1),x];
 %! bootci (2000, @cor, x, y);
 %! bootci (2000, @(y,X) X\y, y, X);
 %! bootci (2000, @(y,X) X\y, y, X, 'alpha', 0.1);
 %! bootci (2000, {@(y,X) X\y, y, X}, 'alpha', 0.1);
+%! bootci (2000, {@(y,X) X\y, y, X}, 'alpha', 0.1, 'type', 'norm');
+%! bootci (2000, {@(y,X) X\y, y, X}, 'alpha', 0.1, 'type', 'per');
+%! bootci (2000, {@(y,X) X\y, y, X}, 'alpha', 0.1, 'type', 'basic');
+%! bootci (2000, {@(y,X) X\y, y, X}, 'alpha', 0.1, 'type', 'bca');
+%! bootci (2000, {@(y,X) X\y, y, X}, 'alpha', 0.1, 'type', 'stud');
+%! bootci (2000, {@(y,X) X\y, y, X}, 'alpha', 0.1, 'type', 'cal');
 
 %!test
 %! ## Spatial Test Data from Table 14.1 of Efron and Tibshirani (1993)
