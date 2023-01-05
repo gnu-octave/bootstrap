@@ -200,7 +200,7 @@
 %        Bootstrap: Resampling in the Undergraduate Statistics Curriculum, 
 %        http://arxiv.org/abs/1411.5279
 %
-%  bootknife (version 2022.12.25)
+%  bootknife (version 2023.01.05)
 %  Author: Andrew Charles Penn
 %  https://www.researchgate.net/profile/Andrew_Penn/
 %
@@ -449,7 +449,8 @@ function [stats, bootstat, BOOTSAM] = bootknife (x, nboot, bootfun, alpha, ...
         end
       catch
         % MATLAB Parallel Computing Toolbox is not installed
-        warning ('MATLAB Parallel Computing Toolbox is not installed or operational. Falling back to serial processing.');
+        warning ('bootknife:parallel', ...
+           'MATLAB Parallel Computing Toolbox is not installed or operational. Falling back to serial processing.');
         ncpus = 1;
       end
     end
@@ -457,10 +458,12 @@ function [stats, bootstat, BOOTSAM] = bootknife (x, nboot, bootfun, alpha, ...
     if ((ncpus > 1) && ~ PARALLEL)
       if ISOCTAVE
         % OCTAVE Parallel Computing Package is not installed or loaded
-        warning ('OCTAVE Parallel Computing Package is not installed and/or loaded. Falling back to serial processing.');
+        warning ('bootknife:parallel', ...
+          'OCTAVE Parallel Computing Package is not installed and/or loaded. Falling back to serial processing.');
       else
         % MATLAB Parallel Computing Toolbox is not installed or loaded
-        warning ('MATLAB Parallel Computing Toolbox is not installed and/or loaded. Falling back to serial processing.');
+        warning ('bootknife:parallel', ...
+          'MATLAB Parallel Computing Toolbox is not installed and/or loaded. Falling back to serial processing.');
       end
       ncpus = 0;
     end
@@ -531,7 +534,7 @@ function [stats, bootstat, BOOTSAM] = bootknife (x, nboot, bootfun, alpha, ...
       clear jnk1 jnk2;
     end
     % Get strata IDs
-    gid = unique (strata,'legacy');  % strata ID
+    gid = unique (strata);  % strata ID
     K = numel (gid);        % number of strata
     % Create strata matrix
     g = false (n,K);
@@ -771,7 +774,8 @@ function [stats, bootstat, BOOTSAM] = bootknife (x, nboot, bootfun, alpha, ...
             a = sum (U.^3) / (6 * sum (U.^2) ^ 1.5);
           catch
             % Revert to bias-corrected (BC) bootstrap confidence intervals
-            warning ('bootknife:jackfail','bootfun failed during jackknife, acceleration constant set to 0\n');
+            warning ('bootknife:jackfail', ...
+              'bootfun failed during jackknife, acceleration constant set to 0\n');
             a = 0;
           end
           % Calculate the bias correction constant (z0)
@@ -779,7 +783,8 @@ function [stats, bootstat, BOOTSAM] = bootknife (x, nboot, bootfun, alpha, ...
           z0 = stdnorminv (sum (bootstat < T0) / B);
           if (isinf (z0) || isnan (z0))
             % Revert to percentile bootstrap confidence intervals
-            warning ('bootknife:biasfail','unable to calculate the bias correction constant, reverting to percentile intervals\n');
+            warning ('bootknife:biasfail', ...
+              'unable to calculate the bias correction constant, reverting to percentile intervals\n');
             z0 = 0;
             a = 0; 
             l = [alpha / 2, 1 - alpha / 2];
@@ -1265,24 +1270,58 @@ end
 
 %!test
 %! ## Test for errors when using different functionalities of bootknife
-%! Y = randn (20); 
-%! strata = [1;1;1;1;1;1;1;1;1;1;2;2;2;2;2;3;3;3;3;3];
-%! stats = bootknife (Y, 2000, @var);
-%! stats = bootknife (Y, 2000, 'var');
-%! stats = bootknife (Y, 2000, {@var,1});
-%! stats = bootknife (Y, 2000, {'var',1});
-%! stats = bootknife (Y, 2000, @var, [], strata);
-%! stats = bootknife (Y, 2000, {@var,1}, [], strata);
-%! stats = bootknife (Y, 2000, @(Y) mean(Y(:),1)); % Cluster/block resampling
-%! # Y(1,end) = NaN; % Unequal clustersize
-%! #stats = bootknife (Y, 2000, @(Y) mean(Y(:),1,'omitnan'));
-%! y = randn (20,1); x = randn (20,1); X = [ones(20,1), x];
-%! stats = bootknife ({x,y}, 2000, @cor);
-%! stats = bootknife ({x,y}, 2000, @cor, [], strata);
-%! stats = bootknife ({y,x}, 2000, @(y,x) x\y); % Could also use @regress
-%! stats = bootknife ({y,X}, 2000, @(y,X) X\y);
-%! stats = bootknife ({y,X}, 2000, @(y,X) X\y, [], strata);
-%! stats = bootknife ({y,X}, 2000, @(y,X) X\y, [.05,.95], strata);
+%! ## 'bootknife:parallel' warning turned off in case parallel package is not loaded
+%! warning ('off', 'bootknife:parallel');
+%! try
+%!   y = randn (20,1); 
+%!   strata = [1;1;1;1;1;1;1;1;1;1;2;2;2;2;2;3;3;3;3;3];
+%!   stats = bootknife (y, 2000, @mean);
+%!   stats = bootknife (y, 2000, 'mean');
+%!   stats = bootknife (y, 2000, {@var,1});
+%!   stats = bootknife (y, 2000, {'var',1});
+%!   stats = bootknife (y, 2000, @mean, [], strata);
+%!   stats = bootknife (y, 2000, {'var',1}, [], strata);
+%!   stats = bootknife (y, 2000, {@var,1}, [], strata, 2);
+%!   stats = bootknife (y, 2000, @mean, .1, strata, 2);
+%!   stats = bootknife (y, 2000, @mean, [.05,.95], strata, 2);
+%!   stats = bootknife (y, [2000,200], @mean, .1, strata, 2);
+%!   stats = bootknife (y, [2000,200], @mean, [.05,.95], strata, 2);
+%!   stats = bootknife (y(1:5), 2000, @mean, .1);
+%!   stats = bootknife (y(1:5), 2000, @mean, [.05,.95]);
+%!   stats = bootknife (y(1:5), [2000,200], @mean, .1);
+%!   stats = bootknife (y(1:5), [2000,200], @mean, [.05,.95]);
+%!   Y = randn (20); 
+%!   strata = [1;1;1;1;1;1;1;1;1;1;2;2;2;2;2;3;3;3;3;3];
+%!   stats = bootknife (Y, 2000, @mean);
+%!   stats = bootknife (Y, 2000, 'mean');
+%!   stats = bootknife (Y, 2000, {@var, 1});
+%!   stats = bootknife (Y, 2000, {'var',1});
+%!   stats = bootknife (Y, 2000, @mean, [], strata);
+%!   stats = bootknife (Y, 2000, {'var',1}, [], strata);
+%!   stats = bootknife (Y, 2000, {@var,1}, [], strata, 2);
+%!   stats = bootknife (Y, 2000, @mean, .1, strata, 2);
+%!   stats = bootknife (Y, 2000, @mean, [.05,.95], strata, 2);
+%!   stats = bootknife (Y, [2000,200], @mean, .1, strata, 2);
+%!   stats = bootknife (Y, [2000,200], @mean, [.05,.95], strata, 2);
+%!   stats = bootknife (Y(1:5,:), 2000, @mean, .1);
+%!   stats = bootknife (Y(1:5,:), 2000, @mean, [.05,.95]);
+%!   stats = bootknife (Y(1:5,:), [2000,200], @mean, .1);
+%!   stats = bootknife (Y(1:5,:), [2000,200], @mean, [.05,.95]);
+%!   stats = bootknife (Y, 2000, @(Y) mean(Y(:),1)); % Cluster/block resampling
+%!   % Y(1,end) = NaN; % Unequal clustersize
+%!   %stats = bootknife (Y, 2000, @(Y) mean(Y(:),1,'omitnan'));
+%!   y = randn (20,1); x = randn (20,1); X = [ones(20,1), x];
+%!   stats = bootknife ({x,y}, 2000, @cor);
+%!   stats = bootknife ({x,y}, 2000, @cor, [], strata);
+%!   stats = bootknife ({y,x}, 2000, @(y,x) x\y); % Could also use @regress
+%!   stats = bootknife ({y,X}, 2000, @(y,X) X\y);
+%!   stats = bootknife ({y,X}, 2000, @(y,X) X\y, [], strata);
+%!   stats = bootknife ({y,X}, 2000, @(y,X) X\y, [], strata, 2);
+%!   stats = bootknife ({y,X}, 2000, @(y,X) X\y, [.05,.95], strata);
+%! catch
+%!   warning ('on', 'bootknife:parallel');
+%!   rethrow (lasterror);
+%! end
 
 %!test
 %! ## Spatial test data from Table 14.1 of Efron and Tibshirani (1993)
