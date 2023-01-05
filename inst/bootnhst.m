@@ -145,7 +145,7 @@
 %    column 4: value of BOOTFUN evaluated using test GROUP DATA
 %    column 5: columns 4 minus column 3
 %    column 6: t-ratio
-%    column 7: p-adj 
+%    column 7: p-value (adjusted for multiple comparisons using bootstrap)
 %    column 8: LOWER bound of the bootstrap-t confidence interval
 %    column 9: UPPER bound of the bootstrap-t confidence interval
 %
@@ -166,7 +166,7 @@
 %              at a FWER-controlled p-value of approximately 0.05
 %   Var      - weighted mean (pooled) sampling variance
 %   maxT     - omnibus test statistic (maxT) 
-%   df       - degrees of freedom
+%   df       - degrees of freedom (if bootfun is the mean)
 %   nboot    - number of bootstrap resamples
 %   alpha    - two-tailed significance level for the confidence interval 
 %              coverage of 0 (in c).
@@ -203,24 +203,23 @@
 %  Multiple comparison method: Single-step maxT procedure based on Dunnett
 %  Reference group used for comparisons: 1
 % ------------------------------------------------------------------------------
-% 
+%
 % Overall hypothesis test from single-step maxT procedure
 % H0: Groups of data are all sampled from the same population as data in REF
-% 
-% Maximum t(21) = 3.24, p-adj = .018
+%
+% Maximum t = 3.24, p = .020
+% Degrees of freedom = 21
 % ------------------------------------------------------------------------------
 % POST HOC TESTS with control of the FWER by the single-step maxT procedure
 % ------------------------------------------------------------------------------
-% | Comparison |  Reference # |       Test # |  Difference |    t(df)|   p-adj |
+% | Comparison |  Reference # |       Test # |  Difference |       t |       p |
 % |------------|--------------|--------------|-------------|---------|---------|
-% |          1 |            1 |            2 |   -9.48e+00 |    0.93 |    .855 |
-% |          2 |            1 |            3 |   -2.49e+01 |    2.43 |    .101 |
-% |          3 |            1 |            4 |   -3.32e+01 |    3.24 |    .018 |*
-% |          4 |            1 |            5 |   -1.35e+01 |    1.32 |    .600 |
-% |          5 |            1 |            6 |   -2.07e+01 |    2.02 |    .216 |
-% |          6 |            1 |            7 |   -3.11e+01 |    3.04 |    .031 |*
-% 
-% Where degrees of freedom (df) = 21
+% |          1 |            1 |            2 |   -9.48e+00 |    0.93 |    .850 |
+% |          2 |            1 |            3 |   -2.49e+01 |    2.43 |    .110 |
+% |          3 |            1 |            4 |   -3.32e+01 |    3.24 |    .020 |*
+% |          4 |            1 |            5 |   -1.35e+01 |    1.32 |    .602 |
+% |          5 |            1 |            6 |   -2.07e+01 |    2.02 |    .219 |
+% |          6 |            1 |            7 |   -3.11e+01 |    3.04 |    .033 |*
 % 
 % ------------------------------------------------------------------------------
 % |    GROUP # |                                                   GROUP label |
@@ -245,7 +244,7 @@
 %           1 2 3 4 5 6 7;
 %           1 2 3 4 5 6 7;
 %           1 2 3 4 5 6 7];
-%   >> bootnhst (y(:),g(:),'ref',1,'nboot',5000,'BOOTFUN','robust');
+%   >> bootnhst (y(:),g(:),'ref',1,'nboot',5000,'bootfun','robust');
 %
 % Summary of bootstrap null hypothesis (H0) significance test(s)
 % ******************************************************************************
@@ -262,20 +261,18 @@
 % Overall hypothesis test from single-step maxT procedure
 % H0: Groups of data are all sampled from the same population as data in REF
 % 
-% Maximum t(21) = 2.79, p-adj = .022
+% Maximum t = 2.76, p = .025
 % ------------------------------------------------------------------------------
 % POST HOC TESTS with control of the FWER by the single-step maxT procedure
 % ------------------------------------------------------------------------------
-% | Comparison |  Reference # |       Test # |  Difference |    t(df)|   p-adj |
+% | Comparison |  Reference # |       Test # |  Difference |       t |       p |
 % |------------|--------------|--------------|-------------|---------|---------|
 % |          1 |            1 |            2 |   -6.66e+00 |    0.52 |    .982 |
-% |          2 |            1 |            3 |   -3.02e+01 |    2.36 |    .063 |
-% |          3 |            1 |            4 |   -3.56e+01 |    2.79 |    .022 |*
-% |          4 |            1 |            5 |   -1.62e+01 |    1.27 |    .552 |
-% |          5 |            1 |            6 |   -2.00e+01 |    1.56 |    .343 |
-% |          6 |            1 |            7 |   -3.49e+01 |    2.73 |    .026 |*
-% 
-% Where degrees of freedom (df) = 21
+% |          2 |            1 |            3 |   -3.02e+01 |    2.34 |    .070 |
+% |          3 |            1 |            4 |   -3.56e+01 |    2.76 |    .025 |*
+% |          4 |            1 |            5 |   -1.62e+01 |    1.25 |    .555 |
+% |          5 |            1 |            6 |   -2.00e+01 |    1.54 |    .355 |
+% |          6 |            1 |            7 |   -3.49e+01 |    2.70 |    .030 |*
 % 
 % ------------------------------------------------------------------------------
 % |    GROUP # |                                                   GROUP label |
@@ -287,7 +284,6 @@
 % |          5 |                                                             5 |
 % |          6 |                                                             6 |
 % |          7 |                                                             7 |
-%
 %
 %  EXAMPLE 2A:
 %  COMPARISON OF TWO INDEPENDENT GROUPS WITH UNEQUAL SAMPLE SIZES 
@@ -321,8 +317,20 @@
 % Overall hypothesis test from single-step maxT procedure
 % H0: Groups of data are all sampled from the same population as data in REF
 % 
-% Maximum t(9) = 1.20, p-adj = .256
+% Maximum t = 1.20, p = .254
+% Degrees of freedom = 9
 % ------------------------------------------------------------------------------
+% POST HOC TESTS with control of the FWER by the single-step maxT procedure
+% ------------------------------------------------------------------------------
+% | Comparison |  Reference # |       Test # |  Difference |       t |       p |
+% |------------|--------------|--------------|-------------|---------|---------|
+% |          1 |            2 |            1 |   +1.08e+01 |    1.20 |    .254 |
+% 
+% ------------------------------------------------------------------------------
+% |    GROUP # |                                                   GROUP label |
+% |------------|---------------------------------------------------------------|
+% |          1 |                                                        female |
+% |          2 |                                                          male |
 %
 %
 %  EXAMPLE 2B:
@@ -355,17 +363,16 @@
 % Overall hypothesis test from single-step maxT procedure
 % H0: Groups of data are all sampled from the same population
 % 
-% Maximum t(14) = 6.17, p-adj = <.001
+% Maximum t = 6.17, p = <.001
+% Degrees of freedom = 14
 % ------------------------------------------------------------------------------
 % POST HOC TESTS with control of the FWER by the single-step maxT procedure
 % ------------------------------------------------------------------------------
-% | Comparison |  Reference # |       Test # |  Difference |    t(df)|   p-adj |
+% | Comparison |  Reference # |       Test # |  Difference |       t |       p |
 % |------------|--------------|--------------|-------------|---------|---------|
 % |          1 |            1 |            2 |   +3.83e+01 |    6.17 |   <.001 |***
 % |          2 |            1 |            3 |   +3.50e+00 |    0.59 |    .830 |
 % |          3 |            2 |            3 |   -3.48e+01 |    5.60 |   <.001 |***
-% 
-% Where degrees of freedom (df) = 14
 % 
 % ------------------------------------------------------------------------------
 % |    GROUP # |                                                   GROUP label |
@@ -706,7 +713,7 @@ function [p, c, stats] = bootnhst (data, group, varargin)
   end
   nk_bar = sum (nk.^2) ./ sum (nk);  % weighted mean sample size
   Var = sum (Var .* nk / nk_bar);    % pooled sampling variance weighted by sample size
-  df = sum (nk) - k;                 % degrees of freedom
+  df = sum (nk) - k;                 % degrees of freedom (only relevant if bootfun is the mean)
 
   % Calculate weights to correct for unequal sample size  
   % when calculating standard error of the difference
@@ -783,7 +790,11 @@ function [p, c, stats] = bootnhst (data, group, varargin)
   stats.groups(:,6) = theta + sqrt((0.5 * (w + 1)) .* Var / 2) * interp1 (cdf, QS, 1-alpha, 'linear');
   stats.Var = Var;
   stats.maxT = maxT;
-  stats.df = df;
+  if strcmp (func2str (bootfun), 'mean')
+    stats.df = df;
+  else
+    stats.df = [];
+  end
   stats.nboot = nboot;
   stats.alpha = alpha;
   stats.bootstat = Q;
@@ -819,21 +830,26 @@ function [p, c, stats] = bootnhst (data, group, varargin)
       fprintf (['Overall hypothesis test from single-step maxT procedure\n', ...
                'H0: Groups of data are all sampled from the same population as data in REF\n\n']);
     end
-    if (p <= 0.001)
-      fprintf (['Maximum t(%u) = %.2f, p-adj = <.001 \n', ...
-                '------------------------------------------------------------------------------\n'],[df,maxT]);
-    elseif (p > 0.999)
-      fprintf (['Maximum t(%u) = %.2f, p-adj = 1.000 \n', ...
-          '------------------------------------------------------------------------------\n'],[df,maxT]);
+    if strcmp (func2str (bootfun), 'mean')
+      dfstr = sprintf ('Degrees of freedom = %u\n', df);
     else
-      fprintf (['Maximum t(%u) = %.2f, p-adj = .%03u \n', ...
-                '------------------------------------------------------------------------------\n'],[df,maxT,round(p*1000)]);
+      dfstr = '';
+    end
+    if (p <= 0.001)
+      fprintf (['Maximum t = %.2f, p = <.001 \n', dfstr, ...
+                '------------------------------------------------------------------------------\n'], maxT);
+    elseif (p > 0.999)
+      fprintf (['Maximum t = %.2f, p = 1.000 \n', dfstr, ...
+          '------------------------------------------------------------------------------\n'], maxT);
+    else
+      fprintf (['Maximum t = %.2f, p = .%03u \n', dfstr, ...
+                '------------------------------------------------------------------------------\n'], maxT, round (p*1000));
     end
     if (size (c,1) >= 1)
       fprintf (['POST HOC TESTS with control of the FWER by the single-step maxT procedure\n', ...
                 '------------------------------------------------------------------------------\n', ...
-                '| Comparison |  Reference # |       Test # |  Difference |    t(df)|   p-adj |\n', ...
-                '|------------|--------------|--------------|-------------|---------|---------|\n']);
+                '| Comparison |  Reference # |       Test # |  Difference |       t |       p |\n', ...
+                '|------------|--------------|--------------|-------------|---------|---------|\n'], df);
       if (isempty (ref))
         for i = 1:n
           tmp = num2cell (c(i, cols));
@@ -877,7 +893,6 @@ function [p, c, stats] = bootnhst (data, group, varargin)
           end
         end
       end
-      fprintf ('\nWhere degrees of freedom (df) = %u\n', df)
       fprintf (['\n', ...
                 '------------------------------------------------------------------------------\n', ...
                 '|    GROUP # |                                                   GROUP label |\n', ...
@@ -1036,21 +1051,107 @@ end
 
 %!demo
 %!
+%! ## EXAMPLE 1A: 
+%! ## ONE-WAY ANOVA WITH EQUAL SAMPLE SIZES: Treatment vs. Control (1)
+%!
+%! y = [111.39 110.21  89.21  76.64  95.35  90.97  62.78;
+%!      112.93  60.36  92.29  59.54  98.93  97.03  79.65;
+%!       85.24 109.63  64.93  75.69  95.28  57.41  75.83;
+%!      111.96 103.40  75.49  76.69  77.95  93.32  78.70];
+%! g = [1 2 3 4 5 6 7;
+%!      1 2 3 4 5 6 7;
+%!      1 2 3 4 5 6 7;
+%!      1 2 3 4 5 6 7];
+%!
+%! bootnhst (y(:),g(:),'ref',1,'nboot',5000);
+%!
+%! ## Please be patient, the calculations will be completed soon...
+
+%!demo
+%!
+%! ## EXAMPLE 1B: 
+%! ## ROBUST ONE-WAY ANOVA WITH EQUAL SAMPLE SIZES: Treatment vs. Control (1)
+%!
+%! y = [111.39 110.21  89.21  76.64  95.35  90.97  62.78;
+%!      112.93  60.36  92.29  59.54  98.93  97.03  79.65;
+%!       85.24 109.63  64.93  75.69  95.28  57.41  75.83;
+%!      111.96 103.40  75.49  76.69  77.95  93.32  78.70];
+%! g = [1 2 3 4 5 6 7;
+%!      1 2 3 4 5 6 7;
+%!      1 2 3 4 5 6 7;
+%!      1 2 3 4 5 6 7];
+%!
+%! bootnhst (y(:), g(:), 'ref', 1, 'nboot', 5000, 'bootfun', 'robust');
+%!
+%! ## Please be patient, the calculations will be completed soon...
+
+%!demo
+%!
+%! ## EXAMPLE 2A:
+%! ## COMPARISON OF TWO INDEPENDENT GROUPS WITH UNEQUAL SAMPLE SIZES 
+%! ## (analagous to Student's t-test)
+%!
+%! y =    [54       43
+%!         23       34
+%!         45       65
+%!         54       77
+%!         45       46
+%!        NaN       65];
+%! g = {'male' 'female'
+%!      'male' 'female'
+%!      'male' 'female'
+%!      'male' 'female'
+%!      'male' 'female'
+%!      'male' 'female'};
+%!
+%! bootnhst (y(:), g(:), 'ref', 'male', 'nboot', 5000);
+%!
+%! ## Please be patient, the calculations will be completed soon...
+
+%!demo
+%!
+%! ## EXAMPLE 2B:
+%! ## ONE-WAY ANOVA WITH UNEQUAL SAMPLE SIZES: pairwise comparisons (the 'ref' default)
+%!
 %! y = [54  87  45
 %!      23  98  39
 %!      45  64  51
 %!      54  77  49
 %!      45  89  50
 %!      47 NaN  55];
-%!
 %! g = [ 1   2   3
 %!       1   2   3
-%!       1   2   3
+%!       1   2   3 
 %!       1   2   3
 %!       1   2   3
 %!       1   2   3];
 %!
-%! [P, C, STATS] = bootnhst (y(:),g(:),'nboot',2000);
+%! bootnhst (y(:), g(:), 'nboot', 5000);
+%!
+%! ## Please be patient, the calculations will be completed soon...
+
+%!demo
+%!
+%! ## EXAMPLE 3:
+%! ## COMPARE CORRELATION COEFFICIENTS BETWEEN 2 DATA SETS
+%! Y = randn (20, 2); g = [zeros(10, 1); ones(10, 1)];
+%! func = @(M) cor (M(:,1), M(:,2));
+%!
+%! bootnhst (Y, g, 'bootfun', func);
+%!
+%! ## Please be patient, the calculations will be completed soon...
+
+%!demo
+%!
+%! ## EXAMPLE 4:
+%! ## COMPARE SLOPES FROM LINEAR REGRESSION ON 2 DATA SETS
+%! y = randn (20, 1); x = randn (20, 1); X = [ones(20, 1), x];
+%! g = [zeros(10, 1); ones(10, 1)];
+%! func = @(M) subsref (M(:,2:end) \ M(:,1), struct ('type', '()', 'subs', {{2}}));
+%!
+%! bootnhst ([y, X], g, 'bootfun', func);
+%!
+%! ## Please be patient, the calculations will be completed soon...
 
 %!test
 %! y = [111.39 110.21  89.21  76.64  95.35  90.97  62.78;
@@ -1119,6 +1220,14 @@ end
 %! # Result from anova1 is 4.162704768129188e-05
 
 %!test
-%! Y = randn (12, 2); g = [1; 1; 1; 1; 1; 1; 2; 2; 2; 2; 2; 2];
+%! % Compare correlation coefficients
+%! Y = randn (20, 2); g = [zeros(10, 1); ones(10, 1)];
 %! func = @(M) cor (M(:,1), M(:,2));
-%! p = bootnhst (Y, g, 'bootfun', func, 'DisplayOpt',false);
+%! p = bootnhst (Y, g, 'bootfun', func, 'DisplayOpt', false);
+
+%!test
+%! % Compare slopes from linear regression
+%! y = randn (20, 1); x = randn (20, 1); X = [ones(20, 1), x];
+%! g = [zeros(10, 1); ones(10, 1)];
+%! func = @(M) subsref (M(:,2:end) \ M(:,1), struct ('type', '()', 'subs', {{2}}));
+%! p = bootnhst ([y, X], g, 'bootfun', func, 'DisplayOpt', false);
