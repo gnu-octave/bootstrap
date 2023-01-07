@@ -151,5 +151,5 @@ end
 %!         0 33 28 34 4 32 24 47 41 24 26 30 41]';
 %!
 %! # Compute 50 bootstrap statistics for the mean and calculate the bootstrap standard arror
-%! bootstat = bootstrp (50, @mean, data) 
+%! bootstat = bootstrp (50, @mean, data)
 %! std (bootstat)

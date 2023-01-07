@@ -363,10 +363,10 @@ function [stats, bootstat, BOOTSAM] = bootknife (x, nboot, bootfun, alpha, ...
 
   % Evaluate bootfun on the DATA
   T0 = bootfun (x);
-  if (isnan (T0))
+  if (any (isnan (T0)))
     error ('bootknife: Evaluating BOOTFUN on the DATA returns NaN')
   end
-  if all (size (T0) > 1)
+  if (all (size (T0) > 1))
     error ('bootknife: BOOTFUN must return either a scalar or a vector');
   end
 
@@ -404,7 +404,7 @@ function [stats, bootstat, BOOTSAM] = bootknife (x, nboot, bootfun, alpha, ...
       status = cellfun (@(S) S.loaded, software, 'UniformOutput', false);
       index = find (~cellfun (@isempty, regexpi (names,pat)));
       if (~ isempty (index))
-        if logical (status{index})
+        if (logical (status{index}))
           PARALLEL = true;
         else
           PARALLEL = false;
@@ -414,7 +414,7 @@ function [stats, bootstat, BOOTSAM] = bootknife (x, nboot, bootfun, alpha, ...
       end
     else
       info = ver; 
-      if ismember ('Parallel Computing Toolbox', {info.Name})
+      if (ismember ('Parallel Computing Toolbox', {info.Name}))
         PARALLEL = true;
       else
         PARALLEL = false;
@@ -450,7 +450,7 @@ function [stats, bootstat, BOOTSAM] = bootknife (x, nboot, bootfun, alpha, ...
       catch
         % MATLAB Parallel Computing Toolbox is not installed
         warning ('bootknife:parallel', ...
-           'MATLAB Parallel Computing Toolbox is not installed or operational. Falling back to serial processing.');
+           'Parallel Computing Toolbox not installed or operational. Falling back to serial processing.');
         ncpus = 1;
       end
     end
@@ -459,11 +459,11 @@ function [stats, bootstat, BOOTSAM] = bootknife (x, nboot, bootfun, alpha, ...
       if ISOCTAVE
         % OCTAVE Parallel Computing Package is not installed or loaded
         warning ('bootknife:parallel', ...
-          'OCTAVE Parallel Computing Package is not installed and/or loaded. Falling back to serial processing.');
+          'Parallel Computing Package not installed and/or loaded. Falling back to serial processing.');
       else
         % MATLAB Parallel Computing Toolbox is not installed or loaded
         warning ('bootknife:parallel', ...
-          'MATLAB Parallel Computing Toolbox is not installed and/or loaded. Falling back to serial processing.');
+          'Parallel Computing Toolbox not installed and/or loaded. Falling back to serial processing.');
       end
       ncpus = 0;
     end
@@ -664,12 +664,12 @@ function [stats, bootstat, BOOTSAM] = bootknife (x, nboot, bootfun, alpha, ...
         % Set unique random seed for each parallel thread
         parfor i = 1:ncpus; boot (1, 1, false, i); end
         % Perform inner layer of resampling
-        bootout = struct ('original', zeros (1,B),...
-                          'bias', zeros (1,B),...
-                          'std_error', zeros (1,B),...
-                          'CI_lower', zeros (1,B),...
-                          'CI_upper', zeros (1,B),...
-                          'Pr', zeros (1,B));
+        bootout = repmat (struct ('original', [],...
+                                  'bias', [],...
+                                  'std_error', [],...
+                                  'CI_lower', [],...
+                                  'CI_upper', [],...
+                                  'Pr', []), 1, B);
         if vectorized && isempty(BOOTSAM)
           cellfunc = @(x) bootknife (x, C, bootfun, NaN, strata, 0, T0, ISOCTAVE, [], false);
           parfor b = 1:B; bootout(b) = cellfunc (X(:,b)); end
@@ -757,8 +757,8 @@ function [stats, bootstat, BOOTSAM] = bootknife (x, nboot, bootfun, alpha, ...
                 T = pararrayfun (ncpus, jackfun, 1:n);
               else
                 % MATLAB
-                T = zeros (n, 1);
-                parfor i = 1:n; T(i) = jackfun (i); end
+                T = zeros (1, n);
+                parfor i = 1:n; T(i) = feval (jackfun, i); end
               end
             else
               % SERIAL evaluation of bootfun on each jackknife resample
@@ -811,8 +811,6 @@ function [stats, bootstat, BOOTSAM] = bootknife (x, nboot, bootfun, alpha, ...
       ci = nan (1, 2);
     end
   end
-  ci(l == 0) = -inf; 
-  ci(l == 1) = +inf;
 
   % Use quick interpolation to find the proportion (Pr) of bootstat <= REF
   if ((nargin < 7) || isempty (REF))
@@ -1011,12 +1009,18 @@ function X = kdeinv (P, Y, BW, CF)
   % Apply shrinkage correction
   Y = ((Y - MU) * sqrt (CF)) + MU;
 
-  % Set lower and upper bounds of X0 to range of Y
-  X0 = [min(Y), max(Y)];
+  % Set initial values of X0
+  YS = sort (Y, 2);
+  X0 = YS(fix ((N - 1) * P) + 1);
 
   % Perform root finding to get quantiles of the KDE at values of P
   findroot = @(X0, P) fzero (@(X) sum (pnorm (X - Y, 0, BW)) / N - P, X0);
-  X = arrayfun (findroot, X0, P);
+  X = [-Inf, +Inf];
+  for i = 1:numel(P)
+    if (~ ismember (P(i), [0, 1]))
+      X(i) = findroot (X0(i), P(i));
+    end
+  end
 
 end
 
@@ -1035,7 +1039,7 @@ function PX = ExpandProbs (P, DF)
   % Create required distribution functions
   stdnormcdf = @(X) 0.5 * (1 + erf (X / sqrt (2)));
   stdnorminv = @(P) sqrt (2) * erfinv (2 * P - 1);
-  if exist('betaincinv','file')
+  if (exist ('betaincinv', 'file'))
     studinv = @(P, DF) sign (P - 0.5) * ...
                        sqrt ( DF ./ betaincinv (2 * min (P, 1 - P), DF / 2, 0.5) - DF);
   else
@@ -1048,7 +1052,8 @@ function PX = ExpandProbs (P, DF)
       % Use the Normal distribution (i.e. do not expand probabilities) if
       % either betaincinv or betainv are not available
       studinv = @(P, DF) stdnorminv (P);
-      warning ('Could not create studinv function. Intervals will not be expanded.');
+      warning ('bootknife:ExpandProbs', ...
+          'could not create studinv function; intervals will not be expanded.');
     end
   end
  
@@ -1271,7 +1276,10 @@ end
 %!test
 %! ## Test for errors when using different functionalities of bootknife
 %! ## 'bootknife:parallel' warning turned off in case parallel package is not loaded
-%! warning ('off', 'bootknife:parallel');
+%! warning ('off', 'bootknife:parallel')
+%! warning ('off', 'Octave:divide-by-zero')
+%! warning ('off', 'Octave:nearly-singular-matrix')
+%! warning ('off', 'Octave:broadcast')
 %! try
 %!   y = randn (20,1); 
 %!   strata = [1;1;1;1;1;1;1;1;1;1;2;2;2;2;2;3;3;3;3;3];
@@ -1308,7 +1316,7 @@ end
 %!   stats = bootknife (Y(1:5,:), [2000,200], @mean, .1);
 %!   stats = bootknife (Y(1:5,:), [2000,200], @mean, [.05,.95]);
 %!   stats = bootknife (Y, 2000, @(Y) mean(Y(:),1)); % Cluster/block resampling
-%!   % Y(1,end) = NaN; % Unequal clustersize
+%!   % Y(1,end) = NaN; % Unequal cluster size
 %!   %stats = bootknife (Y, 2000, @(Y) mean(Y(:),1,'omitnan'));
 %!   y = randn (20,1); x = randn (20,1); X = [ones(20,1), x];
 %!   stats = bootknife ({x,y}, 2000, @cor);
@@ -1319,9 +1327,16 @@ end
 %!   stats = bootknife ({y,X}, 2000, @(y,X) X\y, [], strata, 2);
 %!   stats = bootknife ({y,X}, 2000, @(y,X) X\y, [.05,.95], strata);
 %! catch
-%!   warning ('on', 'bootknife:parallel');
-%!   rethrow (lasterror);
+%!   warning ('on', 'bootknife:parallel')
+%!   warning ('on', 'Octave:divide-by-zero')
+%!   warning ('on', 'Octave:nearly-singular-matrix')
+%!   warning ('on', 'Octave:broadcast')
+%!   rethrow (lasterror)
 %! end
+%! warning ('on', 'bootknife:parallel')
+%! warning ('on', 'Octave:divide-by-zero')
+%! warning ('on', 'Octave:nearly-singular-matrix')
+%! warning ('on', 'Octave:broadcast')
 
 %!test
 %! ## Spatial test data from Table 14.1 of Efron and Tibshirani (1993)

@@ -174,7 +174,7 @@ function PX = ExpandProbs (P, DF)
   % Create required distribution functions
   stdnormcdf = @(X) 0.5 * (1 + erf (X / sqrt (2)));
   stdnorminv = @(P) sqrt (2) * erfinv (2 * P - 1);
-  if exist('betaincinv','file')
+  if (exist ('betaincinv', 'file'))
     studinv = @(P, DF) sign (P - 0.5) * ...
                        sqrt ( DF ./ betaincinv (2 * min (P, 1 - P), DF / 2, 0.5) - DF);
   else
@@ -187,7 +187,8 @@ function PX = ExpandProbs (P, DF)
       % Use the Normal distribution (i.e. do not expand probabilities) if
       % either betaincinv or betainv are not available
       studinv = @(P, DF) stdnorminv (P);
-      warning ('Could not create studinv function. Intervals will not be expanded.');
+      warning ('bootknife:ExpandProbs', ...
+          'could not create studinv function; intervals will not be expanded.');
     end
   end
  

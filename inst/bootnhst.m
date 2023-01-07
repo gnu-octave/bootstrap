@@ -382,6 +382,53 @@
 % |          2 |                                                             2 |
 % |          3 |                                                             3 |
 %
+%  EXAMPLE 2C:
+%  COMPARE STANDARD DEVIATIONS BETWEEN 3 GROUPS: pairwise comparisons
+%
+%   >> y = [54  87  45
+%           23  98  39
+%           45  64  51
+%           54  77  49
+%           45  89  50
+%           47 NaN  55];
+%   >> g = [ 1   2   3
+%            1   2   3
+%            1   2   3 
+%            1   2   3
+%            1   2   3
+%            1   2   3];
+%   >> p = bootnhst (y(:), g(:), 'bootfun', {@std, 1});
+%
+% Summary of bootstrap null hypothesis (H0) significance test(s)
+% ******************************************************************************
+% Bootstrap settings:
+%  Function: @(data) func (data, args {:})
+%  Bootstrap resampling method: Balanced, bootknife resampling
+%  Number of bootstrap resamples: 1000
+%  Method for estimating standard errors: Balanced, bootknife resampling
+%  Number of bootknife resamples used to estimate standard errors: 200
+%  Multiple comparison method: Single-step maxT procedure based on Tukey-Kramer
+% ------------------------------------------------------------------------------
+% 
+% Overall hypothesis test from single-step maxT procedure
+% H0: Groups of data are all sampled from the same population
+% 
+% Maximum t = 1.50, p = .399
+% ------------------------------------------------------------------------------
+% POST HOC TESTS with control of the FWER by the single-step maxT procedure
+% ------------------------------------------------------------------------------
+% | Comparison |  Reference # |       Test # |  Difference |       t |       p |
+% |------------|--------------|--------------|-------------|---------|---------|
+% |          1 |            1 |            2 |   +1.21e+00 |    0.28 |    .945 |
+% |          2 |            1 |            3 |   -5.36e+00 |    1.28 |    .477 |
+% |          3 |            2 |            3 |   -6.56e+00 |    1.50 |    .399 |
+% 
+% ------------------------------------------------------------------------------
+% |    GROUP # |                                                   GROUP label |
+% |------------|---------------------------------------------------------------|
+% |          1 |                                                             1 |
+% |          2 |                                                             2 |
+% |          3 |                                                             3 |
 %
 %   Bibliography:
 %   [1] Efron and Tibshirani. Chapter 16 Hypothesis testing with the
@@ -520,15 +567,13 @@ function [p, c, stats] = bootnhst (data, group, varargin)
     error ('bootnhst: jackknife currently only available for analysis of univariate data.')
   end
   if (nboot(2) == 0) && ~strcmp (func2str (bootfun),'mean')
-    if ISOCTAVE
-      statspackage = ismember ({info.Name}, 'statistics');
-      if (~ any (statspackage))
-        error ('bootnhst: jackknife calculations require the ''Statistics'' package')
+    if (~ exist ('jackknife','file'))
+      if ISOCTAVE; 
+        warning ('bootnhst:jackfail: ''jackknife'' function from statistics package not found. nboot(2) set to 200.')
+      else
+        warning ('bootnhst:jackfail: ''jackknife'' function from statistics toolbox not found. nboot(2) set to 200.')
       end
-    else
-      if ~ismember ('Statistics and Machine Learning Toolbox', {info.Name})
-        error ('bootnhst: jackknife calculations require the ''Statistics and Machine Learning Toolbox''')
-      end
+      nboot(2) = 200;
     end
   end
   
@@ -1133,6 +1178,25 @@ end
 
 %!demo
 %!
+%! ## EXAMPLE 2C:
+%! ## COMPARE STANDARD DEVIATIONS BETWEEN 3 GROUPS: pairwise comparisons (the 'ref' default)
+%!
+%! y = [54  87  45
+%!      23  98  39
+%!      45  64  51
+%!      54  77  49
+%!      45  89  50
+%!      47 NaN  55];
+%! g = [ 1   2   3
+%!       1   2   3
+%!       1   2   3
+%!       1   2   3
+%!       1   2   3
+%!       1   2   3];
+%! p = bootnhst (y(:),g(:),'bootfun',{@std,1},'DisplayOpt',false);
+
+%!demo
+%!
 %! ## EXAMPLE 3:
 %! ## COMPARE CORRELATION COEFFICIENTS BETWEEN 2 DATA SETS
 %! Y = randn (20, 2); g = [zeros(10, 1); ones(10, 1)];
@@ -1219,6 +1283,22 @@ end
 %!   assert (p, 0.001, 1e-06); # truncated at 0.001
 %! end
 %! # Result from anova1 is 4.162704768129188e-05
+
+%!test
+%! y = [54  87  45
+%!      23  98  39
+%!      45  64  51
+%!      54  77  49
+%!      45  89  50
+%!      47 NaN  55];
+%! g = [ 1   2   3
+%!       1   2   3
+%!       1   2   3
+%!       1   2   3
+%!       1   2   3
+%!       1   2   3];
+%! p = bootnhst (y(:),g(:),'bootfun',@(y)std(y,1),'DisplayOpt',false);
+%! p = bootnhst (y(:),g(:),'bootfun',{@std,1},'DisplayOpt',false);
 
 %!test
 %! % Compare correlation coefficients

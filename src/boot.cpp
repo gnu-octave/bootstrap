@@ -124,14 +124,14 @@ void mexFunction (int nlhs, mxArray* plhs[],
     unsigned int seed;
     if ( nrhs > 3 && !mxIsEmpty (prhs[3]) ) {
         if ( mxGetNumberOfElements (prhs[3]) > 1 ) {
-            mexErrMsgTxt ("The fifth input argument (SEED) must be a scalar value.");
+            mexErrMsgTxt ("The fourth input argument (SEED) must be a scalar value.");
         }
         if ( !mxIsClass (prhs[3], "double") ) {
-            mexErrMsgTxt ("The fifth input argument (SEED) must be of type double.");
+            mexErrMsgTxt ("The fourth input argument (SEED) must be of type double.");
         }
         seed = *(mxGetPr(prhs[3]));
         if ( !mxIsFinite (seed) ) {
-            mexErrMsgTxt ("The fifth input argument (SEED) cannot be NaN or Inf.");    
+            mexErrMsgTxt ("The fourth input argument (SEED) cannot be NaN or Inf.");    
         }
         srand (seed);
     }
@@ -156,10 +156,10 @@ void mexFunction (int nlhs, mxArray* plhs[],
     if ( nrhs > 4 && !mxIsEmpty (prhs[4]) ) {
         // Assign user defined weights (counts)
         if ( !mxIsClass (prhs[4], "double") ) {
-            mexErrMsgTxt ("The fourth input argument (WEIGHTS) must be of type double.");
+            mexErrMsgTxt ("The fifth input argument (WEIGHTS) must be of type double.");
         }
         if ( mxIsComplex (prhs[4]) ) {
-            mexErrMsgTxt ("The fourth input argument (WEIGHTS) cannot contain an imaginary part.");
+            mexErrMsgTxt ("The fifth input argument (WEIGHTS) cannot contain an imaginary part.");
         }
         double *w = (double *) mxGetData (prhs[4]);
         if ( mxGetNumberOfElements (prhs[4]) != n ) {
@@ -168,10 +168,10 @@ void mexFunction (int nlhs, mxArray* plhs[],
         long long int s = 0; 
         for ( int i = 0; i < n ; i++ )  {
             if ( !mxIsFinite (w[i]) ) {
-                mexErrMsgTxt ("The fourth input argument (WEIGHTS) cannot contain NaN or Inf.");    
+                mexErrMsgTxt ("The fifth input argument (WEIGHTS) cannot contain NaN or Inf.");    
             }
             if ( w[i] < 0 ) {
-                mexErrMsgTxt ("The fourth input argument (WEIGHTS) must contain only positive integers.");
+                mexErrMsgTxt ("The fifth input argument (WEIGHTS) must contain only positive integers.");
             }
             c.push_back (w[i]); // Set each element in c to the specified weight    
             s += c[i];

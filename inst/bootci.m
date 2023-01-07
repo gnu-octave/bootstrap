@@ -49,13 +49,9 @@
 %  CI = bootci (..., 'type', 'stud', 'nbootstd', NBOOTSTD) computes the
 %  Studentized bootstrap confidence intervals CI, with the standard errors
 %  of the bootstrap statistics estimated automatically using resampling methods.
-%  NBOOTSTD is a positive integer value defining the number of resamples. If
-%  NBOOTSTD is non-zero, the unbiased standard errors are computed using
-%  NBOOTSTD bootknife resamples. If NBOOTSTD is zero, then the standard errors
-%  are computed using leave-one-out jackknife resampling. Jackknife is
-%  deterministic since it is not subject to Monte Carlo error, but may not be
-%  appropriate if bootfun computes a robust statistic. The default value of
-%  NBOOTSTD is 100.
+%  NBOOTSTD is a positive integer value > 0 defining the number of resamples.
+%  Unbiased standard errors are computed using NBOOTSTD bootknife resamples.
+%  The default value of NBOOTSTD is 100.
 %
 %  CI = bootci (..., 'type', 'cal', 'nbootcal', NBOOTCAL) computes the calibrated
 %  percentile bootstrap confidence intervals CI, with the calibrated percentiles
@@ -76,10 +72,6 @@
 %                   resampling and jackknife function evaluations. Default is
 %                   false for serial computation. In MATLAB, the default is
 %                   true if a parallel pool has already been started. 
-%
-%                   Note that the standard error calculations for Studentized
-%                   bootstrap confidence intervals are not accelerated by
-%                   parallel processing.
 %
 %   'nproc'       - nproc sets the number of parallel processes
 %
@@ -141,11 +133,6 @@ function [ci, bootstat, bootsam] = bootci (argin1, argin2, varargin)
   if nargin<2
     error('bootci usage: ''bootci (NBOOT, {BOOTFUN, DATA}, varargin)''; atleast 2 input arguments required');
   end
-
-  % Store local functions in a stucture for parallel processes
-  localfunc = struct ('col2args',@col2args,...
-                      'empcdf',@empcdf,...
-                      'jackse',@jackse);
 
   % Check if using MATLAB or Octave
   info = ver; 
@@ -249,8 +236,8 @@ function [ci, bootstat, bootsam] = bootci (argin1, argin2, varargin)
   if (numel (nbootstd) > 1)
     error ('bootci: NBOOTSTD must be a scalar value');
   end
-  if (nbootstd ~= abs (fix (nbootstd)))
-    error ('bootci: NBOOTSTD must be a positive integer');
+  if (nbootstd < 1)
+    error ('bootci: NBOOTSTD must be an integer > 0');
   end  
   if ~isa (nbootcal, 'numeric')
     error ('bootci: NBOOTCAL must be numeric');
@@ -260,7 +247,39 @@ function [ci, bootstat, bootsam] = bootci (argin1, argin2, varargin)
   end
   if (nbootcal ~= abs (fix (nbootcal)))
     error ('bootci: NBOOTCAL must be a positive integer');
-  end    
+  end
+  % If applicable, check we have parallel computing capabilities
+  if (ncpus > 1)
+    if ISOCTAVE
+      pat = '^parallel';
+      software = pkg('list');
+      names = cellfun (@(S) S.name, software, 'UniformOutput', false);
+      status = cellfun (@(S) S.loaded, software, 'UniformOutput', false);
+      index = find (~cellfun (@isempty, regexpi (names,pat)));
+      if (~ isempty (index))
+        if (~ logical (status{index}))
+          ncpus = 0;
+        end
+      else
+        ncpus = 0;
+      end
+      if (ncpus == 0)
+        % OCTAVE Parallel Computing Package is not installed or loaded
+        warning ('bootknife:parallel', ...
+          'Parallel Computing Package is installed and/or loaded. Falling back to serial processing.');
+      end
+    else
+      info = ver; 
+      if (~ ismember ('Parallel Computing Toolbox', {info.Name}))
+        ncpus = 0;
+      end
+      if (ncpus == 0)
+        % MATLAB Parallel Computing Toolbox is not installed or loaded
+        warning ('bootknife:parallel', ...
+          'Parallel Computing Toolbox is installed and/or loaded. Falling back to serial processing.');
+      end
+    end
+  end
 
   % Apply interval type
   switch lower(type)
@@ -301,54 +320,46 @@ function [ci, bootstat, bootsam] = bootci (argin1, argin2, varargin)
       % Use bootstrap-t method with variance stabilization for small samples
       % Polansky (2000) Can J Stat. 28(3):501-516
       [stats, bootstat, bootsam] = bootknife (data, nboot, bootfun, NaN, [], ncpus);
-      m = numel (stats); % Number of statistics
       % Automatically estimate standard errors of the bootstrap statistics
-      if (nbootstd > 0)
-        % Using bootknife resampling
-        if (iscell (data))
-          % If DATA is a cell array of equal size colunmn vectors, convert the
-          % cell array to a matrix and define function to calculate an unbiased 
-          % estimate of the standard error using bootknife resampling
-          szx = cellfun (@(x) size (x, 2), data);
-          data = [data{:}];
-          cellfunc = @(BOOTSAM) bootknife (mat2cell (data (BOOTSAM,:), n, szx), nbootstd, bootfun, NaN);
+      % Using bootknife resampling
+      if (iscell (data))
+        % If DATA is a cell array of equal size colunmn vectors, convert the
+        % cell array to a matrix and define function to calculate an unbiased 
+        % estimate of the standard error using bootknife resampling
+        szx = cellfun (@(x) size (x, 2), data);
+        data = [data{:}];
+        cellfunc = @(bootsam) bootknife (mat2cell (data (bootsam,:), n, szx), nbootstd, bootfun, NaN,  [], 0, [], ISOCTAVE);
+      else
+        cellfunc = @(bootsam) bootknife (data (bootsam,:), nbootstd, bootfun, NaN, [], 0, [], ISOCTAVE);
+      end
+      if (ncpus > 1)
+        if ISOCTAVE
+          % Octave
+          % Set unique random seed for each parallel thread
+          pararrayfun (ncpus, @boot, 1, 1, false, 1:ncpus);
+          bootout = parcellfun (ncpus, cellfunc, num2cell (bootsam, 1), 'UniformOutput', false);
         else
-          cellfunc = @(BOOTSAM) bootknife (data (BOOTSAM,:), nbootstd, bootfun, NaN);
-        end
-        SE = zeros (m, nboot);
-        for i = 1:nboot
-          boot (1, 1, false, 1); % Set random seed
-          S = cellfun (cellfunc, {bootsam(:, i)},'UniformOutput', false);
-          SE(:,i) = [S{1}(:).std_error]';
+          % MATLAB
+          % Set unique random seed for each parallel thread
+          parfor i = 1:ncpus; boot (1, 1, false, i); end
+          % Perform inner layer of resampling
+          bootout = cell (1, nboot(1));
+          parfor b = 1:nboot(1); bootout{b} = cellfunc (bootsam(:,b)); end
         end
       else
-        % Using jacknife resampling
-        if (iscell (data))
-          data = [data{:}];
-        end
-        if (iscell (bootfun))
-          jackfun = @(varargin) feval (bootfun{1}, varargin{:}, bootfun{2:end});
-        else
-          jackfun = @(varargin) bootfun (varargin{:});
-        end
-        try
-          localfunc.jackse (jackfun, data, ISOCTAVE);
-        catch
-          error ('bootci:jackfail','jackknife function could not be used. Set nbootstd to > 0.\n')
-        end
-        stats.std_error = localfunc.jackse (jackfun, data, ISOCTAVE);
-        SE = cellfun (@(BOOTSAM) localfunc.jackse (jackfun, data(BOOTSAM,:), ...
-                      ISOCTAVE), num2cell (bootsam,1));
+        bootout = cellfun (cellfunc, num2cell (bootsam, 1), 'UniformOutput', false);
       end
+      se = cell2mat (cellfun (@(S) [S.std_error]', bootout, 'UniformOutput', false));
       % Compute additive constant to stabilize the variance
       a = n^(-3/2) * [stats.std_error]'; 
       % Calculate Studentized bootstrap statistics
-      T = bsxfun (@minus, bootstat, [stats.original]') ./ bsxfun (@plus, SE, a);
+      T = bsxfun (@minus, bootstat, [stats.original]') ./ bsxfun (@plus, se, a);
       % Calculate intervals from empirical distribution of the Studentized bootstrap statistics
+      m = numel (stats);
       ci = zeros (2, m);
-      for j = 1:m
-        [cdf, t] = localfunc.empcdf (T(j,:), 1);
-        ci(:,j) = fliplr (arrayfun ( @(p) stats(j).original - stats(j).std_error * interp1 (cdf, t, p, 'linear'), alpha));
+      for i = 1:m
+        [cdf, t] = empcdf (T(i,:), 1);
+        ci(:,i) = fliplr (arrayfun ( @(p) stats(i).original - stats(i).std_error * interp1 (cdf, t, p, 'linear'), alpha));
       end
 
     otherwise
@@ -363,22 +374,6 @@ function [ci, bootstat, bootsam] = bootci (argin1, argin2, varargin)
     ci = [stats.CI_lower; stats.CI_upper];
   end
   bootstat = bootstat.';
-
-end
-
-%--------------------------------------------------------------------------
-
-function retval = col2args (func, x)
-
-  % Usage: retval = col2args (func, x)
-  % col2args evaluates func on the columns of x. Each columns of x is passed
-  % to func as a separate argument. 
-
-  % Extract columns of the matrix into a cell array
-  xcell = num2cell (x, 1);
-
-  % Evaluate column vectors as independent of arguments to bootfun
-  retval = func (xcell{:});
 
 end
 
@@ -424,30 +419,6 @@ function [F, x] = empcdf (y, c)
   x(isinf(x)) = [];
 
 end
-
-%--------------------------------------------------------------------------
-
-function SE = jackse (jackfun, data, ISOCTAVE)
-
-  % Subfunction to calculate standard errors using jackknife resampling
-  % Requires the jackknife function either from Octave Statistics package or
-  % from the Matlab Statistics and Machine Learning Toolbox
-  [n, m] = size (data);
-  if m > 1
-    celldata = num2cell (data, 1);
-    if ISOCTAVE
-      jackstat = jackknife (@(x) jackfun (x{:}), celldata{:});
-    else
-      jackstat = jackknife (jackfun, celldata{:});
-    end
-  else
-    jackstat = jackknife (jackfun, data);
-  end
-  SE = sqrt ((n- 1 ) / n * sum (((mean (jackstat) - jackstat)).^2));
-
-end
-
-%--------------------------------------------------------------------------
 
 %!demo
 %!
@@ -619,7 +590,7 @@ end
 %! ## ci2 = bootci (20000,{{@var,1},A},'alpha',0.1,'type','per','seed',1);
 %! ## ci3 = bootci (20000,{{@var,1},A},'alpha',0.1,'type','basic','seed',1);
 %! ## ci4 = bootci (20000,{{@var,1},A},'alpha',0.1,'type','bca','seed',1);
-%! ## ci5 = bootci (20000,{{@var,1},A},'alpha',0.1,'type','stud','nbootstd',0,'seed',1);
+%! ## ci5 = bootci (20000,{{@var,1},A},'alpha',0.1,'type','stud','nbootstd',100,'seed',1);
 %! ## ci6 = bootci (20000,{{@var,1},A},'alpha',0.1,'type','cal','nbootcal',500,'seed',1);
 %! ##
 %! ## Summary of results from 'statistics-bootstrap' package for Octave/Matlab
@@ -630,7 +601,7 @@ end
 %! ## ci2 - percentile   |   96.5 |  237.2 |  140.7 |  0.88 |
 %! ## ci3 - basic        |  105.9 |  246.6 |  140.7 |  1.14 |
 %! ## ci4 - BCa          |  115.5 |  262.7 |  147.2 |  1.63 |
-%! ## ci5 - bootstrap-t  |  108.8 |  296.0 |  187.2 |  1.99 |
+%! ## ci5 - bootstrap-t  |  111.6 |  296.8 |  185.2 |  2.09 |
 %! ## ci6 - calibrated   |  114.6 |  293.5 |  178.9 |  2.14 |
 %! ## -------------------|--------|--------|--------|-------|
 %! ## parametric - exact |  118.4 |  305.2 |  186.8 |  2.52 |
@@ -663,46 +634,61 @@ end
 
 %!test
 %! ## Test for errors when using some different functionalities of bootci
-%! y = randn (20, 1); 
-%! bootci (2000, 'mean', y);
-%! bootci (2000, @mean, y);
-%! bootci (2000, @mean, y, 'alpha', 0.1);
-%! bootci (2000, {@mean, y}, 'alpha', 0.1);
-%! bootci (2000, {@mean, y}, 'alpha', 0.1, 'seed', 1);
-%! bootci (2000, {@mean, y}, 'alpha', 0.1, 'type', 'norm');
-%! bootci (2000, {@mean, y}, 'alpha', 0.1, 'type', 'per');
-%! bootci (2000, {@mean, y}, 'alpha', 0.1, 'type', 'basic');
-%! bootci (2000, {@mean, y}, 'alpha', 0.1, 'type', 'bca');
-%! bootci (2000, {@mean, y}, 'alpha', 0.1, 'type', 'stud');
-%! bootci (2000, {@mean, y}, 'alpha', 0.1, 'type', 'stud', 'nbootstd', 0);
-%! bootci (2000, {@mean, y}, 'alpha', 0.1, 'type', 'stud', 'nbootstd', 100);
-%! bootci (2000, {@mean, y}, 'alpha', 0.1, 'type', 'cal');
-%! bootci (2000, {@mean, y}, 'alpha', 0.1, 'type', 'cal', 'nbootcal', 200);
-%! Y = randn (20); 
-%! bootci (2000, 'mean', Y);
-%! bootci (2000, @mean, Y);
-%! bootci (2000, @mean, Y, 'alpha', 0.1);
-%! bootci (2000, {@mean, Y}, 'alpha', 0.1);
-%! bootci (2000, {@mean, Y}, 'alpha', 0.1, 'seed', 1);
-%! bootci (2000, {@mean, Y}, 'alpha', 0.1, 'type', 'norm');
-%! bootci (2000, {@mean, Y}, 'alpha', 0.1, 'type', 'per');
-%! bootci (2000, {@mean, Y}, 'alpha', 0.1, 'type', 'basic');
-%! bootci (2000, {@mean, Y}, 'alpha', 0.1, 'type', 'bca');
-%! bootci (2000, {@mean, Y}, 'alpha', 0.1, 'type', 'stud');
-%! bootci (2000, {@mean, Y}, 'alpha', 0.1, 'type', 'stud', 'nbootstd', 100);
-%! bootci (2000, {@mean, Y}, 'alpha', 0.1, 'type', 'cal');
-%! bootci (2000, {@mean, Y}, 'alpha', 0.1, 'type', 'cal', 'nbootcal', 200);
-%! y = randn (20,1); x = randn (20,1); X = [ones(20,1),x];
-%! bootci (2000, @cor, x, y);
-%! bootci (2000, @(y,X) X\y, y, X);
-%! bootci (2000, @(y,X) X\y, y, X, 'alpha', 0.1);
-%! bootci (2000, {@(y,X) X\y, y, X}, 'alpha', 0.1);
-%! bootci (2000, {@(y,X) X\y, y, X}, 'alpha', 0.1, 'type', 'norm');
-%! bootci (2000, {@(y,X) X\y, y, X}, 'alpha', 0.1, 'type', 'per');
-%! bootci (2000, {@(y,X) X\y, y, X}, 'alpha', 0.1, 'type', 'basic');
-%! bootci (2000, {@(y,X) X\y, y, X}, 'alpha', 0.1, 'type', 'bca');
-%! bootci (2000, {@(y,X) X\y, y, X}, 'alpha', 0.1, 'type', 'stud');
-%! bootci (2000, {@(y,X) X\y, y, X}, 'alpha', 0.1, 'type', 'cal');
+%! warning ('off', 'bootknife:parallel')
+%! warning ('off', 'Octave:divide-by-zero')
+%! warning ('off', 'Octave:nearly-singular-matrix')
+%! warning ('off', 'Octave:broadcast')
+%! try
+%!   y = randn (20, 1); 
+%!   bootci (2000, 'mean', y);
+%!   bootci (2000, @mean, y);
+%!   bootci (2000, @mean, y, 'alpha', 0.1);
+%!   bootci (2000, {'mean', y}, 'alpha', 0.1);
+%!   bootci (2000, {@mean, y}, 'alpha', 0.1);
+%!   bootci (2000, {@mean, y}, 'alpha', 0.1, 'seed', 1);
+%!   bootci (2000, {@mean, y}, 'alpha', 0.1, 'type', 'norm');
+%!   bootci (2000, {@mean, y}, 'alpha', 0.1, 'type', 'per');
+%!   bootci (2000, {@mean, y}, 'alpha', 0.1, 'type', 'basic');
+%!   bootci (2000, {@mean, y}, 'alpha', 0.1, 'type', 'bca');
+%!   bootci (2000, {@mean, y}, 'alpha', 0.1, 'type', 'stud');
+%!   bootci (2000, {@mean, y}, 'alpha', 0.1, 'type', 'stud', 'nbootstd', 100);
+%!   bootci (2000, {@mean, y}, 'alpha', 0.1, 'type', 'cal');
+%!   bootci (2000, {@mean, y}, 'alpha', 0.1, 'type', 'cal', 'nbootcal', 200);
+%!   Y = randn (20); 
+%!   bootci (2000, 'mean', Y);
+%!   bootci (2000, @mean, Y);
+%!   bootci (2000, @mean, Y, 'alpha', 0.1);
+%!   bootci (2000, {'mean', Y}, 'alpha', 0.1);
+%!   bootci (2000, {@mean, Y}, 'alpha', 0.1);
+%!   bootci (2000, {@mean, Y}, 'alpha', 0.1, 'seed', 1);
+%!   bootci (2000, {@mean, Y}, 'alpha', 0.1, 'type', 'norm');
+%!   bootci (2000, {@mean, Y}, 'alpha', 0.1, 'type', 'per');
+%!   bootci (2000, {@mean, Y}, 'alpha', 0.1, 'type', 'basic');
+%!   bootci (2000, {@mean, Y}, 'alpha', 0.1, 'type', 'bca');
+%!   bootci (2000, {@mean, Y}, 'alpha', 0.1, 'type', 'stud');
+%!   bootci (2000, {@mean, Y}, 'alpha', 0.1, 'type', 'cal');
+%!   y = randn (20,1); x = randn (20,1); X = [ones(20,1),x];
+%!   bootci (2000, @cor, x, y);
+%!   bootci (2000, @(y,X) X\y, y, X);
+%!   bootci (2000, @(y,X) X\y, y, X, 'alpha', 0.1);
+%!   bootci (2000, {@(y,X) X\y, y, X}, 'alpha', 0.1);
+%!   bootci (2000, {@(y,X) X\y, y, X}, 'alpha', 0.1, 'type', 'norm');
+%!   bootci (2000, {@(y,X) X\y, y, X}, 'alpha', 0.1, 'type', 'per');
+%!   bootci (2000, {@(y,X) X\y, y, X}, 'alpha', 0.1, 'type', 'basic');
+%!   bootci (2000, {@(y,X) X\y, y, X}, 'alpha', 0.1, 'type', 'bca');
+%!   bootci (2000, {@(y,X) X\y, y, X}, 'alpha', 0.1, 'type', 'stud');
+%!   bootci (2000, {@(y,X) X\y, y, X}, 'alpha', 0.1, 'type', 'cal');
+%! catch
+%!   warning ('on', 'bootknife:parallel')
+%!   warning ('on', 'Octave:divide-by-zero')
+%!   warning ('on', 'Octave:nearly-singular-matrix')
+%!   warning ('on', 'Octave:broadcast')
+%!   rethrow (lasterror)
+%! end
+%! warning ('on', 'bootknife:parallel')
+%! warning ('on', 'Octave:divide-by-zero')
+%! warning ('on', 'Octave:nearly-singular-matrix')
+%! warning ('on', 'Octave:broadcast')
 
 %!test
 %! ## Spatial Test Data from Table 14.1 of Efron and Tibshirani (1993)
