@@ -259,23 +259,24 @@ function [stats, bootstat, BOOTSAM] = bootknife (x, nboot, bootfun, alpha, ...
       if (iscell (bootfun))
         if (ischar (bootfun{1}))
           % Convert character string of a function name to a function handle
+          bootfun_str = bootfun{1};
           func = str2func (bootfun{1});
         else
+          bootfun_str = func2str (bootfun{1});
           func = bootfun{1};
         end
         args = bootfun(2:end);
         bootfun = @(varargin) func (varargin{:}, args{:});
-      end
-      if (ischar (bootfun))
+      elseif (ischar (bootfun))
         % Convert character string of a function name to a function handle
+        bootfun_str = bootfun;
         bootfun = str2func (bootfun);
-      end
-      if (~ isa (bootfun, 'function_handle'))
-        error ('bootknife: BOOTFUN must be a function name or function handle');
+      elseif (isa (bootfun, 'function_handle'))
+        bootfun_str = func2str (bootfun);
+      else
+        error ('bootknife: BOOTFUN must be a function name or function handle')
       end
     end
-    % Store bootfun as string for printing output at the end
-    bootfun_str = func2str (bootfun);
     if (iscell (x))
       % If DATA is a cell array of equal size colunmn vectors, convert the cell
       % array to a matrix and redefine bootfun to parse multiple input arguments
@@ -733,7 +734,9 @@ function [stats, bootstat, BOOTSAM] = bootknife (x, nboot, bootfun, alpha, ...
     if (~ isnan (alpha))
       % If bootfun is the arithmetic meam, perform expansion based on t-distribution
       if (strcmp (func2str (bootfun), 'mean'))
-        alpha = (3 - nalpha) * localfunc.ExpandProbs (alpha / (3 - nalpha), n - K);
+        adj_alpha = (3 - nalpha) * localfunc.ExpandProbs (alpha / (3 - nalpha), n - K);
+      else
+        adj_alpha = alpha;
       end
       state = warning;
       if ISOCTAVE
@@ -787,18 +790,18 @@ function [stats, bootstat, BOOTSAM] = bootknife (x, nboot, bootfun, alpha, ...
               'unable to calculate the bias correction constant, reverting to percentile intervals\n');
             z0 = 0;
             a = 0; 
-            l = [alpha / 2, 1 - alpha / 2];
+            l = [adj_alpha / 2, 1 - adj_alpha / 2];
           end
           if (isempty (l))
             % Calculate BCa or BC percentiles
-            z1 = stdnorminv (alpha / 2);
-            z2 = stdnorminv (1 - alpha / 2);
+            z1 = stdnorminv (adj_alpha / 2);
+            z2 = stdnorminv (1 - adj_alpha / 2);
             l = cat (2, stdnormcdf (z0 + ((z0 + z1) / (1 - a * (z0 + z1)))),... 
                         stdnormcdf (z0 + ((z0 + z2) / (1 - a * (z0 + z2)))));
           end
         case 2
           % alpha is a vector of probabilities
-          l = alpha;
+          l = adj_alpha;
       end
       % Intervals constructed from kernel density estimate of the bootstrap
       % (with shrinkage correction)
