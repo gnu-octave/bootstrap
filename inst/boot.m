@@ -13,8 +13,8 @@
 % X (double) is a data vector intended for resampling
 % NBOOT (double) is the number of bootstrap resamples
 % UNBIASED (boolean): false (for bootstrap) or true (for bootknife)
-% WEIGHTS (double) is a weight vector of length n. 
 % SEED (double) is a seed for the pseudo-random number generator. 
+% WEIGHTS (double) is a weight vector of length n. 
 %
 % OUTPUT VARIABLE
 % bootsam (double) is an n x nboot matrix of resampled data or indices
