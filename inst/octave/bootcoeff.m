@@ -21,17 +21,12 @@
 %  out jackknife samples of size n - 1 from the n residuals and then drawing
 %  samples of size n with replacement from the jackknife samples. The resampling
 %  of residuals is also balanced in order to reduce bias and Monte Carlo error
-%  [2,3]. By default, the confidence intervals constructed are expanded bias-
-%  corrected percentile intervals [4,5]. The list of coefficients and their
-%  bootstrap statistics correspond to the names in STATS.coeffnames, which are
-%  defined by the contrast coding in STATS.contrasts. The rows of STATS.contrasts 
+%  [2,3]. By default, the confidence intervals constructed are bias-corrected
+%  percentile intervals [4,5]. The list of coefficients and their bootstrap
+%  statistics correspond to the names in STATS.coeffnames, which are defined by
+%  the contrast coding in STATS.contrasts. The rows of STATS.contrasts 
 %  correspond to the names in STATS.grpnames. If no output is requested, the
-%  results are printed to stdout*.
-%
-%  * Note that the confidence interval coverage printed reflects the coverage
-%  after expansion using Student's t-distribution (if applicable) [5]. When
-%  reporting confidence intervals, the nominal coverage should be used, 
-%  e.g. 95% if alpha is 0.05.
+%  results are printed to stdout.
 %  
 %  COEFFS = bootcoeff (STATS, NBOOT) also specifies the number of bootstrap
 %  samples. NBOOT must be a scalar. By default, NBOOT is 2000.
@@ -43,8 +38,7 @@
 %  1) a scalar value to set the (nominal) central coverage to 100*(1-ALPHA)%
 %  with (nominal) lower and upper percentiles of the confidence intervals at
 %  100*(ALPHA/2)% and 100*(1-ALPHA/2)% respectively. The intervals constructed
-%  are expanded [5] and bias-corrected [4] to improve central coverage and
-%  accuracy.
+%  bias-corrected [4].
 %
 %  2) a vector containing a pair of probabilities to set the (nominal) lower and
 %  upper percentiles of the confidence interval(s) at 100*(ALPHA(1))% and
@@ -75,9 +69,6 @@
 %        The American Statistician. Vol. 42, No. 4 pp. 263-266
 %  [4] Efron (1981) Nonparametric Standard Errors and Confidence Intervals.
 %        Can J Stat. 9(2:139-158
-%  [5] Hesterberg, Tim (2014), What Teachers Should Know about the 
-%        Bootstrap: Resampling in the Undergraduate Statistics Curriculum, 
-%        http://arxiv.org/abs/1411.5279
 %
 %  bootcoeff (version 2022.12.16)
 %  Author: Andrew Charles Penn
@@ -144,10 +135,6 @@ function coeffs = bootcoeff (stats, nboot, alpha, ncpus, seed)
   % Define bootfun for bootstraping the model residuals and returning the regression coefficients
   bootfun = @(r) lmfit (X, fitted + r .* se, W);
 
-  % Perform adjustments to improve coverage for small samples
-  nalpha = numel (alpha);
-  alpha = (3 - nalpha) * ExpandProbs (alpha / (3 - nalpha), dfe);
-  
   % Perform bootstrap
   if nargout > 0
     warning ('off','bootknife:lastwarn')
@@ -158,46 +145,6 @@ function coeffs = bootcoeff (stats, nboot, alpha, ncpus, seed)
   end
 
 end
-
-%--------------------------------------------------------------------------
-
-function PX = ExpandProbs (P, DF)
-
-  % Modify ALPHA to adjust tail probabilities assuming that the kurtosis of the
-  % sampling distribution scales with degrees of freedom like the t-distribution.
-  % This is related in concept to ExpandProbs in the resample R package:
-  % https://www.rdocumentation.org/packages/resample/versions/0.6/topics/ExpandProbs
-
-  % Get size of P
-  sz = size (P);
-
-  % Create required distribution functions
-  stdnormcdf = @(X) 0.5 * (1 + erf (X / sqrt (2)));
-  stdnorminv = @(P) sqrt (2) * erfinv (2 * P - 1);
-  if (exist ('betaincinv', 'file'))
-    studinv = @(P, DF) sign (P - 0.5) * ...
-                       sqrt ( DF ./ betaincinv (2 * min (P, 1 - P), DF / 2, 0.5) - DF);
-  else
-    % Earlier versions of matlab do not have betaincinv
-    % Instead, use betainv from the Statistics and Machine Learning Toolbox
-    try 
-      studinv = @(P, DF) sign (P - 0.5) * ...
-                         sqrt ( DF ./ betainv (2 * min (P, 1 - P), DF / 2, 0.5) - DF);
-    catch
-      % Use the Normal distribution (i.e. do not expand probabilities) if
-      % either betaincinv or betainv are not available
-      studinv = @(P, DF) stdnorminv (P);
-      warning ('bootknife:ExpandProbs', ...
-          'could not create studinv function; intervals will not be expanded.');
-    end
-  end
- 
-  % Calculate statistics of the data
-  PX = stdnormcdf (arrayfun (studinv, P, repmat (DF, sz)));
-
-end
-
-%--------------------------------------------------------------------------
 
 %!demo
 %!

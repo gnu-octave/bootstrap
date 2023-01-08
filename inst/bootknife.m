@@ -487,11 +487,11 @@ function [stats, bootstat, BOOTSAM] = bootknife (x, nboot, bootfun, alpha, ...
     end
     % Use bootknife for each element of the output of bootfun
     % Note that row indices in the resamples are the same for all columns of DATA
-    stats = struct ('original', zeros(sz),...
-                    'bias', zeros(sz),...
-                    'std_error', zeros(sz),...
-                    'CI_lower', zeros(sz),...
-                    'CI_upper', zeros(sz));
+    stats = repmat (struct ('original', [],...
+                            'bias', [],...
+                            'std_error', [],...
+                            'CI_lower', [],...
+                            'CI_upper', []), 1, B);
     bootstat = zeros (m, B);
     if vectorized
       for j = 1:m
@@ -513,11 +513,17 @@ function [stats, bootstat, BOOTSAM] = bootknife (x, nboot, bootfun, alpha, ...
       end
     end
     % Print output if no output arguments are requested
-    if (nargout == 0) 
-      if (nalpha > 1) && (C == 0)
-        l = alpha;
+    if (nargout == 0)
+      if ((nalpha > 1) && (C == 0))
+        if (strcmpi (bootfun_str, 'mean'))
+          gid = unique (strata);  % strata ID
+          K = numel (gid);        % number of strata
+          l = localfunc.ExpandProbs (alpha, n - K);
+        else
+          l = alpha;
+        end
       end
-      print_output (stats, B, C, alpha, l, m, bootfun_str);
+      print_output (stats, B, C, alpha, l, m, bootfun_str, strata);
     else
       [warnmsg, warnID] = lastwarn;
       if ismember (warnID, {'bootknife:biasfail','bootknife:jackfail'})
@@ -552,7 +558,7 @@ function [stats, bootstat, BOOTSAM] = bootknife (x, nboot, bootfun, alpha, ...
   % Perform balanced bootknife resampling
   unbiased = true;  % Set to true for bootknife resampling
   if ((nargin < 9) || isempty (BOOTSAM))
-    if ~isempty (strata)
+    if (~ isempty (strata))
       if (nvar > 1) || (nargout > 2)
         % If we need BOOTSAM, can save some memory by making BOOTSAM an int32 datatype
         BOOTSAM = zeros (n, B, 'int32'); 
@@ -734,10 +740,10 @@ function [stats, bootstat, BOOTSAM] = bootknife (x, nboot, bootfun, alpha, ...
     se = std (bootstat);  % Unbiased estimate since we used bootknife resampling
     if (~ isnan (alpha))
       % If bootfun is the arithmetic meam, perform expansion based on t-distribution
-      if (strcmp (func2str (bootfun), 'mean'))
-        adj_alpha = (3 - nalpha) * localfunc.ExpandProbs (alpha / (3 - nalpha), n - K);
+      if (strcmpi (bootfun_str, 'mean'))
+        expan_alpha = (3 - nalpha) * localfunc.ExpandProbs (alpha / (3 - nalpha), n - K);
       else
-        adj_alpha = alpha;
+        expan_alpha = alpha;
       end
       state = warning;
       if ISOCTAVE
@@ -791,18 +797,18 @@ function [stats, bootstat, BOOTSAM] = bootknife (x, nboot, bootfun, alpha, ...
               'unable to calculate the bias correction constant, reverting to percentile intervals\n');
             z0 = 0;
             a = 0; 
-            l = [adj_alpha / 2, 1 - adj_alpha / 2];
+            l = [expan_alpha / 2, 1 - expan_alpha / 2];
           end
           if (isempty (l))
             % Calculate BCa or BC percentiles
-            z1 = stdnorminv (adj_alpha / 2);
-            z2 = stdnorminv (1 - adj_alpha / 2);
+            z1 = stdnorminv (expan_alpha / 2);
+            z2 = stdnorminv (1 - expan_alpha / 2);
             l = cat (2, stdnormcdf (z0 + ((z0 + z1) / (1 - a * (z0 + z1)))),... 
                         stdnormcdf (z0 + ((z0 + z2) / (1 - a * (z0 + z2)))));
           end
         case 2
           % alpha is a vector of probabilities
-          l = adj_alpha;
+          l = expan_alpha;
       end
       % Intervals constructed from kernel density estimate of the bootstrap
       % (with shrinkage correction)
@@ -847,10 +853,10 @@ function [stats, bootstat, BOOTSAM] = bootknife (x, nboot, bootfun, alpha, ...
   if (~ isnan (Pr))
     stats.Pr = Pr;
   end
-  
+
   % Print output if no output arguments are requested
   if (nargout == 0) 
-    print_output (stats, B, C, alpha, l, m, bootfun_str);
+    print_output (stats, B, C, alpha, l, m, bootfun_str, strata);
   else
     if isempty(BOOTSAM)
       [warnmsg, warnID] = lastwarn;
@@ -865,35 +871,63 @@ end
 
 %--------------------------------------------------------------------------
 
-function print_output (stats, B, C, alpha, l, m, bootfun_str)
+function print_output (stats, B, C, alpha, l, m, bootfun_str, strata)
 
     fprintf (['\nSummary of non-parametric bootstrap estimates of bias and precision\n',...
               '******************************************************************************\n\n']);
     fprintf ('Bootstrap settings: \n');
     fprintf (' Function: %s\n', bootfun_str);
-    fprintf (' Resampling method: Balanced, bootknife resampling \n');
+    if (C > 0)
+      if (isempty (strata))
+        fprintf (' Resampling method: Iterated, balanced, bootknife resampling \n');
+      else
+        fprintf (' Resampling method: Iterated, stratified, balanced, bootknife resampling \n');
+      end
+    else
+      if (isempty (strata))
+        fprintf (' Resampling method: Balanced, bootknife resampling \n');
+      else
+        fprintf (' Resampling method: Stratified, balanced, bootknife resampling \n');
+      end
+    end
     fprintf (' Number of resamples (outer): %u \n', B);
     fprintf (' Number of resamples (inner): %u \n', C);
     if (~ isempty (alpha) && ~ all (isnan (alpha)))
       nalpha = numel (alpha);
       if (C > 0)
         if (nalpha > 1)
-          fprintf (' Confidence interval type: Calibrated percentile (asymmetric, 1-sided)\n');
+          fprintf (' Confidence interval (CI) type: Calibrated percentile (asymmetric, 1-sided)\n');
         else
-          fprintf (' Confidence interval type: Calibrated percentile (symmetric, 2-sided)\n');
+          fprintf (' Confidence interval (CI) type: Calibrated percentile (symmetric, 2-sided)\n');
         end
       else
         if (nalpha > 1)
-          fprintf (' Confidence interval type: Percentile \n');
+          if (strcmpi (bootfun_str, 'mean'))
+            fprintf (' Confidence interval (CI) type: Expanded percentile \n');
+          else
+            fprintf (' Confidence interval (CI) type: Percentile \n');
+          end
         else
           [jnk, warnID] = lastwarn;
           switch warnID
             case 'bootknife:biasfail'
-              fprintf (' Confidence interval type: Percentile \n');
+              if (strcmpi (bootfun_str, 'mean'))
+                fprintf (' Confidence interval (CI) type: Expanded percentile \n');
+              else
+                fprintf (' Confidence interval (CI) type: Percentile \n');
+              end
             case 'bootknife:jackfail'
-              fprintf (' Confidence interval type: Bias-corrected (BC)\n');
+              if (strcmpi (bootfun_str, 'mean'))
+                fprintf (' Confidence interval (CI) type: Expanded bias-corrected (BC) \n');
+              else
+                fprintf (' Confidence interval (CI) type: Bias-corrected (BC) \n');
+              end
             otherwise
-              fprintf (' Confidence interval type: Bias-corrected and accelerated (BCa) \n');
+              if (strcmpi (bootfun_str, 'mean'))
+                fprintf (' Confidence interval (CI) type: Expanded bias-corrected and accelerated (BCa) \n');
+              else
+                fprintf (' Confidence interval (CI) type: Bias-corrected and accelerated (BCa) \n');
+              end
           end
         end
       end
@@ -905,9 +939,9 @@ function print_output (stats, B, C, alpha, l, m, bootfun_str)
         coverage = 100 * (1 - alpha);
       end
       if (isempty (l))
-        fprintf (' Confidence interval coverage: %.3g%%\n\n',coverage);
+        fprintf (' Nominal CI coverage: %.3g%%\n\n',coverage);
       else
-        fprintf (' Confidence interval coverage: %.3g%% (%.1f%%, %.1f%%)\n\n',coverage,100*l);
+        fprintf (' Nominal CI coverage (and actual tail probabilities): %.3g%% (%.1f%%, %.1f%%)\n\n',coverage,100*l);
       end
     end
     fprintf ('Bootstrap Statistics: \n');
