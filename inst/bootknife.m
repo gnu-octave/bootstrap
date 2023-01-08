@@ -255,6 +255,7 @@ function [stats, bootstat, BOOTSAM] = bootknife (x, nboot, bootfun, alpha, ...
     end
     if ((nargin < 3) || isempty (bootfun))
       bootfun = @mean;
+      bootfun_str = 'mean';
     else
       if (iscell (bootfun))
         if (ischar (bootfun{1}))
