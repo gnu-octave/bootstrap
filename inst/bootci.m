@@ -501,7 +501,7 @@ end
 %!       4.74,3.29,5.55,2.82,4.23,3.23,2.56,4.31,4.37,2.4]';
 %!
 %! ## 95% BCa bootstrap confidence intervals for the correlation coefficient
-%! ci = bootci (2000, @corr, x, y)
+%! ci = bootci (2000, @cor, x, y)
 %!
 %! ## Please be patient, the calculations will be completed soon...
 
