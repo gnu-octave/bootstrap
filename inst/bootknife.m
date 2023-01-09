@@ -33,10 +33,11 @@
 %  bootknife (DATA, [2000, 200], @mean, [0.025,0.975], [], 0) % Defaults (double)
 %
 %  STATS = bootknife (DATA) resamples from the rows of a DATA sample (column 
-%  vector or matrix) and returns a structure with the following fields:
+%  vector or matrix) and returns a structure (or structure array) with the
+%  following fields:
 %    original: contains the result of applying BOOTFUN to the DATA 
 %    bias: contains the bootstrap estimate of bias [11-12]
-%    std_error: contains the bootstrap standard error
+%    std_error: contains the bootstrap estimate of the standard error of bootfun
 %    CI_lower: contains the lower bound of the bootstrap confidence interval
 %    CI_upper: contains the upper bound of the bootstrap confidence interval
 %  By default, the statistics relate to BOOTFUN being @mean and the confidence
@@ -731,12 +732,15 @@ function [stats, bootstat, BOOTSAM] = bootknife (x, nboot, bootfun, alpha, ...
           [cdf, u] = localfunc.empcdf (U, 1);
           l = arrayfun ( @(p) interp1 (cdf, u, p, 'linear'), alpha);
       end
-      % Calibrated percentile bootstrap confidence intervals
-      % Kernel density estimate (with shrinkage correction)
-      ci = localfunc.kdeinv (l, bootstat, se * sqrt (1 / (n - K)), 1 - 1 / (n - K));
-      % Linear interpolation (legacy)
-      %[cdf, t1] = localfunc.empcdf (bootstat, 1);
-      %ci = arrayfun ( @(p) interp1 (cdf, t1, p, 'linear'), l);
+      try
+        % Calibrated percentile bootstrap confidence intervals
+        % Kernel density estimate (with shrinkage correction)
+        ci = localfunc.kdeinv (l, bootstat, se * sqrt (1 / (n - K)), 1 - 1 / (n - K));
+      catch
+        % Linear interpolation (legacy)
+        [cdf, t1] = localfunc.empcdf (bootstat, 1);
+        ci = arrayfun ( @(p) interp1 (cdf, t1, p, 'linear'), l);
+      end
     else
       ci = nan (1, 2);
     end
@@ -820,7 +824,13 @@ function [stats, bootstat, BOOTSAM] = bootknife (x, nboot, bootfun, alpha, ...
       end
       % Intervals constructed from kernel density estimate of the bootstrap
       % (with shrinkage correction)
-      ci = localfunc.kdeinv (l, bootstat, se * sqrt (1 / (n - K)), 1 - 1 / (n - K));
+      try
+        ci = localfunc.kdeinv (l, bootstat, se * sqrt (1 / (n - K)), 1 - 1 / (n - K));
+      catch
+        % Linear interpolation (legacy)
+        [cdf, t1] = localfunc.empcdf (bootstat, 1);
+        ci = arrayfun ( @(p) interp1 (cdf, t1, p, 'linear'), l);
+      end
       warning (state);
       if ISOCTAVE
         warning ('off', 'quiet');
@@ -841,7 +851,7 @@ function [stats, bootstat, BOOTSAM] = bootknife (x, nboot, bootfun, alpha, ...
       pr = sum (I);
       t = [max([min(bootstat), max(bootstat(I))]),...
            min([max(bootstat), min(bootstat(~I))])];
-      if (pr < B) && ((t(2) - t(1)) > 0)
+      if ((pr < B) && ((t(2) - t(1)) > 0))
         % Linear interpolation to calculate Pr, which is required to calibrate 
         % alpha and improving confidence interval coverage 
         Pr = ((t(2) - REF) * pr / B + (REF - t(1)) * min ((pr + 1) / B, 1)) / (t(2) - t(1));
