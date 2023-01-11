@@ -569,16 +569,24 @@ function [stats, bootstat, BOOTSAM] = bootknife (x, nboot, bootfun, alpha, ...
     if (~ isempty (strata))
       if (nvar > 1) || (nargout > 2)
         % If we need BOOTSAM, can save some memory by making BOOTSAM an int32 datatype
-        BOOTSAM = zeros (n, B, 'int32'); 
+        BOOTSAM = zeros (n, B, 'int32');
         for k = 1:K
-          BOOTSAM(g(:, k),:) = boot (find (g(:, k)), B, unbiased);
+          if ((sum (g(:, k))) > 1)
+            BOOTSAM(g(:, k),:) = boot (find (g(:, k)), B, unbiased);
+          else
+            BOOTSAM(g(:, k),:) = find (g(:, k)) * ones (1, B);
+          end
         end
       else
         % For more efficiency, if we don't need BOOTSAM, we can directly resample values of x
         BOOTSAM = [];
         X = zeros (n, B);
         for k = 1:K
-          X(g(:, k),:) = boot (x(g(:, k),:), B, unbiased);
+          if ((sum (g(:, k))) > 1)
+            X(g(:, k),:) = boot (x(g(:, k),:), B, unbiased);
+          else
+            X(g(:, k),:) = x(g(:, k),:) * ones (1, B);
+          end
         end
       end
     else
