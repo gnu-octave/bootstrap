@@ -134,7 +134,6 @@ function emmeans = bootemm (stats, dim, nboot, alpha, ncpus, seed)
   W = full (stats.W);
   se = diag (W).^(-0.5);
   resid = stats.resid;   % weighted residuals
-  dfe = stats.dfe;
   n = numel (resid);
 
   % Prepare the hypothesis matrix (H)

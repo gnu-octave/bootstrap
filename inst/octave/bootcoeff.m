@@ -130,7 +130,6 @@ function coeffs = bootcoeff (stats, nboot, alpha, ncpus, seed)
   W = full (stats.W);
   se = diag (W).^(-0.5);
   resid = stats.resid;   % weighted residuals
-  dfe = stats.dfe;
 
   % Define bootfun for bootstraping the model residuals and returning the regression coefficients
   bootfun = @(r) lmfit (X, fitted + r .* se, W);
