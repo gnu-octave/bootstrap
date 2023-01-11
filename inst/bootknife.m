@@ -1199,7 +1199,7 @@ end
 %! y = randn (20,1); x = randn (20,1); X = [ones(20,1), x];
 %!
 %! ## 90% BCa confidence interval for regression coefficients 
-%! bootknife ({y,X}, 2000, @regress, 0.1);
+%! bootknife ({y,X}, 2000, @(y,X) X\y, 0.1); % Could also use @regress
 
 
 %!demo
