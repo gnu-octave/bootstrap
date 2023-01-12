@@ -87,11 +87,11 @@
 %  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-function emmeans = bootemm (stats, dim, nboot, alpha, ncpus, seed)
+function emmeans = bootemm (STATS, dim, nboot, alpha, ncpus, seed)
 
   % Check input aruments
   if (nargin < 2)
-    error ('bootemm usage: ''bootemm (stats, dim)'' atleast 2 input arguments required');
+    error ('bootemm usage: ''bootemm (STATS, dim)'' atleast 2 input arguments required');
   end
   if (nargin < 3)
     nboot = 2000;
@@ -110,42 +110,41 @@ function emmeans = bootemm (stats, dim, nboot, alpha, ncpus, seed)
   end
 
   % Error checking
-  if numel(nboot) > 1
-    error ('bootemm only supports single bootstrap resampling')
+  if (numel(nboot) > 1)
+    error ('bootemm: only supports single bootstrap resampling; nboot must be scalar')
   end
   info = ver; 
   ISOCTAVE = any (ismember ({info.Name}, 'Octave'));
-  if ~ISOCTAVE
-    error ('bootemm is only supported by Octave')
+  if (~ ISOCTAVE)
+    error ('bootemm: only supported by Octave')
   end
   statspackage = ismember ({info.Name}, 'statistics');
   if (~ any (statspackage)) || (str2num(info(statspackage).Version(1:3)) < 1.5)
-    error ('bootemm requires version >= 1.5 of the statistics package')
+    error ('bootemm: requires version >= 1.5 of the statistics package')
   end
-  if (ismember (dim, find (stats.continuous)))
+  if (ismember (dim, find (STATS.continuous)))
     error ('bootemm: estimated marginal means are only calculated for categorical variables')
   end
 
-  % Fetch required information from stats structure
-  X = stats.X;
-  b = stats.coeffs(:,1);
+  % Fetch required information from STATS structure
+  X = full (STATS.X);
+  b = STATS.coeffs(:,1);
   fitted = X * b;
-  lmfit = stats.lmfit;
-  W = full (stats.W);
+  W = full (STATS.W);
   se = diag (W).^(-0.5);
-  resid = stats.resid;   % weighted residuals
+  resid = STATS.resid;   % weighted residuals
   n = numel (resid);
 
   % Prepare the hypothesis matrix (H)
   Nd = numel (dim);
-  df = stats.df;
+  df = STATS.df;
   i = 1 + cumsum(df);
-  k = find (sum (stats.terms(:,dim), 2) == sum (stats.terms, 2));
+  k = find (sum (STATS.terms(:,dim), 2) == sum (STATS.terms, 2));
   Nb = 1 + sum(df(k));
   Nt = numel (k);
   L = zeros (n, sum (df) + 1);
   for j = 1:Nt
-    L(:, i(k(j)) - df(k(j)) + 1 : i(k(j))) = stats.X(:,i(k(j)) - ...
+    L(:, i(k(j)) - df(k(j)) + 1 : i(k(j))) = STATS.X(:,i(k(j)) - ...
                                              df(k(j)) + 1 : i(k(j)));
   end
   L(:,1) = 1;
@@ -157,16 +156,16 @@ function emmeans = bootemm (stats, dim, nboot, alpha, ncpus, seed)
   end
 
   % Define bootfun for bootstraping the model residuals and returning the group means
-  bootfun = @(r) H * lmfit (X, fitted + r .* se, W);
+  bootfun = @(r) H * STATS.lmfit (X, fitted + r .* se, W);
 
   % Perform bootstrap
+  warning ('off','bootknife:lastwarn')
   if nargout > 0
-    warning ('off','bootknife:lastwarn')
     emmeans = bootknife (resid, nboot, bootfun, alpha, [], ncpus);
-    warning ('on','bootknife:lastwarn')
   else
     bootknife (resid, nboot, bootfun, alpha, [], ncpus);
   end
+  warning ('on','bootknife:lastwarn')
 
 end
 

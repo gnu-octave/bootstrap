@@ -659,6 +659,7 @@ function [stats, bootstat, BOOTSAM] = bootknife (x, nboot, bootfun, alpha, ...
 
   % Remove bootstrap statistics that are NaN and their associated DATA resamples
   ridx = isnan (bootstat);
+  bootstat_all = bootstat;
   bootstat(ridx) = [];
   if isempty(BOOTSAM)
     X(:,ridx) = [];
@@ -869,7 +870,7 @@ function [stats, bootstat, BOOTSAM] = bootknife (x, nboot, bootfun, alpha, ...
     end
   end
 
-  % Prepare stats output argument
+  % Prepare output arguments
   stats = struct;
   stats.original = T0;
   stats.bias = bias;
@@ -879,6 +880,8 @@ function [stats, bootstat, BOOTSAM] = bootknife (x, nboot, bootfun, alpha, ...
   if (~ isnan (Pr))
     stats.Pr = Pr;
   end
+  bootstat = bootstat_all;  % Must be length nboot(1) (even if that means it contains NaNs)
+  
 
   % Print output if no output arguments are requested
   if (nargout == 0) 

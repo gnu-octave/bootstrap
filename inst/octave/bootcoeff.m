@@ -89,11 +89,11 @@
 %  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-function coeffs = bootcoeff (stats, nboot, alpha, ncpus, seed)
+function coeffs = bootcoeff (STATS, nboot, alpha, ncpus, seed)
 
   % Check input aruments
   if (nargin < 1)
-    error ('bootcoeff usage: ''bootcoeff (stats)'' atleast 1 input arguments required');
+    error ('bootcoeff usage: ''bootcoeff (STATS)'' atleast 1 input arguments required');
   end
   if (nargin < 2)
     nboot = 2000;
@@ -109,39 +109,41 @@ function coeffs = bootcoeff (stats, nboot, alpha, ncpus, seed)
   end
 
   % Error checking
-  if numel(nboot) > 1
-    error ('bootcoeff only supports single bootstrap resampling')
+  if (numel(nboot) > 1)
+    error ('bootcoeff: only supports single bootstrap resampling; nboot must be scalar')
   end
   info = ver; 
   ISOCTAVE = any (ismember ({info.Name}, 'Octave'));
   if ~ISOCTAVE
-    error ('bootcoeff is only supported by Octave')
+    error ('bootcoeff: only supported by Octave')
   end
   statspackage = ismember ({info.Name}, 'statistics');
   if (~ any (statspackage)) || (str2num(info(statspackage).Version(1:3)) < 1.5)
-    error ('bootcoeff requires version >= 1.5 of the statistics package')
+    error ('bootcoeff: requires version >= 1.5 of the statistics package')
   end
 
-  % Fetch required information from stats structure
-  X = stats.X;
-  b = stats.coeffs(:,1);
+  % Fetch required information from STATS structure
+  X = full (STATS.X);
+  b = STATS.coeffs(:,1);
   fitted = X * b;
-  lmfit = stats.lmfit;
-  W = full (stats.W);
-  se = diag (W).^(-0.5);
-  resid = stats.resid;   % weighted residuals
+  W = full (STATS.W);
+  w = diag (W);
+  se = w.^(-0.5);
+  resid = STATS.resid;   % weighted residuals
+  y = fitted + resid .* se;
 
-  % Define bootfun for bootstraping the model residuals and returning the regression coefficients
-  bootfun = @(r) lmfit (X, fitted + r .* se, W);
+  % Define bootfun and data for bootstrapping the model residuals
+  % Note that bootstrapping residuals is sensitive to heteroskedasticity!!!
+  bootfun = @(residuals) STATS.lmfit (X, fitted + residuals .* se, W);
 
   % Perform bootstrap
+  warning ('off','bootknife:lastwarn')
   if nargout > 0
-    warning ('off','bootknife:lastwarn')
     coeffs = bootknife (resid, nboot, bootfun, alpha, [], ncpus);
-    warning ('on','bootknife:lastwarn')
   else
     bootknife (resid, nboot, bootfun, alpha, [], ncpus);
   end
+  warning ('on','bootknife:lastwarn')
 
 end
 
