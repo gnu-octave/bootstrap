@@ -94,7 +94,7 @@
 %      - Linear regression: @(y,X) X\y or @regress
 %      - Median: @median or @smoothmedian
 %      - Median absolute deviation: @mad or @smoothmad
-%    See code comments or demos for examples of usage
+%    See code comments or demos for examples of usage.
 %
 %  STATS = bootknife (DATA, NBOOT, BOOTFUN, ALPHA) where ALPHA is numeric and
 %  sets the lower and upper bounds of the confidence interval(s). The value(s)
@@ -128,9 +128,9 @@
 %    1-sided intervals in [7-10]. The method used is equivalent to the
 %    confidence point calibration algorithm 18.1 in [5].
 %
-%  Confidence interval endpoints are not calculated when the value(s) of ALPHA
-%  is/are NaN. If empty (or not specified), the default value of ALPHA is 0.05
-%  for single bootstrap (i.e. 95% BCa intervals), or [0.025, 0.975] for double 
+%  Confidence intervals are not calculated when the value(s) of ALPHA is/are
+%  NaN. If empty (or not specified), the default value of ALPHA is 0.05 for
+%  single bootstrap (i.e. 95% BCa intervals), or [0.025, 0.975] for double 
 %  bootstrap (i.e. 95% calibrated intervals, with 2.5% and 97.5% confidence
 %  point calibration). 
 %
