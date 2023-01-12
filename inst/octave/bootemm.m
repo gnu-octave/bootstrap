@@ -115,7 +115,7 @@ function emmeans = bootemm (STATS, dim, nboot, alpha, ncpus, seed)
     error ('bootemm: only supported by Octave')
   end
   statspackage = ismember ({info.Name}, 'statistics');
-  if (~ any (statspackage)) || (str2num(info(statspackage).Version(1:3)) < 1.5)
+  if (~ any (statspackage)) || (str2num (info (statspackage).Version(1:3)) < 1.5)
     error ('bootemm: requires version >= 1.5 of the statistics package')
   end
   if (ismember (dim, find (STATS.continuous)))

@@ -113,7 +113,7 @@ function coeffs = bootcoeff (STATS, nboot, alpha, ncpus, seed)
     error ('bootcoeff: only supported by Octave')
   end
   statspackage = ismember ({info.Name}, 'statistics');
-  if (~ any (statspackage)) || (str2num(info(statspackage).Version(1:3)) < 1.5)
+  if (~ any (statspackage)) || (str2num (info (statspackage).Version(1:3)) < 1.5)
     error ('bootcoeff: requires version >= 1.5 of the statistics package')
   end
 
