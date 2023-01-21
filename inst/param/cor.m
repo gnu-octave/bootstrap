@@ -37,7 +37,7 @@
 %  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-function RHO = cor (X, Y, TYPE)
+function RHO = cor (X, Y)
 
   % Evaluate input arguments
   if ((nargin < 2) || (nargin > 3))
@@ -46,12 +46,12 @@ function RHO = cor (X, Y, TYPE)
   if (nargout > 1)
     error ('cor: Invalid number of output arguments')
   end
-  sz = size (X); n = sz (1);
+  sz = size (X);
   if (~ all (sz == size (Y)))
     error ('cor: X and Y must be the same size')
   end
   if (numel (sz) > 2)
-    error ('cor: arrays of more than 2 dimensions are not supported')
+    error ('cor: Arrays of more than 2 dimensions are not supported')
   end
 
   % Calculate correlation coefficient 

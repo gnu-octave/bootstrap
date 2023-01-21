@@ -51,11 +51,14 @@
 // In Matlab:
 // >> ncpus = feature('numcores'); parfor i = 1:ncpus; boot (1, 1, false, i); end;
 //
+// Requirements: Compilation requires C++11
+//
 // Author: Andrew Charles Penn (2022)
 
 
 #include "mex.h"
 #include <vector>
+#include <random>
 using namespace std;
 
 
@@ -192,13 +195,17 @@ void mexFunction (int nlhs, mxArray* plhs[],
     // Create pointer so that we can access elements of bootsam (i.e. plhs[0])
     double *ptr = (double *) mxGetData(plhs[0]);
 
+    // Initialize pseudo-random number generator (Mersenne Twister 19937)
+    mt19937 rng (rand());
+    uniform_int_distribution<int> distr (0, n - 1);
+
     // Perform balanced sampling
     for ( int b = 0; b < nboot ; b++ ) { 
         if (u == true) {    
             if ( (b / n) == (nboot / n) ) {
-                r = rand () / (RAND_MAX / n + 1);  // random
+                r = distr (rng);      // random
             } else {
-                r = b - (b / n) * n;               // systematic
+                r = b - (b / n) * n;  // systematic
             }
         }
         for ( int i = 0; i < n ; i++ ) {
@@ -211,7 +218,8 @@ void mexFunction (int nlhs, mxArray* plhs[],
                     LOO = true;
                 }
             }
-            k = rand () / (RAND_MAX / (N - m) + 1); 
+            uniform_int_distribution<int> distk (0, N - m - 1);
+            k = distk (rng); 
             d = c[0];
             for ( int j = 0; j < n ; j++ ) { 
                 if ( k < d ) {

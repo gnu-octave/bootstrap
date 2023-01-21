@@ -479,7 +479,7 @@ function [p, c, stats] = bootnhst (data, group, varargin)
   DisplayOpt = true;
   paropt = struct;
   paropt.UseParallel = false;
-  if ISOCTAVE
+  if (ISOCTAVE)
     paropt.nproc = nproc;
   else
     paropt.nproc = feature ('numcores');
@@ -490,20 +490,20 @@ function [p, c, stats] = bootnhst (data, group, varargin)
   narg = numel (argin3);
   if (narg > 1)
     while ischar (argin3{end-1})
-      if strcmpi (argin3{end-1},'bootfun')
+      if (strcmpi (argin3{end-1},'bootfun'))
         bootfun = argin3{end};
-      elseif strcmpi (argin3{end-1},'nboot')
+      elseif (strcmpi (argin3{end-1},'nboot'))
         nboot = argin3{end};
-      elseif strcmpi (argin3{end-1},'ref')
+      elseif (strcmpi (argin3{end-1},'ref'))
         ref = argin3{end};
-      elseif any (strcmpi ({'Options','Option'},argin3{end-1}))
+      elseif (any (strcmpi ({'Options','Option'},argin3{end-1})))
         paropt = argin3{end};
-      elseif strcmpi (argin3{end-1},'alpha')
+      elseif (strcmpi (argin3{end-1},'alpha'))
         alpha = argin3{end};
-      elseif strcmpi (argin3{end-1},'DisplayOpt')
+      elseif (strcmpi (argin3{end-1},'DisplayOpt'))
         DisplayOpt = argin3{end};
       else
-        error ('bootnhst: unrecognised input argument to bootnhst')
+        error ('bootnhst: Unrecognised input argument to bootnhst')
       end
       argin3 = {argin3{1:end-2}};
       narg = numel (argin3);
@@ -517,16 +517,16 @@ function [p, c, stats] = bootnhst (data, group, varargin)
   % Check and process bootnhst input arguments
   nvar = size (data,2);
   if (nargin < 2)
-    error ('bootnhst requires atleast two input arguments');
+    error ('bootnhst: Requires atleast two input arguments');
   end
-  if ischar (group)
+  if (ischar (group))
     group = cellstr (group);
   end
-  if (size (group, 1)>1) && (size (data, 1) ~= size (group, 1))
+  if ((size (group, 1)>1) && (size (data, 1) ~= size (group, 1)))
     error ('bootnhst: DATA and GROUP must have the same number of rows')
   end
   if (iscell (group))
-    if ~iscellstr (group)
+    if (~ iscellstr (group))
       group = cell2mat (group);
     end
   end
@@ -538,7 +538,7 @@ function [p, c, stats] = bootnhst (data, group, varargin)
   if (~ isa (nboot, 'numeric'))
     error ('bootnhst: NBOOT must be numeric');
   end
-  if any (nboot ~= abs (fix (nboot)))
+  if (any (nboot ~= abs (fix (nboot))))
     error ('bootnhst: NBOOT must contain positive integers')
   end
   if (isa (bootfun, 'char'))
@@ -548,9 +548,9 @@ function [p, c, stats] = bootnhst (data, group, varargin)
     bootfun = str2func (bootfun);
   end
   if (numel (nboot) > 2)
-    error ('bootnhst: a vector for NBOOT cannot have length > 2')
-  elseif numel (nboot) < 2
-    if strcmp (func2str (bootfun),'mean')
+    error ('bootnhst: A vector for NBOOT cannot have length > 2')
+  elseif (numel (nboot) < 2)
+    if (strcmp (func2str (bootfun), 'mean'))
       % Avoid resampling when estimating standard errors of the mean
       % nboot(2) must be explcitly set to > 0 to request bootknife standard errors of the mean
       nboot = cat (2, nboot, 0);
@@ -561,43 +561,43 @@ function [p, c, stats] = bootnhst (data, group, varargin)
     end
   end
   if (nboot(1) < 1000)
-    error ('bootnhst: the minimum allowable value of NBOOT(1) is 1000')
+    error ('bootnhst: The minimum allowable value of NBOOT(1) is 1000')
   end 
   if (nboot(2) == 0) && (nvar > 1)
-    error ('bootnhst: jackknife currently only available for analysis of univariate data.')
+    error ('bootnhst: Jackknife currently only available for analysis of univariate data.')
   end
-  if (nboot(2) == 0) && ~strcmp (func2str (bootfun),'mean')
+  if ((nboot(2) == 0) && (~ strcmp (func2str (bootfun), 'mean')))
     if (~ exist ('jackknife','file'))
-      if ISOCTAVE; 
-        warning ('bootnhst:jackfail: ''jackknife'' function from statistics package not found. nboot(2) set to 200.')
+      if (ISOCTAVE); 
+        warning ('bootnhst:jackfail','''jackknife'' function from statistics package not found. nboot(2) set to 200.')
       else
-        warning ('bootnhst:jackfail: ''jackknife'' function from statistics toolbox not found. nboot(2) set to 200.')
+        warning ('bootnhst:jackfail','''jackknife'' function from statistics toolbox not found. nboot(2) set to 200.')
       end
       nboot(2) = 200;
     end
   end
   
   % Error checking
-  if (~isempty (ref) && strcmpi (ref,'pairwise'))
+  if (~ isempty (ref) && strcmpi (ref,'pairwise'))
     ref = [];
   end
   if (nargout > 3)
-    error ('bootnhst only supports up to 3 output arguments')
+    error ('bootnhst: Only supports up to 3 output arguments')
   end
   if (~ islogical (DisplayOpt) || (numel (DisplayOpt) > 1))
-    error ('bootnhst: the value DISPLAYOPT must be a logical scalar value')
+    error ('bootnhst: The value DISPLAYOPT must be a logical scalar value')
   end
 
   % Data or group exclusion using NaN 
   if (isnumeric (group))
-    if any (isnan (group))
+    if (any (isnan (group)))
       data(isnan (group),:) = [];
       group(isnan (group)) = [];
     end
   end
-  if (any (any (isnan ([data]),2)))
-    group(any (isnan ([data]),2)) = [];
-    data(any (isnan ([data]),2),:) = [];
+  if (any (any (isnan (data), 2)))
+    group(any (isnan (data), 2)) = [];
+    data(any (isnan (data), 2),:) = [];
   end
 
   % Assign non-zero numbers to group labels
@@ -607,7 +607,7 @@ function [p, c, stats] = bootnhst (data, group, varargin)
   k = numel (gk);
   if (k > 1)
     if (~ isempty (ref))
-      if isnumeric(ref)
+      if (isnumeric (ref))
         ref = gk(ismember (gnames, ref));
       else
         ref = gk(strcmp (gnames, ref));
@@ -620,7 +620,7 @@ function [p, c, stats] = bootnhst (data, group, varargin)
   
   % If applicable, check we have parallel computing capabilities
   if (paropt.UseParallel)
-    if ISOCTAVE  
+    if (ISOCTAVE)
       pat = '^parallel';
       software = pkg ('list');
       names = cellfun (@(S) S.name, software, 'UniformOutput', false);
@@ -647,16 +647,16 @@ function [p, c, stats] = bootnhst (data, group, varargin)
   % If applicable, setup a parallel pool (required for MATLAB)
   if (~ ISOCTAVE)
     % MATLAB
-    if paropt.UseParallel 
+    if (paropt.UseParallel)
       % PARALLEL
       if (paropt.nproc > 0) 
         % MANUAL
         try 
           pool = gcp ('nocreate'); 
-          if isempty (pool)
+          if (isempty (pool))
             if (paropt.nproc > 1)
               % Start parallel pool with nproc workers
-              pool = parpool (paropt.nproc);
+              parpool (paropt.nproc);
             else
               % Parallel pool is not running and nproc is 1 so run function evaluations in serial
               paropt.UseParallel = false;
@@ -672,7 +672,8 @@ function [p, c, stats] = bootnhst (data, group, varargin)
           end
         catch
           % MATLAB Parallel Computing Toolbox is not installed
-          warning('MATLAB Parallel Computing Toolbox is not installed. Falling back to serial processing.')
+          warning ('bootnhst:parallel', ...
+              'Parallel Computing Toolbox is not installed. Falling back to serial processing.')
           paropt.UseParallel = false;
           paropt.nproc = 1;
         end
@@ -697,18 +698,19 @@ function [p, c, stats] = bootnhst (data, group, varargin)
     if (paropt.UseParallel && (paropt.nproc > 1) && ~PARALLEL)
       if (ISOCTAVE)
         % OCTAVE Parallel Computing Package is not installed or loaded
-        warning('OCTAVE Parallel Computing Package is not installed and/or loaded. Falling back to serial processing.')
+        warning ('bootnhst:parallel', ...
+            'Parallel Computing Package is not installed and/or loaded. Falling back to serial processing.')
       else
         % MATLAB Parallel Computing Toolbox is not installed or loaded
-        warning('MATLAB Parallel Computing Toolbox is not installed and/or loaded. Falling back to serial processing.')
+        warning ('bootnhst:parallel', ...
+            'Parallel Computing Toolbox is not installed and/or loaded. Falling back to serial processing.')
       end
       paropt.UseParallel = false;
       paropt.nproc = 0;
     end
   end
 
-  % Create handle to a local function for calculating the maximum test statistic
-  localfunc = struct ('maxstat', @maxstat);
+  % Create maxstat anonymous function for bootstrap
   func = @(data) localfunc.maxstat (data, g, nboot(2), bootfun, ref, ISOCTAVE);
 
   % Perform resampling and calculate bootstrap statistics to estimate sampling distribution under the null hypothesis
@@ -724,12 +726,11 @@ function [p, c, stats] = bootnhst (data, group, varargin)
   theta = zeros (k, 1);
   SE = zeros (k, 1);
   Var = zeros (k, 1);
-  t = zeros (nboot(2), 1);
   nk = zeros (size(gk));
   for j = 1:k
     if (nboot(2) == 0)
       nk(j) = sum (g == gk(j));
-      if strcmp (func2str (bootfun), 'mean')
+      if (strcmp (func2str (bootfun), 'mean'))
         theta(j) = mean (data(g == gk(j), :));
         % Quick analytical calculation for the standard error of the mean
         SE(j) = std (data(g == gk(j), :), 0) / sqrt (nk(j));
@@ -746,16 +747,17 @@ function [p, c, stats] = bootnhst (data, group, varargin)
       % Bootknife resampling involves less computation than Jackknife when sample sizes get larger
       theta(j) = bootfun (data(g == gk(j), :));
       nk(j) = sum (g == gk(j));
-      SE(j) = getfield (bootknife (data(g == gk(j), :), [nboot(2), 0], bootfun, NaN, [], 0, [], ISOCTAVE, [], false),'std_error');
+      bootout = bootknife (data(g == gk(j), :), [nboot(2), 0], bootfun, NaN, [], 0, [], ISOCTAVE, [], false);
+      SE(j) = bootout.std_error;
       if (j==1); se_method = 'Balanced, bootknife resampling'; end;
     end
     Var(j) = ((nk(j) - 1) / (N - k)) * SE(j)^2;
   end
   if (any (SE == 0))
-    error('bootnhst: samples must have non-zero standard error')
+    error ('bootnhst: Samples must have non-zero standard error')
   end
   if (any (isnan (SE)))
-    error('bootnhst: evaluating bootfun on the bootknife resamples created NaN values for the standard error')
+    error ('bootnhst: Evaluating bootfun on the bootknife resamples created NaN values for the standard error')
   end
   nk_bar = sum (nk.^2) ./ sum (nk);  % weighted mean sample size
   Var = sum (Var .* nk / nk_bar);    % pooled sampling variance weighted by sample size
@@ -766,7 +768,11 @@ function [p, c, stats] = bootnhst (data, group, varargin)
   w = nk_bar ./ nk;
 
   % Prepare to make symmetrical bootstrap-t confidence intervals
-  [cdf, QS] = empcdf (Q, 0);
+  % Create empirical distribution functions
+  [cdf, QS] = empcdf (Q);
+  [jnk, I] = unique (QS);
+  unique_cdf = cdf(I);
+  unique_QS = QS(I);
   
   % Compute resolution limit of the p-values as determined by resampling with nboot(1) resamples
   res = 1 / nboot(1);
@@ -789,9 +795,9 @@ function [p, c, stats] = bootnhst (data, group, varargin)
       SED = sqrt (Var * (w(c(i,1)) + w(c(i,2))));
       c(i,6) = abs (c(i,5)) / SED;
       if (c(i,6) < QS(1))
-        c(i,7) = interp1 (QS, 1-cdf, c(i,6), 'linear', 1);
+        c(i,7) = interp1 (unique_QS, 1 - unique_cdf, c(i,6), 'linear', 1);
       else
-        c(i,7) = interp1 (QS, 1-cdf, c(i,6), 'linear', res);
+        c(i,7) = interp1 (unique_QS, 1 - unique_cdf, c(i,6), 'linear', res);
       end
       c(i,8) = c(i,5) - SED * interp1 (cdf, QS, 1 - alpha, 'linear');
       c(i,9) = c(i,5) + SED * interp1 (cdf, QS, 1 - alpha, 'linear');
@@ -808,9 +814,9 @@ function [p, c, stats] = bootnhst (data, group, varargin)
       SED = sqrt (Var * (w(c(j,1)) + w(c(j,2))));
       c(j,6) = abs (c(j,5)) / SED;
       if (c(j,6) < QS(1))
-        c(j,7) = interp1 (QS, 1 - cdf, c(j,6), 'linear', 1);
+        c(j,7) = interp1 (unique_QS, 1 - unique_cdf, c(j,6), 'linear', 1);
       else
-        c(j,7) = interp1 (QS, 1 - cdf, c(j,6), 'linear', res);
+        c(j,7) = interp1 (unique_QS, 1 - unique_cdf, c(j,6), 'linear', res);
       end
       c(j,8) = c(j,5) - SED * interp1 (cdf, QS, 1 - alpha, 'linear');
       c(j,9) = c(j,5) + SED * interp1 (cdf, QS, 1 - alpha, 'linear');
@@ -847,7 +853,7 @@ function [p, c, stats] = bootnhst (data, group, varargin)
 
   % Print output and plot graph with confidence intervals if no output arguments are requested
   cols = [1,2,5,6,7]; % columns in c that we want to print data for
-  if (nargout == 0) || (DisplayOpt == true)
+  if ((nargout == 0) || (DisplayOpt == true))
     if (~ iscellstr (gnames))
       gnames = cellstr (num2str (gnames));
     end
@@ -862,14 +868,14 @@ function [p, c, stats] = bootnhst (data, group, varargin)
     if (nboot(2) > 0)
       fprintf (' Number of bootknife resamples used to estimate standard errors: %u \n', nboot(2));
     end
-    if isempty(ref)
+    if (isempty (ref))
       fprintf (' Multiple comparison method: %s \n', 'Single-step maxT procedure based on Tukey-Kramer');
     else
       fprintf (' Multiple comparison method: %s \n', 'Single-step maxT procedure based on Dunnett');
       fprintf (' Reference group used for comparisons: %s \n', gnames{ref});
     end
     fprintf ('------------------------------------------------------------------------------\n\n');
-    if isempty(ref)
+    if (isempty (ref))
       fprintf (['Overall hypothesis test from single-step maxT procedure\n', ...
                'H0: Groups of data are all sampled from the same population\n\n']);
     else
@@ -1011,12 +1017,13 @@ function maxT = maxstat (Y, g, nboot, bootfun, ref, ISOCTAVE)
       % Bootknife resampling involves less computation than Jackknife when sample sizes get larger
       theta(j) = bootfun (Y(g == gk(j), :));
       nk(j) = sum (g == gk(j));
-      SE(j) = getfield (bootknife(Y(g == gk(j), :), [nboot, 0], bootfun, NaN, [], 0, [], ISOCTAVE, [], false), 'std_error');
+      bootout = bootknife(Y(g == gk(j), :), [nboot, 0], bootfun, NaN, [], 0, [], ISOCTAVE, [], false);
+      SE(j) = bootout.std_error;
     end
     Var(j) = ((nk(j) - 1) / (N - k)) * SE(j)^2;
   end
   if (any (isnan (SE)))
-    error('maxstat: evaluating bootfun on the bootknife resamples created NaN values for the standard error')
+    error ('bootnhst:maxstat: Evaluating bootfun on the bootknife resamples created NaN values for the standard error')
   end
   nk_bar = sum (nk.^2) ./ sum (nk);  % weighted mean sample size
   Var = sum (Var .* nk / nk_bar);     % pooled sampling variance weighted by sample size
@@ -1047,49 +1054,31 @@ end
 
 %--------------------------------------------------------------------------
 
-function [F, x] = empcdf (y, c)
+function [F, x] = empcdf (y)
 
   % Subfunction to calculate empirical cumulative distribution function
-  %
-  % Set c to:
-  %  1 to have a complete distribution with F ranging from 0 to 1
-  %  0 to avoid duplicate values in x
-  %
-  % Unlike ecdf, empcdf uses a denominator of N+1
 
   % Check input argument
-  if ~isa(y,'numeric')
+  if (~ isa (y, 'numeric'))
     error ('bootknife:empcdf: y must be numeric');
   end
-  if all(size(y)>1)
+  if (all (size (y) > 1))
     error ('bootknife:empcdf: y must be a vector');
   end
-  if size(y,2)>1
+  if (size (y, 2) > 1)
     y = y.';
   end
 
-  % Set defaults for optional input arguments
-  if (nargin < 2)
-    c = 1;
-  end
+  % Discard NaN values
+  ridx = isnan (y);
+  y(ridx) = [];
+
+  % Get size of y
+  N = numel (y);
 
   % Create empirical CDF
-  ys = sort (y);
-  N = sum (~ isnan (ys));
-  [x, F] = unique (ys, 'last');
-  F = F / (N + 1);
-
-  % Apply option to complete the CDF
-  if c > 0
-    x = [x(1); x; x(end)];
-    F = [0;F;1];
-  end
-
-  % Remove impossible values
-  F(isnan (x)) = [];
-  x(isnan (x)) = [];
-  F(isinf (x)) = [];
-  x(isinf (x)) = [];
+  x = sort (y);
+  F = linspace (0, 1, N).';
 
 end
 
@@ -1230,12 +1219,12 @@ end
 %! p = bootnhst (y(:),g(:),'ref',1,'nboot',[1000,0],'DisplayOpt',false);
 %! if (isempty (regexp (which ('boot'), 'mex$')))
 %!   # test boot m-file result
-%!   assert (p, 0.012625, 1e-06);
+%!   assert (p, 0.01164893509863332, 1e-06);
 %! end
 %! p = bootnhst (y(:),g(:),'nboot',[1000,0],'DisplayOpt',false);
 %! if (isempty (regexp (which ('boot'), 'mex$')))
 %!   # test boot m-file result
-%!   assert (p, 0.040890, 1e-06);
+%!   assert (p, 0.03997098281051187, 1e-06);
 %! end
 %! # Result from anova1 is 0.0387
 
@@ -1255,12 +1244,12 @@ end
 %! p = bootnhst (y(:),g(:),'ref','male','nboot',[1000,0],'DisplayOpt',false);
 %! if (isempty (regexp (which ('boot'), 'mex$')))
 %!   # test boot m-file result
-%!   assert (p, 0.275970, 1e-06);
+%!   assert (p, 0.2755221089800137, 1e-06);
 %! end
 %! p = bootnhst (y(:),g(:),'nboot',[1000,0],'DisplayOpt',false);
 %! if (isempty (regexp (which ('boot'), 'mex$')))
 %!   # test boot m-file result
-%!   assert (p, 0.275970, 1e-06);
+%!   assert (p, 0.2755221089800137, 1e-06);
 %! end
 %! # Result from anova1 is 0.2613
 

@@ -76,46 +76,46 @@ function M = smoothmedian (x, dim, Tol)
 
   % Evaluate input arguments
   if (nargin < 1) || (nargin > 3)
-    error('Invalid number of input arguments')
+    error ('smoothmedian: Invalid number of input arguments')
   end
 
   if (nargout > 1)
-    error('Invalid number of output arguments')
+    error ('smoothmedian: Invalid number of output arguments')
   end
 
-  if numel(size(x)) > 2
-    error('arrays of more than 2 dimensions are not supported')
+  if (numel (size (x)) > 2)
+    error ('smoothmedian: X cannot have more than 2 dimensions')
   end
 
   % Check data dimensions
-  if nargin<2
-    if size(x,2)==1
+  if (nargin < 2)
+    if (size (x, 2) == 1)
       dim = 1;
-    elseif size(x,1)==1
+    elseif (size (x, 1) == 1)
       dim = 2;
     else
       dim = 1;
     end
   end
-  if ~ismember(dim,[1,2])
-    error('dim must be a valid dimension');
+  if (~ ismember (dim, [1, 2]))
+    error ('smoothmedian: DIM must be a valid dimension');
   end
 
   % If applicable, switch dimension
-  if dim > 1
+  if (dim > 1)
     x = x.';
   end
 
   % Check input data type
-  if ~isa(x,'double')
-    error('the x variable must be double precision')
+  if (~ isa (x, 'double'))
+    error ('smoothmedian: X must be double precision')
   end
 
   % Obtain data dimensions
-  s = size(x);
+  s = size (x);
   m = s(1);
   n = s(2);
-  l = m*(m-1)/2;
+  l = m * (m - 1) / 2;
   
   % Sort the data and calculate the median for each column of the data
   x = sort(x, 1);
@@ -128,24 +128,24 @@ function M = smoothmedian (x, dim, Tol)
   end
 
   % Set initial bracket bounds and calculate range along each column
-  a = x(1,:);   % Minimum
-  b = x(end,:);   % Maximum
+  a = x(1,:);           % Minimum
+  b = x(end,:);         % Maximum
   range = (b - a) / 2;  % Range
   
   % Check/set tolerance
-  if (nargin < 3) || isempty(Tol)
+  if ((nargin < 3) || isempty(Tol))
     Tol = range * 1e-04;
   else 
-    Tol = Tol * ones(1,n);
+    Tol = Tol * ones (1, n);
   end
 
   % Obtain m(m-1)/2 pairs from the Cartesian product of each column of
   % x with itself by enforcing the restriction i < j on xi and xj
-  q = logical(triu(ones(m,m),1));
-  i = uint32((1:m)'*ones(1,m));
-  xi = x(i(q),:);
-  j = uint32(ones(m,1)*(1:m));
-  xj = x(j(q),:);
+  q = logical (triu (ones (m, m), 1));
+  i = uint32 ((1:m)' * ones (1, m));
+  xi = x(i(q), :);
+  j = uint32 (ones (m,1) * (1:m));
+  xj = x(j(q), :);
   idx = 1:n;
 
   % Nonlinear root finding by Newton-Bisection hybrid algorithm
@@ -153,26 +153,26 @@ function M = smoothmedian (x, dim, Tol)
   p = M;
   
   % Calculate commonly used operations and assign them to new variables
-  z = (xi-xj).^2;
-  y = xi+xj;
+  z = (xi - xj).^2;
+  y = xi + xj;
   
   % Minimize objective function (vectorized)
   MaxIter = 20;
   for Iter = 1:MaxIter
   
     % Compute derivatives
-    temp = ones(l,1)*p;
-    D = (xi-temp).^2+(xj-temp).^2;
-    D (D==0) = 1; % Ensures that no NaN values occur when the objective function is not differentiable
+    temp = ones (l, 1) * p;
+    D = (xi - temp).^2 + (xj - temp).^2;
+    D (D == 0) = 1; % Ensures that no NaN values occur when the objective function is not differentiable
     R = sqrt(D); 
     % Objective function (S)
     %S = sum(R);
     % First derivative (T)
-    T = sum((2*temp-y)./R,1); 
+    T = sum ((2 * temp - y) ./R, 1); 
     % Second derivative (U)
     % Equivalent to (but much faster to compute than):
     % U = sum ( (xi-xj).^2 .* ((xi-temp).^2 + (xj-temp).^2).^(-3/2) )   
-    U = sum(z.*R./D.^2,1);
+    U = sum(z .* R ./ D.^2, 1);
     
     % Reduce memory usage
     temp = []; %#ok<NASGU> Faster than using clear.
@@ -183,26 +183,25 @@ function M = smoothmedian (x, dim, Tol)
     step = T./U; 
     
     % Evaluate convergence
-    cvg = ( (abs(step) <= Tol) | (range <= Tol) );
+    cvg = ((abs(step) <= Tol) | (range <= Tol));
     if any(cvg)
       % Export converged parameters
       M(idx(cvg)) = p(cvg);
       % Avoid excess computations in following iterations
       idx(cvg) = [];
-      xi(:,cvg) = [];
-      xj(:,cvg) = [];
-      z(:,cvg) = [];
-      y(:,cvg) = [];
+      xi(:, cvg) = [];
+      xj(:, cvg) = [];
+      z(:, cvg) = [];
+      y(:, cvg) = [];
       a(cvg) = [];
       b(cvg) = [];
       p(cvg) = [];
       step(cvg) = [];
-      T(cvg) = [];
       Tol(cvg) = [];  
     end
     
     % Break from loop when all optimizations have converged
-    if all(cvg)
+    if (all(cvg))
       break
     end
     
@@ -214,10 +213,10 @@ function M = smoothmedian (x, dim, Tol)
     range = b - a;
     
     % Preview new value of the smoothed median
-    nwt = p-step;
+    nwt = p - step;
     
     % Prefer Newton step if it is within brackets
-    I = (nwt>a) & (nwt<b);
+    I = (nwt > a) & (nwt < b);
     p(I) = nwt(I);
     
     % Otherwise, compute Bisection step (slow linear convergence but very safe)
@@ -232,13 +231,13 @@ function M = smoothmedian (x, dim, Tol)
   end
 
   % Set the smoothmedian to NaN where columns/rows contain NaN
-  M(any(isnan(x))) = NaN;
+  M(any (isnan (x))) = NaN;
 
-  if Iter==MaxIter
+  if (Iter == MaxIter)
     fprintf('Warning: Root finding failed to reach the specified tolerance.\n');
   end
 
   % If applicable, switch dimension
-  if dim > 1
+  if (dim > 1)
     M  = M.';
   end

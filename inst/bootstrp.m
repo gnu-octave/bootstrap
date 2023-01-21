@@ -75,8 +75,8 @@
 function [bootstat, bootsam] = bootstrp (argin1, argin2, varargin)
 
   % Evaluate the number of function arguments
-  if nargin<2
-    error('bootstrp usage: ''bootstrp (nboot, {bootfun, data}, varargin)''; atleast 2 input arguments required');
+  if (nargin < 2)
+    error ('bootstrp usage: ''bootstrp (nboot, {bootfun, data}, varargin)''; atleast 2 input arguments required');
   end
 
   % Check if using MATLAB or Octave
@@ -84,10 +84,9 @@ function [bootstat, bootsam] = bootstrp (argin1, argin2, varargin)
   ISOCTAVE = any (ismember ({info.Name}, 'Octave'));
 
   % Apply defaults
-  bootfun = @mean;
   paropt = struct;
   paropt.UseParallel = false;
-  if ~ISOCTAVE
+  if (~ ISOCTAVE)
     ncpus = feature('numcores');
   else
     ncpus = nproc;
@@ -98,32 +97,31 @@ function [bootstat, bootsam] = bootstrp (argin1, argin2, varargin)
   nboot = argin1;
   bootfun = argin2;
   argin3 = varargin;
-  narg = numel(argin3);
-  if narg > 1
+  narg = numel (argin3);
+  if (narg > 1)
     while ischar(argin3{end-1})
-      if any(strcmpi({'Options','Option'},argin3{end-1}))
+      if (any(strcmpi({'Options','Option'},argin3{end-1})))
         paropt = argin3{end};
-      elseif any(strcmpi('seed',argin3{end-1}))
+      elseif (any(strcmpi('seed',argin3{end-1})))
         seed = argin3{end};
         % Initialise the random number generator with the seed
         boot (1, 1, false, seed);
       else
-        error ('bootstrp: unrecognised input argument to bootstrp')
+        error ('bootstrp: Unrecognised input argument to bootstrp')
       end
       argin3 = {argin3{1:end-2}};
-      narg = numel(argin3);
-      if narg < 2
+      narg = numel (argin3);
+      if (narg < 2)
         break
       end
     end
   end
-  bootfun = argin2;
-  if (numel(argin3) > 1)
+  if (numel (argin3) > 1)
     data = argin3;
   else
     data = argin3{1};
   end
-  if paropt.UseParallel
+  if (paropt.UseParallel)
     ncpus = paropt.nproc;
   else
     ncpus = 0;
@@ -131,7 +129,7 @@ function [bootstat, bootsam] = bootstrp (argin1, argin2, varargin)
 
 
   % Error checking
-  if ~all(size(nboot) == [1,1])
+  if (~ all (size (nboot) == [1, 1]))
     error ('bootstrp: NBOOT must be a scalar value')
   end
 

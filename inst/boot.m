@@ -52,31 +52,31 @@ function bootsam = boot (x, nboot, u, s, w)
   % Input variables
   n = numel(x);
   if (n > 1)
-    sz = size(x);
+    sz = size (x);
     isvec = true;
-    if all(sz > 1)
-      error('The first input argument must be either a scalar (N) or vector (X).');
+    if (all (sz > 1))
+      error('boot: The first input argument must be either a scalar (N) or vector (X).');
     end
   else
     n = x;
     isvec = false;
-    if ( (n <= 0) || (n ~= fix(n)) || isinf(n) || isnan(n) )
-      error ('The first input argument must be a finite positive integer.')
+    if ((n <= 0) || (n ~= fix (n)) || isinf (n) || isnan (n))
+      error ('boot: The first input argument must be a finite positive integer.')
     end
   end
-  if (nboot <= 0) || (nboot ~= fix(nboot)) || isinf(nboot) || isnan(nboot) || (max (size (nboot)) > 1)
-    error ('The second input argument (NBOOT) must be a finite positive integer')
+  if ((nboot <= 0) || (nboot ~= fix (nboot)) || isinf (nboot) || isnan (nboot) || (max (size (nboot)) > 1))
+    error ('boot: The second input argument (NBOOT) must be a finite positive integer')
   end
-  if (nargin > 2) && ~isempty(u)
-    if ~islogical (u)
-      error ('The third input argument (UNBIASED) must be a logical scalar value')
+  if ((nargin > 2) && ~ isempty (u))
+    if (~ islogical (u))
+      error ('boot: The third input argument (UNBIASED) must be a logical scalar value')
     end
   else
     u = false;
   end
-  if (nargin > 3) && ~isempty(s)
-    if (isinf(s) || isnan(s) || (max (size (s)) > 1))
-      error ('The fourth input argument (SEED) must be a finite scalar value')
+  if ((nargin > 3) && ~ isempty (s))
+    if (isinf (s) || isnan (s) || (max (size (s)) > 1))
+      error ('boot: The fourth input argument (SEED) must be a finite scalar value')
     end
     rand ('twister', s);
   end
@@ -85,14 +85,14 @@ function bootsam = boot (x, nboot, u, s, w)
   bootsam = zeros (n, nboot);
 
   % Initialize weight vector defining the available row counts remaining
-  if (nargin > 4) && ~isempty(w)
+  if ((nargin > 4) && ~ isempty (w))
     % Assign user defined weights (counts)
     % Error checking
-    if (numel(w) ~= n)
-      error('WEIGHTS must be a vector of length N or be the same length as X.');
+    if (numel (w) ~= n)
+      error ('boot: WEIGHTS must be a vector of length N or be the same length as X.');
     end
-    if (sum(w) ~= n * nboot)
-      error('The elements of WEIGHTS must sum to N * NBOOT.')
+    if (sum (w) ~= n * nboot)
+      error ('boot: The elements of WEIGHTS must sum to N * NBOOT.')
     end
     c = w;
   else
@@ -117,7 +117,7 @@ function bootsam = boot (x, nboot, u, s, w)
       if (u)
         d(r) = 0;
       end
-      if ~sum (d)
+      if (~ sum (d))
         d = c;
       end
       d = cumsum (d);

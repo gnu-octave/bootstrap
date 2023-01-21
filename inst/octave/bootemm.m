@@ -112,14 +112,14 @@ function emmeans = bootemm (STATS, dim, nboot, alpha, ncpus, seed)
   info = ver; 
   ISOCTAVE = any (ismember ({info.Name}, 'Octave'));
   if (~ ISOCTAVE)
-    error ('bootemm: only supported by Octave')
+    error ('bootemm: Only supported by Octave')
   end
   statspackage = ismember ({info.Name}, 'statistics');
-  if (~ any (statspackage)) || (str2num (info (statspackage).Version(1:3)) < 1.5)
-    error ('bootemm: requires version >= 1.5 of the statistics package')
+  if ((~ any (statspackage)) || (str2double (info (statspackage).Version(1:3)) < 1.5))
+    error ('bootemm: Requires version >= 1.5 of the statistics package')
   end
   if (ismember (dim, find (STATS.continuous)))
-    error ('bootemm: estimated marginal means are only calculated for categorical variables')
+    error ('bootemm: Estimated marginal means are only calculated for categorical variables')
   end
 
   % Fetch required information from STATS structure
@@ -134,11 +134,9 @@ function emmeans = bootemm (STATS, dim, nboot, alpha, ncpus, seed)
   n = numel (resid);
 
   % Prepare the hypothesis matrix (H)
-  Nd = numel (dim);
   df = STATS.df;
   i = 1 + cumsum(df);
   k = find (sum (STATS.terms(:,dim), 2) == sum (STATS.terms, 2));
-  Nb = 1 + sum(df(k));
   Nt = numel (k);
   L = zeros (n, sum (df) + 1);
   for j = 1:Nt
@@ -159,13 +157,13 @@ function emmeans = bootemm (STATS, dim, nboot, alpha, ncpus, seed)
   data = {X, y, w};
 
   % Perform bootstrap
-  warning ('off','bootknife:lastwarn')
-  if nargout > 0
+  warning ('off', 'bootknife:lastwarn')
+  if (nargout > 0)
     emmeans = bootknife (data, nboot, bootfun, alpha, [], ncpus);
   else
     bootknife (data, nboot, bootfun, alpha, [], ncpus);
   end
-  warning ('on','bootknife:lastwarn')
+  warning ('on', 'bootknife:lastwarn')
 
 end
 

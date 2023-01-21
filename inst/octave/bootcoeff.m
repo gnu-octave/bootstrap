@@ -109,12 +109,12 @@ function coeffs = bootcoeff (STATS, nboot, alpha, ncpus, seed)
   % Error checking
   info = ver; 
   ISOCTAVE = any (ismember ({info.Name}, 'Octave'));
-  if ~ISOCTAVE
-    error ('bootcoeff: only supported by Octave')
+  if (~ ISOCTAVE)
+    error ('bootcoeff: Only supported by Octave')
   end
   statspackage = ismember ({info.Name}, 'statistics');
-  if (~ any (statspackage)) || (str2num (info (statspackage).Version(1:3)) < 1.5)
-    error ('bootcoeff: requires version >= 1.5 of the statistics package')
+  if ((~ any (statspackage)) || (str2double (info (statspackage).Version(1:3)) < 1.5))
+    error ('bootcoeff: Requires version >= 1.5 of the statistics package')
   end
 
   % Fetch required information from STATS structure
@@ -133,13 +133,13 @@ function coeffs = bootcoeff (STATS, nboot, alpha, ncpus, seed)
   data = {X, y, w};
 
   % Perform bootstrap
-  warning ('off','bootknife:lastwarn')
-  if nargout > 0
+  warning ('off', 'bootknife:lastwarn')
+  if (nargout > 0)
     coeffs = bootknife (data, nboot, bootfun, alpha, [], ncpus);
   else
     bootknife (data, nboot, bootfun, alpha, [], ncpus);
   end
-  warning ('on','bootknife:lastwarn')
+  warning ('on', 'bootknife:lastwarn')
 
 end
 

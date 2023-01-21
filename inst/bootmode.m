@@ -60,7 +60,7 @@
 %  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-%% Stamp data example used in reference [1] in bootstrap R package
+% Stamp data example used in reference [1] in bootstrap R package
 % x=[0.060;0.064;0.064;0.065;0.066;0.068;0.069;0.069;0.069;0.069;0.069;0.069;0.069;0.070;0.070;0.070;
 % 0.070;0.070;0.070;0.070;0.070;0.070;0.070;0.070;0.070;0.070;0.070;0.070;0.070;0.070;0.070;0.070;
 % 0.070;0.070;0.070;0.070;0.070;0.070;0.070;0.071;0.071;0.071;0.071;0.071;0.071;0.071;0.071;0.071;
@@ -126,29 +126,29 @@ function [H, P, h] = bootmode (x, m, B, kernel, ncpus)
   % Check if running in Octave (else assume Matlab)
   info = ver; 
   ISOCTAVE = any (ismember ({info.Name}, 'Octave'));
-  if nargin < 2
-    error('bootmode usage: ''bootmode (X, M, varagin)''; a minimum of 2 input arguments are required')
+  if (nargin < 2)
+    error ('bootmode usage: ''bootmode (X, M, varagin)''; a minimum of 2 input arguments are required')
   end
-  if nargin < 3
+  if (nargin < 3)
     B = '2000';
   end
-  if nargin < 4
+  if (nargin < 4)
     kernel = 'Gaussian';
   end
-  if nargin < 5
+  if (nargin < 5)
     ncpus = 0;    % Ignore parallel processing features
-  elseif ~isempty (ncpus) 
-    if ~isa (ncpus, 'numeric')
-      error('bootmode: NPROC must be numeric');
+  elseif (~ isempty (ncpus))
+    if (~ isa (ncpus, 'numeric'))
+      error ('bootmode: NPROC must be numeric');
     end
-    if any (ncpus ~= abs (fix (ncpus)))
+    if (any (ncpus ~= abs (fix (ncpus))))
       error ('bootmode: NPROC must be a positive integer');
     end    
     if (numel (ncpus) > 1)
       error ('bootmode: NPROC must be a scalar value');
     end
   end
-  if ISOCTAVE
+  if (ISOCTAVE)
     ncpus = min(ncpus, nproc);
   else
     ncpus = min(ncpus, feature('numcores'));
@@ -156,14 +156,14 @@ function [H, P, h] = bootmode (x, m, B, kernel, ncpus)
 
   % If applicable, check we have parallel computing capabilities
   if (ncpus > 1)
-    if ISOCTAVE  
+    if (ISOCTAVE)
       pat = '^parallel';
-      software = pkg('list');
-      names = cellfun(@(S) S.name, software, 'UniformOutput', false);
-      status = cellfun(@(S) S.loaded, software, 'UniformOutput', false);
-      index = find(~cellfun(@isempty,regexpi(names,pat)));
-      if ~isempty(index)
-        if logical(status{index})
+      software = pkg ('list');
+      names = cellfun (@(S) S.name, software, 'UniformOutput', false);
+      status = cellfun (@(S) S.loaded, software, 'UniformOutput', false);
+      index = find (~ cellfun (@isempty, regexpi(names,pat)));
+      if (~ isempty(index))
+        if (logical (status{index}))
           PARALLEL = true;
         else
           PARALLEL = false;
@@ -173,7 +173,7 @@ function [H, P, h] = bootmode (x, m, B, kernel, ncpus)
       end
     else
       info = ver; 
-      if ismember ('Parallel Computing Toolbox', {info.Name})
+      if (ismember ('Parallel Computing Toolbox', {info.Name}))
         PARALLEL = true;
       else
         PARALLEL = false;
@@ -182,14 +182,14 @@ function [H, P, h] = bootmode (x, m, B, kernel, ncpus)
   end
 
   % If applicable, setup a parallel pool (required for MATLAB)
-  if ~ISOCTAVE
+  if (~ ISOCTAVE)
     % MATLAB
     % bootfun is not vectorized
     if (ncpus > 0) 
       % MANUAL
       try 
         pool = gcp ('nocreate'); 
-        if isempty (pool)
+        if (isempty (pool))
           if (ncpus > 1)
             % Start parallel pool with ncpus workers
             parpool (ncpus);
@@ -208,18 +208,21 @@ function [H, P, h] = bootmode (x, m, B, kernel, ncpus)
         end
       catch
         % MATLAB Parallel Computing Toolbox is not installed
-        warning ('MATLAB Parallel Computing Toolbox is not installed or operational. Falling back to serial processing.');
+        warning ('bootmode:parallel', ...
+            'MATLAB Parallel Computing Toolbox is not installed or operational. Falling back to serial processing.');
         ncpus = 1;
       end
     end
   else
-    if (ncpus > 1) && ~PARALLEL
-      if ISOCTAVE
+    if ((ncpus > 1) && ~ PARALLEL)
+      if (ISOCTAVE)
         % OCTAVE Parallel Computing Package is not installed or loaded
-        warning ('OCTAVE Parallel Computing Package is not installed and/or loaded. Falling back to serial processing.');
+        warning ('bootmode:parallel', ...
+            'OCTAVE Parallel Computing Package is not installed and/or loaded. Falling back to serial processing.');
       else
         % MATLAB Parallel Computing Toolbox is not installed or loaded
-        warning ('MATLAB Parallel Computing Toolbox is not installed and/or loaded. Falling back to serial processing.');
+        warning ('bootmode:parallel', ...
+            'MATLAB Parallel Computing Toolbox is not installed and/or loaded. Falling back to serial processing.');
       end
       ncpus = 0;
     end
@@ -234,17 +237,17 @@ function [H, P, h] = bootmode (x, m, B, kernel, ncpus)
   h = criticalBandwidth;
 
   % Random resampling with replacement from a smooth estimate of the distribution
-  idx = boot(n,B,false);
+  idx = boot (n,B,false);
   Y = x(idx);
-  xvar = var(x,1); % calculate sample variance
-  Ymean = ones(n,1) * mean(Y);
-  X = Ymean + (1 + h^2/xvar)^(-0.5) * (Y - Ymean + (h * randn(n,B)));
+  xvar = var (x, 1); % calculate sample variance
+  Ymean = ones (n, 1) * mean(Y);
+  X = Ymean + (1 + h^2 / xvar)^(-0.5) * (Y - Ymean + (h * randn (n, B)));
 
   % Calculate bootstrap statistic of the bootstrap samples
   % The boostrap statistic is the number of modes
   if (ncpus > 1)
     % PARALLEL
-    if ISOCTAVE
+    if (ISOCTAVE)
       % OCTAVE
       f = cell2mat (parcellfun (ncpus, ...
                                 @(j) localfunc.kde (X(:,j), h, kernel), ...
@@ -261,14 +264,14 @@ function [H, P, h] = bootmode (x, m, B, kernel, ncpus)
   end
 
   % Compute number of modes in the kernel density estimate of the bootstrap samples
-  mboot = sum(diff(sign(diff(f)))<0);
+  mboot = sum (diff (sign (diff (f))) < 0);
   % Approximate achieved significance level (ASL) from bootstrapping number of modes
-  P = sum(mboot > m)/B;
+  P = sum (mboot > m) / B;
 
   % Accept or reject null hypothesis
-  if P > 0.05
+  if (P > 0.05)
     H = false;
-  elseif P < 0.05
+  elseif (P < 0.05)
     H = true;
   end
 
@@ -278,23 +281,23 @@ end
 
 function [criticalBandwidth] = findCriticalBandwidth (x, mref, kernel)
 
-  if mref > numel(x)
-    error('the number of modes M cannot exceed the number of data points in X')
+  if (mref > numel (x))
+    error ('the number of modes M cannot exceed the number of data points in X')
   end
 
   % Calculate starting value for bandwidth
   % The algorithm sets the initial bandwidth so that half
   % of the sorted, unique data points are well separated
-  xsort = sort(x);
-  xdiff = diff(xsort);
-  h = median(xdiff(xdiff>0))/(2*sqrt(2*log(2)));
+  xsort = sort (x);
+  xdiff = diff (xsort);
+  h = median (xdiff (xdiff > 0)) / (2 * sqrt (2 * log (2)));
 
   m = inf;
   while m > mref
     % Increase h
     h = h * 1.01; % Increase query bandwidth by 1%
     y = kde (x, h, kernel);
-    m = sum(diff(sign(diff(y)))<0);
+    m = sum (diff (sign (diff (y))) < 0);
   end
   criticalBandwidth = h;
 
@@ -308,26 +311,26 @@ function [f, t] = kde (x, h, kernel)
   x = x(:);
 
   % Default properties of t
-  n = numel(x);
+  n = numel (x);
   tmin = min(x) - 3 * h; % define lower limit of kernel density estimate
   tmax = max(x) + 3 * h; % define upper limit of kernel density estimate
 
   % Kernel density estimator
-  t = linspace(tmin,tmax,200)';
-  f = zeros(200,1);
+  t = linspace (tmin,tmax,200)';
+  f = zeros (200,1);
   for i = 1:n
-    xi = ones(200,1) * x(i);
-    u = (t-xi)/h;
-    if strcmpi(kernel,'Epanechnikov')
+    xi = ones (200,1) * x(i);
+    u = (t - xi) / h;
+    if (strcmpi (kernel, 'Epanechnikov'))
       % Epanechnikov (parabolic) kernel
-      K = @(u) max(0,(3/4)*(1-u.^2));
-    elseif strcmpi(kernel,'Gaussian')
+      K = @(u) max(0, (3 / 4) * (1 - u.^2));
+    elseif (strcmpi (kernel, 'Gaussian'))
       % Gaussian kernel
-      K = @(u) 1/sqrt(2*pi)*exp(-0.5*u.^2);
+      K = @(u) 1 / sqrt (2 * pi) * exp (-0.5 * u.^2);
     end
     f = f + K(u);
   end
-  f = f * 1/(n*h);
+  f = f * 1 / (n * h);
 
 end
 

@@ -130,8 +130,8 @@
 function [ci, bootstat, bootsam] = bootci (argin1, argin2, varargin)
 
   % Evaluate the number of function arguments
-  if nargin<2
-    error('bootci usage: ''bootci (NBOOT, {BOOTFUN, DATA}, varargin)''; atleast 2 input arguments required');
+  if (nargin < 2)
+    error ('bootci usage: ''bootci (NBOOT, {BOOTFUN, DATA}, varargin)''; atleast 2 input arguments required');
   end
 
   % Check if using MATLAB or Octave
@@ -139,15 +139,14 @@ function [ci, bootstat, bootsam] = bootci (argin1, argin2, varargin)
   ISOCTAVE = any (ismember ({info.Name}, 'Octave'));
 
   % Apply defaults
-  bootfun = @mean;
   alpha = 0.05;
   type = 'bca';
   nbootstd = 100;
   nbootcal = 200;
   paropt = struct;
   paropt.UseParallel = false;
-  if ~ISOCTAVE
-    ncpus = feature('numcores');
+  if (~ ISOCTAVE)
+    ncpus = feature ('numcores');
   else
     ncpus = nproc;
   end
@@ -155,57 +154,54 @@ function [ci, bootstat, bootsam] = bootci (argin1, argin2, varargin)
 
   % Assign input arguments to function variables
   nboot = argin1;
-  bootfun = argin2;
   argin3 = varargin;
-  narg = numel(argin3);
-  if narg > 1
-    while ischar(argin3{end-1})
-      if any(strcmpi({'Options','Option'},argin3{end-1}))
+  narg = numel (argin3);
+  if (narg > 1)
+    while (ischar (argin3{end-1}))
+      if (any (strcmpi ({'Options', 'Option'}, argin3{end-1})))
         paropt = argin3{end};
-      elseif any(strcmpi('alpha',argin3{end-1}))
+      elseif (any (strcmpi ('alpha', argin3{end-1})))
         alpha = argin3{end};
-      elseif any(strcmpi('type',argin3{end-1}))
+      elseif (any (strcmpi ('type', argin3{end-1})))
         type = argin3{end};
-      elseif any(strcmpi('nbootstd',argin3{end-1}))
+      elseif (any (strcmpi ('nbootstd', argin3{end-1})))
         nbootstd = argin3{end};
-      elseif any(strcmpi('nbootcal',argin3{end-1}))
+      elseif (any (strcmpi ('nbootcal', argin3{end-1})))
         nbootcal = argin3{end};
-      elseif any(strcmpi('seed',argin3{end-1}))
+      elseif (any (strcmpi ('seed', argin3{end-1})))
         seed = argin3{end};
         % Initialise the random number generator with the seed
         boot (1, 1, true, seed);
       else
-        error('bootci: unrecognised input argument to bootci')
+        error ('bootci: Unrecognised input argument to bootci')
       end
       argin3 = {argin3{1:end-2}};
-      narg = numel(argin3);
-      if narg < 2
+      narg = numel (argin3);
+      if (narg < 2)
         break
       end
     end
   end
-  if iscell(argin2)
+  if (iscell (argin2))
     bootfun = argin2{1};
-    if (numel(argin2) > 2)
+    if (numel (argin2) > 2)
       data = argin2(2:end);
       n = size (data{1}, 1);
-      nvar = numel (data);
     else
       data = argin2{2};
-      [n, nvar] = size (data);
+      n = size (data, 1);
     end
   else
     bootfun = argin2;
-    if (numel(argin3) > 1)
+    if (numel (argin3) > 1)
       data = argin3;
       n = size (data{1}, 1);
-      nvar = numel (data);
     else
       data = argin3{1};
-      [n, nvar] = size (data);
+      n = size (data, 1);
     end
   end
-  if paropt.UseParallel
+  if (paropt.UseParallel)
     ncpus = paropt.nproc;
   else
     ncpus = 0;
@@ -215,13 +211,13 @@ function [ci, bootstat, bootsam] = bootci (argin1, argin2, varargin)
   if (numel(alpha) > 1)
     error ('bootci: ALPHA must be a scalar value');
   end
-  if ~isa (alpha,'numeric')
+  if (~ isa (alpha,'numeric'))
     error ('bootci: ALPHA must be a numeric');
   end
-  if any ((alpha < 0) | (alpha > 1))
+  if (any ((alpha < 0) | (alpha > 1)))
     error ('bootci: ALPHA must be a value between 0 and 1');
   end
-  if ~isa (nboot, 'numeric')
+  if (~ isa (nboot, 'numeric'))
     error ('bootci: NBOOT must be numeric');
   end
   if (numel (nboot) > 1)
@@ -230,7 +226,7 @@ function [ci, bootstat, bootsam] = bootci (argin1, argin2, varargin)
   if (nboot ~= abs (fix (nboot)))
     error ('bootci: NBOOT must contain positive integers');
   end
-  if ~isa (nbootstd, 'numeric')
+  if (~ isa (nbootstd, 'numeric'))
     error ('bootci: NBOOTSTD must be numeric');
   end
   if (numel (nbootstd) > 1)
@@ -239,7 +235,7 @@ function [ci, bootstat, bootsam] = bootci (argin1, argin2, varargin)
   if (nbootstd < 1)
     error ('bootci: NBOOTSTD must be an integer > 0');
   end  
-  if ~isa (nbootcal, 'numeric')
+  if (~ isa (nbootcal, 'numeric'))
     error ('bootci: NBOOTCAL must be numeric');
   end
   if (numel (nbootcal) > 1)
@@ -250,12 +246,12 @@ function [ci, bootstat, bootsam] = bootci (argin1, argin2, varargin)
   end
   % If applicable, check we have parallel computing capabilities
   if (ncpus > 1)
-    if ISOCTAVE
+    if (ISOCTAVE)
       pat = '^parallel';
       software = pkg('list');
       names = cellfun (@(S) S.name, software, 'UniformOutput', false);
       status = cellfun (@(S) S.loaded, software, 'UniformOutput', false);
-      index = find (~cellfun (@isempty, regexpi (names,pat)));
+      index = find (~ cellfun (@isempty, regexpi (names,pat)));
       if (~ isempty (index))
         if (~ logical (status{index}))
           ncpus = 0;
@@ -265,7 +261,7 @@ function [ci, bootstat, bootsam] = bootci (argin1, argin2, varargin)
       end
       if (ncpus == 0)
         % OCTAVE Parallel Computing Package is not installed or loaded
-        warning ('bootknife:parallel', ...
+        warning ('bootci:parallel', ...
           'Parallel Computing Package is installed and/or loaded. Falling back to serial processing.');
       end
     else
@@ -275,17 +271,17 @@ function [ci, bootstat, bootsam] = bootci (argin1, argin2, varargin)
       end
       if (ncpus == 0)
         % MATLAB Parallel Computing Toolbox is not installed or loaded
-        warning ('bootknife:parallel', ...
+        warning ('bootci:parallel', ...
           'Parallel Computing Toolbox is installed and/or loaded. Falling back to serial processing.');
       end
     end
   end
 
   % Apply interval type
-  switch lower(type)
-    case {'bca','norm','normal'}
+  switch (lower (type))
+    case {'bca', 'norm', 'normal'}
       % Do nothing
-    case {'per','perc','percentile','basic','stud','student'}
+    case {'per', 'perc', 'percentile', 'basic', 'stud', 'student'}
       % Set quantiles directly to calculate percentile intervals
       alpha = [alpha / 2, 1 - alpha / 2];
     case 'cal'
@@ -293,30 +289,30 @@ function [ci, bootstat, bootsam] = bootci (argin1, argin2, varargin)
       alpha = [alpha / 2, 1 - alpha / 2];
       nboot = cat (2, nboot, nbootcal);
     otherwise
-      error ('bootci: interval TYPE not supported')
+      error ('bootci: Interval TYPE not supported')
   end
 
   % Parse input arguments to the bootknife function to calculate confidence intervals
   ci = [];
-  switch lower(type)
+  switch (lower (type))
  
-    case {'norm','normal'}
+    case {'norm', 'normal'}
       % Intervals constructed based on bootstrap estimates of bias and standard
       % error assumming that the sampling distribution is Normal
       [stats, bootstat, bootsam] = bootknife (data, nboot, bootfun, NaN, [], ncpus);
       stdnorminv = @(p) sqrt (2) * erfinv (2 * p-1);
       z = stdnorminv (alpha / 2);
-      ci = [[stats.original] - [stats.bias] + [stats.std_error] * z;
-            [stats.original] - [stats.bias] - [stats.std_error] * z];
+      ci = cat (2, stats.original - stats.bias + stats.std_error * z, ...
+                   stats.original - stats.bias - stats.std_error * z).';
 
     case 'basic'
       % The basic bootstrap method.
       % Center bootstrap statistics
       [stats, bootstat, bootsam] = bootknife (data, nboot, bootfun, alpha, [], ncpus);
-      ci = [2 * [stats.original] - [stats.CI_upper]; 
-            2 * [stats.original] - [stats.CI_lower]];
+      ci = cat (2, 2 * stats.original - stats.CI_upper, ...
+                   2 * stats.original - stats.CI_lower).';
 
-    case {'stud','student'}
+    case {'stud', 'student'}
       % Use bootstrap-t method with variance stabilization for small samples
       % Polansky (2000) Can J Stat. 28(3):501-516
       [stats, bootstat, bootsam] = bootknife (data, nboot, bootfun, NaN, [], ncpus);
@@ -333,7 +329,7 @@ function [ci, bootstat, bootsam] = bootci (argin1, argin2, varargin)
         cellfunc = @(bootsam) bootknife (data (bootsam,:), nbootstd, bootfun, NaN, [], 0, [], ISOCTAVE);
       end
       if (ncpus > 1)
-        if ISOCTAVE
+        if (ISOCTAVE)
           % Octave
           % Set unique random seed for each parallel thread
           pararrayfun (ncpus, @boot, 1, 1, false, 1:ncpus);
@@ -349,18 +345,19 @@ function [ci, bootstat, bootsam] = bootci (argin1, argin2, varargin)
       else
         bootout = cellfun (cellfunc, num2cell (bootsam, 1), 'UniformOutput', false);
       end
-      se = cell2mat (cellfun (@(S) [S.std_error]', bootout, 'UniformOutput', false));
+      se = cell2mat (cellfun (@(S) S.std_error, bootout, 'UniformOutput', false));
       % Compute additive constant to stabilize the variance
-      a = n^(-3/2) * [stats.std_error]'; 
+      a = n^(-3/2) * stats.std_error;
       % Calculate Studentized bootstrap statistics
-      T = bsxfun (@minus, bootstat, [stats.original]') ./ bsxfun (@plus, se, a);
+      T = bsxfun (@minus, bootstat, stats.original) ./ bsxfun (@plus, se, a);
       % Calculate intervals from empirical distribution of the Studentized bootstrap statistics
-      m = numel (stats);
-      ci = zeros (2, m);
-      for i = 1:m
-        [cdf, t] = empcdf (T(i,:), 1);
-        ci(:,i) = fliplr (arrayfun ( @(p) stats(i).original - stats(i).std_error * interp1 (cdf, t, p, 'linear'), alpha));
+      m = size (bootstat, 1);
+      ci = zeros (m, 2);
+      for j = 1:m
+        [cdf, t] = empcdf (T(j,:));
+        ci(j,:) = fliplr (arrayfun (@(p) stats.original(j) - stats.std_error(j) * interp1 (cdf, t, p, 'linear'), alpha));
       end
+      ci = ci.';
 
     otherwise
 
@@ -371,7 +368,7 @@ function [ci, bootstat, bootsam] = bootci (argin1, argin2, varargin)
 
   % Format output to be consistent with MATLAB's bootci
   if (isempty (ci))
-    ci = [stats.CI_lower; stats.CI_upper];
+    ci = cat (2, stats.CI_lower, stats.CI_upper).';
   end
   bootstat = bootstat.';
 
@@ -379,52 +376,41 @@ end
 
 %--------------------------------------------------------------------------
 
-function [F, x] = empcdf (y, c)
+function [F, x] = empcdf (y)
 
   % Subfunction to calculate empirical cumulative distribution function
-  %
-  % Set c to:
-  %  1 to have a complete distribution with F ranging from 0 to 1
-  %  0 to avoid duplicate values in x
-  %
-  % Unlike ecdf, empcdf uses a denominator of N+1
 
   % Check input argument
-  if ~isa(y,'numeric')
+  if (~ isa (y, 'numeric'))
     error ('bootknife:empcdf: y must be numeric');
   end
-  if all(size(y)>1)
+  if (all (size (y) > 1))
     error ('bootknife:empcdf: y must be a vector');
   end
-  if size(y,2)>1
+  if (size (y, 2) > 1)
     y = y.';
   end
 
+  % Discard NaN values
+  ridx = isnan (y);
+  y(ridx) = [];
+
+  % Get size of y
+  N = numel (y);
+
   % Create empirical CDF
-  ys = sort (y);
-  N = sum (~isnan (ys));
-  [x, F] = unique (ys, 'last');
-  F = F / (N + 1);
-
-  % Apply option to complete the CDF
-  if c > 0
-    x = [x(1); x; x(end)];
-    F = [0;F;1];
-  end
-
-  % Remove impossible values
-  F(isnan(x)) = [];
-  x(isnan(x)) = [];
-  F(isinf(x)) = [];
-  x(isinf(x)) = [];
+  x = sort (y);
+  F = linspace (0, 1, N).';
 
 end
+
+%--------------------------------------------------------------------------
 
 %!demo
 %!
 %! ## Input univariate dataset
 %! data = [48 36 20 29 42 42 20 42 22 41 45 14 6 ...
-%!         0 33 28 34 4 32 24 47 41 24 26 30 41]';
+%!         0 33 28 34 4 32 24 47 41 24 26 30 41].';
 %!
 %! ## 95% BCa bootstrap confidence intervals for the mean
 %! ci = bootci (2000, @mean, data)
@@ -433,7 +419,7 @@ end
 %!
 %! ## Input univariate dataset
 %! data = [48 36 20 29 42 42 20 42 22 41 45 14 6 ...
-%!         0 33 28 34 4 32 24 47 41 24 26 30 41]';
+%!         0 33 28 34 4 32 24 47 41 24 26 30 41].';
 %!
 %! ## 95% calibrated percentile bootstrap confidence intervals for the mean
 %! ci = bootci (2000, {@mean, data}, 'type', 'cal','nbootcal',200)
@@ -444,7 +430,7 @@ end
 %!
 %! ## Input univariate dataset
 %! data = [48 36 20 29 42 42 20 42 22 41 45 14 6 ...
-%!         0 33 28 34 4 32 24 47 41 24 26 30 41]';
+%!         0 33 28 34 4 32 24 47 41 24 26 30 41].';
 %!
 %! ## 95% calibrated percentile bootstrap confidence intervals for the median
 %! ## with smoothing
@@ -456,7 +442,7 @@ end
 %!
 %! ## Input univariate dataset
 %! data = [48 36 20 29 42 42 20 42 22 41 45 14 6 ...
-%!         0 33 28 34 4 32 24 47 41 24 26 30 41]';
+%!         0 33 28 34 4 32 24 47 41 24 26 30 41].';
 %!
 %! ## 90% percentile bootstrap confidence intervals for the variance
 %! ci = bootci (2000, {{@var,1}, data}, 'type', 'per', 'alpha', 0.1)
@@ -465,7 +451,7 @@ end
 %!
 %! ## Input univariate dataset
 %! data = [48 36 20 29 42 42 20 42 22 41 45 14 6 ...
-%!         0 33 28 34 4 32 24 47 41 24 26 30 41]';
+%!         0 33 28 34 4 32 24 47 41 24 26 30 41].';
 %!
 %! ## 90% BCa bootstrap confidence intervals for the variance
 %! ci = bootci (2000, {{@var,1}, data}, 'type', 'bca', 'alpha', 0.1)
@@ -485,7 +471,7 @@ end
 %!
 %! ## Input univariate dataset
 %! data = [48 36 20 29 42 42 20 42 22 41 45 14 6 ...
-%!         0 33 28 34 4 32 24 47 41 24 26 30 41]';
+%!         0 33 28 34 4 32 24 47 41 24 26 30 41].';
 %!
 %! ## 90% calibrated percentile bootstrap confidence intervals for the variance
 %! ci = bootci (2000, {{@var,1}, data}, 'type', 'cal', 'nbootcal', 200, 'alpha', 0.1)
@@ -496,9 +482,9 @@ end
 %!
 %! ## Input bivariate dataset
 %! x = [2.12,4.35,3.39,2.51,4.04,5.1,3.77,3.35,4.1,3.35, ...
-%!      4.15,3.56, 3.39,1.88,2.56,2.96,2.49,3.03,2.66,3]';
+%!      4.15,3.56, 3.39,1.88,2.56,2.96,2.49,3.03,2.66,3].';
 %! y  = [2.47,4.61,5.26,3.02,6.36,5.93,3.93,4.09,4.88,3.81, ...
-%!       4.74,3.29,5.55,2.82,4.23,3.23,2.56,4.31,4.37,2.4]';
+%!       4.74,3.29,5.55,2.82,4.23,3.23,2.56,4.31,4.37,2.4].';
 %!
 %! ## 95% BCa bootstrap confidence intervals for the correlation coefficient
 %! ci = bootci (2000, @cor, x, y)
@@ -517,7 +503,7 @@ end
 %! ## Calculations using Matlab's 'Statistics and Machine Learning toolbox' (R2020b)
 %! ##
 %! ## A = [48 36 20 29 42 42 20 42 22 41 45 14 6 ...
-%! ##      0 33 28 34 4 32 24 47 41 24 26 30 41]';
+%! ##      0 33 28 34 4 32 24 47 41 24 26 30 41].';
 %! ## varfun = @(A) var(A, 1);
 %! ## rng('default'); % For reproducibility
 %! ## rng('default'); ci1 = bootci (20000,{varfun,A},'alpha',0.1,'type','norm');
@@ -585,7 +571,7 @@ end
 %! ## Calculations using the 'statistics-bootstrap' package for Octave/Matlab
 %! ##
 %! ## A = [48 36 20 29 42 42 20 42 22 41 45 14 6 ...
-%! ##      0 33 28 34 4 32 24 47 41 24 26 30 41]';
+%! ##      0 33 28 34 4 32 24 47 41 24 26 30 41].';
 %! ## ci1 = bootci (20000,{{@var,1},A},'alpha',0.1,'type','norm','seed',1);
 %! ## ci2 = bootci (20000,{{@var,1},A},'alpha',0.1,'type','per','seed',1);
 %! ## ci3 = bootci (20000,{{@var,1},A},'alpha',0.1,'type','basic','seed',1);
@@ -597,12 +583,12 @@ end
 %! ##
 %! ## method             |   0.05 |   0.95 | length | shape |  
 %! ## -------------------|--------|--------|--------|-------|
-%! ## ci1 - normal       |  108.2 |  248.3 |  140.1 |  1.21 |
-%! ## ci2 - percentile   |   96.5 |  237.2 |  140.7 |  0.88 |
-%! ## ci3 - basic        |  105.9 |  246.6 |  140.7 |  1.14 |
-%! ## ci4 - BCa          |  115.5 |  262.7 |  147.2 |  1.63 |
-%! ## ci5 - bootstrap-t  |  111.6 |  296.8 |  185.2 |  2.09 |
-%! ## ci6 - calibrated   |  114.6 |  293.5 |  178.9 |  2.14 |
+%! ## ci1 - normal       |  108.2 |  248.5 |  140.3 |  1.22 |
+%! ## ci2 - percentile   |   96.6 |  236.7 |  140.1 |  0.87 |
+%! ## ci3 - basic        |  106.4 |  246.5 |  140.1 |  1.15 |
+%! ## ci4 - BCa          |  115.4 |  266.1 |  150.4 |  1.69 |
+%! ## ci5 - bootstrap-t  |  110.8 |  293.5 |  182.8 |  2.01 |
+%! ## ci6 - calibrated   |  113.4 |  297.0 |  183.6 |  2.16 |
 %! ## -------------------|--------|--------|--------|-------|
 %! ## parametric - exact |  118.4 |  305.2 |  186.8 |  2.52 |
 %! ##
@@ -635,9 +621,6 @@ end
 %!test
 %! ## Test for errors when using some different functionalities of bootci
 %! warning ('off', 'bootknife:parallel')
-%! warning ('off', 'Octave:divide-by-zero')
-%! warning ('off', 'Octave:nearly-singular-matrix')
-%! warning ('off', 'Octave:broadcast')
 %! try
 %!   y = randn (20, 1); 
 %!   bootci (2000, 'mean', y);
@@ -669,33 +652,27 @@ end
 %!   bootci (2000, {@mean, Y}, 'alpha', 0.1, 'type', 'cal');
 %!   y = randn (20,1); x = randn (20,1); X = [ones(20,1),x];
 %!   bootci (2000, @cor, x, y);
-%!   bootci (2000, @(y,X) X\y, y, X);
-%!   bootci (2000, @(y,X) X\y, y, X, 'alpha', 0.1);
-%!   bootci (2000, {@(y,X) X\y, y, X}, 'alpha', 0.1);
-%!   bootci (2000, {@(y,X) X\y, y, X}, 'alpha', 0.1, 'type', 'norm');
-%!   bootci (2000, {@(y,X) X\y, y, X}, 'alpha', 0.1, 'type', 'per');
-%!   bootci (2000, {@(y,X) X\y, y, X}, 'alpha', 0.1, 'type', 'basic');
-%!   bootci (2000, {@(y,X) X\y, y, X}, 'alpha', 0.1, 'type', 'bca');
-%!   bootci (2000, {@(y,X) X\y, y, X}, 'alpha', 0.1, 'type', 'stud');
-%!   bootci (2000, {@(y,X) X\y, y, X}, 'alpha', 0.1, 'type', 'cal');
+%!   bootci (2000, @(y,X) pinv(X)*y, y, X);
+%!   bootci (2000, @(y,X) pinv(X)*y, y, X, 'alpha', 0.1);
+%!   bootci (2000, {@(y,X) pinv(X)*y, y, X}, 'alpha', 0.1);
+%!   bootci (2000, {@(y,X) pinv(X)*y, y, X}, 'alpha', 0.1, 'type', 'norm');
+%!   bootci (2000, {@(y,X) pinv(X)*y, y, X}, 'alpha', 0.1, 'type', 'per');
+%!   bootci (2000, {@(y,X) pinv(X)*y, y, X}, 'alpha', 0.1, 'type', 'basic');
+%!   bootci (2000, {@(y,X) pinv(X)*y, y, X}, 'alpha', 0.1, 'type', 'bca');
+%!   bootci (2000, {@(y,X) pinv(X)*y, y, X}, 'alpha', 0.1, 'type', 'stud');
+%!   bootci (2000, {@(y,X) pinv(X)*y, y, X}, 'alpha', 0.1, 'type', 'cal');
 %! catch
 %!   warning ('on', 'bootknife:parallel')
-%!   warning ('on', 'Octave:divide-by-zero')
-%!   warning ('on', 'Octave:nearly-singular-matrix')
-%!   warning ('on', 'Octave:broadcast')
 %!   rethrow (lasterror)
 %! end
 %! warning ('on', 'bootknife:parallel')
-%! warning ('on', 'Octave:divide-by-zero')
-%! warning ('on', 'Octave:nearly-singular-matrix')
-%! warning ('on', 'Octave:broadcast')
 
 %!test
 %! ## Spatial Test Data from Table 14.1 of Efron and Tibshirani (1993)
 %! ## An Introduction to the Bootstrap in Monographs on Statistics and Applied 
 %! ## Probability 57 (Springer)
 %! A = [48 36 20 29 42 42 20 42 22 41 45 14 6 ...
-%!      0 33 28 34 4 32 24 47 41 24 26 30 41]';
+%!      0 33 28 34 4 32 24 47 41 24 26 30 41].';
 %!
 %! ## Nonparametric 90% percentile confidence intervals (single bootstrap)
 %! ## Table 14.2 percentile intervals are 100.8 - 233.9
@@ -719,16 +696,16 @@ end
 %! ci = bootci(2000,{{@var,1},A},'alpha',0.1,'type','stud','nbootstd',100,'seed',1);
 %! if (isempty (regexp (which ('boot'), 'mex$')))
 %!   ## test boot m-file result
-%!   assert (ci(1), 106.4125067739996, 1e-09);
-%!   assert (ci(2), 304.0348370656702, 1e-09);
+%!   assert (ci(1), 109.451865766257, 1e-09);
+%!   assert (ci(2), 306.1557840134357, 1e-09);
 %! end
 %!
 %! ## Nonparametric 90% calibrated percentile confidence intervals (double bootstrap)
 %! ci = bootci(2000,{{@var,1},A},'alpha',0.1,'type','cal','nbootcal',200,'seed',1);
 %! if (isempty (regexp (which ('boot'), 'mex$')))
 %!   ## test boot m-file result
-%!   assert (ci(1), 110.7774121402538, 1e-09);
-%!   assert (ci(2), 303.7824606292835, 1e-09);
+%!   assert (ci(1), 110.7021156275962, 1e-09);
+%!   assert (ci(2), 305.1908284023669, 1e-09);
 %! end
 %!
 %! ## Exact intervals based on normal theory are 118.4 - 305.2 (Table 14.2)
@@ -740,8 +717,8 @@ end
 %! ## Law school data from Table 3.1 of Efron and Tibshirani (1993)
 %! ## An Introduction to the Bootstrap in Monographs on Statistics and Applied 
 %! ## Probability 57 (Springer)
-%! LSAT = [576 635 558 578 666 580 555 661 651 605 653 575 545 572 594]';
-%! GPA = [3.39 3.3 2.81 3.03 3.44 3.07 3 3.43 3.36 3.13 3.12 2.74 2.76 2.88 2.96]'; 
+%! LSAT = [576 635 558 578 666 580 555 661 651 605 653 575 545 572 594].';
+%! GPA = [3.39 3.3 2.81 3.03 3.44 3.07 3 3.43 3.36 3.13 3.12 2.74 2.76 2.88 2.96].'; 
 %!
 %! ## Nonparametric 90% percentile confidence intervals (single bootstrap)
 %! ## Percentile intervals on page 266 are 0.524 - 0.928
@@ -765,8 +742,7 @@ end
 %! ci = bootci(2000,{@cor,LSAT,GPA},'alpha',0.1,'type','cal','nbootcal',500,'seed',1);
 %! if (isempty (regexp (which ('boot'), 'mex$')))
 %!   ## test boot m-file result
-%!   ## test boot m-file result
-%!   assert (ci(1), 0.254445053627807, 1e-09);
-%!   assert (ci(2), 0.9469388762553252, 1e-09);
+%!   assert (ci(1), 0.2438194881892977, 1e-09);
+%!   assert (ci(2), 0.944013417640401, 1e-09);
 %! end
 %! ## Exact intervals based on normal theory are 0.51 - 0.91

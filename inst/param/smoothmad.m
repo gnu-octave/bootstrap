@@ -1,16 +1,16 @@
 %  Function file: smoothmad
 %
-%  MAD = smoothmad (x)
-%  MAD = smoothmad (x, group)
-%  MAD = smoothmad (x, group, constant)
+%  MAD = smoothmad (X)
+%  MAD = smoothmad (X, GROUP)
+%  MAD = smoothmad (X, GROUP, CONSTANT)
 %
 %  Calculate a smoothed version of the median absolute deviation (MAD) 
 %  for each column of the data in x. The statistics are scaled by a 
 %  constant of 1.41 to make the estimator consistent with the standard 
 %  deviation for normally distributed data (unless the input argument, 
-%  constant, is set otherwise). The input argument, group, is a numeric 
-%  vector (with the same number of rows as x) that defines group 
-%  membership of the rows of x. If group is provided, then the statistic 
+%  CONSTANT, is set otherwise). The input argument, GROUP, is a numeric 
+%  vector (with the same number of rows as x) that defines GROUP 
+%  membership of the rows of x. If GROUP is provided, then the statistic 
 %  returned is the pooled smooth MAD.
 %
 %  Smoothing of the median is performed as described in [1].
@@ -42,27 +42,27 @@
 %  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-function PMAD = smoothmad(x,group,constant)
+function PMAD = smoothmad (x, group, constant)
 
   % Evaluate input arguments
-  if (nargin < 1) || (nargin > 3)
-    error ('Invalid number of input arguments')
+  if ((nargin < 1) || (nargin > 3))
+    error ('smoothmad: Invalid number of input arguments')
   end
 
   if (nargout > 1)
-    error ('Invalid number of output arguments')
+    error ('smoothmad: Invalid number of output arguments')
   end
 
-  if numel (size (x)) > 2
-    error ('arrays of more than 2 dimensions are not supported')
+  if (numel (size (x)) > 2)
+    error ('smoothmad: Arrays of more than 2 dimensions are not supported')
   end
 
-  [m,n] = size(x);
+  [m, n] = size (x);
   if (nargin < 2 || isempty (group))
     group = ones(m,1);
   else
     if size (group, 1) ~= size (x, 1)
-      error ('group must be a column vector with the same number of rows as the data')
+      error ('smoothmad: GROUP must be a column vector with the same number of rows as the data')
     end
   end
 
@@ -71,31 +71,32 @@ function PMAD = smoothmad(x,group,constant)
   end
 
   % Initialize variables
-  g = unique(group);
-  l = numel(g);
-  M = zeros(l,n);
-  nk = zeros(l,1);
-  PMAD = zeros(1,n);
+  g = unique (group);
+  l = numel (g);
+  M = zeros (l, n);
+  MAD = zeros (l, n);
+  nk = zeros (l, 1);
+  PMAD = zeros (1, n);
 
   % Perform calculations on each data group
   for k = 1:l
 
     % Collect the data for group k
-    I = (group==g(k));
+    I = (group == g(k));
 
     % Calculate the size of the data group
     nk(k) = sum(I);
 
     % Calculate the smoothed median of the data group 
-    M(k,:) = smoothmedian(x(I,:));
+    M(k,:) = smoothmedian (x(I,:));
 
     % Calculate the smoothed median absolute deviation of the data group
-    MAD(k,:) = smoothmedian(abs(x(I,:) - ones(nk(k),1) * M(k,:))) * constant;
+    MAD(k,:) = smoothmedian (abs (x(I, :) - ones (nk(k), 1) * M(k, :))) * constant;
 
     % Begin pooling the smoothed median absolute deviations
-    PMAD = PMAD + (nk(k) - 1) * MAD(k,:).^2;
+    PMAD = PMAD + (nk(k) - 1) * MAD(k, :).^2;
 
   end
 
   % Calculate the pooled, smoothed median absolute deviation
-  PMAD = sqrt(PMAD/(sum(nk)-l));
+  PMAD = sqrt (PMAD / (sum (nk) - l));
