@@ -324,9 +324,9 @@ function [ci, bootstat, bootsam] = bootci (argin1, argin2, varargin)
         % estimate of the standard error using bootknife resampling
         szx = cellfun (@(x) size (x, 2), data);
         data = [data{:}];
-        cellfunc = @(bootsam) bootknife (mat2cell (data (bootsam,:), n, szx), nbootstd, bootfun, NaN,  [], 0, [], ISOCTAVE);
+        cellfunc = @(bootsam) bootknife (mat2cell (data (bootsam,:), n, szx), nbootstd, bootfun, NaN,  [], 0, [], [], ISOCTAVE);
       else
-        cellfunc = @(bootsam) bootknife (data (bootsam,:), nbootstd, bootfun, NaN, [], 0, [], ISOCTAVE);
+        cellfunc = @(bootsam) bootknife (data (bootsam,:), nbootstd, bootfun, NaN, [], 0, [], [], ISOCTAVE);
       end
       if (ncpus > 1)
         if (ISOCTAVE)

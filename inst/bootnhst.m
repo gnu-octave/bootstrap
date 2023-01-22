@@ -717,9 +717,9 @@ function [p, c, stats] = bootnhst (data, group, varargin)
   boot (1, 1, false, 1); % set random seed to make bootstrap resampling deterministic  
   % Use newer, faster and balanced (less biased) resampling functions (boot and bootknife)
   if (paropt.UseParallel)
-    [null, Q] = bootknife (data, nboot(1), func, NaN, [], paropt.nproc, [], ISOCTAVE);
+    [null, Q] = bootknife (data, nboot(1), func, NaN, [], paropt.nproc, [], [], ISOCTAVE);
   else
-    [null, Q] = bootknife (data, nboot(1), func, NaN, [], 0, [], ISOCTAVE);
+    [null, Q] = bootknife (data, nboot(1), func, NaN, [], 0, [], [], ISOCTAVE);
   end
   
   % Compute the estimate (theta) and it's pooled (weighted mean) sampling variance 
@@ -747,7 +747,7 @@ function [p, c, stats] = bootnhst (data, group, varargin)
       % Bootknife resampling involves less computation than Jackknife when sample sizes get larger
       theta(j) = bootfun (data(g == gk(j), :));
       nk(j) = sum (g == gk(j));
-      bootout = bootknife (data(g == gk(j), :), [nboot(2), 0], bootfun, NaN, [], 0, [], ISOCTAVE, [], false);
+      bootout = bootknife (data(g == gk(j), :), [nboot(2), 0], bootfun, NaN, [], 0, [], [], ISOCTAVE, false);
       SE(j) = bootout.std_error;
       if (j==1); se_method = 'Balanced, bootknife resampling'; end;
     end
@@ -1017,7 +1017,7 @@ function maxT = maxstat (Y, g, nboot, bootfun, ref, ISOCTAVE)
       % Bootknife resampling involves less computation than Jackknife when sample sizes get larger
       theta(j) = bootfun (Y(g == gk(j), :));
       nk(j) = sum (g == gk(j));
-      bootout = bootknife(Y(g == gk(j), :), [nboot, 0], bootfun, NaN, [], 0, [], ISOCTAVE, [], false);
+      bootout = bootknife (Y(g == gk(j), :), [nboot, 0], bootfun, NaN, [], 0, [], [], ISOCTAVE, false);
       SE(j) = bootout.std_error;
     end
     Var(j) = ((nk(j) - 1) / (N - k)) * SE(j)^2;

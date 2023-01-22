@@ -11,7 +11,7 @@
 %  reduce Monte Carlo error [2,3].
 %
 %  If single bootstrap is requested, the confidence intervals are obtained from 
-%  the quantiles of a kernel density estimate of bootstrap statistics (with
+%  the quantiles of a kernel density estimate of the bootstrap statistics (with
 %  shrinkage corrrection). By default, the confidence intervals are bias-
 %  corrected and accelerated (BCa) [4-5]. BCa intervals are fast to compute and
 %  have good coverage and correctness when combined with bootknife resampling
@@ -20,7 +20,7 @@
 %  If double bootstrap is requested, the algorithm uses calibration to improve
 %  the accuracy (of the bias and standard error) and coverage of the confidence
 %  intervals [6-12], which are obtained from the empirical distribution of the
-%  bootstrap statistics by linear interpolation. 
+%  bootstrap statistics by linear interpolation [9]. 
 %
 %  STATS = bootknife (DATA)
 %  STATS = bootknife ({DATA})
@@ -30,6 +30,7 @@
 %  STATS = bootknife (DATA, NBOOT, ..., ALPHA)
 %  STATS = bootknife (DATA, NBOOT, ..., ALPHA, STRATA)
 %  STATS = bootknife (DATA, NBOOT, ..., ALPHA, STRATA, NPROC)
+%  STATS = bootknife (DATA, NBOOT, ..., ALPHA, STRATA, NPROC, BOOTSAM)
 %  [STATS, BOOTSTAT] = bootknife (...)
 %  [STATS, BOOTSTAT] = bootknife (...)
 %  [STATS, BOOTSTAT, BOOTSAM] = bootknife (...)
@@ -155,6 +156,11 @@
 %  feature requires the Parallel package (in Octave), or the Parallel
 %  Computing Toolbox (in Matlab).
 %
+%  STATS = bootknife (DATA, NBOOT, ..., ALPHA, STRATA, NPROC, BOOTSAM) uses
+%  bootstrap resampling indices provided in BOOTSAM. The BOOTSAM should be a
+%  matrix with the same number of rows as the data. When BOOTSAM is provided,
+%  the first element of NBOOT is ignored.
+%
 %  [STATS, BOOTSTAT] = bootknife (...) also returns BOOTSTAT, a vector of
 %  bootstrap statistics calculated over the (first, or outer layer of)
 %  bootstrap resamples.
@@ -187,7 +193,7 @@
 %        Bootstrap. New York, NY: Chapman & Hall
 %  [6] Beran (1987). Prepivoting to Reduce Level Error of Confidence Sets.
 %        Biometrika, 74(3), 457–468.
-%  [7] Lee and Young (1999) The effectt of Monte Carlo approximation on coverage
+%  [7] Lee and Young (1999) The effect of Monte Carlo approximation on coverage
 %        error of double-bootstrap con®dence intervals. J R Statist Soc B. 
 %        61:353-366.
 %  [8] Booth J. and Presnell B. (1998) Allocation of Monte Carlo Resources for
@@ -225,11 +231,11 @@
 %  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-function [stats, bootstat, BOOTSAM] = bootknife (x, nboot, bootfun, alpha, ...
-                              strata, ncpus, REF, ISOCTAVE, BOOTSAM, ERRCHK)
+function [stats, bootstat, bootsam] = bootknife (x, nboot, bootfun, alpha, ...
+                              strata, ncpus, bootsam, REF, ISOCTAVE, ERRCHK)
 
   % Input argument names in all-caps are for internal use only
-  % REF, ISOCTAVE, BOOTSAM, ERRCHK are undocumented input arguments required
+  % REF, ISOCTAVE and ERRCHK are undocumented input arguments required
   % for some of the functionalities of bootknife
 
   % Store local functions in a stucture for parallel processes
@@ -343,7 +349,7 @@ function [stats, bootstat, BOOTSAM] = bootknife (x, nboot, bootfun, alpha, ...
         error ('bootknife: NPROC must be a scalar value');
       end
     end
-    if ((nargin < 8) || isempty (ISOCTAVE))
+    if ((nargin < 9) || isempty (ISOCTAVE))
       % Check if running in Octave (else assume Matlab)
       info = ver; 
       ISOCTAVE = any (ismember ({info.Name}, 'Octave'));
@@ -511,21 +517,21 @@ function [stats, bootstat, BOOTSAM] = bootknife (x, nboot, bootfun, alpha, ...
 
   % Perform balanced bootknife resampling
   unbiased = true;  % Set to true for bootknife resampling
-  if ((nargin < 9) || isempty (BOOTSAM))
+  if ((nargin < 7) || isempty (bootsam))
     if (~ isempty (strata))
       if (nvar > 1) || (nargout > 2)
-        % We can save some memory by making BOOTSAM an int32 datatype
-        BOOTSAM = zeros (n, B, 'int32');
+        % We can save some memory by making bootsam an int32 datatype
+        bootsam = zeros (n, B, 'int32');
         for k = 1:K
           if ((sum (g(:, k))) > 1)
-            BOOTSAM(g(:, k), :) = boot (find (g(:, k)), B, unbiased);
+            bootsam(g(:, k), :) = boot (find (g(:, k)), B, unbiased);
           else
-            BOOTSAM(g(:, k), :) = find (g(:, k)) * ones (1, B);
+            bootsam(g(:, k), :) = find (g(:, k)) * ones (1, B);
           end
         end
       else
-        % For more efficiency, if we don't need BOOTSAM, we can directly resample values of x
-        BOOTSAM = [];
+        % For more efficiency, if we don't need bootsam, we can directly resample values of x
+        bootsam = [];
         X = zeros (n, B);
         for k = 1:K
           if ((sum (g(:, k))) > 1)
@@ -537,19 +543,25 @@ function [stats, bootstat, BOOTSAM] = bootknife (x, nboot, bootfun, alpha, ...
       end
     else
       if (nvar > 1) || (nargout > 2)
-        % We can save some memory by making BOOTSAM an int32 datatype
-        BOOTSAM = zeros (n, B, 'int32');
-        BOOTSAM(:, :) = boot (n, B, unbiased);
+        % We can save some memory by making bootsam an int32 datatype
+        bootsam = zeros (n, B, 'int32');
+        bootsam(:, :) = boot (n, B, unbiased);
       else
-        % For more efficiency, if we don't need BOOTSAM, we can directly resample values of x
-        BOOTSAM = [];
+        % For more efficiency, if we don't need bootsam, we can directly resample values of x
+        bootsam = [];
         X = boot (x, B, unbiased);
       end
     end
+  else
+    if (size (bootsam, 1) ~= n)
+      error ('bootknife: BOOTSAM must have the same number of rows as X')
+    end
+    nboot(1) = size (bootsam, 2);
+    B = nboot(1);
   end
 
   % Evaluate bootfun each bootstrap resample
-  if (isempty (BOOTSAM))
+  if (isempty (bootsam))
     if (vectorized)
       % Vectorized evaluation of bootfun on the DATA resamples
       bootstat = bootfun (X);
@@ -570,35 +582,35 @@ function [stats, bootstat, BOOTSAM] = bootknife (x, nboot, bootfun, alpha, ...
     end
   else
     if (vectorized)
-      % DATA resampling (using BOOTSAM) and vectorized evaluation of bootfun on 
+      % DATA resampling (using bootsam) and vectorized evaluation of bootfun on 
       % the DATA resamples 
       if (nvar > 1)
         % Multivariate
         % Perform DATA sampling
-        X = cell2mat (cellfun (@(i) reshape (x(BOOTSAM, i), n, B), ...
+        X = cell2mat (cellfun (@(i) reshape (x(bootsam, i), n, B), ...
                       num2cell (1:nvar, 1), 'UniformOutput', false));
       else
         % Univariate
         % Perform DATA sampling
-        X = x(BOOTSAM);
+        X = x(bootsam);
       end
       % Function evaluation on bootknife samples
       bootstat = bootfun (X);
     else 
-      cellfunc = @(BOOTSAM) bootfun (x(BOOTSAM, :));
+      cellfunc = @(bootsam) bootfun (x(bootsam, :));
       if (ncpus > 1)
         % Evaluate bootfun on each bootstrap resample in PARALLEL
         if (ISOCTAVE)
           % OCTAVE
-          bootstat = parcellfun (ncpus, cellfunc, num2cell (BOOTSAM, 1), 'UniformOutput', false);
+          bootstat = parcellfun (ncpus, cellfunc, num2cell (bootsam, 1), 'UniformOutput', false);
         else
           % MATLAB
           bootstat = cell (1, B);
-          parfor b = 1:B; bootstat{b} = cellfunc (BOOTSAM(:, b)); end
+          parfor b = 1:B; bootstat{b} = cellfunc (bootsam(:, b)); end
         end
       else
         % Evaluate bootfun on each bootstrap resample in SERIAL
-        bootstat = cellfun (cellfunc, num2cell (BOOTSAM, 1), 'UniformOutput', false);
+        bootstat = cellfun (cellfunc, num2cell (bootsam, 1), 'UniformOutput', false);
       end
     end
   end
@@ -607,14 +619,14 @@ function [stats, bootstat, BOOTSAM] = bootknife (x, nboot, bootfun, alpha, ...
   end
   
   % Remove bootstrap statistics that contain NaN, along with their associated 
-  % DATA resamples in X or BOOTSAM
+  % DATA resamples in X or bootsam
   ridx = any (isnan (bootstat), 1);
   bootstat_all = bootstat;
   bootstat(:, ridx) = [];
-  if (isempty (BOOTSAM))
+  if (isempty (bootsam))
     X(:, ridx) = [];
   else
-    BOOTSAM(:, ridx) = [];
+    bootsam(:, ridx) = [];
   end
   if (isempty (bootstat))
     error ('bootknife: BOOTFUN returned NaN for every bootstrap resamples')
@@ -630,12 +642,12 @@ function [stats, bootstat, BOOTSAM] = bootknife (x, nboot, bootfun, alpha, ...
         % OCTAVE
         % Set unique random seed for each parallel thread
         pararrayfun (ncpus, @boot, 1, 1, false, 1:ncpus);
-        if (vectorized && isempty (BOOTSAM))
-          cellfunc = @(x) bootknife (x, C, bootfun, NaN, strata, 0, T0, ISOCTAVE, [], false);
+        if (vectorized && isempty (bootsam))
+          cellfunc = @(x) bootknife (x, C, bootfun, NaN, strata, 0, [], T0, ISOCTAVE, false);
           bootout = parcellfun (ncpus, cellfunc, num2cell (X, 1), 'UniformOutput', false);
         else
-          cellfunc = @(BOOTSAM) bootknife (x(BOOTSAM, :), C, bootfun, NaN, strata, 0, T0, ISOCTAVE, [], false);
-          bootout = parcellfun (ncpus, cellfunc, num2cell (BOOTSAM, 1), 'UniformOutput', false);
+          cellfunc = @(bootsam) bootknife (x(bootsam, :), C, bootfun, NaN, strata, 0, [], T0, ISOCTAVE, false);
+          bootout = parcellfun (ncpus, cellfunc, num2cell (bootsam, 1), 'UniformOutput', false);
         end
       else
         % MATLAB
@@ -644,22 +656,22 @@ function [stats, bootstat, BOOTSAM] = bootknife (x, nboot, bootfun, alpha, ...
         % Perform inner layer of resampling
         % Preallocate structure array
         bootout = cell (1, B);
-        if (vectorized && isempty (BOOTSAM))
-          cellfunc = @(x) bootknife (x, C, bootfun, NaN, strata, 0, T0, ISOCTAVE, [], false);
+        if (vectorized && isempty (bootsam))
+          cellfunc = @(x) bootknife (x, C, bootfun, NaN, strata, 0, [], T0, ISOCTAVE, false);
           parfor b = 1:B; bootout{b} = cellfunc (X(:, b)); end
         else
-          cellfunc = @(BOOTSAM) bootknife (x(BOOTSAM, :), C, bootfun, NaN, strata, 0, T0, ISOCTAVE, [], false);
-          parfor b = 1:B; bootout{b} = cellfunc (BOOTSAM(:, b)); end
+          cellfunc = @(bootsam) bootknife (x(bootsam, :), C, bootfun, NaN, strata, 0, [], T0, ISOCTAVE, false);
+          parfor b = 1:B; bootout{b} = cellfunc (bootsam(:, b)); end
         end
       end
     else
       % SERIAL execution of inner layer resampling for double bootstrap
-      if (vectorized && isempty (BOOTSAM))
-        cellfunc = @(x) bootknife (x, C, bootfun, NaN, strata, 0, T0, ISOCTAVE, [], false);
+      if (vectorized && isempty (bootsam))
+        cellfunc = @(x) bootknife (x, C, bootfun, NaN, strata, 0, [], T0, ISOCTAVE, false);
         bootout = cellfun (cellfunc, num2cell (X, 1), 'UniformOutput', false);
       else
-        cellfunc = @(BOOTSAM) bootknife (x(BOOTSAM, :), C, bootfun, NaN, strata, 0, T0, ISOCTAVE, [], false);
-        bootout = cellfun (cellfunc, num2cell (BOOTSAM, 1), 'UniformOutput', false);
+        cellfunc = @(bootsam) bootknife (x(bootsam, :), C, bootfun, NaN, strata, 0, [], T0, ISOCTAVE, false);
+        bootout = cellfun (cellfunc, num2cell (bootsam, 1), 'UniformOutput', false);
       end
     end
     % Double bootstrap bias estimation
@@ -807,7 +819,7 @@ function [stats, bootstat, BOOTSAM] = bootknife (x, nboot, bootfun, alpha, ...
   stats.CI_lower = ci(:, 1);
   stats.CI_upper = ci(:, 2);
   % Use quick interpolation to find the proportion (Pr) of bootstat <= REF
-  if ((nargin > 6) && ~ isempty (REF))
+  if ((nargin > 7) && ~ isempty (REF))
     I = bsxfun (@le, bootstat, REF);
     pr = sum (I, 2);
     t = cell2mat (arrayfun (@(j) ...
@@ -828,7 +840,7 @@ function [stats, bootstat, BOOTSAM] = bootknife (x, nboot, bootfun, alpha, ...
   if (nargout == 0) 
     print_output (stats, nboot, alpha, l, m, bootfun_str, strata);
   else
-    if (isempty (BOOTSAM))
+    if (isempty (bootsam))
       [warnmsg, warnID] = lastwarn;
       if (ismember (warnID, {'bootknife:biasfail','bootknife:jackfail'}))
         warning ('bootknife:lastwarn', warnmsg);

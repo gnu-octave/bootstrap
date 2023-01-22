@@ -10,11 +10,11 @@ warning ('off', 'bootknife:parallel')
 %  warning ('off', 'Octave:nearly-singular-matrix')
 %  warning ('off', 'Octave:broadcast')
 %else
-  warning ('off', 'MATLAB:rankDeficientMatrix')
-  warning ('off', 'MATLAB:divideByZero')
+%  warning ('off', 'MATLAB:rankDeficientMatrix')
+%  warning ('off', 'MATLAB:divideByZero')
 %end
 
-%try 
+try 
   % boot
   boot (3, 20);
   boot (3, 20, false, 1);
@@ -173,7 +173,7 @@ warning ('off', 'bootknife:parallel')
   func = @(M) subsref (M(:,2:end) \ M(:,1), struct ('type', '()', 'subs', {{2}}));
   p = bootnhst ([y, X], g, 'bootfun', func, 'DisplayOpt', false);
 
-%catch exception
+catch exception
 
   % Turn warnings back on 
   warning ('on', 'bootknife:parallel')
@@ -181,13 +181,13 @@ warning ('off', 'bootknife:parallel')
   %  warning ('on', 'Octave:divide-by-zero')
   %  warning ('on', 'Octave:nearly-singular-matrix')
   %else
-    warning ('on', 'MATLAB:rankDeficientMatrix')
-    warning ('on', 'MATLAB:divideByZero')
+  %  warning ('on', 'MATLAB:rankDeficientMatrix')
+  %  warning ('on', 'MATLAB:divideByZero')
   %end
   %rethrow (exception)
 
 
-%end
+end
 
 % Turn warnings back on 
 warning ('on', 'bootknife:parallel');
