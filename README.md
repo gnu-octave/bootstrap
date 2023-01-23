@@ -57,6 +57,6 @@ At the Octave/MATLAB command prompt, type `help function-name` for more informat
 
 ## Development roadmap
  
-* We intend on including the following features in version 5.2.0: 1) an option in `cor` function to select Spearman's rank or Pearson's correlation coefficient; and 2) an additional function (in the 'params') folder for fitting linear models. The function will be called `lm` and it will have similar usage to `anovan` except that it will only return regression coefficients (i.e. won't return an ANOVA table).  
+* We intend on including the following features in version 5.2.0: 1) an option in `cor` function to select Spearman's rank or Pearson's correlation coefficient; and 2) an additional function folder for fitting linear models and returning bootstrap confidence intervals for regression coefficients and estimated marginal means. The function have similar usage to `anovan`.  
 * Make `bootcoeff` and `bootemm` compatible with Matlab.  
 
