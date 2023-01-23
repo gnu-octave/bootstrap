@@ -87,12 +87,9 @@
 %  coefficient, use the provided @cor function. Smooth functions of the DATA
 %  are preferable, (e.g. use smoothmedian function instead of the ordinary
 %  median). The default value(s) of BOOTFUN is/are the (column) mean(s).
-%    When BOOTFUN is @mean or 'mean', residual narrowness bias of central
-%  coverage is almost eliminated by using Student's t-distribution to expand
-%  the probabilities of percentiles [13].
-%    Note that if single bootstrap is requested and BOOTFUN cannot be executed
-%  during leave-one-out jackknife, the acceleration constant will be set to 0
-%  and intervals will be bias-corrected only.
+%    When using single bootstrap and BOOTFUN is @mean or 'mean', the residual
+%  narrowness bias of central coverage is almost eliminated by using Student's
+%  t-distribution to expand the probabilities of the percentiles [13].
 %    Recommended BOOFUN for some commonly used statistics:
 %      - Mean: @mean
 %      - Standard deviation: {@std,1}
@@ -123,6 +120,9 @@
 %
 %  - BIAS-CORRECTED AND ACCELERATED (BCa): ALPHA must be a scalar value and
 %    NBOOT must be a scalar value (or the second element in NBOOT must be zero).
+%    If BOOTFUN cannot be executed during leave-one-out jackknife, the
+%    acceleration constant will be set to 0 and intervals will be bias-
+%    corrected only.
 %
 %  - CALIBRATED PERCENTILE (equal-tailed): ALPHA must be a scalar value and
 %    NBOOT must be a vector of two positive, non-zero integers (for double
