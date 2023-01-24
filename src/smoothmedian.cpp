@@ -68,7 +68,7 @@
 #include "mex.h"
 #include <vector>
 #include <cmath>         // for pow function
-#include <algorithm>     // for sort function (using IntroSort algorithm)
+#include <algorithm>     // for sort function
 using namespace std;
 
 void mexFunction (int nlhs, mxArray* plhs[],
@@ -164,7 +164,7 @@ void mexFunction (int nlhs, mxArray* plhs[],
 
         // Omit NaN values and calculate the length of the resulting vector
         xvec.erase (remove_if(xvec.begin(), xvec.end(), mxIsNaN), xvec.end());
-        l =  xvec.size ();
+        l = xvec.size ();
 
         // Sort the values of the data vector in ascending order
         sort (xvec.begin(), xvec.end());
