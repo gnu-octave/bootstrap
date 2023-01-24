@@ -68,7 +68,7 @@
 #include "mex.h"
 #include <vector>
 #include <cmath>         // for pow function
-#include <algorithm>     // for sort function
+#include <algorithm>     // for sort function (using IntroSort algorithm)
 using namespace std;
 
 void mexFunction (int nlhs, mxArray* plhs[],
@@ -157,13 +157,13 @@ void mexFunction (int nlhs, mxArray* plhs[],
 
         // Copy the next row/column of the data to temporary vector
         if ( dim == 1 ) {
-            for (int j = 0; j < m ; j++) xvec.push_back ( x[k * m + j] );
+            for ( int j = 0; j < m ; j++ ) xvec.push_back ( x[k * m + j] );
         } else if ( dim == 2 ) { 
             for ( int j = 0; j < m ; j++ ) {int i = j * n; xvec.push_back ( x[i + k] );};
         }
 
         // Omit NaN values and calculate the length of the resulting vector
-        xvec.erase (remove_if(xvec.begin(), xvec.end(), mxIsNaN), xvec.end());
+        xvec.erase (remove_if (xvec.begin(), xvec.end(), mxIsNaN), xvec.end());
         l = xvec.size ();
 
         // Sort the values of the data vector in ascending order
@@ -173,7 +173,7 @@ void mexFunction (int nlhs, mxArray* plhs[],
         mid = 0.5 * l;
         M[k] = xvec[int(mid)];           // Median when l is odd
         if ( mid == int(mid) ) {      
-            M[k] += xvec [int(mid) - 1];
+            M[k] += xvec[int(mid) - 1];
             M[k] *= 0.5;                 // Median when l is even
         }
 
@@ -185,7 +185,7 @@ void mexFunction (int nlhs, mxArray* plhs[],
         range = b - a;                   // Range
         
         // Set stopping criteria (if Tol is not already specified)
-        if (nrhs < 3 || mxIsEmpty (prhs[2])) {
+        if ( nrhs < 3 || mxIsEmpty (prhs[2]) ) {
             Tol = range * 1e-4; 
         }  
 
@@ -194,7 +194,7 @@ void mexFunction (int nlhs, mxArray* plhs[],
             
             // Break from iterations if the distance between the bracket bounds 
             // < Tol since the smoothed median will be equal to the median 
-            if (range <= Tol) {
+            if ( range <= Tol ) {
                 break;
             }   
 
