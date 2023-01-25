@@ -33,10 +33,10 @@
 % corresponding index is represented in bootsam. Therefore, the sum of WEIGHTS
 % should equal N * NBOOT. 
 %
-% Note that the mex function compiled from this source code is not thread safe.
-% Below is an example of a line of code one can run in Octave/Matlab before
-% attempting parallel operation of boot.mex in order to ensure that the initial
-% random seeds of each thread are unique:
+% Note that the mex function compiled from the source code boot.cpp is not
+% thread safe. Below is an example of a line of code one can run in Octave/
+% Matlab before attempting parallel operation of boot.mex in order to ensure
+% that the initial random seeds of each thread are unique:
 %
 % In Octave:
 % >> pararrayfun(nproc, @boot, 1, 1, false, 1:nproc)

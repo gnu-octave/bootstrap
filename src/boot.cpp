@@ -235,7 +235,7 @@ void mexFunction (int nlhs, mxArray* plhs[],
                     d += c[j + 1];
                 }
             }
-            if (LOO == true) {
+            if ( LOO == true ) {
                 c[r] = m;
                 m = 0;
                 LOO = false;

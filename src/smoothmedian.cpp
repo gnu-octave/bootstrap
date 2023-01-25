@@ -65,11 +65,12 @@
 // Author: Andrew Charles Penn (2022)
 
 
-#include "mex.h"
-#include <vector>
+#include "mex.h"         // for mex functions
+#include <vector>        // for vectpr function
 #include <cmath>         // for pow function
 #include <algorithm>     // for sort function (using IntroSort algorithm)
 using namespace std;
+
 
 void mexFunction (int nlhs, mxArray* plhs[],
                   int nrhs, const mxArray* prhs[]) 
@@ -166,23 +167,28 @@ void mexFunction (int nlhs, mxArray* plhs[],
         xvec.erase (remove_if (xvec.begin(), xvec.end(), mxIsNaN), xvec.end());
         l = xvec.size ();
 
-        // Sort the values of the data vector in ascending order
-        sort (xvec.begin(), xvec.end());
-
         // Set the (ordinary) median as the starting value
         mid = 0.5 * l;
-        M[k] = xvec[int(mid)];           // Median when l is odd
-        if ( mid == int(mid) ) {      
-            M[k] += xvec[int(mid) - 1];
-            M[k] *= 0.5;                 // Median when l is even
+        nth_element (xvec.begin(), xvec.begin() + int (mid), xvec.end());
+        // After running nth_element, none of the elements in xvec preceding the
+        // nth are greater than it, and none of the elements after it are less.
+        if ( mid == int (mid) ) {
+            // Median when l is even
+            M[k] = xvec[mid];
+            M[k] += *max_element (xvec.begin(), xvec.begin() + mid);
+            M[k] *= 0.5;
+        } else {
+            // Median when l is odd
+            mid = int (mid);
+            M[k] = xvec[mid];
         }
 
-        // Set initial bracket bounds
-        a = xvec[0];                     // Minimum
-        b = xvec[l - 1];                 // Maximimum
+        // Set initial bracket bounds to the minimum and maximum data values
+        a = *min_element (xvec.begin(), xvec.begin() + mid);
+        b = *max_element (xvec.begin() + mid, xvec.end());
 
         // Calculate range
-        range = b - a;                   // Range
+        range = b - a;
         
         // Set stopping criteria (if Tol is not already specified)
         if ( nrhs < 3 || mxIsEmpty (prhs[2]) ) {
