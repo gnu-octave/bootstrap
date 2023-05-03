@@ -307,3 +307,13 @@ function print_output (stats, nboot, alpha, l, p)
 end
 
 %--------------------------------------------------------------------------
+
+%!demo
+%!
+%! ## Input bivariate dataset
+%! heights = [183, 192, 182, 183, 177, 185, 188, 188, 182, 185].';
+%!
+%! ## 95% bootstrap confidence interval for the mean 
+%! bootbayes(heights);
+%!
+%! ## Please be patient, the calculations will be completed soon...
