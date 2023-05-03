@@ -1,74 +1,55 @@
-%  Function File: bootcoeff
+% -- Function File: bootcoeff (STATS)
+% -- Function File: bootcoeff (STATS, NBOOT)
+% -- Function File: bootcoeff (STATS, NBOOT, ALPHA)
+% -- Function File: bootcoeff (STATS, NBOOT, ALPHA)
+% -- Function File: bootcoeff (STATS, NBOOT, ALPHA, SEED)
+% -- Function File: CI = bootcoeff (STATS, ...)
+% -- Function File: [CI, BOOTSTAT] = bootcoeff (STATS, ...)
 %
-%  COEFFS = bootcoeff (STATS)
-%  COEFFS = bootcoeff (STATS, NBOOT)
-%  COEFFS = bootcoeff (STATS, NBOOT, ALPHA)
-%  COEFFS = bootcoeff (STATS, NBOOT, ALPHA, NPROC)
-%  COEFFS = bootcoeff (STATS, NBOOT, ALPHA, NPROC, SEED)
-%  bootcoeff (STATS)
-%  bootcoeff (STATS, ...)
+%     'bootcoeff (STATS)' uses the STATS structure output from fitlm or anovan
+%     functions (from the v1.5+ of the Statistics package in OCTAVE) and
+%     Bayesian bootstrap to compute and return the following statistics:
+%        • original: regression coefficients from the original data
+%        • bias: bootstrap estimate of the bias of the coefficients
+%        • std_error: bootstrap estimate of the standard error
+%        • CI_lower: lower bound of the 95% bootstrap confidence interval
+%        • CI_upper: upper bound of the 95% bootstrap confidence interval
+%          The confidence intervals, or credible intervals in the context of the
+%          Bayesian statistical framework, are equal-tailed percentile intervals.
 %
-%  Non-parametric bootstrap of the regression coefficients from a linear model.
-%  bootcoeff accepts as input the STATS structure from fitlm or anovan functions
-%  (from the v1.5+ of the Statistics package in OCTAVE) and returns a structure,
-%  COEFFS, which contains the following fields:
-%    original: contains the regression coefficients from the original data
-%    bias: contains the bootstrap estimate of bias
-%    std_error: contains the bootstrap standard error
-%    CI_lower: contains the lower bound of the 95% bootstrap confidence interval
-%    CI_upper: contains the upper bound of the 95% bootstrap confidence interval
-%  The method uses bootknife resampling [1], which involves creating leave-one-
-%  out jackknife samples of size n - 1 and then drawing samples of size n with
-%  replacement from the jackknife samples. The resampling is also balanced in
-%  order to reduce bias and Monte Carlo error [2,3]. By default, the confidence
-%  intervals constructed are bias-corrected and accelerated intervals [4,5].
-%  The list of coefficients and their bootstrap statistics correspond to the
-%  names in STATS.coeffnames, which are defined by the contrast coding in
-%  STATS.contrasts. The rows of STATS.contrasts correspond to the names in
-%  STATS.grpnames. If no output is requested, the results are printed to stdout.
+%     'bootcoeff (STATS, NBOOT)' specifies the number of bootstrap resamples,
+%     where NBOOT must be a positive integer. If empty, tHe default value of
+%     NBOOT is the scalar: 2000.
 %
-%  COEFFS = bootcoeff (STATS, NBOOT) also specifies the number of bootstrap 
-%  samples. NBOOT can be a scalar value (for single bootstrap), or vector of
-%  upto two positive integers (for double bootstrap). By default, NBOOT is
-%  [2000,0]. See documentation for the bootknife function for more information.
+%     'bootcoeff (STATS, NBOOT, ALPHA)', where ALPHA is numeric and sets the
+%     the lower and upper bounds of the confidence interval(s). The value(s) of
+%     ALPHA must be between 0 and 1. ALPHA can either be:
+%        • scalar: To set the (nominal) central coverage of equal-tailed
+%                  percentile confidence intervals to 100*(1-ALPHA)%.
+%        • vector: A pair of probabilities defining the (nominal) lower and
+%                  upper percentiles of the confidence interval(s) as
+%                  100*(ALPHA(1))% and 100*(ALPHA(2))% respectively. 
+%        Confidence intervals are not calculated when the value(s) of ALPHA
+%        is/are NaN. The default value of  ALPHA is the vector: [.025, .975], 
+%        for a 95% confidence interval.
 %
-%  COEFFS = bootcoeff (STATS, NBOOT, ALPHA) where ALPHA is numeric and
-%  sets the lower and upper bounds of the confidence interval(s). The value(s)
-%  of ALPHA must be between 0 and 1. ALPHA can either be a scalar value to set
-%  the (nominal) central coverage, or a vector of 2 numeric values corresponding
-%  to a pair of probabilities to set the (nominal) lower and upper percentiles.
-%  The value(s) of ALPHA must be between 0 and 1. The method for constructing
-%  confidence intervals is determined by the combined settings of ALPHA and
-%  NBOOT. See documentation for the bootknife function for more information. 
-%  Confidence intervals are not calculated when the value(s) of ALPHA is/are NaN. 
+%     'bootcoeff (STATS, NBOOT, ALPHA, SEED)' initialises the Mersenne
+%     Twister random number generator using an integer SEED value so that
+%     bootcoeff results are reproducible.
 %
-%  COEFFS = bootcoeff (STATS, NBOOT, ALPHA, NPROC) also sets the number of
-%  parallel processes to use to accelerate computations on multicore machines.
-%  This feature requires the Parallel package (in Octave). See documentation
-%  for the bootknife function for more information.
+%     'CI = bootcoeff (STATS, ...) returns the confidence intervals of the
+%     coefficients for the linear model.
 %
-%  COEFFS = bootcoeff (STATS, NBOOT, ALPHA, NPROC, SEED) also sets the random
-%  SEED for the random number generator used for the resampling. This feature
-%  can be used to make the results of the bootstrap reproducible.
+%     '[CI, BOOTSTAT] = bootcoeff (STATS, ...) also returns the bootstrap
+%     statistics for the coefficients.
 %
-%  Requirements: The function file boot.m (or better boot.mex) and bootknife
-%  also distributed in the statistics-bootstrap package. bootcoeff is only
-%  supported in GNU Octave and requires the Statistics package version 1.5+.
+%  Requirements: bootcoeff is only supported in GNU Octave and requires the
+%  Statistics package version 1.5+.
 %
 %  Bibliography:
-%  [1] Hesterberg T.C. (2004) Unbiasing the Bootstrap—Bootknife Sampling 
-%        vs. Smoothing; Proceedings of the Section on Statistics & the 
-%        Environment. Alexandria, VA: American Statistical Association.
-%  [2] Davison et al. (1986) Efficient Bootstrap Simulation.
-%        Biometrika, 73: 555-66
-%  [3] Gleason, J.R. (1988) Algorithms for Balanced Bootstrap Simulations. 
-%        The American Statistician. Vol. 42, No. 4 pp. 263-266
-%  [4] Efron (1987) Better Bootstrap Confidence Intervals. JASA, 
-%        82(397): 171-185 
-%  [5] Efron, and Tibshirani (1993) An Introduction to the
-%        Bootstrap. New York, NY: Chapman & Hall
+%  [1] Rubin (1981) The Bayesian Bootstrap. Ann. Statist. 9(1):130-134
 %
-%  bootcoeff (version 2023.01.12)
+%  bootcoeff (version 2023.05.02)
 %  Author: Andrew Charles Penn
 %  https://www.researchgate.net/profile/Andrew_Penn/
 %
@@ -87,7 +68,7 @@
 %  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-function coeffs = bootcoeff (STATS, nboot, alpha, ncpus, seed)
+function [coeffs, bootstat] = bootcoeff (STATS, nboot, alpha, seed)
 
   % Check input aruments
   if (nargin < 1)
@@ -97,13 +78,14 @@ function coeffs = bootcoeff (STATS, nboot, alpha, ncpus, seed)
     nboot = 2000;
   end
   if (nargin < 3)
-    alpha = 0.05;
+    alpha = [0.025, 0.975];
   end
-  if (nargin < 4)
-    ncpus = 0;
-  end
-  if (nargin > 4)
-    boot (1, 1, false, seed);
+  if (nargin > 3)
+    if (ISOCTAVE)
+      rande ('seed', seed);
+    else
+      rng ('default');
+    end
   end
 
   % Error checking
@@ -121,25 +103,18 @@ function coeffs = bootcoeff (STATS, nboot, alpha, ncpus, seed)
   X = full (STATS.X);
   b = STATS.coeffs(:,1);
   fitted = X * b;
-  W = full (STATS.W);
-  w = diag (W);
-  se = w.^(-0.5);
-  resid = STATS.resid;   % weighted residuals
-  y = fitted + resid .* se;
+  resid = STATS.resid;
+  y = fitted + resid;
 
-  % Define bootfun and data for case resampling of raw data
-  % Robust to violations of homoskedasticity and normality assumptions
-  bootfun = @(X, y, w) pinv (diag (w) * X) * (w .* y);
-  data = {X, y, w};
-
-  % Perform bootstrap
-  warning ('off', 'bootknife:lastwarn')
-  if (nargout > 0)
-    coeffs = bootknife (data, nboot, bootfun, alpha, [], ncpus);
-  else
-    bootknife (data, nboot, bootfun, alpha, [], ncpus);
+  % Perform Bayesian bootstrap
+  switch (nargout)
+    case 0
+      bootbayes (y, X, nboot, alpha);
+    case 1
+      coeffs = bootbayes (y, X, nboot, alpha);
+    otherwise
+      [coeffs, bootstat] = bootbayes (y, X, nboot, alpha);
   end
-  warning ('on', 'bootknife:lastwarn')
 
 end
 

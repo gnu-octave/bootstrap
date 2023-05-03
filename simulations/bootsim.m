@@ -7,8 +7,8 @@ state = warning ('query', 'all');
 warning ('off', 'all');
 
 % Set significance level
-%alpha = .05;          % 95% confidence interval
-alpha = [.025,.975];  % 95% confidence interval
+alpha = .05;          % 95% confidence interval
+%alpha = [.025,.975];  % 95% confidence interval
 
 %--------------------------------------------------------------
 % Uncomment one of the following example simulation conditions
@@ -36,7 +36,7 @@ bootfun = @mean; nvar = 1; rnd = @(n) random ('norm', 0, 1, [n, 1]); theta = 0;
 %--------------------------------------------------------------
 
 % Define sample size
-n = 5;
+n = 10;
 
 % Define number of simulations
 sim = 1000;
@@ -48,7 +48,7 @@ above = 0;
 below = 0;
 
 % Bootstrap resampling
-nboot = [2000,0];
+nboot = [20000,200];
 type = '';
 
 % Print settings
@@ -86,11 +86,12 @@ for i=1:sim
   
   % Bootstrap confidence interval
   %ci = bootci (nboot, {bootfun,x}, 'alpha', alpha, 'type', type, 'Options', paropt);
-  if (nvar > 1)
-    S = bootknife ({x, y}, nboot, bootfun, alpha, [], ncpus); ci = [S.CI_lower; S.CI_upper];
-  else
-    S = bootknife (x, nboot, bootfun, alpha, [], ncpus); ci = [S.CI_lower; S.CI_upper];
-  end
+  ci = bootbayes (x);
+  %if (nvar > 1)
+  %  S = bootknife ({x, y}, nboot, bootfun, alpha, [], ncpus); ci = [S.CI_lower; S.CI_upper];
+  %else
+  %  S = bootknife (x, nboot, bootfun, alpha, [], ncpus); ci = [S.CI_lower; S.CI_upper];
+  %end
   
 
   % Coverage counter

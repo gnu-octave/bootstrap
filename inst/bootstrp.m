@@ -1,46 +1,43 @@
-%  Function File: bootstrp
+% -- Function File: BOOTSTAT = bootstrp (NBOOT, BOOTFUN, D)
+% -- Function File: BOOTSTAT = bootstrp (NBOOT, BOOTFUN, D1, ..., DN)
+% -- Function File: BOOTSTAT = bootstrp (..., 'seed', SEED)
+% -- Function File: BOOTSTAT = bootstrp (..., 'Options', PAROPT)
+% -- Function File: [BOOTSTAT, BOOTSAM] = bootstrp (...) 
 %
-%  Bootstrap sampling
+%     BOOTSTAT = bootstrp (NBOOT, BOOTFUN, D) draws NBOOT bootstrap resamples
+%     from the data D and returns the statistic computed by BOOTFUN in BOOTSTAT
+%     [1]. bootstrp resamples from the rows of a data sample D (column vector
+%     or a matrix). BOOTFUN is a function handle (e.g. specified with @), or a
+%     string indicating the function name. The third input argument is data
+%     (column vector or a matrix), that is used to create inputs for BOOTFUN.
+%     The resampling method used throughout is balanced bootknife resampling
+%     [2-4].
 %
-%  BOOTSTAT = bootstrp (NBOOT, BOOTFUN, D)
-%  BOOTSTAT = bootstrp (NBOOT, BOOTFUN, D1, ..., DN)
-%  BOOTSTAT = bootstrp (..., 'seed', SEED)
-%  BOOTSTAT = bootstrp (..., 'Options', PAROPT)
-%  [BOOTSTAT, BOOTSAM] = bootstrp (...) 
+%     BOOTSTAT = bootstrp (NBOOT, BOOTFUN, D1,...,DN) is as above except that 
+%     the third and subsequent numeric input arguments are data vectors that
+%     are used to create inputs for BOOTFUN.
 %
-%  BOOTSTAT = bootstrp (NBOOT, BOOTFUN, D) draws NBOOT bootstrap resamples from
-%  the data D and returns the statistic computed by BOOTFUN in BOOTSTAT [1]. 
-%  bootstrp resamples from the rows of a data sample D (column vector or a matrix). 
-%  BOOTFUN is a function handle (e.g. specified with @), or a string indicating the
-%  function name. The third input argument is data (column vector or a matrix),
-%  that is used to create inputs for BOOTFUN. The resampling method used 
-%  throughout is balanced bootknife resampling [2-4].
+%     BOOTSTAT = bootstrp (..., 'seed', SEED) initialises the Mersenne Twister
+%     random number generator using an integer SEED value so that bootci results
+%     are reproducible.
 %
-%  BOOTSTAT = bootstrp (NBOOT, BOOTFUN, D1,...,DN) is as above except that 
-%  the third and subsequent numeric input arguments are data vectors that
-%  are used to create inputs for BOOTFUN.
+%     BOOTSTAT = bootstrp (..., 'Options', PAROPT) specifies options that govern
+%     if and how to perform bootstrap iterations using multiple processors (if
+%     the Parallel Computing Toolbox or Octave Parallel package is available).
+%     This argument is a structure with the following recognised fields:
+%        • 'UseParallel':  If true, use parallel processes to accelerate
+%                          bootstrap computations on multicore machines,
+%                          specifically non-vectorized function evaluations,
+%                          double bootstrap resampling and jackknife function
+%                          evaluations. Default is false for serial computation.
+%                          In MATLAB, the default is true if a parallel pool
+%                          has already been started. 
+%        • 'nproc':        nproc sets the number of parallel processes
 %
-%  BOOTSTAT = bootstrp (..., 'seed', SEED) initialises the Mersenne Twister
-%  random number generator using an integer SEED value so that bootci results
-%  are reproducible.
-%
-%  BOOTSTAT = bootstrp (..., 'Options', PAROPT) specifies options that govern if 
-%  and how to perform bootstrap iterations using multiple processors (if the 
-%  Parallel Computing Toolbox or Octave Parallel package is available). This 
-%  argument is a structure with the following recognised fields:
-%
-%   'UseParallel' - If true, use parallel processes to accelerate bootstrap
-%                   computations on multicore machines, specifically
-%                   non-vectorized function evaluations, double bootstrap
-%                   resampling and jackknife function evaluations. Default is
-%                   false for serial computation. In MATLAB, the default is
-%                   true if a parallel pool has already been started.
-%   'nproc'       - nproc sets the number of parallel processes
-%
-%  [BOOTSTAT, BOOTSAM] = bootstrp (...) also returns BOOTSAM, a matrix of indices
-%  from the bootstrap. Each column in BOOTSAM corresponds to one bootstrap sample
-%  and contains the row indices of the values drawn from the nonscalar data argument 
-%  to create that sample.
+%     [BOOTSTAT, BOOTSAM] = bootstrp (...) also returns BOOTSAM, a matrix of
+%     indices from the bootstrap. Each column in BOOTSAM corresponds to one
+%     bootstrap sample and contains the row indices of the values drawn from
+%     the nonscalar data argument to create that sample.
 %
 %  Bibliography:
 %  [1] Efron, and Tibshirani (1993) An Introduction to the
@@ -53,7 +50,7 @@
 %        vs. Smoothing; Proceedings of the Section on Statistics & the 
 %        Environment. Alexandria, VA: American Statistical Association.
 %
-%  bootstrp (version 2022.10.08)
+%  bootstrp (version 2023.01.04)
 %  Author: Andrew Charles Penn
 %  https://www.researchgate.net/profile/Andrew_Penn/
 %

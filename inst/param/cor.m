@@ -1,24 +1,23 @@
-%  Function file: cor
+% -- Function File: RHO = cor (X, Y)
 %
-%  RHO = cor (X, Y)
-%
-%  If X and Y are column vectors, a scalar value is returned represnting the 
-%  correlation coefficient RHO. If X and Y are matrices, then RHO will be a
-%  row vector corresponding to column-wise correlation coefficients. Hence this
-%  function is vectorised for rapid computation of the correlation coefficient
-%  in bootstrap resamples. Note that unlike the native @corr function, the
-%  correlation coefficients returned here are representative of the finite
-%  data sample and are not unbiased estimates of the population parameter.
+%     'RHO = cor (X, Y)' computes Pearson's correlation coefficient (RHO)
+%     between the column vectors X and Y. If X and Y are matrices, then
+%     RHO will be a row vector corresponding to column-wise correlation
+%     coefficients. Hence this function is vectorised for rapid computation
+%     of the correlation coefficient in bootstrap resamples. Note that
+%     unlike the native @corr function, the correlation coefficients
+%     returned here are representative of the finite data sample and are
+%     not unbiased estimates of the population parameter.
 % 
-%  cor (X, Y) = ...
+%     cor (X, Y) = ...
 %
-%   mean ( (X - mean (X)) .* (Y - mean (Y)) ) ./ (std (X, 1) .* std (Y, 1))
+%     mean ( (X - mean (X)) .* (Y - mean (Y)) ) ./ (std (X, 1) .* std (Y, 1))
 %
-%  The syntax in this function code is known to be compatible with
-%  recent versions of Octave (v3.2.4 on Debian 6 Linux 2.6.32) and
-%  Matlab (v6.5.0 and v7.4.0 on Windows XP).
+%     The syntax in this function code is known to be compatible with
+%     recent versions of Octave (v3.2.4 on Debian 6 Linux 2.6.32) and
+%     Matlab (v6.5.0 and v7.4.0 on Windows XP).
 %
-%  cor (version 2023.01.01)
+%  cor (version 2023.05.02)
 %  Author: Andrew Charles Penn
 %  https://www.researchgate.net/profile/Andrew_Penn/
 %
@@ -35,7 +34,6 @@
 %
 %  You should have received a copy of the GNU General Public License
 %  along with this program.  If not, see <http://www.gnu.org/licenses/>.
-
 
 function RHO = cor (X, Y)
 

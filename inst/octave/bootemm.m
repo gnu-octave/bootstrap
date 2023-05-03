@@ -1,80 +1,63 @@
-%  Function File: bootemm
+% -- Function File: bootemm (STATS, DIM)
+% -- Function File: bootemm (STATS, DIM, NBOOT)
+% -- Function File: bootemm (STATS, DIM, NBOOT, ALPHA)
+% -- Function File: bootemm (STATS, DIM, NBOOT, ALPHA)
+% -- Function File: bootemm (STATS, DIM, NBOOT, ALPHA, SEED)
+% -- Function File: CI = bootemm (STATS, DIM, ...)
+% -- Function File: [CI, BOOTSTAT] = bootemm (STATS, DIM, ...)
 %
-%  EMMEANS = bootemm (STATS, DIM)
-%  EMMEANS = bootemm (STATS, DIM, NBOOT)
-%  EMMEANS = bootemm (STATS, DIM, NBOOT, ALPHA)
-%  EMMEANS = bootemm (STATS, DIM, NBOOT, ALPHA, NPROC)
-%  EMMEANS = bootemm (STATS, DIM, NBOOT, ALPHA, NPROC, SEED)
-%  bootemm (STATS, DIM)
-%  bootemm (STATS, DIM, ...)
+%     'bootemm (STATS, DIM)' uses the STATS structure output from fitlm or
+%     anovan functions (from the v1.5+ of the Statistics package in OCTAVE)
+%     and Bayesian bootstrap to compute and return the following statistics
+%     along the dimension DIM:
+%        • original: estimated marginal means (EMMs) from the original data
+%        • bias: bootstrap estimate of the bias of the EMMs
+%        • std_error: bootstrap estimate of the standard error of the EMMs
+%        • CI_lower: lower bound of the 95% bootstrap confidence interval
+%        • CI_upper: upper bound of the 95% bootstrap confidence interval
+%          The confidence intervals, or credible intervals in the context of the
+%          Bayesian statistical framework, are equal-tailed percentile intervals.
 %
-%  Non-parametric bootstrap of the estimated marginal means from a linear model.
-%  bootemm accepts as input the STATS structure from fitlm or anovan functions
-%  (from the v1.5+ of the Statistics package in OCTAVE) and returns a structure,
-%  EMMEANS, which contains the following fields:
-%    original: contains the estimated marginal means from the original model
-%    bias: contains the bootstrap estimate of bias
-%    std_error: contains the bootstrap standard error
-%    CI_lower: contains the lower bound of the 95% bootstrap confidence interval
-%    CI_upper: contains the upper bound of the 95% bootstrap confidence interval
-%  The method uses bootknife resampling [1], which involves creating leave-one-
-%  out jackknife samples of size n - 1 from the n residuals and then drawing
-%  samples of size n with replacement from the jackknife samples. The resampling
-%  of residuals is also balanced in order to reduce bias and Monte Carlo error
-%  [2,3]. By default, the confidence intervals constructed are bias-corrected
-%  percentile intervals [4]. The list of means and their bootstrap statistics
-%  correspond to the names STATS.grpnames. If no output is requested, the
-%  results are printed to stdout.
+%     'bootemm (STATS, DIM, NBOOT)' specifies the number of bootstrap resamples,
+%     where NBOOT must be a positive integer. If empty, tHe default value of
+%     NBOOT is the scalar: 2000.
 %
-%  EMMEANS = bootemm (STATS, NBOOT) also specifies the number of bootstrap 
-%  samples. NBOOT can be a scalar value (for single bootstrap), or vector of
-%  upto two positive integers (for double bootstrap). By default, NBOOT is
-%  [2000,0]. See documentation for the bootknife function for more information.
+%     'bootemm (STATS, DIM, NBOOT, ALPHA)', where ALPHA is numeric and sets the
+%     the lower and upper bounds of the confidence interval(s). The value(s) of
+%     ALPHA must be between 0 and 1. ALPHA can either be:
+%        • scalar: To set the (nominal) central coverage of equal-tailed
+%                  percentile confidence intervals to 100*(1-ALPHA)%.
+%        • vector: A pair of probabilities defining the (nominal) lower and
+%                  upper percentiles of the confidence interval(s) as
+%                  100*(ALPHA(1))% and 100*(ALPHA(2))% respectively. 
+%        Confidence intervals are not calculated when the value(s) of ALPHA
+%        is/are NaN. The default value of  ALPHA is the vector: [.025, .975], 
+%        for a 95% confidence interval.
 %
-%  EMMEANS = bootemm (STATS, NBOOT, ALPHA) where ALPHA is numeric and
-%  sets the lower and upper bounds of the confidence interval(s). The value(s)
-%  of ALPHA must be between 0 and 1. ALPHA can either be a scalar value to set
-%  the (nominal) central coverage, or a vector of 2 numeric values corresponding
-%  to a pair of probabilities to set the (nominal) lower and upper percentiles.
-%  The value(s) of ALPHA must be between 0 and 1. The method for constructing
-%  confidence intervals is determined by the combined settings of ALPHA and
-%  NBOOT. See documentation for the bootknife function for more information. 
-%  Confidence intervals are not calculated when the value(s) of ALPHA is/are NaN. 
+%     'bootemm (STATS, DIM, NBOOT, ALPHA, SEED)', initialises the Mersenne
+%     Twister random number generator using an integer SEED value so that
+%     bootemm results are reproducible.
 %
-%  EMMEANS = bootemm (STATS, NBOOT, ALPHA, NPROC) also sets the number of
-%  parallel processes to use to accelerate computations on multicore machines.
-%  This feature requires the Parallel package (in Octave). See documentation
-%  for the bootknife function for more information.
+%     'CI = bootemm (STATS, DIM, ...) returns the confidence intervals of the
+%     estimated marginal means for the linear model.
 %
-%  EMMEANS = bootemm (STATS, NBOOT, ALPHA, NPROC, SEED) also sets the random
-%  SEED for the random number generator used for the resampling. This feature
-%  can be used to make the results of the bootstrap reproducible.
+%     '[CI, BOOTSTAT] = bootemm (STATS, DIM, ...) also returns the bootstrap
+%     statistics for the estimated marginal means.
 %
-%  Requirements: The function file boot.m (or better boot.mex) and bootknife
-%  also distributed in the statistics-bootstrap package. bootcoeff is only
-%  supported in GNU Octave and requires the Statistics package version 1.5+.
+%  Requirements: bootemm is only supported in GNU Octave and requires the
+%  Statistics package version 1.5+.
 %
 %  Bibliography:
-%  [1] Hesterberg T.C. (2004) Unbiasing the Bootstrap—Bootknife Sampling 
-%        vs. Smoothing; Proceedings of the Section on Statistics & the 
-%        Environment. Alexandria, VA: American Statistical Association.
-%  [2] Davison et al. (1986) Efficient Bootstrap Simulation.
-%        Biometrika, 73: 555-66
-%  [3] Gleason, J.R. (1988) Algorithms for Balanced Bootstrap Simulations. 
-%        The American Statistician. Vol. 42, No. 4 pp. 263-266
-%  [4] Efron (1987) Better Bootstrap Confidence Intervals. JASA, 
-%        82(397): 171-185 
-%  [5] Efron, and Tibshirani (1993) An Introduction to the
-%        Bootstrap. New York, NY: Chapman & Hall
+%  [1] Rubin (1981) The Bayesian Bootstrap. Ann. Statist. 9(1):130-134
 %
-%  bootemm (version 2023.01.12)
+%  bootemm (version 2023.05.02)
 %  Author: Andrew Charles Penn
 %  https://www.researchgate.net/profile/Andrew_Penn/
 %
 %  Copyright 2019 Andrew Charles Penn
 %  This program is free software: you can redistribute it and/or modify
 %  it under the terms of the GNU General Public License as published by
-%  the Free Software Foundation, either version 3 of the License, or
+%  the Free Software Foundation, either version 3 of  the License, or
 %  (at your option) any later version.
 %
 %  This program is distributed in the hope that it will be useful,
@@ -86,7 +69,7 @@
 %  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-function emmeans = bootemm (STATS, dim, nboot, alpha, ncpus, seed)
+function [emm, bootstat] = bootemm (STATS, dim, nboot, alpha, seed)
 
   % Check input aruments
   if (nargin < 2)
@@ -99,13 +82,14 @@ function emmeans = bootemm (STATS, dim, nboot, alpha, ncpus, seed)
     nboot = 2000;
   end
   if (nargin < 4)
-    alpha = 0.05;
-  end
-  if (nargin < 5)
-    ncpus = 0;
+    alpha = [0.025, 0.975];
   end
   if (nargin > 4)
-    boot (1, 1, false, seed);
+    if (ISOCTAVE)
+      rande ('seed', seed);
+    else
+      rng ('default');
+    end
   end
 
   % Error checking
@@ -126,11 +110,8 @@ function emmeans = bootemm (STATS, dim, nboot, alpha, ncpus, seed)
   X = full (STATS.X);
   b = STATS.coeffs(:,1);
   fitted = X * b;
-  W = full (STATS.W);
-  w = diag (W);
-  se = diag (W).^(-0.5);
-  resid = STATS.resid;   % weighted residuals
-  y = fitted + resid .* se;
+  resid = STATS.resid;
+  y = fitted + resid;
   n = numel (resid);
 
   % Prepare the hypothesis matrix (H)
@@ -151,19 +132,15 @@ function emmeans = bootemm (STATS, dim, nboot, alpha, ncpus, seed)
     idx(k) = find (all (L == H(k, :), 2),1);
   end
 
-  % Define bootfun and data for case resampling of raw data
-  % Robust to violations of homoskedasticity and normality assumptions
-  bootfun = @(X, y, w) H * pinv (diag (w) * X) * (w .* y);
-  data = {X, y, w};
-
-  % Perform bootstrap
-  warning ('off', 'bootknife:lastwarn')
-  if (nargout > 0)
-    emmeans = bootknife (data, nboot, bootfun, alpha, [], ncpus);
-  else
-    bootknife (data, nboot, bootfun, alpha, [], ncpus);
+  % Perform Bayesian bootstrap
+  switch (nargout)
+    case 0
+      bootbayes (y, X, nboot, alpha, [], H);
+    case 1
+      emm = bootbayes (y, X, nboot, alpha, [], H);
+    otherwise
+      [emm, bootstat] = bootbayes (y, X, nboot, alpha, [], H);
   end
-  warning ('on', 'bootknife:lastwarn')
 
 end
 

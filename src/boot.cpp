@@ -28,10 +28,12 @@
 //
 // NOTES
 // UNBIASED is an optional input argument. The default is false. If UNBIASED is
-// true, then the sample index for omission in each bootknife resample is
-// selected systematically. When the remaining number of bootknife resamples is
-// not divisible by the sample size (N), then the sample index omitted is
-// selected randomly. 
+// true, bootknife resampling is used, which involves creating leave-one-out
+// jackknife samples of size N - 1, and then drawing resamples of size N with
+// replacement from the jackknife samples. The sample index for omission in each
+// bootknife resample is selected systematically. When the remaining number of
+// bootknife resamples is not divisible by the sample size (N), then the sample
+// index omitted is selected randomly. 
 // SEED is an optional scalar input argument used to initialize the random
 // number generator to make resampling reproducible between calls to boot.
 // WEIGHTS is an optional input argument. If WEIGHTS is empty or not provided,
@@ -40,7 +42,7 @@
 // corresponding index is represented in bootsam. Therefore, the sum of WEIGHTS
 // should equal N * NBOOT. 
 //
-// Note that the mex function compiled from this source code is not thread safe.
+// Note that the mex function compiled from this source code is not thread-safe.
 // Below is an example of a line of code one can run in Octave/Matlab before
 // attempting parallel operation of boot.mex in order to ensure that the initial
 // random seeds of each thread are unique:

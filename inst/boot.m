@@ -1,51 +1,79 @@
-% Function file for generating balanced bootstrap sample indices or for 
-% generating balanced bootstrap resamples of a data vector
+% -- Function File: BOOTSAM = boot (N, NBOOT)
+% -- Function File: BOOTSAM = boot (X, NBOOT)
+% -- Function File: BOOTSAM = boot (..., NBOOT, UNBIASED)
+% -- Function File: BOOTSAM = boot (..., NBOOT, UNBIASED, SEED)
+% -- Function File: BOOTSAM = boot (..., NBOOT, UNBIASED, SEED, WEIGHTS)
 %
-% USAGE
-% BOOTSAM = boot (N, NBOOT)
-% BOOTSAM = boot (X, NBOOT)
-% BOOTSAM = boot (..., NBOOT, UNBIASED)
-% BOOTSAM = boot (..., NBOOT, UNBIASED, SEED)
-% BOOTSAM = boot (..., NBOOT, UNBIASED, SEED, WEIGHTS)
+%     'BOOTSAM = boot (N, NBOOT)' generates NBOOT bootstrap samples of length N.
+%     The samples generated are composed of indices within the range 1:N, which
+%     are chosen by random resampling with replacement [1]. The efficiency of
+%     the bootstrap simulation is ensured by sampling each of the indices
+%     exactly NBOOT times, for first-order balance [2-3]. N and NBOOT must be
+%     positive integers. The returned value, BOOTSAM, is a matrix of indices,
+%     with N rows and NBOOT columns. 
 %
-% INPUT VARIABLES
-% N (double) is the number of rows (of the data vector)
-% X (double) is a data vector intended for resampling
-% NBOOT (double) is the number of bootstrap resamples
-% UNBIASED (boolean): false (for bootstrap) or true (for bootknife)
-% SEED (double) is a seed for the pseudo-random number generator. 
-% WEIGHTS (double) is a weight vector of length n. 
+%     'BOOTSAM = boot (X, NBOOT)' generates NBOOT bootstrap samples, each the
+%     same length as X (N). The samples generated contains values of X, which
+%     are chosen by balanced bootstrap resampling as described above [1-3]. X
+%     must be a numeric vector, and NBOOT must be positive integer. BOOTSAM is
+%     a matrix of values from X, with N rows and NBOOT columns.
 %
-% OUTPUT VARIABLE
-% bootsam (double) is an n x nboot matrix of resampled data or indices
+%     'BOOTSAM = boot (..., NBOOT, UNBIASED)' sets the resampling method. If
+%     UNBIASED is false, the resampling method used is balanced bootstrap
+%     resampling. If UNBIASED is true, the resampling method used is balanced
+%     bootknife resampling [4]. The latter involves creating leave-one-out
+%     jackknife samples of size N - 1, and then drawing resamples of size N
+%     with replacement from the jackknife samples. UNBIASED must be a scalar
+%     logical value The default value of UNBIASED is false.
 %
-% NOTES
-% UNBIASED is an optional input argument. The default is false. If UNBIASED is
-% true, then the sample index for omission in each bootknife resample is
-% selected systematically. When the remaining number of bootknife resamples is
-% not divisible by the sample size (N), then the sample index omitted is
-% selected randomly. 
-% SEED is an optional scalar input argument used to initialize the random
-% number generator to make resampling reproducible between calls to boot.
-% WEIGHTS is an optional input argument. If WEIGHTS is empty or not provided,
-% the default is a vector of each element equal to NBOOT (i.e. uniform
-% weighting). Each element of WEIGHTS is the number of times that the
-% corresponding index is represented in bootsam. Therefore, the sum of WEIGHTS
-% should equal N * NBOOT. 
+%     'BOOTSAM = boot (..., NBOOT, UNBIASED, SEED)' sets a seed to initialize
+%     the pseudo-random number generator to make resampling reproducible between
+%     calls to the boot function. Note that the mex function compiled from the
+%     source code boot.cpp is not thread-safe. Below is an example of a line of
+%     code one can run in Octave/Matlab before attempting parallel operation of
+%     boot.mex in order to ensure that the initial random seeds of each thread
+%     are unique:
+%       • In Octave:
+%         >> pararrayfun (nproc, @boot, 1, 1, false, 1:nproc)
+%       • In Matlab:
+%         >> ncpus = feature('numcores'); 
+%         >> parfor i = 1:ncpus; boot (1, 1, false, i); end;
 %
-% Note that the mex function compiled from the source code boot.cpp is not
-% thread safe. Below is an example of a line of code one can run in Octave/
-% Matlab before attempting parallel operation of boot.mex in order to ensure
-% that the initial random seeds of each thread are unique:
+%     'BOOTSAM = boot (..., NBOOT, UNBIASED, SEED, WEIGHTS)' sets a weight
+%     vector of length N. If WEIGHTS is empty or not provided, the default 
+%     is a vector of length N, with each element equal to NBOOT (i.e. uniform
+%     weighting). Each element of WEIGHTS is the number of times that the
+%     corresponding index (or element in X) is represented in BOOTSAM.
+%     Therefore, the sum of WEIGHTS must equal N * NBOOT. 
 %
-% In Octave:
-% >> pararrayfun(nproc, @boot, 1, 1, false, 1:nproc)
+%  Bibliography:
+%  [1] Efron, and Tibshirani (1993) An Introduction to the
+%        Bootstrap. New York, NY: Chapman & Hall
+%  [2] Davison et al. (1986) Efficient Bootstrap Simulation.
+%        Biometrika, 73: 555-66
+%  [3] Booth, Hall and Wood (1993) Balanced Importance Resampling
+%        for the Bootstrap. The Annals of Statistics. 21(1):286-298
+%  [4] Hesterberg T.C. (2004) Unbiasing the Bootstrap—Bootknife Sampling 
+%        vs. Smoothing; Proceedings of the Section on Statistics & the 
+%        Environment. Alexandria, VA: American Statistical Association.
 %
-% In Matlab:
-% >> ncpus = feature('numcores'); parfor i = 1:ncpus; boot (1, 1, false, i); end;
+%  boot (version 2023.01.28)
+%  Author: Andrew Charles Penn
+%  https://www.researchgate.net/profile/Andrew_Penn/
 %
-% Author: Andrew Charles Penn (2022)
-
+%  Copyright 2019 Andrew Charles Penn
+%  This program is free software: you can redistribute it and/or modify
+%  it under the terms of the GNU General Public License as published by
+%  the Free Software Foundation, either version 3 of the License, or
+%  (at your option) any later version.
+%
+%  This program is distributed in the hope that it will be useful,
+%  but WITHOUT ANY WARRANTY; without even the implied warranty of
+%  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+%  GNU General Public License for more details.
+%
+%  You should have received a copy of the GNU General Public License
+%  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 function bootsam = boot (x, nboot, u, s, w)
 

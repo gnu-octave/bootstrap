@@ -1,29 +1,24 @@
-%  Function file: smoothmad
+% -- Function File: MAD = smoothmad (X)
+% -- Function File: MAD = smoothmad (X, GROUP)
+% -- Function File: MAD = smoothmad (X, GROUP, CONSTANT)
 %
-%  MAD = smoothmad (X)
-%  MAD = smoothmad (X, GROUP)
-%  MAD = smoothmad (X, GROUP, CONSTANT)
+%     'MAD = smoothmad (X)' calculates a smoothed version of the median
+%     absolute deviation (MAD) for each column of the data in x. The
+%     statistics are scaled by a constant of 1.41 to make the estimator
+%     consistent with the standard deviation for normally distributed data.
+% 
+%     'MAD = smoothmad (X, GROUP)' defines group membership of the rows
+%     of x and returns the pooled smooth MAD. GROUP must be a numeric
+%     vector with the same number of rows as x.
 %
-%  Calculate a smoothed version of the median absolute deviation (MAD) 
-%  for each column of the data in x. The statistics are scaled by a 
-%  constant of 1.41 to make the estimator consistent with the standard 
-%  deviation for normally distributed data (unless the input argument, 
-%  CONSTANT, is set otherwise). The input argument, GROUP, is a numeric 
-%  vector (with the same number of rows as x) that defines GROUP 
-%  membership of the rows of x. If GROUP is provided, then the statistic 
-%  returned is the pooled smooth MAD.
+%     'MAD = smoothmad (X, GROUP, CONSTANT)' sets the CONSTANT to scale
+%     the value of the MAD. (Default is 1.41.)
 %
-%  Smoothing of the median is performed as described in [1].
+%     The syntax in this function code is known to be compatible with
+%     recent versions of Octave (v3.2.4 on Debian 6 Linux 2.6.32) and
+%     Matlab (v6.5.0 and v7.4.0 on Windows XP).
 %
-%  Bibliography:
-%  [1] Brown, Hall and Young (2001) The smoothed median and the
-%       bootstrap. Biometrika 88(2):519-534
-%
-%  The syntax in this function code is known to be compatible with
-%  recent versions of Octave (v3.2.4 on Debian 6 Linux 2.6.32) and
-%  Matlab (v6.5.0 and v7.4.0 on Windows XP).
-%
-%  smoothmad (version 2022.10.08)
+%  smoothmad (version 2023.05.02)
 %  Author: Andrew Charles Penn
 %  https://www.researchgate.net/profile/Andrew_Penn/
 %

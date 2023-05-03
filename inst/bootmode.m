@@ -1,47 +1,44 @@
-% Function file: bootmode
+% -- Function File: H = bootmode (X, M)
+% -- Function File: H = bootmode (X, M, NBOOT)
+% -- Function File: H = bootmode (X, M, NBOOT, KERNEL)
+% -- Function File: H = bootmode (X, M, NBOOT, KERNEL, NPROC)
+% -- Function File: [H, P] = bootmode (X, M, ...)
+% -- Function File: [H, P, CRITVAL] = bootmode (X, M, ...)
 %
-% [H, P, CRITVAL] = bootmode (X, M, NBOOT, KERNEL, NPROC)
+%     'H = bootmode (X, M)' tests whether the distribution underlying the 
+%     univariate data in vector X has M modes. The method employs the
+%     smooth bootstrap as described [1]. The parsimonious approach is to
+%     iteratively call this function, each time incrementally increasing
+%     the number of modes until the null hypothesis (H0) is accepted (i.e.
+%     H=0), where H0 corresponds to the number of modes being equal to M. 
+%        • If H = 0, H0 cannot be rejected at the 5% significance level.
+%        • If H = 1, H0 can be rejected at the 5% significance level.
 %
-% This function tests whether the distribution underlying the univariate data
-% in vector X has M modes. The method employs the smooth bootstrap as described
-% [1].
+%     'H = bootmode (X, M, NBOOT)' sets the number of bootstrap replicates
 %
-% The parsimonious approach is to consider a successively increasing number of
-% modes until the null hypothesis (H0) is accepted (i.e. H=0), where H0
-% corresponds to the number of modes being equal to M.
+%     'H = bootmode (X, M, NBOOT, KERNEL)' sets the kernel for kernel
+%     density estimation. Possible values are:
+%        • 'Gaussian' (default)
+%        • 'Epanechnikov'
 %
-% INPUT arguments:
+%     'H = bootmode (X, M, NBOOT, KERNEL, NPROC)' sets the number of parallel
+%      processes to use to accelerate computations. This feature requires the
+%      Parallel package (in Octave), or the Parallel Computing Toolbox (in
+%      Matlab).
 %
-%   X is the vector of data
 %
-%   M is the number of modes for hypothesis testing.
+%     '[H, P] = bootmode (X, M, ...)' also returns the p-value of the
+%      bootstrap test.
 %
-%   NBOOT is the number of bootstrap replicates.
+%     '[H, P, CRITVAL] = bootmode (X, M, ...)' also returns is the critical
+%     bandwidth (i.e.the smallest bandwidth achievable to obtain a kernel
+%     density estimate with M modes)
 %
-%   KERNEL can be 'Gaussian' (default) or 'Epanechnikov'.
+%  Bibliography:
+%  [1] Efron and Tibshirani. Chapter 16 Hypothesis testing with the
+%       bootstrap in An introduction to the bootstrap (CRC Press, 1994)
 %
-%   NPROC sets the number of parallel processes to use to accelerate
-%   computations. This feature requires the Parallel package (in Octave), or 
-%   the Parallel Computing Toolbox (in Matlab).
-%
-% OUTPUT arguments:
-%
-%   H = 0 indicates that the null hypothesis cannot be rejected at the 5%
-%   significance level.  H=1 indicates that the null hypothesis can be rejected
-%   at the 5% level.
-%
-%   P is the p-value of the bootstrap test.
-%
-%   CRITVAL is the critical bandwidth (i.e. the smallest bandwidth achievable to
-%   obtain a kernel density estimate with M modes)
-%
-% Bootstrap iteration is not implemented for this test.
-%
-%    Bibliography:
-%    [1] Efron and Tibshirani. Chapter 16 Hypothesis testing with the
-%         bootstrap in An introduction to the bootstrap (CRC Press, 1994)
-%
-%  bootmode (version 2022.07.02)
+%  bootmode (version 2023.05.02)
 %  Author: Andrew Charles Penn
 %  https://www.researchgate.net/profile/Andrew_Penn/
 %

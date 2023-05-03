@@ -1,218 +1,159 @@
-%  Function File: bootknife
+% -- Function File: bootknife (DATA)
+% -- Function File: bootknife (DATA, NBOOT)
+% -- Function File: bootknife (DATA, NBOOT, BOOTFUN)
+% -- Function File: bootknife ({DATA}, NBOOT, BOOTFUN)
+% -- Function File: bootknife (DATA, NBOOT, {BOOTFUN, ...})
+% -- Function File: bootknife (DATA, NBOOT, ..., ALPHA)
+% -- Function File: bootknife (DATA, NBOOT, ..., ALPHA, STRATA)
+% -- Function File: bootknife (DATA, NBOOT, ..., ALPHA, STRATA, NPROC)
+% -- Function File: bootknife (DATA, NBOOT, ..., ALPHA, STRATA, NPROC, BOOTSAM)
+% -- Function File: STATS = bootknife (...)
+% -- Function File: [STATS, BOOTSTAT] = bootknife (...)
+% -- Function File: [STATS, BOOTSTAT] = bootknife (...)
+% -- Function File: [STATS, BOOTSTAT, BOOTSAM] = bootknife (...)
 %
-%  Bootknife (bootstrap) resampling and statistics
+%     'bootknife (DATA)' uses a variant of nonparametric bootstrap, called
+%     bootknife [1], to generate 2000 resamples from the rows of the DATA
+%     (column vector or matrix) and compute their means and display the
+%     following statistics:
+%        • bias: bootstrap estimate of the bias of the mean
+%        • std_error: bootstrap estimate of the standard error of the mean
+%        • CI_lower: lower bound of the 95% bootstrap confidence interval
+%        • CI_upper: upper bound of the 95% bootstrap confidence interval
 %
-%  This function takes a DATA sample (containing n rows) and uses bootstrap
-%  resampling methods to calculate a bias of the parameter estimate, a standard
-%  error, and confidence intervals. Specifically, the method uses bootknife
-%  resampling [1], which involves creating leave-one-out jackknife samples
-%  of size n - 1 and then drawing samples of size n with replacement from the
-%  jackknife samples. The resampling of DATA rows is balanced in order to
-%  reduce Monte Carlo error [2,3].
+%     'bootknife (DATA, NBOOT)' specifies the number of bootstrap resamples,
+%     where NBOOT can be either:
+%        • scalar: A positive integer specifying the number of bootstrap
+%                  resamples [2,3] for single bootstrap, or
+%        • vector: A pair of positive integers defining the number of outer and
+%                  inner (nested) resamples for iterated (a.k.a. double)
+%                  bootstrap and coverage calibration [3-6]. Be wary of extreme 
+%                  corrections to the percentiles (i.e. to 0% or 100%), which
+%                  can arise when sample sizes are small.
+%        THe default value of NBOOT is the scalar: 2000.
 %
-%  If single bootstrap is requested, the confidence intervals are obtained from 
-%  the quantiles of a kernel density estimate of the bootstrap statistics (with
-%  shrinkage corrrection). By default, the confidence intervals are bias-
-%  corrected and accelerated (BCa) [4-5]. BCa intervals are fast to compute and
-%  have good coverage and correctness when combined with bootknife resampling
-%  as it is here [1].
+%     'bootknife (DATA, NBOOT, BOOTFUN)' also specifies BOOTFUN: the function
+%     calculated on the original sample and the bootstrap resamples. BOOTFUN
+%     must be either a:
+%        • function handle,
+%        • string of function name, or
+%        • a cell array where the first cell is one of the above function
+%          definitions and the remaining cells are (additional) input arguments 
+%          to that function (other than the data arguments).
+%        In all cases BOOTFUN must take DATA for the initial input argument(s).
+%        BOOTFUN can return a scalar or any multidimensional numeric variable,
+%        but the output will be reshaped as a column vector. BOOTFUN must
+%        calculate a statistic representative of the finite data sample; it
+%        should NOT be an estimate of a population parameter (unless they are
+%        one of the same). If BOOTFUN is @mean or 'mean', narrowness bias of
+%        the confidence intervals for single bootstrap are reduced by expanding
+%        the probabilities of the percentiles using Student's t-distribution
+%        [7]. By default, BOOTFUN is @mean.
 %
-%  If double bootstrap is requested, the algorithm uses calibration to improve
-%  the accuracy (of the bias and standard error) and coverage of the confidence
-%  intervals [6-12], which are obtained from the empirical distribution of the
-%  bootstrap statistics by linear interpolation [9]. 
+%     'bootknife ({D1, D2,...}, NBOOT, BOOTFUN)' resamples from the rows of D1,
+%     D2 etc and the resamples are passed to BOOTFUN as multiple data input
+%     arguments. All data vectors and matrices (D1, D2 etc) must have the same
+%     number of rows.
 %
-%  STATS = bootknife (DATA)
-%  STATS = bootknife ({DATA})
-%  STATS = bootknife (DATA, NBOOT)
-%  STATS = bootknife (DATA, NBOOT, BOOTFUN)
-%  STATS = bootknife (DATA, NBOOT, {BOOTFUN, ...})
-%  STATS = bootknife (DATA, NBOOT, ..., ALPHA)
-%  STATS = bootknife (DATA, NBOOT, ..., ALPHA, STRATA)
-%  STATS = bootknife (DATA, NBOOT, ..., ALPHA, STRATA, NPROC)
-%  STATS = bootknife (DATA, NBOOT, ..., ALPHA, STRATA, NPROC, BOOTSAM)
-%  [STATS, BOOTSTAT] = bootknife (...)
-%  [STATS, BOOTSTAT] = bootknife (...)
-%  [STATS, BOOTSTAT, BOOTSAM] = bootknife (...)
-%  bootknife (DATA,...);
-%  bootknife (DATA, [2000, 0], @mean, 0.05, [], 0)            % Defaults (single)
-%  bootknife (DATA, [2000, 200], @mean, [0.025,0.975], [], 0) % Defaults (double)
+%     'bootknife (..., NBOOT, BOOTFUN, ALPHA)', where ALPHA is numeric and
+%     sets sets the lower and upper bounds of the confidence interval(s).
+%     The value(s) of ALPHA must be between 0 and 1. ALPHA can either be:
+%        • scalar: To set the (nominal) central coverage of equal-tailed
+%                  percentile confidence intervals to 100*(1-ALPHA)%. The
+%                  intervals are either simple percentiles for single
+%                  bootstrap, or percentiles with calibrated central coverage 
+%                  for double bootstrap.
+%        • vector: A pair of probabilities defining the (nominal) lower and
+%                  upper percentiles of the confidence interval(s) as
+%                  100*(ALPHA(1))% and 100*(ALPHA(2))% respectively. The
+%                  percentiles are either bias-corrected and accelerated (BCa)
+%                  for single bootstrap, or calibrated for double bootstrap.
+%        Note that the type of coverage calibration (i.e. equal-tailed or
+%        not) depends on whether NBOOT is a scalar or a vector. Confidence
+%        intervals are not calculated when the value(s) of ALPHA is/are NaN.
+%        The default value of ALPHA is the vector: [.025, .975], for a 95%
+%        confidence interval.
 %
-%  STATS = bootknife (DATA) resamples from the rows of a DATA sample (column 
-%  vector or matrix) and returns a structure (or structure array) with the
-%  following fields:
-%    original: contains the result of applying BOOTFUN to the DATA 
-%    bias: contains the bootstrap estimate of bias [11-12]
-%    std_error: contains the bootstrap estimate of the standard error of bootfun
-%    CI_lower: contains the lower bound of the bootstrap confidence interval
-%    CI_upper: contains the upper bound of the bootstrap confidence interval
-%  By default, the statistics relate to BOOTFUN being @mean and the confidence
-%  intervals are 95% bias-corrected and accelerated (BCa) intervals [1,4-5]. 
+%     'bootknife (..., NBOOT, BOOTFUN, ALPHA, STRATA)' also sets STRATA, which
+%     are identifiers that define the grouping of the DATA rows for stratified
+%     bootstrap resampling. STRATA should be a column vector or cell array with
+%     the same number of rows as the DATA. 
 %
-%  STATS = bootknife ({DATA}) resamples from the rows of DATA as above. If
-%  DATA (in the cell array) is multiple column vectors and/or matrices, then
-%  bootknife resamples the rows across all the column vectors or matrices, and
-%  the resamples are passed to BOOTFUN as multiple data input arguments. All
-%  DATA column vectors and matrices must have the same number of rows.
+%     'bootknife (..., NBOOT, BOOTFUN, ALPHA, STRATA, NPROC)' also sets the
+%     number of parallel processes to use to accelerate computations of double
+%     bootstrap, jackknife and non-vectorized function evaluations on multicore
+%     machines. This feature requires the Parallel package (in Octave), or the
+%     Parallel Computing Toolbox (in Matlab).
 %
-%  STATS = bootknife (DATA, NBOOT) also specifies the number of bootstrap 
-%  samples. NBOOT can be a scalar, or vector of upto two positive integers. 
-%  By default, NBOOT is [2000,0], which implements a single bootstrap with 
-%  the 2000 resamples, but larger numbers of resamples are recommended to  
-%  reduce the Monte Carlo error, particularly for confidence intervals. If  
-%  the second element of NBOOT is > 0, then the first and second elements  
-%  of NBOOT correspond to the number of outer (first) and inner (second) 
-%  bootstrap resamples respectively. This so called double bootstrap is used
-%  the accuracy of the bias, standard error and confidence intervals. The
-%  latter is achieved by calibrating the lower and upper interval ends to
-%  have nominal probabilities of 2.5% and 97.5% [5]. Note that one can get
-%  away with a lower number of resamples in the second bootstrap to reduce
-%  the computational expense of the double bootstrap (e.g. [2000, 200]),
-%  since the algorithm uses linear interpolation to achieve near-asymptotic
-%  calibration of confidence intervals [3]. The confidence intervals calculated
-%  (with either single or double bootstrap) are transformation respecting and
-%  can have better coverage and/or accuracy compared to intervals derived from
-%  normal theory or to simple percentile bootstrap confidence intervals [5-10].
+%     'bootknife (..., NBOOT, BOOTFUN, ALPHA, STRATA, NPROC, BOOTSAM)' uses
+%     bootstrap resampling indices provided in BOOTSAM. The BOOTSAM should be a
+%     matrix with the same number of rows as the data. When BOOTSAM is provided,
+%     the first element of NBOOT is ignored.
 %
-%  STATS = bootknife (DATA, NBOOT, BOOTFUN) also specifies BOOTFUN, a function 
-%  handle, a string indicating the name of the function to apply to the DATA
-%  (and each bootstrap resample), or a cell array where the first cell is the 
-%  function handle or string, and other cells being additional input arguments 
-%  for BOOTFUN, where BOOTFUN must take DATA for the first input arguments.
-%  BOOTFUN can return a scalar or any multidimensional numeric variable, but
-%  the output will be reshaped as a column vector. BOOTFUN must calculate a
-%  statistic representative of the finite DATA sample, it should not be an
-%  unbiased estimate of a population parameter. For example, for the variance,
-%  set BOOTFUN to {@var,1} (not @var or {@var,0}), and for the correlation
-%  coefficient, use the provided @cor function. Smooth functions of the DATA
-%  are preferable, (e.g. use smoothmedian function instead of the ordinary
-%  median). The default value(s) of BOOTFUN is/are the (column) mean(s).
-%    When using single bootstrap and BOOTFUN is @mean or 'mean', the residual
-%  narrowness bias of central coverage is almost eliminated by using Student's
-%  t-distribution to expand the probabilities of the percentiles [13].
-%    Recommended BOOFUN for some commonly used statistics:
-%      - Mean: @mean
-%      - Standard deviation: {@std,1}
-%      - Variance: {@var,1}
-%      - Correlation coefficient: @cor
-%      - Linear regression: @(y,X) pinv(X)*y or @regress
-%      - Median: @median or @smoothmedian
-%      - Median absolute deviation: @mad or @smoothmad
-%    See code comments or demos for examples of usage.
+%     'STATS = bootknife (...)' returns a structure with the following fields
+%     (defined above): original, bias, std_error, CI_lower, CI_upper.
 %
-%  STATS = bootknife (DATA, NBOOT, BOOTFUN, ALPHA) where ALPHA is numeric and
-%  sets the lower and upper bounds of the confidence interval(s). The value(s)
-%  of ALPHA must be between 0 and 1. ALPHA can either be:
+%     '[STATS, BOOTSTAT] = bootknife (...)' returns BOOTSTAT, a vector or matrix
+%     of bootstrap statistics calculated over the (first, or outer layer of)
+%     bootstrap resamples.
 %
-%  1) a scalar value to set the (nominal) central coverage (e.g. .05) to
-%  100*(1-ALPHA)% with (nominal) lower and upper percentiles of the confidence
-%  intervals at 100*(ALPHA/2)% and 100*(1-ALPHA/2)% respectively, or
+%     '[STATS, BOOTSTAT, BOOTSAM] = bootknife (...)' also returns BOOTSAM, the
+%     matrix of indices (32-bit integers) used for the (first, or outer
+%     layer of) bootstrap resampling. Each column in BOOTSAM corresponds
+%     to one bootstrap resample and contains the row indices of the values
+%     drawn from the nonscalar DATA argument to create that sample.
 %
-%  2) a vector containing a pair of probabilities (e.g. [.025, .975]) to set
-%  the (nominal) lower and upper percentiles of the confidence interval(s) at
-%  100*(ALPHA(1))% and 100*(ALPHA(2))%.
+%  REQUIREMENTS:
+%    The function file boot.m (or better boot.mex) also distributed in the
+%  statistics-bootstrap package.
 %
-%  The method for constructing confidence intervals is determined by the
-%  combined settings of ALPHA and NBOOT:
+%  DETAILS:
+%    For a DATA sample with n rows, bootknife resampling involves creating
+%  leave-one-out jackknife samples of size n - 1 and then drawing resamples
+%  of size n with replacement from the jackknife samples [1]. In contrast
+%  to bootstrap, bootknife resampling produces unbiased estimates of the
+%  standard error of BOOTFUN when n is small. The resampling of DATA rows
+%  is balanced in order to reduce Monte Carlo error, particularly for
+%  estimating the bias of BOOTFUN [8,9].
+%    For single bootstrap, the confidence intervals are constructed from the
+%  quantiles of a kernel density estimate of the bootstrap statistics
+%  (with shrinkage corrrection). 
+%    For double bootstrap, calibration is used to improve the accuracy of the 
+%  bias and standard error, and coverage of the confidence intervals [2-6]. 
+%  Double bootstrap confidence intervals are constructed from the empirical
+%  distribution of the bootstrap statistics by linear interpolation. 
+%    This function has no input arguments for specifying a random seed. However,
+%  one can reset the random number generator with a SEED value using following
+%  command:
+%  >> boot (1, 1, false, SEED);
+%    Please see the help documentation for the function 'boot' for more
+%  information about setting the seed for parallel execution of bootknife.
 %
-%  - PERCENTILE (equal-tailed): ALPHA must be a pair of probabilities and NBOOT
-%    must be a scalar value (or the second element in NBOOT must be zero).
-%
-%  - BIAS-CORRECTED AND ACCELERATED (BCa): ALPHA must be a scalar value and
-%    NBOOT must be a scalar value (or the second element in NBOOT must be zero).
-%    If BOOTFUN cannot be executed during leave-one-out jackknife, the
-%    acceleration constant will be set to 0 and intervals will be bias-
-%    corrected only.
-%
-%  - CALIBRATED PERCENTILE (equal-tailed): ALPHA must be a scalar value and
-%    NBOOT must be a vector of two positive, non-zero integers (for double
-%    bootstrap). The interval construction corresponds to the 2-sided intervals
-%    intervals in [7,9].
-%
-%  - CALIBRATED PERCENTILE: ALPHA must be must be a pair of probabilities and
-%    NBOOT must be a vector of two positive, non-zero integers (for double
-%    bootstrap). The interval construction corresponds to the lower and upper
-%    1-sided intervals in [7-10]. The method used is equivalent to the
-%    confidence point calibration algorithm 18.1 in [5].
-%
-%  Confidence intervals are not calculated when the value(s) of ALPHA is/are
-%  NaN. If empty (or not specified), the default value of ALPHA is 0.05 for
-%  single bootstrap (i.e. 95% BCa intervals), or [0.025, 0.975] for double 
-%  bootstrap (i.e. 95% calibrated intervals, with 2.5% and 97.5% confidence
-%  point calibration).
-%
-%  STATS = bootknife (DATA, NBOOT, BOOTFUN, ALPHA, STRATA) also sets STRATA, 
-%  which are identifiers that define the grouping of the DATA rows
-%  for stratified bootstrap resampling. STRATA should be a column vector 
-%  or cell array the same number of rows as the DATA. When resampling is 
-%  stratified, the groups (or stata) of DATA are equally represented across 
-%  the bootstrap resamples. If this input argument is not specified or is 
-%  empty, no stratification of resampling is performed. 
-%
-%  STATS = bootknife (DATA, NBOOT, BOOTFUN, ALPHA, STRATA, NPROC) sets the
-%  number of parallel processes to use to accelerate computations on 
-%  multicore machines, specifically non-vectorized function evaluations,
-%  double bootstrap resampling and jackknife function evaluations. This
-%  feature requires the Parallel package (in Octave), or the Parallel
-%  Computing Toolbox (in Matlab).
-%
-%  STATS = bootknife (DATA, NBOOT, ..., ALPHA, STRATA, NPROC, BOOTSAM) uses
-%  bootstrap resampling indices provided in BOOTSAM. The BOOTSAM should be a
-%  matrix with the same number of rows as the data. When BOOTSAM is provided,
-%  the first element of NBOOT is ignored.
-%
-%  [STATS, BOOTSTAT] = bootknife (...) also returns BOOTSTAT, a vector of
-%  bootstrap statistics calculated over the (first, or outer layer of)
-%  bootstrap resamples.
-%
-%  [STATS, BOOTSTAT, BOOTSAM] = bootknife (...) also returns BOOTSAM, the
-%  matrix of indices (32-bit integers) used for the (first, or outer
-%  layer of) bootstrap resampling. Each column in BOOTSAM corresponds
-%  to one bootstrap resample and contains the row indices of the values
-%  drawn from the nonscalar DATA argument to create that sample.
-%
-%  bootknife (DATA, ...); returns a pretty table of the output including
-%  the bootstrap settings and the result of evaluating BOOTFUN on the
-%  DATA along with bootstrap estimates of bias, standard error, and
-%  lower and upper 100*(1-ALPHA)% confidence limits.
-%
-%  Requirements: The function file boot.m (or better boot.mex) also
-%  distributed in the statistics-bootstrap package.
-%
-%  Bibliography:
+%  BIBLIOGRAPHY:
 %  [1] Hesterberg T.C. (2004) Unbiasing the Bootstrap—Bootknife Sampling 
 %        vs. Smoothing; Proceedings of the Section on Statistics & the 
 %        Environment. Alexandria, VA: American Statistical Association.
-%  [2] Davison et al. (1986) Efficient Bootstrap Simulation.
-%        Biometrika, 73: 555-66
-%  [3] Gleason, J.R. (1988) Algorithms for Balanced Bootstrap Simulations. 
-%        The American Statistician. Vol. 42, No. 4 pp. 263-266
-%  [4] Efron (1987) Better Bootstrap Confidence Intervals. JASA, 
-%        82(397): 171-185 
-%  [5] Efron, and Tibshirani (1993) An Introduction to the
+%  [2] Davison A.C. and Hinkley D.V (1997) Bootstrap Methods And Their 
+%        Application. (Cambridge University Press)
+%  [3] Efron, and Tibshirani (1993) An Introduction to the
 %        Bootstrap. New York, NY: Chapman & Hall
-%  [6] Beran (1987). Prepivoting to Reduce Level Error of Confidence Sets.
-%        Biometrika, 74(3), 457–468.
-%  [7] Lee and Young (1999) The effect of Monte Carlo approximation on coverage
+%  [4] Booth J. and Presnell B. (1998) Allocation of Monte Carlo Resources for
+%        the Iterated Bootstrap. J. Comput. Graph. Stat. 7(1):92-112 
+%  [5] Lee and Young (1999) The effect of Monte Carlo approximation on coverage
 %        error of double-bootstrap con®dence intervals. J R Statist Soc B. 
 %        61:353-366.
-%  [8] Booth J. and Presnell B. (1998) Allocation of Monte Carlo Resources for
-%        the Iterated Bootstrap. J. Comput. Graph. Stat. 7(1):92-112 
-%  [9] Hall, Lee and Young (2000) Importance of interpolation when
+%  [6] Hall, Lee and Young (2000) Importance of interpolation when
 %        constructing double-bootstrap confidence intervals. Journal
 %        of the Royal Statistical Society. Series B. 62(3): 479-491
-%  [10] DiCiccio, Martin and Young (1992) Fast and accurate approximate double
-%        bootstrap confidence intervals. Biometrika. 79(2):285-95
-%  [11] Ouysee, R. (2011) Computationally efficient approximation for 
-%        the double bootstrap mean bias correction. Economics Bulletin, 
-%        AccessEcon, vol. 31(3), pages 2388-2403.
-%  [12] Davison A.C. and Hinkley D.V (1997) Bootstrap Methods And Their 
-%        Application. Chapter 3, pg. 104
-%  [13] Hesterberg, Tim (2014), What Teachers Should Know about the 
+%  [7] Hesterberg, Tim (2014), What Teachers Should Know about the 
 %        Bootstrap: Resampling in the Undergraduate Statistics Curriculum, 
 %        http://arxiv.org/abs/1411.5279
+%  [8] Davison et al. (1986) Efficient Bootstrap Simulation.
+%        Biometrika, 73: 555-66
+%  [9] Gleason, J.R. (1988) Algorithms for Balanced Bootstrap Simulations. 
+%        The American Statistician. Vol. 42, No. 4 pp. 263-266
 %
-%  bootknife (version 2023.01.19)
+%  bootknife (version 2023.01.28)
 %  Author: Andrew Charles Penn
 %  https://www.researchgate.net/profile/Andrew_Penn/
 %
@@ -303,13 +244,8 @@ function [stats, bootstat, bootsam] = bootknife (x, nboot, bootfun, alpha, ...
       error ('bootknife: DATA must contain more than one row');
     end
     if ((nargin < 4) || isempty (alpha))
-      if (nboot(2) > 0)
-        alpha = [0.025, 0.975];
-        nalpha = 2;
-      else
-        alpha = 0.05;
-        nalpha = 1;
-      end
+      alpha = [0.025, 0.975];
+      nalpha = 2;
     else
       nalpha = numel (alpha);
       if (~ isa (alpha, 'numeric') || (nalpha > 2))
@@ -629,12 +565,13 @@ function [stats, bootstat, bootsam] = bootknife (x, nboot, bootfun, alpha, ...
     bootsam(:, ridx) = [];
   end
   if (isempty (bootstat))
-    error ('bootknife: BOOTFUN returned NaN for every bootstrap resamples')
+    error ('bootknife: BOOTFUN returned NaN for every bootstrap resample')
   end
   B = B - sum (ridx);
 
   % Calculate the bootstrap bias, standard error and confidence intervals 
   if (C > 0)
+
     %%%%%%%%%%%%%%%%%%%%%%%%%%% DOUBLE BOOTSTRAP %%%%%%%%%%%%%%%%%%%%%%%%%%%
     if (ncpus > 1)
       % PARALLEL execution of inner layer resampling for double (i.e. iterated) bootstrap
@@ -711,14 +648,17 @@ function [stats, bootstat, bootsam] = bootknife (x, nboot, bootfun, alpha, ...
     else
       ci = nan (m, 2);
     end
+
   else
+
     %%%%%%%%%%%%%%%%%%%%%%%%%%% SINGLE BOOTSTRAP %%%%%%%%%%%%%%%%%%%%%%%%%%%
     % Bootstrap bias estimation
     bias = mean (bootstat, 2) - T0;
     % Bootstrap standard error
-    se = std (bootstat, 0, 2);  % Unbiased estimate since we used bootknife resampling
+    se = std (bootstat, 0, 2);  % Unbiased since we used bootknife resampling
     if (~ isnan (alpha))
-      % If bootfun is the arithmetic meam, perform expansion based on t-distribution
+      % If bootfun is the arithmetic meam, expand the probability of the 
+      % percentiles using Student's t-distribution
       if (strcmpi (bootfun_str, 'mean'))
         expan_alpha = (3 - nalpha) * localfunc.ExpandProbs (alpha / (3 - nalpha), n - K);
       else
@@ -735,6 +675,9 @@ function [stats, bootstat, bootsam] = bootknife (x, nboot, bootfun, alpha, ...
       stdnorminv = @(p) sqrt (2) * erfinv (2 * p-1);
       switch nalpha
         case 1
+          % Create equal-tailed probabilities for the percentiles
+          l = repmat ([expan_alpha / 2, 1 - expan_alpha / 2], m, 1);
+        case 2
           % Attempt to form bias-corrected and accelerated (BCa) bootstrap confidence intervals. 
           % Use the Jackknife to calculate the acceleration constant (a)
           try
@@ -776,18 +719,14 @@ function [stats, bootstat, bootsam] = bootknife (x, nboot, bootfun, alpha, ...
               'Unable to calculate the bias correction constant; reverting to percentile intervals\n');
             z0 = zeros (m, 1);
             a = zeros (m, 1); 
-            l = repmat ([expan_alpha / 2, 1 - expan_alpha / 2], m, 1);
+            l = repmat (expan_alpha, m, 1);
           end
           if (isempty (l))
             % Calculate BCa or BC percentiles
-            z1 = stdnorminv (expan_alpha / 2);
-            z2 = stdnorminv (1 - expan_alpha / 2);
-            l = cat (2, stdnormcdf (z0 + ((z0 + z1) ./ (1 - bsxfun (@times, a , z0 + z1)))),... 
-                        stdnormcdf (z0 + ((z0 + z2) ./ (1 - bsxfun (@times, a , z0 + z2)))));
+            z = stdnorminv (expan_alpha);
+            l = cat (2, stdnormcdf (z0 + ((z0 + z(1)) ./ (1 - bsxfun (@times, a , z0 + z(1))))),... 
+                        stdnormcdf (z0 + ((z0 + z(2)) ./ (1 - bsxfun (@times, a , z0 + z(2))))));
           end
-        case 2
-          % alpha is a vector of probabilities
-          l = repmat (expan_alpha, m, 1);
       end
       % Intervals constructed from kernel density estimate of the bootstrap
       % (with shrinkage correction)
@@ -809,6 +748,7 @@ function [stats, bootstat, bootsam] = bootknife (x, nboot, bootfun, alpha, ...
     else
       ci = nan (m, 2);
     end
+
   end
 
   % Prepare output arguments
@@ -855,7 +795,7 @@ end
 
 function print_output (stats, nboot, alpha, l, m, bootfun_str, strata)
 
-    fprintf (['\nSummary of non-parametric bootstrap estimates of bias and precision\n',...
+    fprintf (['\nSummary of nonparametric bootstrap estimates of bias and precision\n',...
               '******************************************************************************\n\n']);
     fprintf ('Bootstrap settings: \n');
     fprintf (' Function: %s\n', bootfun_str);
@@ -884,12 +824,6 @@ function print_output (stats, nboot, alpha, l, m, bootfun_str, strata)
         end
       else
         if (nalpha > 1)
-          if (strcmpi (bootfun_str, 'mean'))
-            fprintf (' Confidence interval (CI) type: Expanded percentile (equal-tailed)\n');
-          else
-            fprintf (' Confidence interval (CI) type: Percentile (equal-tailed)\n');
-          end
-        else
           [jnk, warnID] = lastwarn;
           switch warnID
             case 'bootknife:biasfail'
@@ -910,6 +844,12 @@ function print_output (stats, nboot, alpha, l, m, bootfun_str, strata)
               else
                 fprintf (' Confidence interval (CI) type: Bias-corrected and accelerated (BCa) \n');
               end
+          end
+        else
+          if (strcmpi (bootfun_str, 'mean'))
+            fprintf (' Confidence interval (CI) type: Expanded percentile (equal-tailed)\n');
+          else
+            fprintf (' Confidence interval (CI) type: Percentile (equal-tailed)\n');
           end
         end
       end
@@ -1044,7 +984,7 @@ function PX = ExpandProbs (P, DF)
     studinv = @(P, DF) sign (P - 0.5) * ...
                        sqrt ( DF ./ betaincinv (2 * min (P, 1 - P), DF / 2, 0.5) - DF);
   else
-    % Earlier versions of matlab do not have betaincinv
+    % Earlier versions of Matlab do not have betaincinv
     % Instead, use betainv from the Statistics and Machine Learning Toolbox
     try 
       studinv = @(P, DF) sign (P - 0.5) * ...
@@ -1104,7 +1044,7 @@ end
 %!         0 33 28 34 4 32 24 47 41 24 26 30 41].';
 %!
 %! ## 90% equal-tailed percentile bootstrap confidence intervals for the variance
-%! bootknife (data, 2000, {@var, 1}, [0.05, 0.95]);
+%! bootknife (data, 2000, {@var, 1}, 0.1);
 
 %!demo
 %!
@@ -1113,7 +1053,7 @@ end
 %!         0 33 28 34 4 32 24 47 41 24 26 30 41].';
 %!
 %! ## 90% BCa bootstrap confidence intervals for the variance
-%! bootknife (data, 2000, {@var, 1}, 0.1);
+%! bootknife (data, 2000, {@var, 1}, [0.05 0.95]);
 
 %!demo
 %!
@@ -1144,7 +1084,7 @@ end
 %! y = randn (20,1); x = randn (20,1); X = [ones(20,1), x];
 %!
 %! ## 90% BCa confidence interval for regression coefficients 
-%! bootknife ({y,X}, 2000, @(y,X) X\y, 0.1); % Could also use @regress
+%! bootknife ({y,X}, 2000, @(y,X) X\y, [0.05 0.95]); % Could also use @regress
 
 
 %!demo
@@ -1160,13 +1100,117 @@ end
 
 %!demo
 %!
-%! ## Spatial Test Data from Table 14.1 of Efron and Tibshirani (1993)
+%! ## Air conditioning failure times (x) in Table 1.2 of Davison A.C. and
+%! ## Hinkley D.V (1997) Bootstrap Methods And Their Application. (Cambridge
+%! ## University Press)
+%!
+%! ## AIM: to construct 95% nonparametric bootstrap confidence intervals for
+%! ## the mean failure time from the sample x (n = 9). The mean(x,1) = 108.1 
+%! ## and exact intervals based on an exponential model are [65.9, 209.2].
+%!
+%! ## Calculations using the 'bootstrap' and 'resample' packages in R
+%! ##
+%! ## x <- c(3, 5, 7, 18, 43, 85, 91, 98, 100, 130, 230, 487);
+%! ##
+%! ## library (bootstrap)  # Functions from Efron and Tibshirani (1993)
+%! ## set.seed(1); ci1 <- boott (x, mean, nboott=20000, nbootsd=500, perc=c(.025,.975))
+%! ## set.seed(1); ci2a <- bcanon (x, 20000, mean, alpha = c(0.025,0.975))
+%! ##
+%! ## library (resample)  # Functions from Hesterberg, Tim (2014)
+%! ## bootout <- bootstrap (x, mean, R=20000, seed=1)
+%! ## ci2b <- CI.bca (bootout, confidence=0.95, expand=FALSE)
+%! ## ci3 <- CI.bca (bootout, confidence=0.95, expand=TRUE)
+%! ## ci4 <- CI.percentile (bootout, confidence=0.95, expand=FALSE)
+%! ## ci5 <- CI.percentile (bootout, confidence=0.95, expand=TRUE)
+%! ##
+%! ## Confidence intervals from 'bootstrap' and 'resample' packages in R
+%! ##
+%! ## method                                |   0.05 |   0.95 | length | shape |  
+%! ## --------------------------------------|--------|--------|--------|-------|
+%! ## ci1a - bootstrap-t (bootstrap)        |   48.2 |  287.2 |  239.0 |  2.98 |
+%! ## ci2a - BCa (bootstrap)                |   56.7 |  224.4 |  167.7 |  2.26 |
+%! ## ci2b - BCa (resample)                 |   57.5 |  223.4 |  165.9 |  2.27 |
+%! ## ci3  - expanded BCa (resample)        |   52.0 |  252.5 |  200.0 |  2.57 |
+%! ## ci4  - percentile (resample)          |   47.7 |  191.8 |  144.1 |  1.39 |
+%! ## ci5  - expanded percentile (resample) |   41.1 |  209.0 |  167.9 |  1.51 |
+%!
+%! ## Calculations using the 'statistics-bootstrap' package for Octave/Matlab
+%! ##
+%! ## x = [3 5 7 18 43 85 91 98 100 130 230 487]';
+%! ## boot (1,1,false,1); ci3 = bootknife (x, 20000, @mean, [.025,.975]);
+%! ## boot (1,1,false,1); ci5 = bootknife (x, 20000, @mean, 0.05);
+%! ## boot (1,1,false,1); ci6 = bootknife (x, [20000,500], @mean, [.025,.975]);
+%! ##
+%! ## Confidence intervals from 'statistics-bootstrap' package for Octave/Matlab
+%! ##
+%! ## method                                |  0.025 |  0.975 | length | shape |
+%! ## --------------------------------------|--------|--------|--------|-------|
+%! ## ci3  - expanded BCa                   |   50.6 |  253.0 |  202.4 |  2.52 |
+%! ## ci5  - expanded percentile            |   36.9 |  207.2 |  170.3 |  1.39 |
+%! ## ci6  - calibrated                     |   50.0 |  334.6 |  284.6 |  3.89 |
+%! ## --------------------------------------|--------|--------|--------|-------|
+%! ## parametric - exact                    |   65.9 |  209.2 |  143.3 |  3.40 |
+%! ##
+%! ## Simulation results for constructing 95% confidence intervals for the
+%! ## mean of populations with different distributions. The simulation was
+%! ## of 1000 random samples of size 9 (analagous to the situation above). 
+%! ## Simulation performed using the bootsim script with nboot of 2000.
+%! ##
+%! ## --------------------------------------------------------------------------
+%! ## expanded BCa
+%! ## --------------------------------------------------------------------------
+%! ## Population                 | coverage |  lower |  upper | length | shape |
+%! ## ---------------------------|----------|--------|--------|--------|-------|
+%! ## Normal N(0,1)              |    94.7% |   2.8% |   2.5% |   1.48 |  1.01 |
+%! ## Folded normal |N(0,1)|     |    94.6% |   1.3% |   4.1% |   0.88 |  1.33 |
+%! ## Exponential exp(1)         |    91.3% |   0.7% |   8.0% |   1.35 |  1.58 |
+%! ## Log-normal exp(N(0,1))     |    88.4% |   0.4% |  11.2% |   2.21 |  1.81 |
+%! ## ---------------------------|----------|--------|--------|--------|-------|
+%! ##
+%! ## --------------------------------------------------------------------------
+%! ## expanded percentile
+%! ## --------------------------------------------------------------------------
+%! ## Population                 | coverage |  lower |  upper | length | shape |
+%! ## ---------------------------|----------|--------|--------|--------|-------|
+%! ## Normal N(0,1)              |    95.4% |   2.9% |   1.7% |   1.48 |  1.01 |
+%! ## Folded normal |N(0,1)|     |    93.9% |   1.0% |   5.1% |   0.86 |  1.11 |
+%! ## Exponential exp(1)         |    89.9% |   0.6% |   9.5% |   1.28 |  1.18 |
+%! ## Log-normal exp(N(0,1))     |    85.6% |   0.0% |  14.4% |   2.05 |  1.25 |
+%! ## ---------------------------|----------|--------|--------|--------|-------|
+%! ##
+%! ## --------------------------------------------------------------------------
+%! ## calibrated percentile (equal-tailed)
+%! ## --------------------------------------------------------------------------
+%! ## Population                 | coverage |  lower |  upper | length | shape |
+%! ## ---------------------------|----------|--------|--------|--------|-------|
+%! ## Normal N(0,1)              |    95.7% |   2.4% |   1.9% |   1.76 |  1.06 |
+%! ## Folded normal |N(0,1)|     |    96.3% |   1.5% |   2.2% |   1.03 |  1.78 |
+%! ## Exponential exp(1)         |    93.9% |   0.8% |   5.3% |   1.50 |  2.06 |
+%! ## Log-normal exp(N(0,1))     |    91.4% |   1.4% |   7.2% |   2.52 |  2.25 |
+%! ## ---------------------------|----------|--------|--------|--------|-------|
+%! ##
+%! ## --------------------------------------------------------------------------
+%! ## calibrated percentile
+%! ## --------------------------------------------------------------------------
+%! ## Population                 | coverage |  lower |  upper | length | shape |
+%! ## ---------------------------|----------|--------|--------|--------|-------|
+%! ## Normal N(0,1)              |    95.7% |   2.4% |   1.9% |   1.76 |  1.06 |
+%! ## Folded normal |N(0,1)|     |    96.3% |   1.5% |   2.2% |   1.03 |  1.78 |
+%! ## Exponential exp(1)         |    93.9% |   0.8% |   5.3% |   1.50 |  2.06 |
+%! ## Log-normal exp(N(0,1))     |    91.4% |   1.4% |   7.2% |   2.52 |  2.25 |
+%! ## ---------------------------|----------|--------|--------|--------|-------|
+
+%!demo
+%!
+%! ## Spatial Test Data (A) from Table 14.1 of Efron and Tibshirani (1993)
 %! ## An Introduction to the Bootstrap in Monographs on Statistics and Applied 
 %! ## Probability 57 (Springer)
 %!
-%! ## AIM: to construct 90% nonparametric bootstrap confidence intervals for var(A,1)
-%! ## var(A,1) = 171.5, and exact intervals based on Normal theory are [118.4, 305.2].
-%! ## i.e. (numel(A)-1)*var(A,0) ./ chi2inv(1-[0.05;0.95],numel(A)-1)
+%! ## AIM: to construct 90% nonparametric bootstrap confidence intervals for
+%! ## var(A,1), where var(A,1) = 171.5 and n = 23, and exact intervals based
+%! ## on Normal theory are [118.4, 305.2].
+%! ##
+%! ## (i.e. (n - 1) * var (A, 0) ./ chi2inv (1 - [0.05; 0.95], n - 1))
 %!
 %! ## Calculations using the 'boot' and 'bootstrap' packages in R
 %! ## 
@@ -1197,47 +1241,47 @@ end
 %! ## set.seed(1); ci4a <- bcanon (A, 20000, var.fun, alpha=c(0.05,0.95))
 %! ## set.seed(1); ci5a <- boott (A, var.fun, nboott=20000, nbootsd=500, perc=c(.05,.95))
 %! ##
-%! ## Summary of confidence intervals from 'boot' and 'bootstrap' packages in R
+%! ## Confidence intervals from 'boot' and 'bootstrap' packages in R
 %! ##
-%! ## method                      |   0.05 |   0.95 | length | shape |  
-%! ## ----------------------------|--------|--------|--------|-------|
-%! ## ci1  - normal               |  109.4 |  246.8 |  137.4 |  1.21 |
-%! ## ci2  - percentile           |   97.8 |  235.6 |  137.8 |  0.87 |
-%! ## ci3  - basic                |  107.4 |  245.3 |  137.9 |  1.15 |
-%! ## ci4  - BCa                  |  116.9 |  264.0 |  147.1 |  1.69 |
-%! ## ci4a - BCa                  |  116.2 |  264.0 |  147.8 |  1.67 |
-%! ## ci5  - bootstrap-t          |  111.8 |  291.2 |  179.4 |  2.01 |
-%! ## ci5a - bootstrap-t          |  112.7 |  292.6 |  179.9 |  2.06 |
-%! ## ----------------------------|--------|--------|--------|-------|
-%! ## parametric - exact          |  118.4 |  305.2 |  186.8 |  2.52 |
+%! ## method                                |   0.05 |   0.95 | length | shape |  
+%! ## --------------------------------------|--------|--------|--------|-------|
+%! ## ci1  - normal                         |  109.4 |  246.8 |  137.4 |  1.21 |
+%! ## ci2  - percentile                     |   97.8 |  235.6 |  137.8 |  0.87 |
+%! ## ci3  - basic                          |  107.4 |  245.3 |  137.9 |  1.15 |
+%! ## ci4  - BCa                            |  116.9 |  264.0 |  147.1 |  1.69 |
+%! ## ci4a - BCa                            |  116.2 |  264.0 |  147.8 |  1.67 |
+%! ## ci5  - bootstrap-t                    |  111.8 |  291.2 |  179.4 |  2.01 |
+%! ## ci5a - bootstrap-t                    |  112.7 |  292.6 |  179.9 |  2.06 |
+%! ## --------------------------------------|--------|--------|--------|-------|
+%! ## parametric - exact                    |  118.4 |  305.2 |  186.8 |  2.52 |
 %! ##
 %! ## Summary of bias statistics from 'boot' package in R
 %! ##
-%! ## method                      | original |    bias | bias-corrected |
-%! ## ----------------------------|----------|---------|----------------|
-%! ## single bootstrap            |   171.53 |   -6.62 |         178.16 |
-%! ## ----------------------------|----------|---------|----------------|
-%! ## parametric - exact          |   171.53 |   -6.86 |         178.40 |
-%! 
+%! ## method                             | original |    bias | bias-corrected |
+%! ## -----------------------------------|----------|---------|----------------|
+%! ## single bootstrap                   |   171.53 |   -6.62 |         178.16 |
+%! ## -----------------------------------|----------|---------|----------------|
+%! ## parametric - exact                 |   171.53 |   -6.86 |         178.40 |
+%!
 %! ## Calculations using the 'statistics-bootstrap' package for Octave/Matlab
 %! ##
 %! ## A = [48 36 20 29 42 42 20 42 22 41 45 14 6 ...
 %! ##      0 33 28 34 4 32 24 47 41 24 26 30 41].';
-%! ## boot (1,1,false,1); ci2 = bootknife (A, 20000, {@var,1}, [0.05,0.95]);
-%! ## boot (1,1,false,1); ci4 = bootknife (A, 20000, {@var,1}, 0.1);
+%! ## boot (1,1,false,1); ci2 = bootknife (A, 20000, {@var,1}, 0.1);
+%! ## boot (1,1,false,1); ci4 = bootknife (A, 20000, {@var,1}, [0.05,0.95]);
 %! ## boot (1,1,false,1); ci6a = bootknife (A, [20000,500], {@var,1}, 0.1);
 %! ## boot (1,1,false,1); ci6b = bootknife (A, [20000,500], {@var,1}, [0.05,0.95]);
 %! ##
-%! ## Summary of confidence intervals from 'statistics-bootstrap' package for Octave/Matlab
+%! ## Confidence intervals from 'statistics-bootstrap' package for Octave/Matlab
 %! ##
-%! ## method                               |   0.05 |   0.95 | length | shape |
-%! ## -------------------------------------|--------|--------|--------|-------|
-%! ## ci2  - percentile (equal-tailed)     |   96.6 |  236.7 |  140.1 |  0.87 |
-%! ## ci4  - BCa                           |  115.7 |  266.1 |  150.4 |  1.69 |
-%! ## ci6a - calibrated (equal-tailed)     |   82.3 |  256.4 |  174.1 |  0.95 |
-%! ## ci6b - calibrated                    |  113.4 |  297.0 |  183.6 |  2.16 |
-%! ## -------------------------------------|--------|--------|--------|-------|
-%! ## parametric - exact                   |  118.4 |  305.2 |  186.8 |  2.52 |
+%! ## method                                |   0.05 |   0.95 | length | shape |
+%! ## --------------------------------------|--------|--------|--------|-------|
+%! ## ci2  - percentile (equal-tailed)      |   96.6 |  236.7 |  140.1 |  0.87 |
+%! ## ci4  - BCa                            |  115.7 |  266.1 |  150.4 |  1.69 |
+%! ## ci6a - calibrated (equal-tailed)      |   82.3 |  256.4 |  174.1 |  0.95 |
+%! ## ci6b - calibrated                     |  113.4 |  297.0 |  183.6 |  2.16 |
+%! ## --------------------------------------|--------|--------|--------|-------|
+%! ## parametric - exact                    |  118.4 |  305.2 |  186.8 |  2.52 |
 %! ##
 %! ## Simulation results for constructing 90% confidence intervals for the
 %! ## variance of a population N(0,1) from 1000 random samples of size 26
@@ -1245,23 +1289,23 @@ end
 %! ## bootsim script with nboot of 2000 (for single bootstrap) or [2000,200]
 %! ## (for double bootstrap).
 %! ##
-%! ## method                    | coverage |  lower |  upper | length | shape |
-%! ## --------------------------|----------|--------|--------|--------|-------|
-%! ## percentile (equal-tailed) |    81.8% |   1.3% |  16.9% |   0.80 |  0.92 |
-%! ## BCa                       |    87.3% |   4.2% |   8.5% |   0.86 |  1.85 |
-%! ## calibrated (equal-tailed) |    90.5% |   0.5% |   9.0% |   1.06 |  1.06 |
-%! ## calibrated                |    90.7% |   5.1% |   4.2% |   1.13 |  2.73 |
-%! ## --------------------------|----------|--------|--------|--------|-------|
-%! ## parametric - exact        |    90.8% |   3.7% |   5.5% |   0.99 |  2.52 |
+%! ## method                     | coverage |  lower |  upper | length | shape |
+%! ## ---------------------------|----------|--------|--------|--------|-------|
+%! ## percentile (equal-tailed)  |    81.8% |   1.3% |  16.9% |   0.80 |  0.92 |
+%! ## BCa                        |    87.3% |   4.2% |   8.5% |   0.86 |  1.85 |
+%! ## calibrated (equal-tailed)  |    90.5% |   0.5% |   9.0% |   1.06 |  1.06 |
+%! ## calibrated                 |    90.7% |   5.1% |   4.2% |   1.13 |  2.73 |
+%! ## ---------------------------|----------|--------|--------|--------|-------|
+%! ## parametric - exact         |    90.8% |   3.7% |   5.5% |   0.99 |  2.52 |
 %!
 %! ## Summary of bias statistics from 'boot' package in R
 %! ##
-%! ## method             | original |    bias | bias-corrected |
-%! ## -------------------|----------|---------|----------------|
-%! ## single bootstrap   |   171.53 |   -6.70 |         178.24 |
-%! ## double bootstrap   |   171.53 |   -6.83 |         178.36 |
-%! ## -------------------|----------|---------|----------------|
-%! ## parametric - exact |   171.53 |   -6.86 |         178.40 |
+%! ## method                             | original |    bias | bias-corrected |
+%! ## -----------------------------------|----------|---------|----------------|
+%! ## single bootstrap                   |   171.53 |   -6.70 |         178.24 |
+%! ## double bootstrap                   |   171.53 |   -6.83 |         178.36 |
+%! ## -----------------------------------|----------|---------|----------------|
+%! ## parametric - exact                 |   171.53 |   -6.86 |         178.40 |
 %!
 %! ## The equivalent methods for constructing bootstrap intervals in the 'boot'
 %! ## and 'bootstrap' packages (in R) and the statistics-bootstrap package (in
@@ -1329,6 +1373,47 @@ end
 %! warning ('on', 'bootknife:parallel')
 
 %!test
+%! ## Air conditioning failure times in Table 1.2 of Davison A.C. and
+%! ## Hinkley D.V (1997) Bootstrap Methods And Their Application. (Cambridge
+%! ## University Press)
+%! x = [3, 5, 7, 18, 43, 85, 91, 98, 100, 130, 230, 487]';
+%!
+%! ## Nonparametric 95% expanded percentile confidence intervals (equal-tailed )
+%! ## Example 5.4 percentile intervals are 43.9 - 192.1
+%! ## Note that the intervals calculated below are wider because the narrowness
+%! ## bias was removed by expanding the probabilities of the percentiles using
+%! ## Student's t-distribution
+%! boot (1, 1, false, 1); # Set random seed
+%! stats = bootknife(x,2000,@mean,0.05);
+%! if (isempty (regexp (which ('boot'), 'mex$')))
+%!   ## test boot m-file result
+%!   assert (stats.original, 108.0833333333333, 1e-09);
+%!   assert (stats.bias, -1.4210854715202e-14, 1e-09);
+%!   assert (stats.std_error, 38.25414068983568, 1e-09);
+%!   assert (stats.CI_lower, 37.62313309335625, 1e-09);
+%!   assert (stats.CI_upper, 201.0264463378847, 1e-09);
+%! end
+%!
+%! ## Nonparametric 95% expanded BCa confidence intervals
+%! ## Example 5.8 BCa intervals are 55.33 - 243.5
+%! ## Note that the intervals calculated below are wider because the narrowness
+%! ## bias was removed by expanding the probabilities of the percentiles using
+%! ## Student's t-distribution
+%! boot (1, 1, false, 1); # Set random seed
+%! stats = bootknife(x,2000,@mean,[0.025,0.975]);
+%! if (isempty (regexp (which ('boot'), 'mex$')))
+%!   ## test boot m-file result
+%!   assert (stats.original, 108.0833333333333, 1e-09);
+%!   assert (stats.bias, -1.4210854715202e-14, 1e-09);
+%!   assert (stats.std_error, 38.25414068983568, 1e-09);
+%!   assert (stats.CI_lower, 49.70873146256465, 1e-09);
+%!   assert (stats.CI_upper, 232.3618260843778, 1e-09);
+%! end
+%!
+%! ## Exact intervals based on an exponential model are 65.9 - 209.2
+%! ## (Example 2.11)
+
+%!test
 %! ## Spatial test data from Table 14.1 of Efron and Tibshirani (1993)
 %! ## An Introduction to the Bootstrap in Monographs on Statistics and Applied 
 %! ## Probability 57 (Springer)
@@ -1338,7 +1423,7 @@ end
 %! ## Nonparametric 90% equal-tailed percentile confidence intervals
 %! ## Table 14.2 percentile intervals are 100.8 - 233.9
 %! boot (1, 1, false, 1); # Set random seed
-%! stats = bootknife(A,2000,{@var,1},[0.05 0.95]);
+%! stats = bootknife(A,2000,{@var,1},0.1);
 %! if (isempty (regexp (which ('boot'), 'mex$')))
 %!   ## test boot m-file result
 %!   assert (stats.original, 171.534023668639, 1e-09);
@@ -1351,7 +1436,7 @@ end
 %! ## Nonparametric 90% BCa confidence intervals
 %! ## Table 14.2 BCa intervals are 115.8 - 259.6
 %! boot (1, 1, false, 1); # Set random seed
-%! stats = bootknife(A,2000,{@var,1},0.1);
+%! stats = bootknife(A,2000,{@var,1},[0.05 0.95]);
 %! if (isempty (regexp (which ('boot'), 'mex$')))
 %!   ## test boot m-file result
 %!   assert (stats.original, 171.534023668639, 1e-09);
@@ -1387,7 +1472,7 @@ end
 %!
 %! ## Exact intervals based on normal theory are 118.4 - 305.2 (Table 14.2)
 %! ## Note that all of the bootknife intervals are slightly wider than the
-%! ## non-parametric intervals in Table 14.2 because the bootknife (rather than
+%! ## nonparametric intervals in Table 14.2 because the bootknife (rather than
 %! ## standard bootstrap) resampling used here reduces small sample bias
 
 %!test
@@ -1400,7 +1485,7 @@ end
 %! ## Nonparametric 90% equal-tailed percentile confidence intervals
 %! ## Percentile intervals on page 266 are 0.524 - 0.928
 %! boot (1, 1, false, 1); # Set random seed
-%! stats = bootknife({LSAT,GPA},2000,@cor,[0.05,0.95]);
+%! stats = bootknife({LSAT,GPA},2000,@cor,0.1);
 %! if (isempty (regexp (which ('boot'), 'mex$')))
 %!   ## test boot m-file result
 %!   assert (stats.original, 0.7763744912894071, 1e-09);
@@ -1413,7 +1498,7 @@ end
 %! ## Nonparametric 90% BCa confidence intervals
 %! ## BCa intervals on page 266 are 0.410 - 0.923
 %! boot (1, 1, false, 1); # Set random seed
-%! stats = bootknife({LSAT,GPA},2000,@cor,0.1);
+%! stats = bootknife({LSAT,GPA},2000,@cor,[0.05 0.95]);
 %! if (isempty (regexp (which ('boot'), 'mex$')))
 %!   ## test boot m-file result
 %!   assert (stats.original, 0.7763744912894071, 1e-09);

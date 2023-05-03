@@ -1,87 +1,92 @@
-%  Function File: bootci
+% -- Function File: CI = bootci (NBOOT, BOOTFUN, D)
+% -- Function File: CI = bootci (NBOOT, BOOTFUN, D1,...,DN)
+% -- Function File: CI = bootci (NBOOT, {BOOTFUN, D}, NAME, VALUE)
+% -- Function File: CI = bootci (NBOOT, {BOOTFUN, D1, ..., DN}, NAME, VALUE)
+% -- Function File: CI = bootci (...,'type', TYPE)
+% -- Function File: CI = bootci (...,'type', 'stud', 'nbootstd', NBOOTSTD)
+% -- Function File: CI = bootci (...,'type', 'cal', 'nbootcal', NBOOTCAL)
+% -- Function File: CI = bootci (...,'alpha', ALPHA)
+% -- Function File: CI = bootci (...,'seed', SEED)
+% -- Function File: CI = bootci (...,'Options', PAROPT)
+% -- Function File: [CI, BOOTSTAT] = bootci (...)
 %
-%  Bootstrap confidence intervals
+%     'CI = bootci (NBOOT, BOOTFUN, D)' draws nboot bootstrap resamples from
+%     the rows of a data sample D and returns 95% confidence intervals (CI) for
+%     the bootstrap statistics computed by BOOTFUN [1]. BOOTFUN is a function 
+%     handle (e.g. specified with @), or a string indicating the function name. 
+%     The third input argument, data D (a column vector or a matrix), is used
+%     as input for BOOTFUN. The resampling method used throughout is balanced
+%     bootknife resampling [2-4].
 %
-%  CI = bootci (NBOOT, BOOTFUN, D)
-%  CI = bootci (NBOOT, BOOTFUN, D1,...,DN)
-%  CI = bootci (NBOOT, {BOOTFUN, D}, Name, Value)
-%  CI = bootci (NBOOT, {BOOTFUN, D1,...,DN}, Name, Value)
-%  CI = bootci (NBOOT, BOOTFUN, D, Name, Value)
-%  CI = bootci (NBOOT, BOOTFUN, D1,...,DN, Name, Value)
-%  CI = bootci (...,'type', TYPE)
-%  CI = bootci (...,'type', 'stud', 'nbootstd', NBOOTSTD)
-%  CI = bootci (...,'type', 'cal', 'nbootcal', NBOOTCAL)
-%  CI = bootci (...,'alpha', ALPHA)
-%  CI = bootci (...,'seed', SEED)
-%  CI = bootci (...,'Options', PAROPT)
-%  [CI, BOOTSTAT] = bootci (...)
+%     'CI = bootci (NBOOT, BOOTFUN, D1,...,DN)' is as above except that the
+%     third and subsequent numeric input arguments are data vectors that are
+%     used to create inputs for bootfun.
 %
-%  CI = bootci (NBOOT, BOOTFUN, D) draws nboot bootstrap resamples from the rows
-%  of a data sample D and returns 95% confidence intervals (CI) for the bootstrap 
-%  statistics computed by BOOTFUN [1]. BOOTFUN is a function handle (e.g. specified 
-%  with @), or a string indicating the function name. The third input argument, 
-%  data D (a column vector or a matrix), is used as input for BOOTFUN. The
-%  resampling method used throughout is balanced bootknife resampling [2-4].
+%     'CI = bootci (NBOOT, {BOOTFUN, D}, NAME, VALUE)' is as above but includes
+%     setting optional parameters using Name-Value pairs.
 %
-%  CI = bootci (NBOOT, BOOTFUN, D1,...,DN) is as above except that the third and
-%  subsequent numeric input arguments are data vectors that are used to create
-%  inputs for bootfun.
+%     'CI = bootci (NBOOT, {BOOTFUN, D1, ..., DN}, NAME, VALUE)' is as above but
+%     includes setting optional parameters using NAME-VALUE pairs.
 %
-%  CI = bootci (..., 'alpha', ALPHA) where ALPHA sets the lower and upper bounds 
-%  of the confidence interval(s). The value of ALPHA must be between 0 and 1.
-%  The nominal lower and upper percentiles of the confidence intervals CI are 
-%  then 100*(ALPHA/2)% and 100*(1-ALPHA/2)% respectively, and nominal central
-%  coverage of the intervals is 100*(1-ALPHA)%. The default value of ALPHA is 0.05.
+%     bootci can take a number of optional parameters as NAME-VALUE pairs:
 %
-%  CI = bootci (..., 'type', TYPE) computes bootstrap confidence interval CI 
-%  using one of the following methods:
-%    'norm' or 'normal': normal (with bootstrapped bias and standard error) [5].
-%    'per' or 'percentile': Percentile method [1,5].
-%    'basic': Basic bootstrap method [1,5].
-%    'bca': Bias-corrected and accelerated method [6,7] (Default).
-%    'stud' or 'student': Studentized (bootstrap-t) confidence interval [1,5].
-%    'cal': Calibrated percentile method (by double bootstrap [8]).
-%  Note that when BOOTFUN is the mean, BCa intervals are automatically expanded
-%  using Student's t-distribution in order to improve coverage for small samples
-%  [9]. The bootstrap-t method includes an additive correction to stabilize
-%  the variance when the sample size is small [10].
+%     'CI = bootci (..., 'alpha', ALPHA)' where ALPHA sets the lower and upper 
+%     bounds of the confidence interval(s). The value of ALPHA must be between
+%     0 and 1. The nominal lower and upper percentiles of the confidence
+%     intervals CI are then 100*(ALPHA/2)% and 100*(1-ALPHA/2)% respectively,
+%     and nominal central coverage of the intervals is 100*(1-ALPHA)%. The
+%     default value of ALPHA is 0.05.
 %
-%  CI = bootci (..., 'type', 'stud', 'nbootstd', NBOOTSTD) computes the
-%  Studentized bootstrap confidence intervals CI, with the standard errors
-%  of the bootstrap statistics estimated automatically using resampling methods.
-%  NBOOTSTD is a positive integer value > 0 defining the number of resamples.
-%  Unbiased standard errors are computed using NBOOTSTD bootknife resamples.
-%  The default value of NBOOTSTD is 100.
+%     'CI = bootci (..., 'type', TYPE)' computes bootstrap confidence interval 
+%     CI using one of the following methods:
+%       • 'norm' or 'normal': Using bootstrap bias and standard error [5].
+%       • 'per' or 'percentile': Percentile method [1,5].
+%       • 'basic': Basic bootstrap method [1,5].
+%       • 'bca': Bias-corrected and accelerated method [6,7] (Default).
+%       • 'stud' or 'student': Studentized bootstrap (bootstrap-t) [1,5].
+%       • 'cal': Calibrated percentile method (by double bootstrap [8]).
+%       Note that when BOOTFUN is the mean, BCa intervals are automatically
+%       expanded using Student's t-distribution in order to improve coverage
+%       for small samples [9]. The bootstrap-t method includes an additive
+%       correction to stabilize the variance when the sample size is small [10].
 %
-%  CI = bootci (..., 'type', 'cal', 'nbootcal', NBOOTCAL) computes the calibrated
-%  percentile bootstrap confidence intervals CI, with the calibrated percentiles
-%  of the bootstrap statistics estimated from NBOOTCAL bootstrap data samples.
-%  NBOOTCAL is a positive integer value. The default value of NBOOTCAL is 200.
+%     'CI = bootci (..., 'type', 'stud', 'nbootstd', NBOOTSTD)' computes the
+%     Studentized bootstrap confidence intervals CI, with the standard errors
+%     of the bootstrap statistics estimated automatically using resampling
+%     methods. NBOOTSTD is a positive integer value > 0 defining the number of
+%     resamples. Unbiased standard errors are computed using NBOOTSTD bootknife
+%     resamples. The default value of NBOOTSTD is 100.
 %
-%  CI = bootci (..., 'seed', SEED) initialises the Mersenne Twister random number
-%  generator using an integer SEED value so that bootci results are reproducible.
+%     'CI = bootci (..., 'type', 'cal', 'nbootcal', NBOOTCAL)' computes the
+%     calibrated percentile bootstrap confidence intervals CI, with the
+%     calibrated percentiles of the bootstrap statistics estimated from NBOOTCAL
+%     bootstrap data samples. NBOOTCAL is a positive integer value. The default
+%     value of NBOOTCAL is 200.
 %
-%  CI = bootci (..., 'Options', PAROPT) specifies options that govern if and how
-%  to perform bootstrap iterations using multiple processors (if the Parallel 
-%  Computing Toolbox or Octave Parallel package is available). This argument is
-%  a structure with the following recognised fields:
+%     'CI = bootci (..., 'seed', SEED)' initialises the Mersenne Twister random
+%     number generator using an integer SEED value so that bootci results are
+%     reproducible.
 %
-%   'UseParallel' - If true, use parallel processes to accelerate bootstrap
-%                   computations on multicore machines, specifically
-%                   non-vectorized function evaluations, double bootstrap
-%                   resampling and jackknife function evaluations. Default is
-%                   false for serial computation. In MATLAB, the default is
-%                   true if a parallel pool has already been started. 
+%     'CI = bootci (..., 'Options', PAROPT)' specifies options that govern if
+%     and how to perform bootstrap iterations using multiple processors (if the
+%     Parallel Computing Toolbox or Octave Parallel package is available). This
+%     argument is a structure with the following recognised fields:
+%        • 'UseParallel':  If true, use parallel processes to accelerate
+%                          bootstrap computations on multicore machines,
+%                          specifically non-vectorized function evaluations,
+%                          double bootstrap resampling and jackknife function
+%                          evaluations. Default is false for serial computation.
+%                          In MATLAB, the default is true if a parallel pool
+%                          has already been started. 
+%        • 'nproc':        nproc sets the number of parallel processes
 %
-%   'nproc'       - nproc sets the number of parallel processes
-%
-%  [CI, BOOTSTAT] = bootci(...) also returns the bootstrap statistics used to
-%  calculate the confidence intervals CI.
-%
-%  [CI, BOOTSTAT, BOOTSAM] = bootci(...) also returns BOOTSAM, a matrix of 
-%  indices from the bootstrap. Each column in BOOTSAM corresponds to one 
-%  bootstrap sample and contains the row indices of the values drawn from the 
-%  nonscalar data argument to create that sample.
+%     '[CI, BOOTSTAT] = bootci (...)' also returns the bootstrap statistics
+%     used to calculate the confidence intervals CI.
+%   
+%     '[CI, BOOTSTAT, BOOTSAM] = bootci (...)' also returns BOOTSAM, a matrix 
+%     of indices from the bootstrap. Each column in BOOTSAM corresponds to one 
+%     bootstrap sample and contains the row indices of the values drawn from 
+%     the nonscalar data argument to create that sample.
 %
 %  Bibliography:
 %  [1] Efron, and Tibshirani (1993) An Introduction to the
@@ -108,7 +113,7 @@
 %  [10] Polansky (2000) Stabilizing bootstrap-t confidence intervals
 %        for small samples. Can J Stat. 28(3):501-516
 %
-%  bootci (version 2022.12.15)
+%  bootci (version 2023.01.04)
 %  Author: Andrew Charles Penn
 %  https://www.researchgate.net/profile/Andrew_Penn/
 %
@@ -279,9 +284,9 @@ function [ci, bootstat, bootsam] = bootci (argin1, argin2, varargin)
 
   % Apply interval type
   switch (lower (type))
-    case {'bca', 'norm', 'normal'}
+    case {'per', 'perc', 'percentile', 'basic', 'norm', 'normal'}
       % Do nothing
-    case {'per', 'perc', 'percentile', 'basic', 'stud', 'student'}
+    case {'bca', 'stud', 'student'}
       % Set quantiles directly to calculate percentile intervals
       alpha = [alpha / 2, 1 - alpha / 2];
     case 'cal'
