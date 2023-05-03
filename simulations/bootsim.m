@@ -48,7 +48,7 @@ above = 0;
 below = 0;
 
 % Bootstrap resampling
-nboot = [20000,200];
+nboot = [2000,0];
 type = '';
 
 % Print settings
@@ -86,12 +86,12 @@ for i=1:sim
   
   % Bootstrap confidence interval
   %ci = bootci (nboot, {bootfun,x}, 'alpha', alpha, 'type', type, 'Options', paropt);
-  ci = bootbayes (x);
-  %if (nvar > 1)
-  %  S = bootknife ({x, y}, nboot, bootfun, alpha, [], ncpus); ci = [S.CI_lower; S.CI_upper];
-  %else
-  %  S = bootknife (x, nboot, bootfun, alpha, [], ncpus); ci = [S.CI_lower; S.CI_upper];
-  %end
+  %ci = bootbayes (x);
+  if (nvar > 1)
+    S = bootknife ({x, y}, nboot, bootfun, alpha, [], ncpus); ci = [S.CI_lower; S.CI_upper];
+  else
+    S = bootknife (x, nboot, bootfun, alpha, [], ncpus); ci = [S.CI_lower; S.CI_upper];
+  end
   
 
   % Coverage counter
