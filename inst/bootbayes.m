@@ -236,7 +236,7 @@ function b = lmfit (X, y, W, L)
     L = 1;
   end
   % Solve linear equation to minimize weighted least squares
-  b = L * (X' * W * y) / (X' * W * X);
+  b = L * pinv (X' * W * X) * (X' * W * y);
 
 end
 
