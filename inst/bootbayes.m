@@ -235,6 +235,7 @@ function b = lmfit (X, y, W, L)
     % If no hypothesis matrix is provided, set H to unity
     L = 1;
   end
+  
   % Solve linear equation to minimize weighted least squares
   b = L * pinv (X' * W * X) * (X' * W * y);
 
