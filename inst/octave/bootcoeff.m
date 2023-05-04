@@ -14,8 +14,8 @@
 %        • std_error: bootstrap estimate of the standard error
 %        • CI_lower: lower bound of the 95% bootstrap confidence interval
 %        • CI_upper: upper bound of the 95% bootstrap confidence interval
-%          The confidence intervals, or credible intervals in the context of the
-%          Bayesian statistical framework, are equal-tailed percentile intervals.
+%          Here, the confidence intervals, or credible intervals in the context
+%          of the Bayesian statistical framework, are percentile intervals [2].
 %
 %     'bootcoeff (STATS, NBOOT)' specifies the number of bootstrap resamples,
 %     where NBOOT must be a positive integer. If empty, tHe default value of
@@ -48,6 +48,8 @@
 %
 %  Bibliography:
 %  [1] Rubin (1981) The Bayesian Bootstrap. Ann. Statist. 9(1):130-134
+%  [2] Efron and Tibshirani. Chapter 16 Hypothesis testing with the
+%       bootstrap in An introduction to the bootstrap (CRC Press, 1994)
 %
 %  bootcoeff (version 2023.05.02)
 %  Author: Andrew Charles Penn

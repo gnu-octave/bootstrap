@@ -26,11 +26,10 @@
 %      Parallel package (in Octave), or the Parallel Computing Toolbox (in
 %      Matlab).
 %
-%
 %     '[H, P] = bootmode (X, M, ...)' also returns the p-value of the
 %      bootstrap test.
 %
-%     '[H, P, CRITVAL] = bootmode (X, M, ...)' also returns is the critical
+%     '[H, P, CRITVAL] = bootmode (X, M, ...)' also returns the critical
 %     bandwidth (i.e.the smallest bandwidth achievable to obtain a kernel
 %     density estimate with M modes)
 %

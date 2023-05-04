@@ -7,16 +7,17 @@
 % -- Function File: CI = bootbayes (y, ...)
 % -- Function File: [CI, BOOTSTAT] = bootbayes (y, ...)
 %
-%     'bootbayes (y)' uses Bayesian bootstrap [1] to generate 2000 bootstrap
-%     statistics by calculating the mean of the column vector y using weights
-%     randomly generated from a symmetric uniform Dirichlet distribution and
-%     display the following statistics:
+%     'bootbayes (y)' uses Bayesian bootstrap [1] to create 2000 bootstrap
+%     statistics, each representing the weighted mean of the column vector, y, 
+%     and a vector of weights randomly generated from a symmetric uniform
+%     Dirichlet distribution. The resulting bootstrap distribution is summarised
+%     with the following statistics:
 %        • bias: bootstrap estimate of the bias
 %        • std_error: bootstrap estimate of the standard error
 %        • CI_lower: lower bound of the 95% bootstrap confidence interval
 %        • CI_upper: upper bound of the 95% bootstrap confidence interval
-%          The confidence intervals, or credible intervals in the context of the
-%          Bayesian statistical framework, are equal-tailed percentile intervals.
+%          Here, the confidence intervals, or credible intervals in the context
+%          of the Bayesian statistical framework, are percentile intervals [2].
 %
 %     'bootbayes (y, X)' specifies the design matrix for least squares
 %     regression. X should be a column vector or matrix the same number of
@@ -25,12 +26,12 @@
 %     reduces to the mean (as above).
 %
 %     'bootbayes (y, X, NBOOT)' specifies the number of bootstrap resamples,
-%     where NBOOT must be a positive integer. If empty, tHe default value of
-%     NBOOT is the scalar: 2000.
+%     where NBOOT must be a positive integer. If empty, the default value of
+%     NBOOT is 2000.
 %
 %     'bootbayes (..., NBOOT, BOOTFUN, ALPHA)' where ALPHA is numeric and
-%     sets sets the lower and upper bounds of the confidence interval(s).
-%     The value(s) of ALPHA must be between 0 and 1. ALPHA can either be:
+%     sets the lower and upper bounds of the confidence interval(s). The
+%     value(s) of ALPHA must be between 0 and 1. ALPHA can either be:
 %        • scalar: To set the (nominal) central coverage of equal-tailed
 %                  percentile confidence intervals to 100*(1-ALPHA)%.
 %        • vector: A pair of probabilities defining the (nominal) lower and
@@ -54,6 +55,8 @@
 %
 %  Bibliography:
 %  [1] Rubin (1981) The Bayesian Bootstrap. Ann. Statist. 9(1):130-134
+%  [2] Efron and Tibshirani. Chapter 16 Hypothesis testing with the
+%       bootstrap in An introduction to the bootstrap (CRC Press, 1994)
 %
 %  bootbayes (version 2023.05.02)
 %  Author: Andrew Charles Penn
@@ -75,6 +78,17 @@
 
 
 function [ci, bootstat] = bootbayes (y, X, nboot, alpha, seed, L)
+
+  % Check the number of function arguments
+  if (nargin < 1)
+    error ('bootknife: y must be provided');
+  end
+  if (nargin > 6)
+    error ('bootbayes: Too many input arguments')
+  end
+  if (nargout > 2)
+    error ('bootbayes: Too many output arguments')
+  end
 
   % Check if running in Octave (else assume Matlab)
   info = ver; 
@@ -179,8 +193,16 @@ function [ci, bootstat] = bootbayes (y, X, nboot, alpha, seed, L)
   % Calculate estimate(s)
   T0 = bootfun (ones (n, 1));
 
-  % Create weights by randomly sample from a symmetric uniform Dirichlet distribution
-  r = exprnd (1, n, nboot); % Equal to gamma distribution with scale = shape = 1
+  % Create weights by randomly sampling from a symmetric uniform Dirichlet
+  % distribution. This can be achieved by normalizing a set of random
+  % generated values from a standard exponential distribution to their sum.
+  % Note that a standard exponential distribution is equivalent to the gamma
+  % distribution with scale = shape = 1.
+  if (ISOCTAVE)
+    r = rande (n, nboot);
+  else
+    r = exprnd (1, n, nboot); 
+  end
   W = bsxfun (@rdivide, r, sum (r));
 
   % Compute bootstat
@@ -311,7 +333,7 @@ end
 
 %!demo
 %!
-%! ## Input bivariate dataset
+%! ## Input univariate dataset
 %! heights = [183, 192, 182, 183, 177, 185, 188, 188, 182, 185].';
 %!
 %! ## 95% bootstrap confidence interval for the mean 
@@ -336,3 +358,40 @@ end
 %! bootbayes(y,X,1000);
 %!
 %! ## Please be patient, the calculations will be completed soon...
+
+%!test
+%! ## Test calculations of statistics for the mean
+%!
+%! ## Input univariate dataset
+%! heights = [183, 192, 182, 183, 177, 185, 188, 188, 182, 185].';
+%!
+%! ## 95% bootstrap confidence interval for the mean 
+%! ci = bootbayes(heights);
+%! ci = bootbayes(heights,[]);
+%! ci = bootbayes(heights,[],2000);
+%! ci = bootbayes(heights,[],2000,0.05);
+%! ci = bootbayes(heights,[],2000,[0.025,0.975]);
+%! ci = bootbayes(heights,[],[],[]);
+%! [ci,bootstat] = bootbayes(heights);
+
+%!test
+%! ## Test calculations of statistics for linear regression
+%!
+%! ## Input bivariate dataset
+%! X = [ones(43,1),...
+%!     [01,02,03,04,05,06,07,08,09,10,11,...
+%!      12,13,14,15,16,17,18,19,20,21,22,...
+%!      23,25,26,27,28,29,30,31,32,33,34,...
+%!      35,36,37,38,39,40,41,42,43,44]'];
+%! y = [188.0,170.0,189.0,163.0,183.0,171.0,185.0,168.0,173.0,183.0,173.0,...
+%!     173.0,175.0,178.0,183.0,192.4,178.0,173.0,174.0,183.0,188.0,180.0,...
+%!     168.0,170.0,178.0,182.0,180.0,183.0,178.0,182.0,188.0,175.0,179.0,...
+%!     183.0,192.0,182.0,183.0,177.0,185.0,188.0,188.0,182.0,185.0]';
+%!
+%! ## 95% bootstrap confidence interval for the mean 
+%! ci = bootbayes(y,X);
+%! ci = bootbayes(y,X,2000);
+%! ci = bootbayes(y,X,2000,0.05);
+%! ci = bootbayes(y,X,2000,[0.025,0.975]);
+%! ci = bootbayes(y,X,[],[]);
+%! [ci,bootstat] = bootbayes(y,X);
