@@ -12,7 +12,7 @@
 %     and a vector of weights randomly generated from a symmetric uniform
 %     Dirichlet distribution. The resulting bootstrap distribution is summarised
 %     with the following statistics:
-%        • original: the mean (or regression coefficients) of y (and X)
+%        • original: the mean of y or coefficients from the regression of y on X
 %        • bias: bootstrap estimate(s) of the bias
 %        • std_error: bootstrap estimate(s) of the standard error
 %        • CI_lower: lower bound(s) of the 95% bootstrap confidence interval
@@ -47,7 +47,8 @@
 %     bootbayes results are reproducible.
 %
 %     'bootbayes (..., NBOOT, BOOTFUN, ALPHA, SEED, L)' multiplies the
-%     regression coefficients by the hypothesis matrix L.
+%     regression coefficients by the hypothesis matrix L. If L is not provided
+%     or is empty, it will assume the default value of 1.
 %
 %     'STATS = bootbayes (STATS, ...) returns a structure with the following
 %     fields (defined above): original, bias, std_error, CI_lower, CI_upper.
@@ -180,7 +181,7 @@ function [stats, bootstat] = bootbayes (y, X, nboot, alpha, seed, L)
 
   % Evaluate hypothesis matrix (L)
   if (nargin < 6)
-    % If L is not provided, set L to unity
+    % If L is not provided, set L to 1
     L = 1;
   else
     if (isempty (L))
@@ -257,7 +258,7 @@ function b = lmfit (X, y, W, L)
     W = eye (n);
   end
   if (nargin < 4)
-    % If no hypothesis matrix is provided, set H to unity
+    % If no hypothesis matrix (L) is provided, set L to 1
     L = 1;
   end
   
@@ -307,7 +308,7 @@ function print_output (stats, nboot, alpha, l, p)
     fprintf (['\nSummary of Bayesian bootstrap estimates of bias and precision for linear models\n',...
               '*******************************************************************************\n\n']);
     fprintf ('Bootstrap settings: \n');
-    fprintf (' Function: (X'' * W * y) / (X'' * W * X)\n');
+    fprintf (' Function: L * pinv (X'' * W * X) * (X'' * W * y)\n');
     fprintf (' Resampling method: Bayesian bootstrap (symmetric uniform Dirichlet)\n')
     fprintf (' Number of resamples: %u \n', nboot)
     if (~ isempty (alpha) && ~ all (isnan (alpha)))
