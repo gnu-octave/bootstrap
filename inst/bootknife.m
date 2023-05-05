@@ -16,10 +16,11 @@
 %     bootknife [1], to generate 2000 resamples from the rows of the DATA
 %     (column vector or matrix) and compute their means and display the
 %     following statistics:
-%        • bias: bootstrap estimate of the bias of the mean
-%        • std_error: bootstrap estimate of the standard error of the mean
-%        • CI_lower: lower bound of the 95% bootstrap confidence interval
-%        • CI_upper: upper bound of the 95% bootstrap confidence interval
+%        • original: the original estimate(s) calculated by BOOTFUN and the DATA
+%        • bias: bootstrap bias of the estimate(s)
+%        • std_error: bootstrap estandard error of the estimate(s)
+%        • CI_lower: lower bound(s) of the 95% bootstrap confidence interval
+%        • CI_upper: upper bound(s) of the 95% bootstrap confidence interval
 %
 %     'bootknife (DATA, NBOOT)' specifies the number of bootstrap resamples,
 %     where NBOOT can be either:
@@ -828,9 +829,9 @@ function print_output (stats, nboot, alpha, l, m, bootfun_str, strata)
           switch warnID
             case 'bootknife:biasfail'
               if (strcmpi (bootfun_str, 'mean'))
-                fprintf (' Confidence interval (CI) type: Expanded percentile (equal-tailed)\n');
+                fprintf (' Confidence interval (CI) type: Expanded percentile\n');
               else
-                fprintf (' Confidence interval (CI) type: Percentile (equal-tailed)\n');
+                fprintf (' Confidence interval (CI) type: Percentile\n');
               end
             case 'bootknife:jackfail'
               if (strcmpi (bootfun_str, 'mean'))

@@ -4,18 +4,19 @@
 % -- Function File: bootbayes (y, X, NBOOT, ALPHA)
 % -- Function File: bootbayes (y, X, NBOOT, ALPHA, SEED)
 % -- Function File: bootbayes (y, X, NBOOT, ALPHA, SEED, L)
-% -- Function File: CI = bootbayes (y, ...)
-% -- Function File: [CI, BOOTSTAT] = bootbayes (y, ...)
+% -- Function File: STATS = bootbayes (y, ...)
+% -- Function File: [STATS, BOOTSTAT] = bootbayes (y, ...)
 %
 %     'bootbayes (y)' uses Bayesian bootstrap [1] to create 2000 bootstrap
 %     statistics, each representing the weighted mean of the column vector, y, 
 %     and a vector of weights randomly generated from a symmetric uniform
 %     Dirichlet distribution. The resulting bootstrap distribution is summarised
 %     with the following statistics:
-%        • bias: bootstrap estimate of the bias
-%        • std_error: bootstrap estimate of the standard error
-%        • CI_lower: lower bound of the 95% bootstrap confidence interval
-%        • CI_upper: upper bound of the 95% bootstrap confidence interval
+%        • original: the mean (or regression coefficients) of y (and X)
+%        • bias: bootstrap estimate(s) of the bias
+%        • std_error: bootstrap estimate(s) of the standard error
+%        • CI_lower: lower bound(s) of the 95% bootstrap confidence interval
+%        • CI_upper: upper bound(s) of the 95% bootstrap confidence interval
 %          Here, the confidence intervals, or credible intervals in the context
 %          of the Bayesian statistical framework, are percentile intervals [2].
 %
@@ -48,10 +49,12 @@
 %     'bootbayes (..., NBOOT, BOOTFUN, ALPHA, SEED, L)' multiplies the
 %     regression coefficients by the hypothesis matrix L.
 %
-%     'CI = bootbayes (STATS, ...) returns the confidence intervals.
+%     'STATS = bootbayes (STATS, ...) returns a structure with the following
+%     fields (defined above): original, bias, std_error, CI_lower, CI_upper.
 %
-%     '[CI, BOOTSTAT] = bootbayes (STATS, ...)  also returns BOOTSTAT, a vector
-%     or matrix of bootstrap statistics calculated over the bootstrap resamples.
+%     '[STATS, BOOTSTAT] = bootbayes (STATS, ...)  also returns the a vector (or
+%     matrix) of bootstrap statistics (BOOTSTAT) calculated over the bootstrap
+%     resamples.
 %
 %  Bibliography:
 %  [1] Rubin (1981) The Bayesian Bootstrap. Ann. Statist. 9(1):130-134
@@ -77,7 +80,7 @@
 %  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-function [ci, bootstat] = bootbayes (y, X, nboot, alpha, seed, L)
+function [stats, bootstat] = bootbayes (y, X, nboot, alpha, seed, L)
 
   % Check the number of function arguments
   if (nargin < 1)
@@ -136,8 +139,8 @@ function [ci, bootstat] = bootbayes (y, X, nboot, alpha, seed, L)
 
   % Evaluate alpha
   if ((nargin < 4) || isempty (alpha))
-    alpha = [0.025, 0.975];
-    nalpha = 2;
+    alpha = 0.05;
+    nalpha = 1;
   else
     nalpha = numel (alpha);
     if (~ isa (alpha, 'numeric') || (nalpha > 2))
@@ -180,7 +183,7 @@ function [ci, bootstat] = bootbayes (y, X, nboot, alpha, seed, L)
     % If L is not provided, set L to unity
     L = 1;
   else
-    if (isempty (H))
+    if (isempty (L))
       L = 1;
     end
     % Calculate number of parameters
@@ -309,12 +312,13 @@ function print_output (stats, nboot, alpha, l, p)
     fprintf (' Number of resamples: %u \n', nboot)
     if (~ isempty (alpha) && ~ all (isnan (alpha)))
       nalpha = numel (alpha);
-      fprintf (' Confidence interval (CI) type: Percentile (equal-tailed)\n');
       if (nalpha > 1)
         % alpha is a vector of probabilities
+        fprintf (' Confidence interval (CI) type: Percentile\n');
         coverage = 100 * abs (alpha(2) - alpha(1));
       else
         % alpha is a two-tailed probability
+        fprintf (' Confidence interval (CI) type: Percentile (equal-tailed)\n');
         coverage = 100 * (1 - alpha);
       end
       fprintf (' Nominal coverage (and the percentiles used): %.3g%% (%.1f%%, %.1f%%)\n\n', coverage, 100 * l);

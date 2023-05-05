@@ -3,8 +3,8 @@
 % -- Function File: bootemm (STATS, DIM, NBOOT, ALPHA)
 % -- Function File: bootemm (STATS, DIM, NBOOT, ALPHA)
 % -- Function File: bootemm (STATS, DIM, NBOOT, ALPHA, SEED)
-% -- Function File: CI = bootemm (STATS, DIM, ...)
-% -- Function File: [CI, BOOTSTAT] = bootemm (STATS, DIM, ...)
+% -- Function File: EMM = bootemm (STATS, DIM, ...)
+% -- Function File: [EMM, BOOTSTAT] = bootemm (STATS, DIM, ...)
 %
 %     'bootemm (STATS, DIM)' uses the STATS structure output from fitlm or
 %     anovan functions (from the v1.5+ of the Statistics package in OCTAVE)
@@ -38,10 +38,12 @@
 %     Twister random number generator using an integer SEED value so that
 %     bootemm results are reproducible.
 %
-%     'CI = bootemm (STATS, DIM, ...) returns the confidence intervals of the
-%     estimated marginal means for the linear model.
+%     'EMM = bootemm (STATS, DIM, ...) returns a structure with the following
+%     fields (defined above): original, bias, std_error, CI_lower, CI_upper.
+%     These statistics correspond to the estimated marginal means of the linear
+%     model along the dimenions DIM.
 %
-%     '[CI, BOOTSTAT] = bootemm (STATS, DIM, ...) also returns the bootstrap
+%     '[EMM, BOOTSTAT] = bootemm (STATS, DIM, ...) also returns the bootstrap
 %     statistics for the estimated marginal means.
 %
 %  Requirements: bootemm is only supported in GNU Octave and requires the
