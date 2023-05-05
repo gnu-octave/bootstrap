@@ -123,27 +123,27 @@ function [emm, bootstat] = bootemm (STATS, dim, nboot, alpha, seed)
   i = 1 + cumsum(df);
   k = find (sum (STATS.terms(:,dim), 2) == sum (STATS.terms, 2));
   Nt = numel (k);
-  L = zeros (n, sum (df) + 1);
+  H = zeros (n, sum (df) + 1);
   for j = 1:Nt
-    L(:, i(k(j)) - df(k(j)) + 1 : i(k(j))) = STATS.X(:,i(k(j)) - ...
+    H(:, i(k(j)) - df(k(j)) + 1 : i(k(j))) = STATS.X(:,i(k(j)) - ...
                                              df(k(j)) + 1 : i(k(j)));
   end
-  L(:,1) = 1;
-  H = unique (L, 'rows', 'stable');
-  Ng = size (H, 1);
+  H(:,1) = 1;
+  L = unique (H, 'rows', 'stable');
+  Ng = size (L, 1);
   idx = zeros (Ng, 1);
   for k = 1:Ng
-    idx(k) = find (all (L == H(k, :), 2),1);
+    idx(k) = find (all (H == L(k, :), 2),1);
   end
 
   % Perform Bayesian bootstrap
   switch (nargout)
     case 0
-      bootbayes (y, X, nboot, alpha, [], H);
+      bootbayes (y, X, nboot, alpha, [], L, NaN);
     case 1
-      emm = bootbayes (y, X, nboot, alpha, [], H);
+      emm = bootbayes (y, X, nboot, alpha, [], L, NaN);
     otherwise
-      [emm, bootstat] = bootbayes (y, X, nboot, alpha, [], H);
+      [emm, bootstat] = bootbayes (y, X, nboot, alpha, [], L, NaN);
   end
 
 end
