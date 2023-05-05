@@ -4,25 +4,29 @@
 % -- Function File: bootbayes (y, X, NBOOT, ALPHA)
 % -- Function File: bootbayes (y, X, NBOOT, ALPHA, SEED)
 % -- Function File: bootbayes (y, X, NBOOT, ALPHA, SEED, L)
+% -- Function File: bootbayes (y, X, NBOOT, ALPHA, SEED, L, H0)
 % -- Function File: STATS = bootbayes (y, ...)
 % -- Function File: [STATS, BOOTSTAT] = bootbayes (y, ...)
 %
 %     'bootbayes (y)' uses Bayesian bootstrap [1] to create 2000 bootstrap
 %     statistics, each representing the weighted mean of the column vector, y, 
 %     and a vector of weights randomly generated from a symmetric uniform
-%     Dirichlet distribution. The resulting bootstrap distribution is summarised
-%     with the following statistics:
+%     Dirichlet distribution. The resulting bootstrap distribution(s) is/are
+%     summarised by the following statistics:
 %        • original: the mean of y or coefficients from the regression of y on X
 %        • bias: bootstrap estimate(s) of the bias
 %        • std_error: bootstrap estimate(s) of the standard error
 %        • CI_lower: lower bound(s) of the 95% bootstrap confidence interval
 %        • CI_upper: upper bound(s) of the 95% bootstrap confidence interval
+%        • pval: two-tailed p-value(s) for the estimate(s) equal to H0
 %          Here, the confidence intervals, or credible intervals in the context
 %          of the Bayesian statistical framework, are percentile intervals [2].
+%          Note that the two-tailed bootstrap p-values make the assumption
+%          of translational invariance and are truncated at 2 / NBOOT.
 %
-%     'bootbayes (y, X)' specifies the design matrix for least squares
-%     regression. X should be a column vector or matrix the same number of
-%     rows as y. If the X input argument is empty, the default for X is a
+%     'bootbayes (y, X)' also specifies the design matrix (X) for least squares
+%     regression of y on X. X should be a column vector or matrix the same
+%     number of rows as y. If the X input argument is empty, the default for X
 %     is a column of ones (i.e. intercept only) and thus the statistic computed
 %     reduces to the mean (as above).
 %
@@ -50,6 +54,9 @@
 %     regression coefficients by the hypothesis matrix L. If L is not provided
 %     or is empty, it will assume the default value of 1.
 %
+%     'bootbayes (..., NBOOT, BOOTFUN, ALPHA, SEED, L, H0)' sets the null value
+%     for hypothesis testing. The default value of H0 is zero.
+%
 %     'STATS = bootbayes (STATS, ...) returns a structure with the following
 %     fields (defined above): original, bias, std_error, CI_lower, CI_upper.
 %
@@ -62,7 +69,7 @@
 %  [2] Efron and Tibshirani. Chapter 16 Hypothesis testing with the
 %       bootstrap in An introduction to the bootstrap (CRC Press, 1994)
 %
-%  bootbayes (version 2023.05.02)
+%  bootbayes (version 2023.05.05)
 %  Author: Andrew Charles Penn
 %  https://www.researchgate.net/profile/Andrew_Penn/
 %
@@ -81,13 +88,13 @@
 %  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-function [stats, bootstat] = bootbayes (y, X, nboot, alpha, seed, L)
+function [stats, bootstat] = bootbayes (y, X, nboot, alpha, seed, L, H0)
 
   % Check the number of function arguments
   if (nargin < 1)
     error ('bootknife: y must be provided');
   end
-  if (nargin > 6)
+  if (nargin > 7)
     error ('bootbayes: Too many input arguments')
   end
   if (nargout > 2)
@@ -126,13 +133,13 @@ function [stats, bootstat] = bootbayes (y, X, nboot, alpha, seed, L)
       nboot = 2000;
     end
     if (~ isa (nboot, 'numeric'))
-      error ('bootci: NBOOT must be numeric');
+      error ('bootbayes: NBOOT must be numeric');
     end
     if (numel (nboot) > 1)
-      error ('bootci: NBOOT must be a positive integer');
+      error ('bootbayes: NBOOT must be a positive integer');
     end
     if (nboot ~= abs (fix (nboot)))
-      error ('bootci: NBOOT must contain positive integers');
+      error ('bootbayes: NBOOT must contain positive integers');
     end
   else
     nboot = 2000;
@@ -191,6 +198,21 @@ function [stats, bootstat] = bootbayes (y, X, nboot, alpha, seed, L)
     p = size (L, 1);
   end
 
+  % Evaluate null hypothesis (H0) input argument
+  if (nargin < 7)
+    H0 = 0;
+  else 
+    if (~ isa (H0, 'numeric'))
+      error ('bootbayes: H0 must be numeric');
+    end
+    if (numel (H0) > 1)
+      error ('bootbayes: H0 must be scalar');
+    end
+    if isempty (H0)
+      H0 = 0;
+    end
+  end
+
   % Create weighted least squares anonymous function
   bootfun = @(w) lmfit (X, y, diag (w), L);
 
@@ -218,16 +240,20 @@ function [stats, bootstat] = bootbayes (y, X, nboot, alpha, seed, L)
   % Bootstrap standard error
   se = std (bootstat, 0, 2);
 
-  % Compute confidence intervals
+  % Compute confidence intervals and p-values
   ci = nan (p, 2);
-  if (~ isnan (alpha))
-    ci = zeros (p, 2);
-    for j = 1:p
-      [cdf, t1] = empcdf (bootstat(j, :));
+  pval = nan (p, 1);
+  for j = 1:p
+    [cdf, t1] = empcdf (bootstat(j, :));
+    if (~ isnan (H0))
+      tmp = max (interp1 (t1, cdf, H0, 'linear'), 0);
+      pval(j) = max (2 * min (tmp, 1 - tmp), 2 / nboot);
+    end
+    if (~ isnan (alpha))
       ci(j, :) = arrayfun (@(p) interp1 (cdf, t1, p, 'linear'), l);
     end
   end
-
+  
   % Prepare output arguments
   stats = struct;
   stats.original = T0;
@@ -235,10 +261,11 @@ function [stats, bootstat] = bootbayes (y, X, nboot, alpha, seed, L)
   stats.std_error = se;
   stats.CI_lower = ci(:, 1);
   stats.CI_upper = ci(:, 2);
+  stats.pval = pval;
 
   % Print output if no output arguments are requested
   if (nargout == 0) 
-    print_output (stats, nboot, alpha, l, p);
+    print_output (stats, nboot, alpha, l, p, L, H0);
   end
 
 end
@@ -303,7 +330,7 @@ end
 
 %% FUNCTION TO PRINT OUTPUT
 
-function print_output (stats, nboot, alpha, l, p)
+function print_output (stats, nboot, alpha, l, p, L, H0)
 
     fprintf (['\nSummary of Bayesian bootstrap estimates of bias and precision for linear models\n',...
               '*******************************************************************************\n\n']);
@@ -322,13 +349,25 @@ function print_output (stats, nboot, alpha, l, p)
         fprintf (' Confidence interval (CI) type: Percentile (equal-tailed)\n');
         coverage = 100 * (1 - alpha);
       end
-      fprintf (' Nominal coverage (and the percentiles used): %.3g%% (%.1f%%, %.1f%%)\n\n', coverage, 100 * l);
+      fprintf (' Nominal coverage (and the percentiles used): %.3g%% (%.1f%%, %.1f%%)\n', coverage, 100 * l);
     end
-    fprintf ('Bootstrap Statistics: \n');
-    fprintf (' original       bias           std_error      CI_lower       CI_upper    \n');
+    fprintf (' Null value (H0) used for hypothesis testing: %.3g \n', H0)
+    fprintf ('\nBootstrap Statistics: \n');
+    fprintf (' original       bias           std_error      CI_lower       CI_upper     p-val\n');
     for j = 1:p
-      fprintf (' %#-+12.6g   %#-+12.6g   %#-+12.6g   %#-+12.6g   %#-+12.6g \n',... 
-               [stats.original(j), stats.bias(j), stats.std_error(j), stats.CI_lower(j), stats.CI_upper(j)]);
+      if (stats.pval(j) <= 0.001)
+        fprintf (' %#-+12.6g   %#-+12.6g   %#-+12.6g   %#-+12.6g   %#-+12.6g <.001 \n',... 
+                 [stats.original(j), stats.bias(j), stats.std_error(j), stats.CI_lower(j), stats.CI_upper(j)]);
+      elseif (stats.pval(j) < 0.9995)
+        fprintf (' %#-+12.6g   %#-+12.6g   %#-+12.6g   %#-+12.6g   %#-+12.6g  .%03u \n',... 
+                 [stats.original(j), stats.bias(j), stats.std_error(j), stats.CI_lower(j), stats.CI_upper(j), round(stats.pval(j) * 1e+03)]);
+      elseif (isnan (stats.pval(j)))
+        fprintf (' %#-+12.6g   %#-+12.6g   %#-+12.6g   %#-+12.6g   %#-+12.6g   NaN \n',... 
+                 [stats.original(j), stats.bias(j), stats.std_error(j), stats.CI_lower(j), stats.CI_upper(j)]);
+      else
+        fprintf (' %#-+12.6g   %#-+12.6g   %#-+12.6g   %#-+12.6g   %#-+12.6g 1.000 \n',... 
+                 [stats.original(j), stats.bias(j), stats.std_error(j), stats.CI_lower(j), stats.CI_upper(j)]);
+      end
     end
     fprintf ('\n');
 
@@ -371,13 +410,13 @@ end
 %! heights = [183, 192, 182, 183, 177, 185, 188, 188, 182, 185].';
 %!
 %! ## 95% bootstrap confidence interval for the mean 
-%! ci = bootbayes(heights);
-%! ci = bootbayes(heights,[]);
-%! ci = bootbayes(heights,[],2000);
-%! ci = bootbayes(heights,[],2000,0.05);
-%! ci = bootbayes(heights,[],2000,[0.025,0.975]);
-%! ci = bootbayes(heights,[],[],[]);
-%! [ci,bootstat] = bootbayes(heights);
+%! stats = bootbayes(heights);
+%! stats = bootbayes(heights,[]);
+%! stats = bootbayes(heights,[],2000);
+%! stats = bootbayes(heights,[],2000,0.05);
+%! stats = bootbayes(heights,[],2000,[0.025,0.975]);
+%! stats = bootbayes(heights,[],[],[]);
+%! [stats,bootstat] = bootbayes(heights);
 
 %!test
 %! ## Test calculations of statistics for linear regression
@@ -394,9 +433,9 @@ end
 %!     183.0,192.0,182.0,183.0,177.0,185.0,188.0,188.0,182.0,185.0]';
 %!
 %! ## 95% bootstrap confidence interval for the mean 
-%! ci = bootbayes(y,X);
-%! ci = bootbayes(y,X,2000);
-%! ci = bootbayes(y,X,2000,0.05);
-%! ci = bootbayes(y,X,2000,[0.025,0.975]);
-%! ci = bootbayes(y,X,[],[]);
-%! [ci,bootstat] = bootbayes(y,X);
+%! stats = bootbayes(y,X);
+%! stats = bootbayes(y,X,2000);
+%! stats = bootbayes(y,X,2000,0.05);
+%! stats = bootbayes(y,X,2000,[0.025,0.975]);
+%! stats = bootbayes(y,X,[],[]);
+%! [stats,bootstat] = bootbayes(y,X);
