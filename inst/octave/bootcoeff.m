@@ -3,8 +3,8 @@
 % -- Function File: bootcoeff (STATS, NBOOT, ALPHA)
 % -- Function File: bootcoeff (STATS, NBOOT, ALPHA)
 % -- Function File: bootcoeff (STATS, NBOOT, ALPHA, SEED)
-% -- Function File: CI = bootcoeff (STATS, ...)
-% -- Function File: [CI, BOOTSTAT] = bootcoeff (STATS, ...)
+% -- Function File: COEFF = bootcoeff (STATS, ...)
+% -- Function File: [COEFF, BOOTSTAT] = bootcoeff (STATS, ...)
 %
 %     'bootcoeff (STATS)' uses the STATS structure output from fitlm or anovan
 %     functions (from the v1.5+ of the Statistics package in OCTAVE) and
@@ -37,10 +37,11 @@
 %     Twister random number generator using an integer SEED value so that
 %     bootcoeff results are reproducible.
 %
-%     'CI = bootcoeff (STATS, ...) returns the confidence intervals of the
-%     coefficients for the linear model.
+%     'COEFF = bootcoeff (STATS, ...) returns a structure with the following
+%     fields (defined above): original, bias, std_error, CI_lower, CI_upper.
+%     These statistics correspond to the coefficients of the linear model.
 %
-%     '[CI, BOOTSTAT] = bootcoeff (STATS, ...) also returns the bootstrap
+%     '[COEFF, BOOTSTAT] = bootcoeff (STATS, ...) also returns the bootstrap
 %     statistics for the coefficients.
 %
 %  Requirements: bootcoeff is only supported in GNU Octave and requires the
