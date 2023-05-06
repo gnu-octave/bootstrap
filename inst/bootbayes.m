@@ -18,11 +18,8 @@
 %        • std_error: bootstrap estimate(s) of the standard error
 %        • CI_lower: lower bound(s) of the 95% bootstrap confidence interval
 %        • CI_upper: upper bound(s) of the 95% bootstrap confidence interval
-%        • pval: two-tailed p-value(s) for the estimate(s) equal to H0
 %          Here, the confidence intervals, or credible intervals in the context
 %          of the Bayesian statistical framework, are percentile intervals [2].
-%          Note that the two-tailed bootstrap p-values make the assumption
-%          of translational invariance and are truncated at 2 / NBOOT.
 %
 %     'bootbayes (y, X)' also specifies the design matrix (X) for least squares
 %     regression of y on X. X should be a column vector or matrix the same
@@ -88,13 +85,13 @@
 %  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-function [stats, bootstat] = bootbayes (y, X, nboot, alpha, seed, L, H0)
+function [stats, bootstat] = bootbayes (y, X, nboot, alpha, seed, L)
 
   % Check the number of function arguments
   if (nargin < 1)
     error ('bootknife: y must be provided');
   end
-  if (nargin > 7)
+  if (nargin > 6)
     error ('bootbayes: Too many input arguments')
   end
   if (nargout > 2)
@@ -198,21 +195,6 @@ function [stats, bootstat] = bootbayes (y, X, nboot, alpha, seed, L, H0)
     p = size (L, 1);
   end
 
-  % Evaluate null hypothesis (H0) input argument
-  if (nargin < 7)
-    H0 = 0;
-  else 
-    if (~ isa (H0, 'numeric'))
-      error ('bootbayes: H0 must be numeric');
-    end
-    if (numel (H0) > 1)
-      error ('bootbayes: H0 must be scalar');
-    end
-    if isempty (H0)
-      H0 = 0;
-    end
-  end
-
   % Create weighted least squares anonymous function
   bootfun = @(w) lmfit (X, y, diag (w), L);
 
@@ -240,15 +222,10 @@ function [stats, bootstat] = bootbayes (y, X, nboot, alpha, seed, L, H0)
   % Bootstrap standard error
   se = std (bootstat, 0, 2);
 
-  % Compute confidence intervals and p-values
+  % Compute confidence intervals
   ci = nan (p, 2);
-  pval = nan (p, 1);
   for j = 1:p
     [cdf, t1] = empcdf (bootstat(j, :));
-    if (~ isnan (H0))
-      tmp = max (interp1 (t1, cdf, H0, 'linear'), 0);
-      pval(j) = max (2 * min (tmp, 1 - tmp), 2 / nboot);
-    end
     if (~ isnan (alpha))
       ci(j, :) = arrayfun (@(p) interp1 (cdf, t1, p, 'linear'), l);
     end
@@ -261,11 +238,10 @@ function [stats, bootstat] = bootbayes (y, X, nboot, alpha, seed, L, H0)
   stats.std_error = se;
   stats.CI_lower = ci(:, 1);
   stats.CI_upper = ci(:, 2);
-  stats.pval = pval;
 
   % Print output if no output arguments are requested
   if (nargout == 0) 
-    print_output (stats, nboot, alpha, l, p, L, H0);
+    print_output (stats, nboot, alpha, l, p, L);
   end
 
 end
@@ -330,7 +306,7 @@ end
 
 %% FUNCTION TO PRINT OUTPUT
 
-function print_output (stats, nboot, alpha, l, p, L, H0)
+function print_output (stats, nboot, alpha, l, p, L)
 
     fprintf (['\nSummary of Bayesian bootstrap estimates of bias and precision for linear models\n',...
               '*******************************************************************************\n\n']);
@@ -351,23 +327,11 @@ function print_output (stats, nboot, alpha, l, p, L, H0)
       end
       fprintf (' Nominal coverage (and the percentiles used): %.3g%% (%.1f%%, %.1f%%)\n', coverage, 100 * l);
     end
-    fprintf (' Null value (H0) used for hypothesis testing: %.3g \n', H0)
     fprintf ('\nBootstrap Statistics: \n');
-    fprintf (' original       bias           std_error      CI_lower       CI_upper     p-val\n');
+    fprintf (' original       bias           std_error      CI_lower       CI_upper\n');
     for j = 1:p
-      if (stats.pval(j) <= 0.001)
-        fprintf (' %#-+12.6g   %#-+12.6g   %#-+12.6g   %#-+12.6g   %#-+12.6g <.001 \n',... 
+      fprintf (' %#-+12.6g   %#-+12.6g   %#-+12.6g   %#-+12.6g   %#-+12.6g \n',... 
                  [stats.original(j), stats.bias(j), stats.std_error(j), stats.CI_lower(j), stats.CI_upper(j)]);
-      elseif (stats.pval(j) < 0.9995)
-        fprintf (' %#-+12.6g   %#-+12.6g   %#-+12.6g   %#-+12.6g   %#-+12.6g  .%03u \n',... 
-                 [stats.original(j), stats.bias(j), stats.std_error(j), stats.CI_lower(j), stats.CI_upper(j), round(stats.pval(j) * 1e+03)]);
-      elseif (isnan (stats.pval(j)))
-        fprintf (' %#-+12.6g   %#-+12.6g   %#-+12.6g   %#-+12.6g   %#-+12.6g   NaN \n',... 
-                 [stats.original(j), stats.bias(j), stats.std_error(j), stats.CI_lower(j), stats.CI_upper(j)]);
-      else
-        fprintf (' %#-+12.6g   %#-+12.6g   %#-+12.6g   %#-+12.6g   %#-+12.6g 1.000 \n',... 
-                 [stats.original(j), stats.bias(j), stats.std_error(j), stats.CI_lower(j), stats.CI_upper(j)]);
-      end
     end
     fprintf ('\n');
 
