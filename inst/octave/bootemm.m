@@ -117,6 +117,9 @@ function [emm, bootstat] = bootemm (STATS, dim, nboot, alpha, seed)
   resid = STATS.resid;
   y = fitted + resid;
   n = numel (resid);
+  if (~ all (diag (full (STATS.W) == 1)))
+    error ('bootcoeff: Incompatible with the ''weights'' argument in ''anovan'' or ''fitlm''')
+  end
 
   % Prepare the hypothesis matrix (H)
   df = STATS.df;
@@ -139,11 +142,11 @@ function [emm, bootstat] = bootemm (STATS, dim, nboot, alpha, seed)
   % Perform Bayesian bootstrap
   switch (nargout)
     case 0
-      bootbayes (y, X, nboot, alpha, [], L, NaN);
+      bootbayes (y, X, nboot, alpha, [], L);
     case 1
-      emm = bootbayes (y, X, nboot, alpha, [], L, NaN);
+      emm = bootbayes (y, X, nboot, alpha, [], L);
     otherwise
-      [emm, bootstat] = bootbayes (y, X, nboot, alpha, [], L, NaN);
+      [emm, bootstat] = bootbayes (y, X, nboot, alpha, [], L);
   end
 
 end
