@@ -4,7 +4,6 @@
 % -- Function File: bootbayes (y, X, NBOOT, ALPHA)
 % -- Function File: bootbayes (y, X, NBOOT, ALPHA, SEED)
 % -- Function File: bootbayes (y, X, NBOOT, ALPHA, SEED, L)
-% -- Function File: bootbayes (y, X, NBOOT, ALPHA, SEED, L, H0)
 % -- Function File: STATS = bootbayes (y, ...)
 % -- Function File: [STATS, BOOTSTAT] = bootbayes (y, ...)
 %
@@ -50,9 +49,6 @@
 %     'bootbayes (..., NBOOT, BOOTFUN, ALPHA, SEED, L)' multiplies the
 %     regression coefficients by the hypothesis matrix L. If L is not provided
 %     or is empty, it will assume the default value of 1.
-%
-%     'bootbayes (..., NBOOT, BOOTFUN, ALPHA, SEED, L, H0)' sets the null value
-%     for hypothesis testing. The default value of H0 is zero.
 %
 %     'STATS = bootbayes (STATS, ...) returns a structure with the following
 %     fields (defined above): original, bias, std_error, CI_lower, CI_upper.
