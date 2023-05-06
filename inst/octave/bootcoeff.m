@@ -108,6 +108,9 @@ function [coeffs, bootstat] = bootcoeff (STATS, nboot, alpha, seed)
   fitted = X * b;
   resid = STATS.resid;
   y = fitted + resid;
+  if (~ all (diag (full (STATS.W) == 1)))
+    error ('bootcoeff: Incompatible with the ''weights'' argument in ''anovan'' or ''fitlm''')
+  end
 
   % Perform Bayesian bootstrap
   switch (nargout)
