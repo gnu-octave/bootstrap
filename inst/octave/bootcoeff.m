@@ -1,8 +1,9 @@
 % -- Function File: bootcoeff (STATS)
 % -- Function File: bootcoeff (STATS, NBOOT)
-% -- Function File: bootcoeff (STATS, NBOOT, ALPHA)
-% -- Function File: bootcoeff (STATS, NBOOT, ALPHA)
-% -- Function File: bootcoeff (STATS, NBOOT, ALPHA, SEED)
+% -- Function File: bootcoeff (STATS, NBOOT, PROB)
+% -- Function File: bootcoeff (STATS, NBOOT, PROB)
+% -- Function File: bootcoeff (STATS, NBOOT, PROB, SEED)
+% -- Function File: bootcoeff (STATS, NBOOT, PROB, PRIOR, SEED)
 % -- Function File: COEFF = bootcoeff (STATS, ...)
 % -- Function File: [COEFF, BOOTSTAT] = bootcoeff (STATS, ...)
 %
@@ -12,30 +13,39 @@
 %        • original: regression coefficients from the original data
 %        • bias: bootstrap estimate of the bias of the coefficients
 %        • std_error: bootstrap estimate of the standard error
-%        • CI_lower: lower bound of the 95% bootstrap confidence interval
-%        • CI_upper: upper bound of the 95% bootstrap confidence interval
-%          Here, the confidence intervals, or credible intervals in the context
-%          of the Bayesian statistical framework, are percentile intervals [2].
+%        • CI_lower: lower bound(s) of the 95% credible interval
+%        • CI_upper: upper bound(s) of the 95% credible interval
+%          By default, the credible intervals are equal-tailed intervals (ETI).
 %
 %     'bootcoeff (STATS, NBOOT)' specifies the number of bootstrap resamples,
-%     where NBOOT must be a positive integer. If empty, tHe default value of
+%     where NBOOT must be a positive integer. If empty, the default value of
 %     NBOOT is the scalar: 2000.
 %
-%     'bootcoeff (STATS, NBOOT, ALPHA)', where ALPHA is numeric and sets the
-%     the lower and upper bounds of the confidence interval(s). The value(s) of
-%     ALPHA must be between 0 and 1. ALPHA can either be:
-%        • scalar: To set the (nominal) central coverage of equal-tailed
-%                  percentile confidence intervals to 100*(1-ALPHA)%.
-%        • vector: A pair of probabilities defining the (nominal) lower and
-%                  upper percentiles of the confidence interval(s) as
-%                  100*(ALPHA(1))% and 100*(ALPHA(2))% respectively. 
-%        Confidence intervals are not calculated when the value(s) of ALPHA
-%        is/are NaN. The default value of  ALPHA is the vector: [.025, .975], 
-%        for a 95% confidence interval.
+%     'bootcoeff (STATS, NBOOT, PROB)' where PROB is numeric and sets the lower
+%     lower and upper bounds of the credible interval(s). The value(s) of
+%     PROB must be between 0 and 1. PROB can either be:
+%        • scalar: To set the central mass of equal-tailed intervals to
+%                  100*(1-PROB)%.
+%        • vector: A pair of probabilities defining the lower and upper
+%                  percentiles of the credible interval(s) as 100*(PROB(1))%
+%                  and 100*(PROB(2))% respectively. 
+%        Credible intervals are not calculated when the value(s) of PROB
+%        is/are NaN. The default value of PROB is the scalar 0.95.
 %
-%     'bootcoeff (STATS, NBOOT, ALPHA, SEED)' initialises the Mersenne
+%     'bootcoeff (STATS, NBOOT, PROB, PRIOR)' accepts a positive real numeric
+%     scalar to parametrize the form of the symmetric Dirichlet distribution.
+%     The Dirichlet distribution is the conjugate PRIOR used to randomly
+%     generate weights for linear least squares and subsequently to estimate the
+%     posterior for the regression coefficients. If PRIOR is not provided, or is
+%     empty, it will be set to 1, corresponding to a uniform (or flat) prior.
+%     For a stronger prior, set PRIOR to > 1. For a weaker prior, set PRIOR to
+%     < 1 (e.g. 0.5 for Jeffrey's prior). Jeffrey's prior may be appropriate for
+%     estimates from small samples (n < 10), where the amount of data may be
+%     assumed to inadequately define the parameter space. 
+%
+%     'bootcoeff (STATS, NBOOT, PROB, PRIOR, SEED)' initialises the Mersenne
 %     Twister random number generator using an integer SEED value so that
-%     bootcoeff results are reproducible.
+%     'bootcoeff' results are reproducible.
 %
 %     'COEFF = bootcoeff (STATS, ...) returns a structure with the following
 %     fields (defined above): original, bias, std_error, CI_lower, CI_upper.
@@ -49,10 +59,8 @@
 %
 %  Bibliography:
 %  [1] Rubin (1981) The Bayesian Bootstrap. Ann. Statist. 9(1):130-134
-%  [2] Efron and Tibshirani. Chapter 16 Hypothesis testing with the
-%       bootstrap in An introduction to the bootstrap (CRC Press, 1994)
 %
-%  bootcoeff (version 2023.05.02)
+%  bootcoeff (version 2023.05.10)
 %  Author: Andrew Charles Penn
 %  https://www.researchgate.net/profile/Andrew_Penn/
 %
@@ -71,7 +79,7 @@
 %  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-function [coeffs, bootstat] = bootcoeff (STATS, nboot, alpha, seed)
+function [coeffs, bootstat] = bootcoeff (STATS, nboot, prob, prior, seed)
 
   % Check input aruments
   if (nargin < 1)
@@ -81,11 +89,14 @@ function [coeffs, bootstat] = bootcoeff (STATS, nboot, alpha, seed)
     nboot = 2000;
   end
   if (nargin < 3)
-    alpha = [0.025, 0.975];
+    prob = 0.95;
   end
-  if (nargin > 3)
+  if (nargin < 4)
+    prior = []; % Use default in bootbayes
+  end
+  if (nargin > 4)
     if (ISOCTAVE)
-      rande ('seed', seed);
+      randg ('seed', seed);
     else
       rng ('default');
     end
@@ -108,6 +119,7 @@ function [coeffs, bootstat] = bootcoeff (STATS, nboot, alpha, seed)
   fitted = X * b;
   resid = STATS.resid;
   y = fitted + resid;
+  N = numel (resid);
   if (~ all (diag (full (STATS.W) == 1)))
     error ('bootcoeff: Incompatible with the ''weights'' argument in ''anovan'' or ''fitlm''')
   end
@@ -115,11 +127,11 @@ function [coeffs, bootstat] = bootcoeff (STATS, nboot, alpha, seed)
   % Perform Bayesian bootstrap
   switch (nargout)
     case 0
-      bootbayes (y, X, nboot, alpha);
+      bootbayes (y, X, nboot, prob, prior);
     case 1
-      coeffs = bootbayes (y, X, nboot, alpha);
+      coeffs = bootbayes (y, X, nboot, prob, prior);
     otherwise
-      [coeffs, bootstat] = bootbayes (y, X, nboot, alpha);
+      [coeffs, bootstat] = bootbayes (y, X, nboot, prob, prior);
   end
 
 end
@@ -135,4 +147,5 @@ end
 %!
 %! [P,ATAB,STATS] = anovan (dv,g,'contrasts','simple');
 %! STATS.coeffnames
-%! bootcoeff (STATS)
+%! # Uniform prior, 95% credible intervals
+%! bootcoeff (STATS,2000,0.95,1.0)

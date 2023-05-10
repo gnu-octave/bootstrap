@@ -86,11 +86,11 @@ for i=1:sim
   
   % Bootstrap confidence interval
   %ci = bootci (nboot, {bootfun,x}, 'alpha', alpha, 'type', type, 'Options', paropt);
-  %ci = bootbayes (x);
   if (nvar > 1)
     S = bootknife ({x, y}, nboot, bootfun, alpha, [], ncpus); ci = [S.CI_lower; S.CI_upper];
   else
     S = bootknife (x, nboot, bootfun, alpha, [], ncpus); ci = [S.CI_lower; S.CI_upper];
+    %S = bootbayes(x, [], nboot(1), 1 - alpha, 0.5); ci = [S.CI_lower; S.CI_upper];
   end
   
 

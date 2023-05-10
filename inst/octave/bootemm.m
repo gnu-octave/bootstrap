@@ -1,8 +1,8 @@
 % -- Function File: bootemm (STATS, DIM)
 % -- Function File: bootemm (STATS, DIM, NBOOT)
-% -- Function File: bootemm (STATS, DIM, NBOOT, ALPHA)
-% -- Function File: bootemm (STATS, DIM, NBOOT, ALPHA)
-% -- Function File: bootemm (STATS, DIM, NBOOT, ALPHA, SEED)
+% -- Function File: bootemm (STATS, DIM, NBOOT, PROB)
+% -- Function File: bootemm (STATS, DIM, NBOOT, PROB)
+% -- Function File: bootemm (STATS, DIM, NBOOT, PROB, SEED)
 % -- Function File: EMM = bootemm (STATS, DIM, ...)
 % -- Function File: [EMM, BOOTSTAT] = bootemm (STATS, DIM, ...)
 %
@@ -13,30 +13,39 @@
 %        • original: estimated marginal means (EMMs) from the original data
 %        • bias: bootstrap estimate of the bias of the EMMs
 %        • std_error: bootstrap estimate of the standard error of the EMMs
-%        • CI_lower: lower bound of the 95% bootstrap confidence interval
-%        • CI_upper: upper bound of the 95% bootstrap confidence interval
-%          Here, the confidence intervals, or credible intervals in the context
-%          of the Bayesian statistical framework, are percentile intervals [2].
+%        • CI_lower: lower bound(s) of the 95% credible interval
+%        • CI_upper: upper bound(s) of the 95% credible interval
+%          By default, the credible intervals are equal-tailed intervals (ETI).
 %
 %     'bootemm (STATS, DIM, NBOOT)' specifies the number of bootstrap resamples,
 %     where NBOOT must be a positive integer. If empty, tHe default value of
 %     NBOOT is the scalar: 2000.
 %
-%     'bootemm (STATS, DIM, NBOOT, ALPHA)', where ALPHA is numeric and sets the
-%     the lower and upper bounds of the confidence interval(s). The value(s) of
-%     ALPHA must be between 0 and 1. ALPHA can either be:
-%        • scalar: To set the (nominal) central coverage of equal-tailed
-%                  percentile confidence intervals to 100*(1-ALPHA)%.
-%        • vector: A pair of probabilities defining the (nominal) lower and
-%                  upper percentiles of the confidence interval(s) as
-%                  100*(ALPHA(1))% and 100*(ALPHA(2))% respectively. 
-%        Confidence intervals are not calculated when the value(s) of ALPHA
-%        is/are NaN. The default value of  ALPHA is the vector: [.025, .975], 
-%        for a 95% confidence interval.
+%     'bootemm (STATS, DIM, NBOOT, PROB)' where PROB is numeric and sets the
+%     lower and upper bounds of the credible interval(s). The value(s) of
+%     PROB must be between 0 and 1. PROB can either be:
+%        • scalar: To set the central mass of equal-tailed intervals to
+%                  100*(1-PROB)%.
+%        • vector: A pair of probabilities defining the lower and upper
+%                  percentiles of the credible interval(s) as 100*(PROB(1))%
+%                  and 100*(PROB(2))% respectively. 
+%        Credible intervals are not calculated when the value(s) of PROB
+%        is/are NaN. The default value of PROB is the scalar 0.95.
 %
-%     'bootemm (STATS, DIM, NBOOT, ALPHA, SEED)', initialises the Mersenne
-%     Twister random number generator using an integer SEED value so that
-%     bootemm results are reproducible.
+%     'bootemm (STATS, DIM, NBOOT, PROB, PRIOR)' accepts a positive real numeric
+%     scalar to parametrize the form of the symmetric Dirichlet distribution.
+%     The Dirichlet distribution is the conjugate PRIOR used to randomly
+%     generate weights for linear least squares and subsequently to estimate the
+%     posterior for the regression coefficients. If PRIOR is not provided, or is
+%     empty, it will be set to 1, corresponding to a uniform (or flat) prior.
+%     For a stronger prior, set PRIOR to > 1. For a weaker prior, set PRIOR to
+%     < 1 (e.g. 0.5 for Jeffrey's prior). Jeffrey's prior may be appropriate for
+%     estimates from small samples (n < 10), where the amount of data may be
+%     assumed to inadequately define the parameter space. 
+%
+%     'bootemm (STATS, DIM, NBOOT, PROB, PRIOR, SEED)', initialises the
+%     Mersenne Twister random number generator using an integer SEED value so
+%     that 'bootemm' results are reproducible.
 %
 %     'EMM = bootemm (STATS, DIM, ...) returns a structure with the following
 %     fields (defined above): original, bias, std_error, CI_lower, CI_upper.
@@ -51,10 +60,8 @@
 %
 %  Bibliography:
 %  [1] Rubin (1981) The Bayesian Bootstrap. Ann. Statist. 9(1):130-134
-%  [2] Efron and Tibshirani. Chapter 16 Hypothesis testing with the
-%       bootstrap in An introduction to the bootstrap (CRC Press, 1994)
 %
-%  bootemm (version 2023.05.02)
+%  bootemm (version 2023.05.10)
 %  Author: Andrew Charles Penn
 %  https://www.researchgate.net/profile/Andrew_Penn/
 %
@@ -73,7 +80,7 @@
 %  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-function [emm, bootstat] = bootemm (STATS, dim, nboot, alpha, seed)
+function [emm, bootstat] = bootemm (STATS, dim, nboot, prob, prior, seed)
 
   % Check input aruments
   if (nargin < 2)
@@ -86,11 +93,14 @@ function [emm, bootstat] = bootemm (STATS, dim, nboot, alpha, seed)
     nboot = 2000;
   end
   if (nargin < 4)
-    alpha = [0.025, 0.975];
+    prob = 0.95;
   end
-  if (nargin > 4)
+  if (nargin < 5)
+    prior = []; % Use default in bootbayes
+  end
+  if (nargin > 5)
     if (ISOCTAVE)
-      rande ('seed', seed);
+      randg ('seed', seed);
     else
       rng ('default');
     end
@@ -116,7 +126,7 @@ function [emm, bootstat] = bootemm (STATS, dim, nboot, alpha, seed)
   fitted = X * b;
   resid = STATS.resid;
   y = fitted + resid;
-  n = numel (resid);
+  N = numel (resid);
   if (~ all (diag (full (STATS.W) == 1)))
     error ('bootcoeff: Incompatible with the ''weights'' argument in ''anovan'' or ''fitlm''')
   end
@@ -126,7 +136,7 @@ function [emm, bootstat] = bootemm (STATS, dim, nboot, alpha, seed)
   i = 1 + cumsum(df);
   k = find (sum (STATS.terms(:,dim), 2) == sum (STATS.terms, 2));
   Nt = numel (k);
-  H = zeros (n, sum (df) + 1);
+  H = zeros (N, sum (df) + 1);
   for j = 1:Nt
     H(:, i(k(j)) - df(k(j)) + 1 : i(k(j))) = STATS.X(:,i(k(j)) - ...
                                              df(k(j)) + 1 : i(k(j)));
@@ -142,11 +152,11 @@ function [emm, bootstat] = bootemm (STATS, dim, nboot, alpha, seed)
   % Perform Bayesian bootstrap
   switch (nargout)
     case 0
-      bootbayes (y, X, nboot, alpha, [], L);
+      bootbayes (y, X, nboot, prob, prior, [], L);
     case 1
-      emm = bootbayes (y, X, nboot, alpha, [], L);
+      emm = bootbayes (y, X, nboot, prob, prior, [], L);
     otherwise
-      [emm, bootstat] = bootbayes (y, X, nboot, alpha, [], L);
+      [emm, bootstat] = bootbayes (y, X, nboot, prob, prior, [], L);
   end
 
 end
@@ -163,18 +173,5 @@ end
 %! [P,ATAB,STATS] = anovan (dv,g);
 %! DIM = 1;
 %! STATS.grpnames{DIM}
-%! bootemm (STATS, DIM);              # 95% confidence intervals 
-
-%!demo
-%!
-%! dv =  [ 8.706 10.362 11.552  6.941 10.983 10.092  6.421 14.943 15.931 ...
-%!        22.968 18.590 16.567 15.944 21.637 14.492 17.965 18.851 22.891 ...
-%!        22.028 16.884 17.252 18.325 25.435 19.141 21.238 22.196 18.038 ...
-%!        22.628 31.163 26.053 24.419 32.145 28.966 30.207 29.142 33.212 ...
-%!        25.694 ]';
-%! g = [1 1 1 1 1 1 1 1 2 2 2 2 2 3 3 3 3 3 3 3 3 4 4 4 4 4 4 4 5 5 5 5 5 5 5 5 5]';
-%!
-%! [P,ATAB,STATS] = anovan (dv,g);
-%! DIM = 1;
-%! STATS.grpnames{DIM}
-%! bootemm (STATS, DIM, 2000, 0.166); # 83.4% confidence intervals (overlap at p > 0.05)
+%! # Uniform prior, 95% credible intervals
+%! bootemm (STATS, DIM, 2000, 0.95, 1.0); 

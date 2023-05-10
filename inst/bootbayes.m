@@ -1,24 +1,24 @@
 % -- Function File: bootbayes (y)
 % -- Function File: bootbayes (y, X)
 % -- Function File: bootbayes (y, X, NBOOT)
-% -- Function File: bootbayes (y, X, NBOOT, ALPHA)
-% -- Function File: bootbayes (y, X, NBOOT, ALPHA, SEED)
-% -- Function File: bootbayes (y, X, NBOOT, ALPHA, SEED, L)
+% -- Function File: bootbayes (y, X, NBOOT, PROB)
+% -- Function File: bootbayes (y, X, NBOOT, PROB, PRIOR)
+% -- Function File: bootbayes (y, X, NBOOT, PROB, PRIOR, SEED)
+% -- Function File: bootbayes (y, X, NBOOT, PROB, PRIOR, SEED, L)
 % -- Function File: STATS = bootbayes (y, ...)
 % -- Function File: [STATS, BOOTSTAT] = bootbayes (y, ...)
 %
-%     'bootbayes (y)' uses Bayesian bootstrap [1] to create 2000 bootstrap
+%     'bootbayes (y)' performs Bayesian bootstrap [1] to create 2000 bootstrap
 %     statistics, each representing the weighted mean of the column vector, y, 
-%     and a vector of weights randomly generated from a symmetric uniform
-%     Dirichlet distribution. The resulting bootstrap distribution(s) is/are
-%     summarised by the following statistics:
+%     using a vector of weights randomly generated from a symmetric Dirichlet
+%     distribution. The resulting bootstrap (or posterior) distribution(s) is/
+%     are summarised with the following statistics:
 %        • original: the mean of y or coefficients from the regression of y on X
 %        • bias: bootstrap estimate(s) of the bias
 %        • std_error: bootstrap estimate(s) of the standard error
-%        • CI_lower: lower bound(s) of the 95% bootstrap confidence interval
-%        • CI_upper: upper bound(s) of the 95% bootstrap confidence interval
-%          Here, the confidence intervals, or credible intervals in the context
-%          of the Bayesian statistical framework, are percentile intervals [2].
+%        • CI_lower: lower bound(s) of the 95% credible interval
+%        • CI_upper: upper bound(s) of the 95% credible interval
+%          By default, the credible intervals are equal-tailed intervals (ETI).
 %
 %     'bootbayes (y, X)' also specifies the design matrix (X) for least squares
 %     regression of y on X. X should be a column vector or matrix the same
@@ -30,25 +30,35 @@
 %     where NBOOT must be a positive integer. If empty, the default value of
 %     NBOOT is 2000.
 %
-%     'bootbayes (..., NBOOT, BOOTFUN, ALPHA)' where ALPHA is numeric and
-%     sets the lower and upper bounds of the confidence interval(s). The
-%     value(s) of ALPHA must be between 0 and 1. ALPHA can either be:
-%        • scalar: To set the (nominal) central coverage of equal-tailed
-%                  percentile confidence intervals to 100*(1-ALPHA)%.
-%        • vector: A pair of probabilities defining the (nominal) lower and
-%                  upper percentiles of the confidence interval(s) as
-%                  100*(ALPHA(1))% and 100*(ALPHA(2))% respectively. 
-%        Confidence intervals are not calculated when the value(s) of ALPHA
-%        is/are NaN. The default value of  ALPHA is the vector: [.025, .975], 
-%        for a 95% confidence interval.
+%     'bootbayes (..., NBOOT, PROB)' where PROB is numeric and sets the lower
+%     lower and upper bounds of the credible interval(s). The value(s) of
+%     PROB must be between 0 and 1. PROB can either be:
+%        • scalar: To set the central mass of equal-tailed intervals to
+%                  100*(1-PROB)%.
+%        • vector: A pair of probabilities defining the lower and upper
+%                  percentiles of the credible interval(s) as 100*(PROB(1))%
+%                  and 100*(PROB(2))% respectively. 
+%        Credible intervals are not calculated when the value(s) of PROB
+%        is/are NaN. The default value of PROB is the scalar 0.95.
 %
-%     'bootbayes (..., NBOOT, BOOTFUN, ALPHA, SEED)' initialises the Mersenne
+%     'bootbayes (..., NBOOT, PROB, PRIOR)' accepts a positive real numeric
+%     scalar to parametrize the form of the symmetric Dirichlet distribution.
+%     The Dirichlet distribution is the conjugate PRIOR used to randomly
+%     generate weights for linear least squares and subsequently to estimate the
+%     posterior for the regression coefficients. If PRIOR is not provided, or is
+%     empty, it will be set to 1, corresponding to a uniform (or flat) prior.
+%     For a stronger prior, set PRIOR to > 1. For a weaker prior, set PRIOR to
+%     < 1 (e.g. 0.5 for Jeffrey's prior). Jeffrey's prior may be appropriate for
+%     estimates from small samples (n < 10), where the amount of data may be
+%     assumed to inadequately define the parameter space. 
+%
+%     'bootbayes (..., NBOOT, PROB, PRIOR, SEED)' initialises the Mersenne
 %     Twister random number generator using an integer SEED value so that
-%     bootbayes results are reproducible.
+%     'bootbayes' results are reproducible.
 %
-%     'bootbayes (..., NBOOT, BOOTFUN, ALPHA, SEED, L)' multiplies the
-%     regression coefficients by the hypothesis matrix L. If L is not provided
-%     or is empty, it will assume the default value of 1.
+%     'bootbayes (..., NBOOT, PROB, PRIOR, SEED, L)' multiplies the regression
+%     coefficients by the hypothesis matrix L. If L is not provided or is empty,
+%     it will assume the default value of 1.
 %
 %     'STATS = bootbayes (STATS, ...) returns a structure with the following
 %     fields (defined above): original, bias, std_error, CI_lower, CI_upper.
@@ -59,10 +69,8 @@
 %
 %  Bibliography:
 %  [1] Rubin (1981) The Bayesian Bootstrap. Ann. Statist. 9(1):130-134
-%  [2] Efron and Tibshirani. Chapter 16 Hypothesis testing with the
-%       bootstrap in An introduction to the bootstrap (CRC Press, 1994)
 %
-%  bootbayes (version 2023.05.05)
+%  bootbayes (version 2023.05.10)
 %  Author: Andrew Charles Penn
 %  https://www.researchgate.net/profile/Andrew_Penn/
 %
@@ -81,13 +89,13 @@
 %  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-function [stats, bootstat] = bootbayes (y, X, nboot, alpha, seed, L)
+function [stats, bootstat] = bootbayes (y, X, nboot, prob, prior, seed, L)
 
   % Check the number of function arguments
   if (nargin < 1)
     error ('bootknife: y must be provided');
   end
-  if (nargin > 6)
+  if (nargin > 7)
     error ('bootbayes: Too many input arguments')
   end
   if (nargout > 2)
@@ -138,41 +146,61 @@ function [stats, bootstat] = bootbayes (y, X, nboot, alpha, seed, L)
     nboot = 2000;
   end
 
-  % Evaluate alpha
-  if ((nargin < 4) || isempty (alpha))
-    alpha = 0.05;
-    nalpha = 1;
+  % Evaluate prob
+  if ((nargin < 4) || isempty (prob))
+    prob = 0.95;
+    nprob = 1;
   else
-    nalpha = numel (alpha);
-    if (~ isa (alpha, 'numeric') || (nalpha > 2))
-      error ('bootbayes: ALPHA must be a scalar (two-tailed probability) or a vector (pair of probabilities)');
+    nprob = numel (prob);
+    if (~ isa (prob, 'numeric') || (nprob > 2))
+      error ('bootbayes: PROB must be a scalar or a vector of length 2');
     end
-    if (size (alpha, 1) > 1)
-      alpha = alpha.';
+    if (size (prob, 1) > 1)
+      prob = prob.';
     end
-    if (any ((alpha < 0) | (alpha > 1)))
-      error ('bootbayes: Value(s) in ALPHA must be between 0 and 1');
+    if (any ((prob < 0) | (prob > 1)))
+      error ('bootbayes: Value(s) in PROB must be between 0 and 1');
     end
-    if (nalpha > 1)
-      % alpha is a pair of probabilities
+    if (nprob > 1)
+      % PROB is a pair of probabilities
       % Make sure probabilities are in the correct order
-      if (alpha(1) > alpha(2) )
+      if (prob(1) > prob(2) )
         error ('bootbayes: The pair of probabilities must be in ascending numeric order');
       end
     end
   end
-  if (nalpha < 2)
+  if (nprob < 2)
     % Create equal-tailed probabilities for the percentiles
-    l = [alpha / 2, 1 - alpha / 2];
+    l = 0.5 * (1 + prob * [-1, 1]);
   else
-    l = alpha;
+    l = prob;
+  end
+
+  % Evaluate or set prior
+  % Set the prior based on our prior expectation that, depending on the sample
+  % size, sample variance underestimates the population variance 
+  if (nargin < 5)
+    prior = 1; % flat/uniform prior
+  else
+    if (isempty (prior))
+      prior = 1; % flat/uniform prior
+    end
+    if (~ isa (prior, 'numeric'))
+      error ('bootbayes: PRIOR must be numeric');
+    end
+    if (numel (prior) > 1)
+      error ('bootbayes: PRIOR must be scalar');
+    end
+    if (prior ~= abs (prior))
+      error ('bootbayes: PRIOR must be positive');
+    end
   end
 
   % Set random seed
-  if (nargin > 4)
+  if (nargin > 5)
     if (~ isempty (seed))
       if (ISOCTAVE)
-        rande ('seed', seed);
+        randg ('seed', seed);
       else
         rng ('default');
       end
@@ -180,7 +208,7 @@ function [stats, bootstat] = bootbayes (y, X, nboot, alpha, seed, L)
   end
 
   % Evaluate hypothesis matrix (L)
-  if (nargin < 6)
+  if (nargin < 7)
     % If L is not provided, set L to 1
     L = 1;
   else
@@ -195,17 +223,15 @@ function [stats, bootstat] = bootbayes (y, X, nboot, alpha, seed, L)
   bootfun = @(w) lmfit (X, y, diag (w), L);
 
   % Calculate estimate(s)
-  T0 = bootfun (ones (n, 1));
+  original = bootfun (ones (n, 1));
 
-  % Create weights by randomly sampling from a symmetric uniform Dirichlet
-  % distribution. This can be achieved by normalizing a set of random
-  % generated values from a standard exponential distribution to their sum.
-  % Note that a standard exponential distribution is equivalent to the gamma
-  % distribution with scale = shape = 1.
+  % Create weights by randomly sampling from a symmetric Dirichlet distribution.
+  % This can be achieved by normalizing a set of randomly generated values from
+  % a Gamma distribution to their sum.
   if (ISOCTAVE)
-    r = rande (n, nboot);
+    r = randg (prior, n, nboot);
   else
-    r = exprnd (1, n, nboot); 
+    r = gamrnd (prior, 1, n, nboot);
   end
   W = bsxfun (@rdivide, r, sum (r));
 
@@ -213,23 +239,23 @@ function [stats, bootstat] = bootbayes (y, X, nboot, alpha, seed, L)
   bootstat = cell2mat (cellfun (bootfun, num2cell (W, 1), 'UniformOutput', false));
 
   % Bootstrap bias estimation
-  bias = mean (bootstat, 2) - T0;
+  bias = mean (bootstat, 2) - original;
 
   % Bootstrap standard error
   se = std (bootstat, 0, 2);
 
-  % Compute confidence intervals
+  % Compute credible intervals
   ci = nan (p, 2);
   for j = 1:p
     [cdf, t1] = empcdf (bootstat(j, :));
-    if (~ isnan (alpha))
+    if (~ isnan (prob))
       ci(j, :) = arrayfun (@(p) interp1 (cdf, t1, p, 'linear'), l);
     end
   end
   
   % Prepare output arguments
   stats = struct;
-  stats.original = T0;
+  stats.original = original;
   stats.bias = bias;
   stats.std_error = se;
   stats.CI_lower = ci(:, 1);
@@ -237,7 +263,7 @@ function [stats, bootstat] = bootbayes (y, X, nboot, alpha, seed, L)
 
   % Print output if no output arguments are requested
   if (nargout == 0) 
-    print_output (stats, nboot, alpha, l, p, L);
+    print_output (stats, nboot, prob, prior, l, p, L);
   end
 
 end
@@ -302,26 +328,27 @@ end
 
 %% FUNCTION TO PRINT OUTPUT
 
-function print_output (stats, nboot, alpha, l, p, L)
+function print_output (stats, nboot, prob, prior, l, p, L)
 
     fprintf (['\nSummary of Bayesian bootstrap estimates of bias and precision for linear models\n',...
               '*******************************************************************************\n\n']);
     fprintf ('Bootstrap settings: \n');
     fprintf (' Function: L * pinv (X'' * W * X) * (X'' * W * y)\n');
-    fprintf (' Resampling method: Bayesian bootstrap (symmetric uniform Dirichlet)\n')
+    fprintf (' Resampling method: Bayesian bootstrap\n')
+    fprintf (' Prior: Symmetric Dirichlet distribution (a = %.3g)\n', prior)
     fprintf (' Number of resamples: %u \n', nboot)
-    if (~ isempty (alpha) && ~ all (isnan (alpha)))
-      nalpha = numel (alpha);
-      if (nalpha > 1)
-        % alpha is a vector of probabilities
-        fprintf (' Confidence interval (CI) type: Percentile\n');
-        coverage = 100 * abs (alpha(2) - alpha(1));
+    if (~ isempty (prob) && ~ all (isnan (prob)))
+      nprob = numel (prob);
+      if (nprob > 1)
+        % prob is a vector of probabilities
+        fprintf (' Credible interval (CI) type: Percentile\n');
+        mass = 100 * abs (prob(2) - prob(1));
       else
-        % alpha is a two-tailed probability
-        fprintf (' Confidence interval (CI) type: Percentile (equal-tailed)\n');
-        coverage = 100 * (1 - alpha);
+        % prob is a two-tailed probability
+        fprintf (' Credible interval (CI) type: Percentile (equal-tailed)\n');
+        mass = 100 * prob;
       end
-      fprintf (' Nominal coverage (and the percentiles used): %.3g%% (%.1f%%, %.1f%%)\n', coverage, 100 * l);
+      fprintf (' Credible interval: %.3g%% (%.1f%%, %.1f%%)\n', mass, 100 * l);
     end
     fprintf ('\nBootstrap Statistics: \n');
     fprintf (' original       bias           std_error      CI_lower       CI_upper\n');
@@ -340,7 +367,7 @@ end
 %! ## Input univariate dataset
 %! heights = [183, 192, 182, 183, 177, 185, 188, 188, 182, 185].';
 %!
-%! ## 95% bootstrap confidence interval for the mean 
+%! ## 95% credible interval for the mean 
 %! bootbayes(heights);
 %!
 %! ## Please be patient, the calculations will be completed soon...
@@ -358,7 +385,7 @@ end
 %!     168.0,170.0,178.0,182.0,180.0,183.0,178.0,182.0,188.0,175.0,179.0,...
 %!     183.0,192.0,182.0,183.0,177.0,185.0,188.0,188.0,182.0,185.0]';
 %!
-%! ## 95% bootstrap confidence interval for the regression coefficents
+%! ## 95% credible interval for the regression coefficents
 %! bootbayes(y,X,1000);
 %!
 %! ## Please be patient, the calculations will be completed soon...
@@ -369,7 +396,7 @@ end
 %! ## Input univariate dataset
 %! heights = [183, 192, 182, 183, 177, 185, 188, 188, 182, 185].';
 %!
-%! ## 95% bootstrap confidence interval for the mean 
+%! ## 95% credible interval for the mean 
 %! stats = bootbayes(heights);
 %! stats = bootbayes(heights,[]);
 %! stats = bootbayes(heights,[],2000);
@@ -392,7 +419,7 @@ end
 %!     168.0,170.0,178.0,182.0,180.0,183.0,178.0,182.0,188.0,175.0,179.0,...
 %!     183.0,192.0,182.0,183.0,177.0,185.0,188.0,188.0,182.0,185.0]';
 %!
-%! ## 95% bootstrap confidence interval for the mean 
+%! ## 95% credible interval for the mean 
 %! stats = bootbayes(y,X);
 %! stats = bootbayes(y,X,2000);
 %! stats = bootbayes(y,X,2000,0.05);
