@@ -8,11 +8,11 @@
 % -- Function File: STATS = bootbayes (y, ...)
 % -- Function File: [STATS, BOOTSTAT] = bootbayes (y, ...)
 %
-%     'bootbayes (y)' performs Bayesian bootstrap [1] to create 2000 bootstrap
-%     statistics, each representing the weighted mean of the column vector, y, 
-%     using a vector of weights randomly generated from a symmetric Dirichlet
-%     distribution. The resulting bootstrap (or posterior) distribution(s) is/
-%     are summarised by the following statistics:
+%     'bootbayes (y)' performs Bayesian nonparametric bootstrap [1] to create
+%     2000 bootstrap statistics, each representing the weighted mean of the
+%     column vector, y, using a vector of weights randomly generated from a
+%     symmetric Dirichlet distribution. The resulting bootstrap (or posterior
+%     [1,2]) distribution(s) is/are summarised by the following statistics:
 %        • original: the mean of y or coefficients from the regression of y on X
 %        • bias: bootstrap estimate(s) of the bias
 %        • std_error: bootstrap estimate(s) of the standard error
@@ -33,7 +33,7 @@
 %     'bootbayes (..., NBOOT, PROB)' where PROB is numeric and sets the lower
 %     lower and upper bounds of the credible interval(s). The value(s) of
 %     PROB must be between 0 and 1. PROB can either be:
-%        • scalar: To set the central mass of equal-tailed intervals to
+%        • scalar: To set the central mass of equal-tailed intervals (ETI) to
 %                  100*(1-PROB)%.
 %        • vector: A pair of probabilities defining the lower and upper
 %                  percentiles of the credible interval(s) as 100*(PROB(1))%
@@ -72,6 +72,8 @@
 %
 %  Bibliography:
 %  [1] Rubin (1981) The Bayesian Bootstrap. Ann. Statist. 9(1):130-134
+%  [2] Weng (1989) On a Second-Order Asymptotic property of the Bayesian
+%        Bootstrap Mean. Ann. Statist. 17(2):705-710
 %
 %  bootbayes (version 2023.05.10)
 %  Author: Andrew Charles Penn

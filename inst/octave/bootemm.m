@@ -8,8 +8,8 @@
 %
 %     'bootemm (STATS, DIM)' uses the STATS structure output from fitlm or
 %     anovan functions (from the v1.5+ of the Statistics package in OCTAVE)
-%     and Bayesian bootstrap to compute and return the following statistics
-%     along the dimension DIM:
+%     and Bayesian nonparametric bootstrap [1] to compute and return the
+%     following statistics along the dimension DIM:
 %        • original: estimated marginal means (EMMs) from the original data
 %        • bias: bootstrap estimate of the bias of the EMMs
 %        • std_error: bootstrap estimate of the standard error of the EMMs
@@ -24,7 +24,7 @@
 %     'bootemm (STATS, DIM, NBOOT, PROB)' where PROB is numeric and sets the
 %     lower and upper bounds of the credible interval(s). The value(s) of
 %     PROB must be between 0 and 1. PROB can either be:
-%        • scalar: To set the central mass of equal-tailed intervals to
+%        • scalar: To set the central mass of equal-tailed intervals (ETI) to
 %                  100*(1-PROB)%.
 %        • vector: A pair of probabilities defining the lower and upper
 %                  percentiles of the credible interval(s) as 100*(PROB(1))%
@@ -57,6 +57,8 @@
 %
 %     '[EMM, BOOTSTAT] = bootemm (STATS, DIM, ...) also returns the bootstrap
 %     statistics for the estimated marginal means.
+%
+%  See also `bootbayes`.
 %
 %  Requirements: bootemm is only supported in GNU Octave and requires the
 %  Statistics package version 1.5+.

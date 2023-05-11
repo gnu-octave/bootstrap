@@ -9,7 +9,8 @@
 %
 %     'bootcoeff (STATS)' uses the STATS structure output from fitlm or anovan
 %     functions (from the v1.5+ of the Statistics package in OCTAVE) and
-%     Bayesian bootstrap to compute and return the following statistics:
+%     Bayesian nonparametric bootstrap [1] to compute and return the following
+%     statistics:
 %        • original: regression coefficients from the original data
 %        • bias: bootstrap estimate of the bias of the coefficients
 %        • std_error: bootstrap estimate of the standard error
@@ -24,7 +25,7 @@
 %     'bootcoeff (STATS, NBOOT, PROB)' where PROB is numeric and sets the lower
 %     lower and upper bounds of the credible interval(s). The value(s) of
 %     PROB must be between 0 and 1. PROB can either be:
-%        • scalar: To set the central mass of equal-tailed intervals to
+%        • scalar: To set the central mass of equal-tailed intervals (ETI) to
 %                  100*(1-PROB)%.
 %        • vector: A pair of probabilities defining the lower and upper
 %                  percentiles of the credible interval(s) as 100*(PROB(1))%
@@ -59,6 +60,8 @@
 %
 %  Requirements: bootcoeff is only supported in GNU Octave and requires the
 %  Statistics package version 1.5+.
+%
+%  See also `bootbayes`.
 %
 %  Bibliography:
 %  [1] Rubin (1981) The Bayesian Bootstrap. Ann. Statist. 9(1):130-134
