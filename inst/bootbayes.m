@@ -13,7 +13,7 @@
 %     column vector, y, using a vector of weights randomly generated from a
 %     symmetric Dirichlet distribution. The resulting bootstrap (or posterior
 %     [1,2]) distribution(s) is/are summarised by the following statistics:
-%        • original: the mean of y or coefficients from the regression of y on X
+%        • original: the mean of y
 %        • bias: bootstrap estimate(s) of the bias
 %        • std_error: bootstrap estimate(s) of the standard error
 %        • CI_lower: lower bound(s) of the 95% credible interval
@@ -24,7 +24,8 @@
 %     regression of y on X. X should be a column vector or matrix the same
 %     number of rows as y. If the X input argument is empty, the default for X
 %     is a column of ones (i.e. intercept only) and thus the statistic computed
-%     reduces to the mean (as above).
+%     reduces to the mean (as above). The statistics calculated and returned in
+%     the output relate to the coefficients from the regression of y on X.
 %
 %     'bootbayes (y, X, NBOOT)' specifies the number of bootstrap resamples,
 %     where NBOOT must be a positive integer. If empty, the default value of
