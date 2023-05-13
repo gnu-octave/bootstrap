@@ -11,12 +11,14 @@
 %     functions (from the v1.5+ of the Statistics package in OCTAVE) and
 %     Bayesian nonparametric bootstrap [1] to compute and return the following
 %     statistics:
-%        • original: regression coefficients from the original data
-%        • bias: bootstrap estimate of the bias of the coefficients
-%        • std_error: bootstrap estimate of the standard error
+%        • median: the median of the posterior distribution for each coefficient
+%        • bias: bootstrap estimate(s) of the bias
+%        • sd: standard deviation of the posterior distribution(s)
 %        • CI_lower: lower bound(s) of the 95% credible interval
 %        • CI_upper: upper bound(s) of the 95% credible interval
-%          By default, the credible intervals are equal-tailed intervals (ETI).
+%          By default, the credible intervals are shortest probability intervals,
+%          which represent a more computationally stable version of the highest
+%          posterior density interval [2].
 %
 %     'bootcoeff (STATS, NBOOT)' specifies the number of bootstrap resamples,
 %     where NBOOT must be a positive integer. If empty, the default value of
@@ -25,8 +27,8 @@
 %     'bootcoeff (STATS, NBOOT, PROB)' where PROB is numeric and sets the lower
 %     lower and upper bounds of the credible interval(s). The value(s) of
 %     PROB must be between 0 and 1. PROB can either be:
-%        • scalar: To set the central mass of equal-tailed intervals (ETI) to
-%                  100*(1-PROB)%.
+%        • scalar: To set the central mass of shortest probability intervals
+%                  (SPI) to 100*(1-PROB)%
 %        • vector: A pair of probabilities defining the lower and upper
 %                  percentiles of the credible interval(s) as 100*(PROB(1))%
 %                  and 100*(PROB(2))% respectively. 
@@ -52,11 +54,12 @@
 %     'bootcoeff' results are reproducible.
 %
 %     'COEFF = bootcoeff (STATS, ...) returns a structure with the following
-%     fields (defined above): original, bias, std_error, CI_lower, CI_upper.
-%     These statistics correspond to the coefficients of the linear model.
+%     fields (defined above): median, bias, sd, CI_lower, CI_upper.
+%     These statistics summarise the posterior distributions of the coefficients
+%     from the linear model.
 %
 %     '[COEFF, BOOTSTAT] = bootcoeff (STATS, ...) also returns the bootstrap
-%     statistics for the coefficients.
+%     statistics (i.e. posterior) for the coefficients.
 %
 %  Requirements: bootcoeff is only supported in GNU Octave and requires the
 %  Statistics package version 1.5+.
@@ -65,8 +68,10 @@
 %
 %  Bibliography:
 %  [1] Rubin (1981) The Bayesian Bootstrap. Ann. Statist. 9(1):130-134
+%  [2] Liu, Gelman & Zheng (2015). Simulation-efficient shortest probability
+%        intervals. Statistics and Computing, 25(4), 809–819. 
 %
-%  bootcoeff (version 2023.05.10)
+%  bootcoeff (version 2023.05.13)
 %  Author: Andrew Charles Penn
 %  https://www.researchgate.net/profile/Andrew_Penn/
 %
@@ -151,7 +156,7 @@ end
 %!        25.694 ]';
 %! g = [1 1 1 1 1 1 1 1 2 2 2 2 2 3 3 3 3 3 3 3 3 4 4 4 4 4 4 4 5 5 5 5 5 5 5 5 5]';
 %!
-%! [P,ATAB,STATS] = anovan (dv,g,'contrasts','simple');
+%! [P,ATAB,STATS] = anovan (dv,g,'contrasts','treatment');
 %! STATS.coeffnames
 %! # Uniform prior, 95% credible intervals
 %! bootcoeff (STATS,2000,0.95,1.0)

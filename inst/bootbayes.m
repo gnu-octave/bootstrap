@@ -13,19 +13,21 @@
 %     column vector, y, using a vector of weights randomly generated from a
 %     symmetric Dirichlet distribution. The resulting bootstrap (or posterior
 %     [1,2]) distribution(s) is/are summarised by the following statistics:
-%        • original: the mean of y
+%        • median: the median of the posterior distribution(s)
 %        • bias: bootstrap estimate(s) of the bias
-%        • std_error: bootstrap estimate(s) of the standard error
+%        • sd: standard deviation of the posterior distribution(s)
 %        • CI_lower: lower bound(s) of the 95% credible interval
 %        • CI_upper: upper bound(s) of the 95% credible interval
-%          By default, the credible intervals are equal-tailed intervals (ETI).
+%          By default, the credible intervals are shortest probability intervals,
+%          which represent a more computationally stable version of the highest
+%          posterior density interval [3].
 %
 %     'bootbayes (y, X)' also specifies the design matrix (X) for least squares
 %     regression of y on X. X should be a column vector or matrix the same
 %     number of rows as y. If the X input argument is empty, the default for X
 %     is a column of ones (i.e. intercept only) and thus the statistic computed
 %     reduces to the mean (as above). The statistics calculated and returned in
-%     the output relate to the coefficients from the regression of y on X.
+%     the output then relate to the coefficients from the regression of y on X.
 %
 %     'bootbayes (y, X, NBOOT)' specifies the number of bootstrap resamples,
 %     where NBOOT must be a positive integer. If empty, the default value of
@@ -34,13 +36,13 @@
 %     'bootbayes (..., NBOOT, PROB)' where PROB is numeric and sets the lower
 %     lower and upper bounds of the credible interval(s). The value(s) of
 %     PROB must be between 0 and 1. PROB can either be:
-%        • scalar: To set the central mass of equal-tailed intervals (ETI) to
-%                  100*(1-PROB)%.
+%        • scalar: To set the central mass of shortest probability intervals
+%                  (SPI) to 100*(1-PROB)%
 %        • vector: A pair of probabilities defining the lower and upper
 %                  percentiles of the credible interval(s) as 100*(PROB(1))%
 %                  and 100*(PROB(2))% respectively. 
 %        Credible intervals are not calculated when the value(s) of PROB
-%        is/are NaN. The default value of PROB is the scalar 0.95.
+%        is/are NaN. The default value of PROB is 0.95.
 %
 %     'bootbayes (..., NBOOT, PROB, PRIOR)' accepts a positive real numeric
 %     scalar to parametrize the form of the symmetric Dirichlet distribution.
@@ -65,7 +67,7 @@
 %     it will assume the default value of 1.
 %
 %     'STATS = bootbayes (STATS, ...) returns a structure with the following
-%     fields (defined above): original, bias, std_error, CI_lower, CI_upper.
+%     fields (defined above): median, bias, sd, CI_lower, CI_upper.
 %
 %     '[STATS, BOOTSTAT] = bootbayes (STATS, ...)  also returns the a vector (or
 %     matrix) of bootstrap statistics (BOOTSTAT) calculated over the bootstrap
@@ -75,8 +77,10 @@
 %  [1] Rubin (1981) The Bayesian Bootstrap. Ann. Statist. 9(1):130-134
 %  [2] Weng (1989) On a Second-Order Asymptotic property of the Bayesian
 %        Bootstrap Mean. Ann. Statist. 17(2):705-710
+%  [3] Liu, Gelman & Zheng (2015). Simulation-efficient shortest probability
+%        intervals. Statistics and Computing, 25(4), 809–819. 
 %
-%  bootbayes (version 2023.05.10)
+%  bootbayes (version 2023.05.13)
 %  Author: Andrew Charles Penn
 %  https://www.researchgate.net/profile/Andrew_Penn/
 %
@@ -175,12 +179,6 @@ function [stats, bootstat] = bootbayes (y, X, nboot, prob, prior, seed, L)
       end
     end
   end
-  if (nprob < 2)
-    % Create equal-tailed probabilities for the percentiles
-    l = 0.5 * (1 + prob * [-1, 1]);
-  else
-    l = prob;
-  end
 
   % Evaluate or set prior
   % Set the prior based on our prior expectation that, depending on the sample
@@ -250,29 +248,41 @@ function [stats, bootstat] = bootbayes (y, X, nboot, prob, prior, seed, L)
   % Bootstrap bias estimation
   bias = mean (bootstat, 2) - original;
 
-  % Bootstrap standard error
-  se = std (bootstat, 0, 2);
+  % Standard deviation of the posterior
+  sd = std (bootstat, 0, 2);
 
   % Compute credible intervals
+  % https://discourse.mc-stan.org/t/shortest-posterior-intervals/16281/16
   ci = nan (p, 2);
+  bootstat = sort (bootstat, 2);
+  gap = round (prob * nboot);
   for j = 1:p
-    [cdf, t1] = empcdf (bootstat(j, :));
-    if (~ isnan (prob))
-      ci(j, :) = arrayfun (@(p) interp1 (cdf, t1, p, 'linear'), l);
+    if (nprob > 1)
+      % Percentile intervals
+      if (~ isnan (prob))
+        ci(j, :) = bootstat(j, gap);
+      end
+    else
+      % Shortest probability interval
+      width = bootstat(j, (gap + 1) : nboot) - bootstat(j, 1 : (nboot - gap));
+      index = min (find (width == min (width)));
+      if (~ isnan (prob))
+        ci(j, :) = bootstat(j, [index, index + gap]);
+      end
     end
   end
   
   % Prepare output arguments
   stats = struct;
-  stats.original = original;
+  stats.median = median (bootstat, 2);
   stats.bias = bias;
-  stats.std_error = se;
+  stats.sd = sd;
   stats.CI_lower = ci(:, 1);
   stats.CI_upper = ci(:, 2);
 
   % Print output if no output arguments are requested
   if (nargout == 0) 
-    print_output (stats, nboot, prob, prior, l, p, L);
+    print_output (stats, nboot, prob, prior, p, L);
   end
 
 end
@@ -303,41 +313,9 @@ end
 
 %--------------------------------------------------------------------------
 
-%% FUNCTION TO OBTAIN EMPIRICAL CUMULATIVE DISTRIBUTION FUNCTION
-
-function [F, x] = empcdf (y)
-
-  % Subfunction to calculate empirical cumulative distribution function
-
-  % Check input argument
-  if (~ isa (y, 'numeric'))
-    error ('bootbayes:empcdf: y must be numeric');
-  end
-  if (all (size (y) > 1))
-    error ('bootbayes:empcdf: y must be a vector');
-  end
-  if (size (y, 2) > 1)
-    y = y.';
-  end
-
-  % Discard NaN values
-  ridx = isnan (y);
-  y(ridx) = [];
-
-  % Get size of y
-  N = numel (y);
-
-  % Create empirical CDF
-  x = sort (y);
-  F = linspace (0, 1, N).';
-
-end
-
-%--------------------------------------------------------------------------
-
 %% FUNCTION TO PRINT OUTPUT
 
-function print_output (stats, nboot, prob, prior, l, p, L)
+function print_output (stats, nboot, prob, prior, p, L)
 
     fprintf (['\nSummary of Bayesian bootstrap estimates of bias and precision for linear models\n',...
               '*******************************************************************************\n\n']);
@@ -350,20 +328,21 @@ function print_output (stats, nboot, prob, prior, l, p, L)
       nprob = numel (prob);
       if (nprob > 1)
         % prob is a vector of probabilities
-        fprintf (' Credible interval (CI) type: Percentile\n');
+        fprintf (' Credible interval (CI) type: Percentile interval\n');
         mass = 100 * abs (prob(2) - prob(1));
+        fprintf (' Credible interval: %.3g%% (%.1f%%, %.1f%%)\n', mass, 100 * prob);
       else
         % prob is a two-tailed probability
-        fprintf (' Credible interval (CI) type: Percentile (equal-tailed)\n');
+        fprintf (' Credible interval (CI) type: Shortest probability interval\n');
         mass = 100 * prob;
+        fprintf (' Credible interval: %.3g%%\n', mass);
       end
-      fprintf (' Credible interval: %.3g%% (%.1f%%, %.1f%%)\n', mass, 100 * l);
     end
-    fprintf ('\nBootstrap Statistics: \n');
-    fprintf (' original       bias           std_error      CI_lower       CI_upper\n');
+    fprintf ('\nPosterior Statistics: \n');
+    fprintf (' median         bias           sd             CI_lower       CI_upper\n');
     for j = 1:p
       fprintf (' %#-+12.6g   %#-+12.6g   %#-+12.6g   %#-+12.6g   %#-+12.6g \n',... 
-                 [stats.original(j), stats.bias(j), stats.std_error(j), stats.CI_lower(j), stats.CI_upper(j)]);
+                 [stats.median(j), stats.bias(j), stats.sd(j), stats.CI_lower(j), stats.CI_upper(j)]);
     end
     fprintf ('\n');
 
