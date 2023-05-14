@@ -11,9 +11,9 @@
 %     functions (from the v1.5+ of the Statistics package in OCTAVE) and
 %     Bayesian nonparametric bootstrap [1] to compute and return the following
 %     statistics:
-%        • median: the median of the posterior distribution for each coefficient
+%        • original: the coefficient(s) from regressing y on X
 %        • bias: bootstrap estimate(s) of the bias
-%        • sd: standard deviation of the posterior distribution(s)
+%        • median: the median of the posterior distribution(s)
 %        • CI_lower: lower bound(s) of the 95% credible interval
 %        • CI_upper: upper bound(s) of the 95% credible interval
 %          By default, the credible intervals are shortest probability intervals,
@@ -32,8 +32,8 @@
 %        • vector: A pair of probabilities defining the lower and upper
 %                  percentiles of the credible interval(s) as 100*(PROB(1))%
 %                  and 100*(PROB(2))% respectively. 
-%        Credible intervals are not calculated when the value(s) of PROB
-%        is/are NaN. The default value of PROB is the scalar 0.95.
+%          Credible intervals are not calculated when the value(s) of PROB
+%          is/are NaN. The default value of PROB is the scalar 0.95.
 %
 %     'bootcoeff (STATS, NBOOT, PROB, PRIOR)' accepts a positive real numeric
 %     scalar to parametrize the form of the symmetric Dirichlet distribution.
@@ -54,7 +54,7 @@
 %     'bootcoeff' results are reproducible.
 %
 %     'COEFF = bootcoeff (STATS, ...) returns a structure with the following
-%     fields (defined above): median, bias, sd, CI_lower, CI_upper.
+%     fields (defined above): original, bias, median, CI_lower, CI_upper.
 %     These statistics summarise the posterior distributions of the coefficients
 %     from the linear model.
 %
@@ -71,7 +71,7 @@
 %  [2] Liu, Gelman & Zheng (2015). Simulation-efficient shortest probability
 %        intervals. Statistics and Computing, 25(4), 809–819. 
 %
-%  bootcoeff (version 2023.05.13)
+%  bootcoeff (version 2023.05.14)
 %  Author: Andrew Charles Penn
 %  https://www.researchgate.net/profile/Andrew_Penn/
 %

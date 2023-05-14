@@ -12,10 +12,11 @@
 %     2000 bootstrap statistics, each representing the weighted mean of the
 %     column vector, y, using a vector of weights randomly generated from a
 %     symmetric Dirichlet distribution. The resulting bootstrap (or posterior
-%     [1,2]) distribution(s) is/are summarised by the following statistics:
-%        • median: the median of the posterior distribution(s)
+%     [1,2]) distribution(s) is/are summarised with the following statistics
+%     printed to the standard output:
+%        • original: the mean of the data vector y
 %        • bias: bootstrap estimate(s) of the bias
-%        • sd: standard deviation of the posterior distribution(s)
+%        • median: the median of the posterior distribution(s)
 %        • CI_lower: lower bound(s) of the 95% credible interval
 %        • CI_upper: upper bound(s) of the 95% credible interval
 %          By default, the credible intervals are shortest probability intervals,
@@ -41,8 +42,8 @@
 %        • vector: A pair of probabilities defining the lower and upper
 %                  percentiles of the credible interval(s) as 100*(PROB(1))%
 %                  and 100*(PROB(2))% respectively. 
-%        Credible intervals are not calculated when the value(s) of PROB
-%        is/are NaN. The default value of PROB is 0.95.
+%          Credible intervals are not calculated when the value(s) of PROB
+%          is/are NaN. The default value of PROB is 0.95.
 %
 %     'bootbayes (..., NBOOT, PROB, PRIOR)' accepts a positive real numeric
 %     scalar to parametrize the form of the symmetric Dirichlet distribution.
@@ -67,7 +68,7 @@
 %     it will assume the default value of 1.
 %
 %     'STATS = bootbayes (STATS, ...) returns a structure with the following
-%     fields (defined above): median, bias, sd, CI_lower, CI_upper.
+%     fields (defined above): original, bias, median, CI_lower, CI_upper.
 %
 %     '[STATS, BOOTSTAT] = bootbayes (STATS, ...)  also returns the a vector (or
 %     matrix) of bootstrap statistics (BOOTSTAT) calculated over the bootstrap
@@ -80,7 +81,7 @@
 %  [3] Liu, Gelman & Zheng (2015). Simulation-efficient shortest probability
 %        intervals. Statistics and Computing, 25(4), 809–819. 
 %
-%  bootbayes (version 2023.05.13)
+%  bootbayes (version 2023.05.14)
 %  Author: Andrew Charles Penn
 %  https://www.researchgate.net/profile/Andrew_Penn/
 %
@@ -184,10 +185,10 @@ function [stats, bootstat] = bootbayes (y, X, nboot, prob, prior, seed, L)
   % Set the prior based on our prior expectation that, depending on the sample
   % size, sample variance underestimates the population variance 
   if (nargin < 5)
-    prior = 1; % flat/uniform prior
+    prior = 1; % Bayes flat/uniform prior
   else
     if (isempty (prior))
-      prior = 1; % flat/uniform prior
+      prior = 1; % Bayes flat/uniform prior
     end
     if (~ isa (prior, 'numeric'))
       error ('bootbayes: PRIOR must be numeric');
@@ -248,9 +249,6 @@ function [stats, bootstat] = bootbayes (y, X, nboot, prob, prior, seed, L)
   % Bootstrap bias estimation
   bias = mean (bootstat, 2) - original;
 
-  % Standard deviation of the posterior
-  sd = std (bootstat, 0, 2);
-
   % Compute credible intervals
   % https://discourse.mc-stan.org/t/shortest-posterior-intervals/16281/16
   ci = nan (p, 2);
@@ -274,9 +272,9 @@ function [stats, bootstat] = bootbayes (y, X, nboot, prob, prior, seed, L)
   
   % Prepare output arguments
   stats = struct;
-  stats.median = median (bootstat, 2);
+  stats.original = original;
   stats.bias = bias;
-  stats.sd = sd;
+  stats.median = median (bootstat, 2);
   stats.CI_lower = ci(:, 1);
   stats.CI_upper = ci(:, 2);
 
@@ -339,10 +337,10 @@ function print_output (stats, nboot, prob, prior, p, L)
       end
     end
     fprintf ('\nPosterior Statistics: \n');
-    fprintf (' median         bias           sd             CI_lower       CI_upper\n');
+    fprintf (' original       bias           median         CI_lower       CI_upper\n');
     for j = 1:p
       fprintf (' %#-+12.6g   %#-+12.6g   %#-+12.6g   %#-+12.6g   %#-+12.6g \n',... 
-                 [stats.median(j), stats.bias(j), stats.sd(j), stats.CI_lower(j), stats.CI_upper(j)]);
+                 [stats.original(j), stats.bias(j), stats.median(j), stats.CI_lower(j), stats.CI_upper(j)]);
     end
     fprintf ('\n');
 
