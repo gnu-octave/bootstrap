@@ -11,10 +11,11 @@
 %     and Bayesian nonparametric bootstrap [1] to compute and return the
 %     following statistics along the dimension DIM:
 %        • original: the estimated marginal mean(s) from the regression of y on X
-%        • bias: bootstrap estimate(s) of the bias
+%        • bias: bootstrap bias estimate(s)
 %        • median: the median of the posterior distribution(s)
 %        • CI_lower: lower bound(s) of the 95% credible interval
 %        • CI_upper: upper bound(s) of the 95% credible interval
+%        • p-val: returns NaN for estimated marginal means
 %          By default, the credible intervals are shortest probability intervals,
 %          which represent a more computationally stable version of the highest
 %          posterior density interval [2].
@@ -53,9 +54,9 @@
 %     that 'bootemm' results are reproducible.
 %
 %     'EMM = bootemm (STATS, DIM, ...) returns a structure with the following
-%     fields (defined above): original, bias, median, CI_lower, CI_upper.
-%     These statistics summarise the posterior distributions of the estimated
-%     marginal means of the linear model along the dimenions DIM.
+%     fields (defined above):  original, bias, median, CI_lower, CI_upper, tstat
+%     and pval. These statistics summarise the posterior distributions of the
+%     estimated marginal means of the linear model along the dimenions DIM.
 %
 %     '[EMM, BOOTSTAT] = bootemm (STATS, DIM, ...) also returns the bootstrap
 %     statistics for the estimated marginal means.
@@ -70,7 +71,7 @@
 %  [2] Liu, Gelman & Zheng (2015). Simulation-efficient shortest probability
 %        intervals. Statistics and Computing, 25(4), 809–819. 
 %
-%  bootemm (version 2023.05.14)
+%  bootemm (version 2023.05.18)
 %  Author: Andrew Charles Penn
 %  https://www.researchgate.net/profile/Andrew_Penn/
 %
@@ -107,13 +108,6 @@ function [emm, bootstat] = bootemm (STATS, dim, nboot, prob, prior, seed)
   if (nargin < 5)
     prior = []; % Use default in bootbayes
   end
-  if (nargin > 5)
-    if (ISOCTAVE)
-      randg ('seed', seed);
-    else
-      rng ('default');
-    end
-  end
 
   % Error checking
   info = ver; 
@@ -127,6 +121,23 @@ function [emm, bootstat] = bootemm (STATS, dim, nboot, prob, prior, seed)
   end
   if (ismember (dim, find (STATS.continuous)))
     error ('bootemm: Estimated marginal means are only calculated for categorical variables')
+  end
+  if (nargin > 5)
+    if (ISOCTAVE)
+      randg ('seed', seed);
+    else
+      rng ('default');
+    end
+  end
+  N = numel (STATS.contrasts);
+  for j = 1:N
+    if (isnumeric (STATS.contrasts{j}))
+      % Check that the columns sum to 0
+      if (any (abs (sum (STATS.contrasts{j})) > eps("single")))
+         error (strcat(["Use a STATS structure from a model refit with"], ...
+                       [" sum-to-zero contrast coding, e.g. ""simple"""]));
+      end
+    end
   end
 
   % Fetch required information from STATS structure
