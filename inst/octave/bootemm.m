@@ -15,10 +15,11 @@
 %        • median: the median of the posterior distribution(s)
 %        • CI_lower: lower bound(s) of the 95% credible interval
 %        • CI_upper: upper bound(s) of the 95% credible interval
-%        • p-val: returns NaN for estimated marginal means
+%        • p-val: two-tailed p-value(s) for the mean(s) being equal to 0
 %          By default, the credible intervals are shortest probability intervals,
 %          which represent a more computationally stable version of the highest
-%          posterior density interval [2].
+%          posterior density interval [2]. The frequentist p-values are computed
+%          under the assumption of translation equivariance [4].
 %
 %     'bootemm (STATS, DIM, NBOOT)' specifies the number of bootstrap resamples,
 %     where NBOOT must be a positive integer. If empty, tHe default value of
@@ -54,9 +55,9 @@
 %     that 'bootemm' results are reproducible.
 %
 %     'EMM = bootemm (STATS, DIM, ...) returns a structure with the following
-%     fields (defined above):  original, bias, median, CI_lower, CI_upper, tstat
-%     and pval. These statistics summarise the posterior distributions of the
-%     estimated marginal means of the linear model along the dimenions DIM.
+%     fields (defined above): original, bias, median, CI_lower, CI_upper & pval.
+%     These statistics summarise the posterior distributions of the estimated
+%     marginal means of the linear model along the dimenions DIM.
 %
 %     '[EMM, BOOTSTAT] = bootemm (STATS, DIM, ...) also returns the bootstrap
 %     statistics for the estimated marginal means.
@@ -70,8 +71,10 @@
 %  [1] Rubin (1981) The Bayesian Bootstrap. Ann. Statist. 9(1):130-134
 %  [2] Liu, Gelman & Zheng (2015). Simulation-efficient shortest probability
 %        intervals. Statistics and Computing, 25(4), 809–819. 
+%  [3] Hall and Wilson (1991) Two Guidelines for Bootstrap Hypothesis Testing.
+%        Biometrics, 47(2), 757-762
 %
-%  bootemm (version 2023.05.18)
+%  bootemm (version 2023.05.20)
 %  Author: Andrew Charles Penn
 %  https://www.researchgate.net/profile/Andrew_Penn/
 %

@@ -90,7 +90,7 @@ for i=1:sim
     S = bootknife ({x, y}, nboot, bootfun, alpha, [], ncpus); ci = [S.CI_lower; S.CI_upper];
   else
     S = bootknife (x, nboot, bootfun, alpha, [], ncpus); ci = [S.CI_lower; S.CI_upper];
-    %S = bootbayes(x, [], nboot(1), 1 - alpha, 0.5); ci = [S.CI_lower; S.CI_upper];
+    %S = bootbayes(x, [], nboot(1), 1 - alpha, 1.0); ci = [S.CI_lower; S.CI_upper];
   end
   
 
@@ -100,6 +100,11 @@ for i=1:sim
   else
    reject = reject + 1;
   end
+  %if (S.pval > alpha)
+  % accept = accept + 1;
+  %else
+  % reject = reject + 1;
+  %end
   if (theta < ci(1))
     below = below + 1;
   elseif (theta > ci(2))

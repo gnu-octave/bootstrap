@@ -19,9 +19,8 @@
 %        • p-val: two-tailed p-value(s) for the parameter(s) being equal to 0
 %          By default, the credible intervals are shortest probability intervals,
 %          which represent a more computationally stable version of the highest
-%          posterior density interval [2]. The p-value(s) is/are computed from
-%          the Student-t (null) distribution(s) constructed from the posterior
-%          statistics and heteroscedasticity-consistent standard errors [3,4].
+%          posterior density interval [2]. The frequentist p-values are computed
+%          under the assumption of translation equivariance [3].
 %
 %     'bootcoeff (STATS, NBOOT)' specifies the number of bootstrap resamples,
 %     where NBOOT must be a positive integer. If empty, the default value of
@@ -57,9 +56,9 @@
 %     'bootcoeff' results are reproducible.
 %
 %     'COEFF = bootcoeff (STATS, ...) returns a structure with the following
-%     fields (defined above): original, bias, median, CI_lower, CI_upper, tstat
-%     and pval. These statistics summarise the posterior distributions of the
-%     coefficients from the linear model.
+%     fields (defined above): original, bias, median, CI_lower, CI_upper & pval.
+%     These statistics summarise the posterior distributions of the coefficients
+%     from the linear model.
 %
 %     '[COEFF, BOOTSTAT] = bootcoeff (STATS, ...) also returns the bootstrap
 %     statistics (i.e. posterior) for the coefficients.
@@ -75,10 +74,8 @@
 %        intervals. Statistics and Computing, 25(4), 809–819.
 %  [3] Hall and Wilson (1991) Two Guidelines for Bootstrap Hypothesis Testing.
 %        Biometrics, 47(2), 757-762
-%  [4] Long and Ervin (2000) Using Heteroscedasticity Consistent Standard
-%        Errors in the Linear Regression Model. Am. Stat, 54(3), 217-224
 %
-%  bootcoeff (version 2023.05.18)
+%  bootcoeff (version 2023.05.20)
 %  Author: Andrew Charles Penn
 %  https://www.researchgate.net/profile/Andrew_Penn/
 %

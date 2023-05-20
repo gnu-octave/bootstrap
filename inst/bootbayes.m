@@ -22,9 +22,8 @@
 %        • p-val: two-tailed p-value(s) for the parameter(s) being equal to 0
 %          By default, the credible intervals are shortest probability intervals,
 %          which represent a more computationally stable version of the highest
-%          posterior density interval [3]. The p-value(s) is/are computed from
-%          the Student-t (null) distribution(s) constructed from the posterior
-%          statistics and heteroscedasticity-consistent standard errors [4,5].
+%          posterior density interval [3]. The frequentist p-values are computed
+%          under the assumption of translation equivariance [4].
 %
 %     'bootbayes (y, X)' also specifies the design matrix (X) for least squares
 %     regression of y on X. X should be a column vector or matrix the same
@@ -69,12 +68,10 @@
 %     'bootbayes (..., NBOOT, PROB, PRIOR, SEED, L)' multiplies the regression
 %     coefficients by the hypothesis matrix L.  If L is not provided or is empty,
 %     it will assume the default value of 1. This functionality is usually used
-%     to convert regression to estimated marginal means. NaN is returned for
-%     p-values if a hypothesis matrix is provided.
+%     to convert regression to estimated marginal means.
 %
 %     'STATS = bootbayes (STATS, ...) returns a structure with the following
-%     fields (defined above): original, bias, median, CI_lower, CI_upper, tstat
-%     and pval. 
+%     fields (defined above): original, bias, median, CI_lower, CI_upper & pval. 
 %
 %     '[STATS, BOOTSTAT] = bootbayes (STATS, ...)  also returns the a vector (or
 %     matrix) of bootstrap statistics (BOOTSTAT) calculated over the bootstrap
@@ -88,10 +85,8 @@
 %        intervals. Statistics and Computing, 25(4), 809–819. 
 %  [4] Hall and Wilson (1991) Two Guidelines for Bootstrap Hypothesis Testing.
 %        Biometrics, 47(2), 757-762
-%  [5] Long and Ervin (2000) Using Heteroscedasticity Consistent Standard
-%        Errors in the Linear Regression Model. Am. Stat, 54(3), 217-224
 %
-%  bootbayes (version 2023.05.18)
+%  bootbayes (version 2023.05.20)
 %  Author: Andrew Charles Penn
 %  https://www.researchgate.net/profile/Andrew_Penn/
 %
@@ -241,10 +236,7 @@ function [stats, bootstat] = bootbayes (y, X, nboot, prob, prior, seed, L)
   bootfun = @(w) lmfit (X, y, diag (w), L);
 
   % Calculate estimate(s) and heteroscedasticity robust standard error(s) (HC1)
-  S = bootfun (ones (n, 1));
-  original = S.b;
-  std_err = S.se;
-  t = original ./ std_err;
+  original = bootfun (ones (n, 1));
 
   % Create weights by randomly sampling from a symmetric Dirichlet distribution.
   % This can be achieved by normalizing a set of randomly generated values from
@@ -257,18 +249,12 @@ function [stats, bootstat] = bootbayes (y, X, nboot, prob, prior, seed, L)
   W = bsxfun (@rdivide, r, sum (r));
 
   % Compute bootstap statistics
-  bootout = cell2mat (cellfun (bootfun, num2cell (W, 1), 'UniformOutput', false));
-  bootstat = [bootout.b];
-  bootse = [bootout.se];
+  bootstat = cell2mat (cellfun (bootfun, num2cell (W, 1), 'UniformOutput', false));
 
-  % Compute frequentist p-values following the guidelines described by 
+  % Compute frequentist p-values following the first guideline described by 
   % Hall and Wilson (1991) Biometrics, 47(2), 757-762
-  if (all (isnan (t)))
-    pval = t;
-  else
-    T = bsxfun (@minus, bootstat, original) ./ bootse; % Null distribution
-    pval = sum (bsxfun(@gt, abs (T), abs (t)), 2) / nboot;
-  end
+  null = bsxfun (@minus, bootstat, original); % Null distribution
+  pval = sum (bsxfun (@gt, abs (null), abs (original)), 2) / nboot; % 2-tailed
 
   % Bootstrap bias estimation
   bias = mean (bootstat, 2) - original;
@@ -301,7 +287,6 @@ function [stats, bootstat] = bootbayes (y, X, nboot, prob, prior, seed, L)
   stats.median = median (bootstat, 2);
   stats.CI_lower = ci(:, 1);
   stats.CI_upper = ci(:, 2);
-  stats.tstat = t;
   stats.pval = pval;
 
   % Print output if no output arguments are requested
@@ -315,7 +300,7 @@ end
 
 %% FUNCTION TO FIT THE LINEAR MODEL
 
-function S = lmfit (X, y, W, L)
+function b = lmfit (X, y, W, L)
 
   % Get model coefficients by solving the linear equation by matrix arithmetic
   % If optional arument W is provided, it should be a diagonal matrix of
@@ -331,28 +316,7 @@ function S = lmfit (X, y, W, L)
   end
   
   % Solve linear equation to minimize weighted least squares
-  XW = X' * W;
-  invG = pinv (XW * X); % calculate pseudoinverse of the Gram matrix
-  b = L * (invG * (XW * y));
-
-  % Calculate heteroscedasticity-consistent standard errors (HC1) for the
-  % regression coefficients. The standard errors calculated here reproduce
-  % the HC1 standard errors calculated in R using vcovHC from the sandwich
-  % package.
-  % Ref: Long and Ervin (2000) Am. Stat, 54(3), 217-224
-  k = numel (b);
-  if ((numel (L) == 1) && all (L == 1))
-    yf = X * invG * (XW * y);
-    r = y - yf;
-    rw = W * r;
-    se = sqrt (diag ((n / (n - k) * invG * X' * diag ((rw).^2) * X * invG)));
-  else
-    se = nan (k, 1);
-  end
-
-  % Prepare output
-  S.b = b;
-  S.se = se;
+  b = L * pinv (X' * W * X) * (X' * W * y);
 
 end
 
