@@ -32,7 +32,7 @@
 %     minimizes the above objective function by finding the root of the first
 %     derivative using a fast, but reliable, Newton-Bisection hybrid algorithm.
 %     The tolerance (TOL) is the maximum value of the step size that is
-%     acceptable to break from optimization. By  default, TOL = range * 1e-04.
+%     acceptable to break from optimization. By default, TOL = range * 1e-04.
 %
 %     The smoothing works by slightly reducing the breakdown point of the median.
 %     Bootstrap confidence intervals using the smoothed median have good

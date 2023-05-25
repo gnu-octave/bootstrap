@@ -47,19 +47,17 @@
 %          Credible intervals are not calculated when the value(s) of PROB
 %          is/are NaN. The default value of PROB is 0.95.
 %
-%     'bootbayes (..., NBOOT, PROB, PRIOR)' accepts a positive real numeric
-%     scalar to parametrize the form of the symmetric Dirichlet distribution.
-%     The Dirichlet distribution is the conjugate PRIOR used to randomly
-%     generate weights for linear least squares fitting to the observed data,
-%     and subsequently to estimate the posterior for the regression coefficients
-%     by Bayesian bootstrap. If PRIOR is not provided, or is empty, it will be
-%     set to 1, corresponding to Bayes rule: a uniform (or flat) Dirichlet
-%     distribution (in the range [0, 1]). For a stronger prior, set PRIOR to 
-%     > 1, for example, if the experiment is confirmatory and reproduced. For a
-%     weaker prior, set PRIOR to < 1 (e.g. 0.5 for Jeffrey's prior). Jeffrey's
-%     prior may be appropriate for estimates from small samples (n < 10) in 
-%     exploratory settings, where the amount of data may be assumed to
-%     inadequately define the parameter space. 
+%     'bootbayes (..., NBOOT, PROB, PRIOR)' accepts 'auto' or a positive real
+%     numeric scalar to parametrize the form of the symmetric Dirichlet
+%     distribution. The Dirichlet distribution is the conjugate PRIOR used to
+%     randomly generate weights for linear least squares fitting of the observed
+%     data, and subsequently to estimate the posterior for the regression
+%     coefficients by Bayesian bootstrap. If PRIOR is not provided, or is empty,
+%     it will be set to 1, corresponding to Bayes rule: a uniform (or flat)
+%     Dirichlet distribution (in the range [0, 1]). For a weaker prior, set
+%     PRIOR to < 1 (e.g. 0.5 for Jeffrey's prior). Since sample variance tends
+%     to underestimate population variance, we recommend Jeffrey's prior for
+%     n < 10.
 %
 %     'bootbayes (..., NBOOT, PROB, PRIOR, SEED)' initialises the Mersenne
 %     Twister random number generator using an integer SEED value so that
@@ -86,7 +84,7 @@
 %  [4] Hall and Wilson (1991) Two Guidelines for Bootstrap Hypothesis Testing.
 %        Biometrics, 47(2), 757-762
 %
-%  bootbayes (version 2023.05.20)
+%  bootbayes (version 2023.05.24)
 %  Author: Andrew Charles Penn
 %  https://www.researchgate.net/profile/Andrew_Penn/
 %
@@ -187,8 +185,6 @@ function [stats, bootstat] = bootbayes (y, X, nboot, prob, prior, seed, L)
   end
 
   % Evaluate or set prior
-  % Set the prior based on our prior expectation that, depending on the sample
-  % size, sample variance underestimates the population variance 
   if (nargin < 5)
     prior = 1; % Bayes flat/uniform prior
   else

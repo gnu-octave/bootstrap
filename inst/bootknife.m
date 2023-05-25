@@ -126,7 +126,9 @@
 %    This function has no input arguments for specifying a random seed. However,
 %  one can reset the random number generator with a SEED value using following
 %  command:
+%
 %  >> boot (1, 1, false, SEED);
+%
 %    Please see the help documentation for the function 'boot' for more
 %  information about setting the seed for parallel execution of bootknife.
 %
