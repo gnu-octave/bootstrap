@@ -1,8 +1,10 @@
 % -- Function File: bootemm (STATS, DIM)
-% -- Function File: bootemm (STATS, DIM, NBOOT)
-% -- Function File: bootemm (STATS, DIM, NBOOT, PROB)
-% -- Function File: bootemm (STATS, DIM, NBOOT, PROB)
-% -- Function File: bootemm (STATS, DIM, NBOOT, PROB, SEED)
+% -- Function File: bootemm (STATS, DIM, CLUSTID)
+% -- Function File: bootemm (STATS, DIM, BLOCKSZ)
+% -- Function File: bootemm (STATS, DIM, ..., NBOOT)
+% -- Function File: bootemm (STATS, DIM, ..., NBOOT, PROB)
+% -- Function File: bootemm (STATS, DIM, ..., NBOOT, PROB)
+% -- Function File: bootemm (STATS, DIM, ..., NBOOT, PROB, SEED)
 % -- Function File: EMM = bootemm (STATS, DIM, ...)
 % -- Function File: [EMM, BOOTSTAT] = bootemm (STATS, DIM, ...)
 %
@@ -18,16 +20,31 @@
 %        • p-val: two-tailed p-value(s) for the mean(s) being equal to 0
 %          By default, the credible intervals are shortest probability intervals,
 %          which represent a more computationally stable version of the highest
-%          posterior density interval [2]. The frequentist p-values are computed
-%          under the assumption of translation equivariance [4].
+%          posterior density interval [2]. The frequentist-like p-values are
+%          computed under the assumption of translation equivariance [4].
 %
-%     'bootemm (STATS, DIM, NBOOT)' specifies the number of bootstrap resamples,
-%     where NBOOT must be a positive integer. If empty, tHe default value of
-%     NBOOT is the scalar: 2000.
+%     'bootemm (STATS, DIM, CLUSTID)' specifies a vector or cell array of
+%     numbers or strings respectively to be used as cluster labels or
+%     identifiers. Rows of the data with the same CLUSTID value are treated as
+%     clusters of dependent observations. Rows of the data assigned to a
+%     particular cluster will have identical weights during Bayesian bootstrap.
+%     If empty (default), no clustered resampling is performed and all residuals
+%     are treated as independent.
 %
-%     'bootemm (STATS, DIM, NBOOT, PROB)' where PROB is numeric and sets the
-%     lower and upper bounds of the credible interval(s). The value(s) of
-%     PROB must be between 0 and 1. PROB can either be:
+%     'bootemm (STATS, DIM, BLOCKSZ)' specifies a scalar, which sets the block
+%     size for bootstrapping when the residuals have serial dependence.
+%     Identical weights are assigned within each consecutive block of length
+%     BLOCKSZ during Bayesian bootstrap. Rows of the data within the same block
+%     are treated as blocks of dependent observations. If empty (default), no
+%     block resampling is performed and all residuals are treated as independent.
+%
+%     'bootemm (STATS, DIM, ..., NBOOT)' specifies the number of bootstrap
+%     resamples, where NBOOT must be a positive integer. If empty, tHe default
+%     value of NBOOT is the scalar: 2000.
+%
+%     'bootemm (STATS, DIM, ..., NBOOT, PROB)' where PROB is numeric and
+%     sets the lower and upper bounds of the credible interval(s). The value(s)
+%     of PROB must be between 0 and 1. PROB can either be:
 %        • scalar: To set the central mass of shortest probability intervals
 %                  (SPI) to 100*(1-PROB)%
 %        • vector: A pair of probabilities defining the lower and upper
@@ -36,21 +53,17 @@
 %          Credible intervals are not calculated when the value(s) of PROB
 %          is/are NaN. The default value of PROB is the scalar 0.95.
 %
-%     'bootemm (STATS, DIM, NBOOT, PROB, PRIOR)' accepts a positive real numeric
-%     scalar to parametrize the form of the symmetric Dirichlet distribution.
-%     The Dirichlet distribution is the conjugate PRIOR used to randomly
-%     generate weights for linear least squares fitting to the observed data,
-%     and subsequently to estimate the posterior for the regression coefficients
-%     by Bayesian bootstrap. If PRIOR is not provided, or is empty, it will be
-%     set to 1, corresponding to Bayes rule: a uniform (or flat) Dirichlet
-%     distribution (in the range [0, 1]). For a stronger prior, set PRIOR to 
-%     > 1, for example, if the experiment is confirmatory and reproduced. For a
-%     weaker prior, set PRIOR to < 1 (e.g. 0.5 for Jeffrey's prior). Jeffrey's
-%     prior may be appropriate for estimates from small samples (n < 10) in 
-%     exploratory settings, where the amount of data may be assumed to
-%     inadequately define the parameter space. 
+%     'bootemm (STATS, DIM, ..., NBOOT, PROB, PRIOR)' accepts a positive
+%     real numeric scalar to parametrize the form of the symmetric Dirichlet
+%     distribution. The Dirichlet distribution is the conjugate PRIOR used to
+%     randomly generate weights for linear least squares fitting of the observed
+%     data, and subsequently to estimate the posterior for the regression
+%     coefficients by Bayesian bootstrap. If PRIOR is not provided, or is empty,
+%     it will be set to 1, corresponding to Bayes rule: a uniform (or flat)
+%     Dirichlet distribution (in the range [0, 1]). For a weaker prior, set
+%     PRIOR to < 1 (e.g. 0.5 for Jeffrey's prior).
 %
-%     'bootemm (STATS, DIM, NBOOT, PROB, PRIOR, SEED)', initialises the
+%     'bootemm (STATS, DIM, ..., NBOOT, PROB, PRIOR, SEED)', initialises the
 %     Mersenne Twister random number generator using an integer SEED value so
 %     that 'bootemm' results are reproducible.
 %
@@ -74,7 +87,7 @@
 %  [3] Hall and Wilson (1991) Two Guidelines for Bootstrap Hypothesis Testing.
 %        Biometrics, 47(2), 757-762
 %
-%  bootemm (version 2023.05.20)
+%  bootemm (version 2023.05.30)
 %  Author: Andrew Charles Penn
 %  https://www.researchgate.net/profile/Andrew_Penn/
 %
@@ -93,23 +106,26 @@
 %  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-function [emm, bootstat] = bootemm (STATS, dim, nboot, prob, prior, seed)
+function [emm, bootstat] = bootemm (STATS, dim, arg3, nboot, prob, prior, seed)
 
   % Check input aruments
   if (nargin < 2)
     error ('bootemm usage: ''bootemm (STATS, dim)'' atleast 2 input arguments required');
   end
   if (nargin < 3)
-    nboot = 2000;
-  end
-  if (nargin < 3)
-    nboot = 2000;
+    arg3 = [];
   end
   if (nargin < 4)
-    prob = 0.95;
+    nboot = 2000;
   end
   if (nargin < 5)
-    prior = []; % Use default in bootbayes
+    prob = 0.95;
+  end
+  if (nargin < 6)
+    prior = [];
+  end
+  if (nargin < 7)
+    seed = []; % Use default in bootbayes
   end
 
   % Error checking
@@ -124,13 +140,6 @@ function [emm, bootstat] = bootemm (STATS, dim, nboot, prob, prior, seed)
   end
   if (ismember (dim, find (STATS.continuous)))
     error ('bootemm: Estimated marginal means are only calculated for categorical variables')
-  end
-  if (nargin > 5)
-    if (ISOCTAVE)
-      randg ('seed', seed);
-    else
-      rng ('default');
-    end
   end
   N = numel (STATS.contrasts);
   for j = 1:N
@@ -175,11 +184,11 @@ function [emm, bootstat] = bootemm (STATS, dim, nboot, prob, prior, seed)
   % Perform Bayesian bootstrap
   switch (nargout)
     case 0
-      bootbayes (y, X, nboot, prob, prior, [], L);
+      bootbayes (y, X, arg3, nboot, prob, prior, seed, L);
     case 1
-      emm = bootbayes (y, X, nboot, prob, prior, [], L);
+      emm = bootbayes (y, X, arg3, nboot, prob, prior, seed, L);
     otherwise
-      [emm, bootstat] = bootbayes (y, X, nboot, prob, prior, [], L);
+      [emm, bootstat] = bootbayes (y, X, arg3, nboot, prob, prior, seed, L);
   end
 
 end
@@ -197,4 +206,4 @@ end
 %! DIM = 1;
 %! STATS.grpnames{DIM}
 %! # Uniform prior, 95% credible intervals
-%! bootemm (STATS, DIM, 2000, 0.95, 1.0); 
+%! bootemm (STATS, DIM, [], 2000, 0.95, 1.0); 

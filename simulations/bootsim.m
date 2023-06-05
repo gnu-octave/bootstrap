@@ -48,11 +48,11 @@ above = 0;
 below = 0;
 
 % Bootstrap resampling
-nboot = [2000,0];
-type = '';
+nboot = [10000,0];
+type = 'bca';
 
 % Print settings
-fprintf ('----- BOOTSTRAP CONFIDENCE INTERVAL SIMULATION -----\n')
+fprintf ('----- BOOTSTRAP CONFIDENCE INTERVAL (CI) SIMULATION -----\n')
 fprintf ('Simulation size: %u\n',sim);
 fprintf ('Sample size: %u\n',n);
 fprintf ('nboot: %u\n',nboot);
@@ -65,7 +65,7 @@ shape  = nan (sim,1);
 coverage  = nan (sim,1);
 
 % Parallel processing
-ncpus = 4;
+ncpus = 1;
 paropt = struct ('UseParallel', true, 'nproc', ncpus);
   
 % Start simulation
@@ -85,12 +85,12 @@ for i=1:sim
   end
   
   % Bootstrap confidence interval
-  %ci = bootci (nboot, {bootfun,x}, 'alpha', alpha, 'type', type, 'Options', paropt);
+  %ci = bootci (nboot(1), {bootfun,x}, 'alpha', alpha, 'type', type, 'Options', paropt);
   if (nvar > 1)
     S = bootknife ({x, y}, nboot, bootfun, alpha, [], ncpus); ci = [S.CI_lower; S.CI_upper];
   else
     S = bootknife (x, nboot, bootfun, alpha, [], ncpus); ci = [S.CI_lower; S.CI_upper];
-    %S = bootbayes(x, [], nboot(1), 1 - alpha, 1.0); ci = [S.CI_lower; S.CI_upper];
+  %  S = bootbayes(x, [], [], nboot(1), 1 - alpha, 1.0); ci = [S.CI_lower; S.CI_upper];
   end
   
 
