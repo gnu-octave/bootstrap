@@ -257,7 +257,7 @@ function [stats, bootstat] = bootbayes (y, X, arg3, nboot, prob, prior, seed, L)
   % Create weighted least squares anonymous function
   bootfun = @(w) lmfit (X, y, diag (w), L);
 
-  % Calculate estimate(s) and heteroscedasticity robust standard error(s) (HC1)
+  % Calculate estimate(s)
   original = bootfun (ones (n, 1));
 
   % Create weights by randomly sampling from a symmetric Dirichlet distribution.
