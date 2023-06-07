@@ -8,35 +8,23 @@
 % -- Function File: EMM = bootemm (STATS, DIM, ...)
 % -- Function File: [EMM, BOOTSTAT] = bootemm (STATS, DIM, ...)
 %
-%     'bootemm (STATS, DIM)' uses the STATS structure output from fitlm or
+%     'bootemm (STATS, DIM)' accepts the STATS structure output from fitlm or
 %     anovan functions (from the v1.5+ of the Statistics package in OCTAVE)
-%     and Bayesian nonparametric bootstrap [1] to compute and return the
-%     following statistics along the dimension DIM:
-%        • original: the estimated marginal mean(s) from the regression of y on X
-%        • bias: bootstrap bias estimate(s)
-%        • median: the median of the posterior distribution(s)
-%        • CI_lower: lower bound(s) of the 95% credible interval
-%        • CI_upper: upper bound(s) of the 95% credible interval
-%        • p-val: two-tailed p-value(s) for the mean(s) being equal to 0
-%          By default, the credible intervals are shortest probability intervals,
-%          which represent a more computationally stable version of the highest
-%          posterior density interval [2]. The frequentist-like p-values are
-%          computed under the assumption of translation equivariance [4].
+%     and uses the `bootbayes` function to compute and print 95% credible
+%     intervals each estimated marginal mean along the dimension DIM. Please
+%     see the help documentation in `bootbayes` for more information.
 %
 %     'bootemm (STATS, DIM, CLUSTID)' specifies a vector or cell array of
 %     numbers or strings respectively to be used as cluster labels or
-%     identifiers. Rows of the data with the same CLUSTID value are treated as
-%     clusters of dependent observations. Rows of the data assigned to a
-%     particular cluster will have identical weights during Bayesian bootstrap.
-%     If empty (default), no clustered resampling is performed and all residuals
-%     are treated as independent.
+%     identifiers. Rows of the data with the same CLUSTID value are treated
+%     as clusters with dependent errors. If empty (default), no clustered
+%     resampling is performed and all errors are treated as independent.
 %
 %     'bootemm (STATS, DIM, BLOCKSZ)' specifies a scalar, which sets the block
-%     size for bootstrapping when the residuals have serial dependence.
-%     Identical weights are assigned within each consecutive block of length
-%     BLOCKSZ during Bayesian bootstrap. Rows of the data within the same block
-%     are treated as blocks of dependent observations. If empty (default), no
-%     block resampling is performed and all residuals are treated as independent.
+%     size for bootstrapping when the errors have serial dependence. Rows of
+%     the data within the same block are treated as having dependent errors. If
+%     empty (default), no clustered resampling is performed and all errors are
+%     treated as independent.
 %
 %     'bootemm (STATS, DIM, ..., NBOOT)' specifies the number of bootstrap
 %     resamples, where NBOOT must be a positive integer. If empty, tHe default
@@ -68,9 +56,7 @@
 %     that 'bootemm' results are reproducible.
 %
 %     'EMM = bootemm (STATS, DIM, ...) returns a structure with the following
-%     fields (defined above): original, bias, median, CI_lower, CI_upper & pval.
-%     These statistics summarise the posterior distributions of the estimated
-%     marginal means of the linear model along the dimenions DIM.
+%     fields (defined above): original, bias, median, CI_lower & CI_upper.
 %
 %     '[EMM, BOOTSTAT] = bootemm (STATS, DIM, ...) also returns the bootstrap
 %     statistics for the estimated marginal means.
@@ -80,14 +66,7 @@
 %  Requirements: bootemm is only supported in GNU Octave and requires the
 %  Statistics package version 1.5+.
 %
-%  Bibliography:
-%  [1] Rubin (1981) The Bayesian Bootstrap. Ann. Statist. 9(1):130-134
-%  [2] Liu, Gelman & Zheng (2015). Simulation-efficient shortest probability
-%        intervals. Statistics and Computing, 25(4), 809–819. 
-%  [3] Hall and Wilson (1991) Two Guidelines for Bootstrap Hypothesis Testing.
-%        Biometrics, 47(2), 757-762
-%
-%  bootemm (version 2023.05.30)
+%  bootemm (version 2023.06.07)
 %  Author: Andrew Charles Penn
 %  https://www.researchgate.net/profile/Andrew_Penn/
 %

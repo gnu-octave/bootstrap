@@ -9,35 +9,23 @@
 % -- Function File: COEFF = bootcoeff (STATS, ...)
 % -- Function File: [COEFF, BOOTSTAT] = bootcoeff (STATS, ...)
 %
-%     'bootcoeff (STATS)' uses the STATS structure output from fitlm or anovan
-%     functions (from the v1.5+ of the Statistics package in OCTAVE) and
-%     Bayesian nonparametric bootstrap [1] to compute and return the following
-%     statistics:
-%        • original: the coefficient(s) from regressing y on X
-%        • bias: bootstrap bias estimate(s)
-%        • median: the median of the posterior distribution(s)
-%        • CI_lower: lower bound(s) of the 95% credible interval
-%        • CI_upper: upper bound(s) of the 95% credible interval
-%        • p-val: two-tailed p-value(s) for the parameter(s) being equal to 0
-%          By default, the credible intervals are shortest probability intervals,
-%          which represent a more computationally stable version of the highest
-%          posterior density interval [2]. The frequentist-like p-values are
-%          computed under the assumption of translation equivariance [3].
+%     'bootcoeff (STATS)' accepts the STATS structure output from fitlm or anovan
+%     functions (from the v1.5+ of the Statistics package in OCTAVE) and uses
+%     the `bootbayes` and `bootwild` functions to compute and print 95% credible
+%     intervals and p-values respectively for each model coefficient. Please see
+%     the help for both of these functions for more information.
 %
 %     'bootcoeff (STATS, CLUSTID)' specifies a vector or cell array of numbers
 %     or strings respectively to be used as cluster labels or identifiers.
-%     Rows of the data with the same CLUSTID value are treated as clusters of
-%     dependent observations. Rows of the data assigned to a particular cluster
-%     will have identical weights during Bayesian bootstrap. If empty (default),
-%     no clustered resampling is performed and all residuals are treated as
-%     independent.
+%     Rows of the data with the same CLUSTID value are treated as clusters with
+%     dependent errors. If empty (default), no clustered resampling is performed
+%     and all errors are treated as independent.
 %
 %     'bootcoeff (STATS, BLOCKSZ)' specifies a scalar, which sets the block size
-%     for bootstrapping when the residuals have serial dependence. Identical
-%     weights are assigned within each consecutive block of length BLOCKSZ
-%     during Bayesian bootstrap. Rows of the data within the same block are
-%     treated as blocks of dependent observations. If empty (default), no block
-%     resampling is performed and all residuals are treated as independent.
+%     for bootstrapping when the errors have serial dependence. Rows of the data
+%     within the same block are treated as having dependent errors. If empty
+%     (default), no clustered resampling is performed and all errors are treated
+%     as independent.
 %
 %     'bootcoeff (STATS, ..., NBOOT)' specifies the number of bootstrap
 %     resamples, where NBOOT must be a positive integer. If empty, the default
@@ -66,29 +54,21 @@
 %
 %     'bootcoeff (STATS, ..., NBOOT, PROB, PRIOR, SEED)' initialises the
 %     Mersenne Twister random number generator using an integer SEED value so
-%     that 'bootcoeff' results are reproducible.
+%     that `bootcoeff` results are reproducible.
 %
 %     'COEFF = bootcoeff (STATS, ...) returns a structure with the following
-%     fields (defined above): original, bias, median, CI_lower, CI_upper & pval.
-%     These statistics summarise the posterior distributions of the coefficients
-%     from the linear model.
+%     fields (defined above): original, bias, median, CI_lower, CI_upper, tstat,
+%     pval and fpr.
 %
 %     '[COEFF, BOOTSTAT] = bootcoeff (STATS, ...) also returns the bootstrap
-%     statistics (i.e. posterior) for the coefficients.
+%     statistics for the coefficients.
 %
 %  Requirements: bootcoeff is only supported in GNU Octave and requires the
 %  Statistics package version 1.5+.
 %
-%  See also `bootbayes`.
+%  See also `bootbayes` and `bootwild`.
 %
-%  Bibliography:
-%  [1] Rubin (1981) The Bayesian Bootstrap. Ann. Statist. 9(1):130-134
-%  [2] Liu, Gelman & Zheng (2015). Simulation-efficient shortest probability
-%        intervals. Statistics and Computing, 25(4), 809–819.
-%  [3] Hall and Wilson (1991) Two Guidelines for Bootstrap Hypothesis Testing.
-%        Biometrics, 47(2), 757-762
-%
-%  bootcoeff (version 2023.05.30)
+%  bootcoeff (version 2023.06.07)
 %  Author: Andrew Charles Penn
 %  https://www.researchgate.net/profile/Andrew_Penn/
 %
@@ -142,6 +122,7 @@ function [coeffs, bootstat] = bootcoeff (STATS, arg2, nboot, prob, prior, seed)
   if (nargin > 5)
     if (ISOCTAVE)
       randg ('seed', seed);
+      randn ('seed', seed);
     else
       rng ('default');
     end
@@ -162,10 +143,17 @@ function [coeffs, bootstat] = bootcoeff (STATS, arg2, nboot, prob, prior, seed)
   switch (nargout)
     case 0
       bootbayes (y, X, arg2, nboot, prob, prior);
+      bootwild (y, X, arg2, nboot);
     case 1
       coeffs = bootbayes (y, X, arg2, nboot, prob, prior);
+      nhst = bootwild (y, X, arg2, nboot);
+      coeffs.tstat = nhst.tstat;
+      coeffs.pval = nhst.pval;
     otherwise
       [coeffs, bootstat] = bootbayes (y, X, arg2, nboot, prob, prior);
+      nhst = bootwild (y, X, arg2, nboot);
+      coeffs.tstat = nhst.tstat;
+      coeffs.pval = nhst.pval;
   end
 
 end

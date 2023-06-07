@@ -21,11 +21,9 @@
 %        • median: the median of the posterior distribution(s)
 %        • CI_lower: lower bound(s) of the 95% credible interval
 %        • CI_upper: upper bound(s) of the 95% credible interval
-%        • p-val: two-tailed p-value(s) for the parameter(s) being equal to 0
 %          By default, the credible intervals are shortest probability intervals,
 %          which represent a more computationally stable version of the highest
-%          posterior density interval [3]. The frequentist-like p-values are
-%          computed under the assumption of translation equivariance [4].
+%          posterior density interval [3].
 %
 %     'bootbayes (y, X)' also specifies the design matrix (X) for least squares
 %     regression of y on X. X should be a column vector or matrix the same
@@ -36,18 +34,18 @@
 %
 %     'bootbayes (y, X, CLUSTID)' specifies a vector or cell array of numbers
 %     or strings respectively to be used as cluster labels or identifiers.
-%     Rows in y (and X) with the same CLUSTID value are treated as clusters of
-%     dependent observations. Rows of y (and X) assigned to a particular cluster
+%     Rows in y (and X) with the same CLUSTID value are treated as clusters with
+%     dependent errors. Rows of y (and X) assigned to a particular cluster
 %     will have identical weights during Bayesian bootstrap. If empty (default),
-%     no clustered resampling is performed and all residuals are treated as
+%     no clustered resampling is performed and all errors are treated as
 %     independent.
 %
 %     'bootbayes (y, X, BLOCKSZ)' specifies a scalar, which sets the block size
 %     for bootstrapping when the residuals have serial dependence. Identical
-%     weights are assigned within each consecutive block of length BLOCKSZ
+%     weights are assigned within each (consecutive) block of length BLOCKSZ
 %     during Bayesian bootstrap. Rows of y (and X) within the same block are
-%     treated as blocks of dependent observations. If empty (default), no block
-%     resampling is performed and all residuals are treated as independent.
+%     treated as having dependent errors. If empty (default), no block
+%     resampling is performed and all errors are treated as independent.
 %
 %     'bootbayes (y, X, ..., NBOOT)' specifies the number of bootstrap resamples,
 %     where NBOOT must be a positive integer. If empty, the default value of
@@ -84,7 +82,7 @@
 %     usually used to convert regression to estimated marginal means.
 %
 %     'STATS = bootbayes (...) returns a structure with the following fields
-%     (defined above): original, bias, median, CI_lower, CI_upper & pval. 
+%     (defined above): original, bias, median, CI_lower & CI_upper. 
 %
 %     '[STATS, BOOTSTAT] = bootbayes (...)  also returns the a vector (or
 %     matrix) of bootstrap statistics (BOOTSTAT) calculated over the bootstrap
@@ -99,7 +97,7 @@
 %  [4] Hall and Wilson (1991) Two Guidelines for Bootstrap Hypothesis Testing.
 %        Biometrics, 47(2), 757-762
 %
-%  bootbayes (version 2023.05.30)
+%  bootbayes (version 2023.06.07)
 %  Author: Andrew Charles Penn
 %  https://www.researchgate.net/profile/Andrew_Penn/
 %
@@ -122,7 +120,7 @@ function [stats, bootstat] = bootbayes (y, X, arg3, nboot, prob, prior, seed, L)
 
   % Check the number of function arguments
   if (nargin < 1)
-    error ('bootknife: y must be provided');
+    error ('bootbayes: y must be provided');
   end
   if (nargin > 8)
     error ('bootbayes: Too many input arguments')
@@ -140,7 +138,7 @@ function [stats, bootstat] = bootbayes (y, X, arg3, nboot, prob, prior, seed, L)
     error ('bootbayes: DATA must be provided');
   end
   sz = size (y);
-  if ((sz(1) < 2) || (sz (2) > 1))
+  if ( (sz(1) < 2) || (sz (2) > 1) )
     error ('bootbayes: y must be a column vector');
   end
   n = numel (y);
@@ -276,11 +274,11 @@ function [stats, bootstat] = bootbayes (y, X, arg3, nboot, prob, prior, seed, L)
   % Compute bootstap statistics
   bootstat = cell2mat (cellfun (bootfun, num2cell (W, 1), 'UniformOutput', false));
 
-  % Compute frequentist-like p-values following the first guideline described by 
-  % Hall and Wilson (1991) Biometrics, 47(2), 757-762
-  null = bsxfun (@minus, bootstat, original); % Null distribution
-  pval = sum (bsxfun (@gt, abs (null), abs (original)), 2) / nboot; % 2-tailed
-
+  %% Compute frequentist-like p-values following the first guideline described by 
+  %% Hall and Wilson (1991) Biometrics, 47(2), 757-762
+  %null = bsxfun (@minus, bootstat, original); % Null distribution
+  %pval = sum (bsxfun (@gt, abs (null), abs (original)), 2) / nboot; % 2-tailed
+  
   % Bootstrap bias estimation
   bias = mean (bootstat, 2) - original;
 
@@ -312,7 +310,6 @@ function [stats, bootstat] = bootbayes (y, X, arg3, nboot, prob, prior, seed, L)
   stats.median = median (bootstat, 2);
   stats.CI_lower = ci(:, 1);
   stats.CI_upper = ci(:, 2);
-  stats.pval = pval;
 
   % Print output if no output arguments are requested
   if (nargout == 0) 
@@ -372,23 +369,11 @@ function print_output (stats, nboot, prob, prior, p, L, method)
         fprintf (' Credible interval: %.3g%%\n', mass);
       end
     end
-    fprintf (' Null value (H0) used for hypothesis testing (p-values): 0 \n')
     fprintf ('\nPosterior Statistics: \n');
-    fprintf (' original       bias           median         CI_lower       CI_upper     p-val\n');
+    fprintf (' original         bias              median           CI_lower         CI_upper\n');
     for j = 1:p
-      if (stats.pval(j) <= 0.001)
-        fprintf (' %#-+12.6g   %#-+12.6g   %#-+12.6g   %#-+12.6g   %#-+12.6g <.001 \n',... 
-                 [stats.original(j), stats.bias(j), stats.median(j), stats.CI_lower(j), stats.CI_upper(j)]);
-      elseif (stats.pval(j) < 0.9995)
-        fprintf (' %#-+12.6g   %#-+12.6g   %#-+12.6g   %#-+12.6g   %#-+12.6g  .%03u \n',... 
-                 [stats.original(j), stats.bias(j), stats.median(j), stats.CI_lower(j), stats.CI_upper(j), round(stats.pval(j) * 1e+03)]);
-      elseif (isnan (stats.pval(j)))
-        fprintf (' %#-+12.6g   %#-+12.6g   %#-+12.6g   %#-+12.6g   %#-+12.6g   NaN \n',... 
-                 [stats.original(j), stats.bias(j), stats.median(j), stats.CI_lower(j), stats.CI_upper(j)]);
-      else
-        fprintf (' %#-+12.6g   %#-+12.6g   %#-+12.6g   %#-+12.6g   %#-+12.6g 1.000 \n',... 
-                 [stats.original(j), stats.bias(j), stats.median(j), stats.CI_lower(j), stats.CI_upper(j)]);
-      end
+      fprintf (' %#-+14.6g   %#-+14.6g    %#-+14.6g   %#-+14.6g   %#-+14.6g\n',... 
+               [stats.original(j), stats.bias(j), stats.median(j), stats.CI_lower(j), stats.CI_upper(j)]);
     end
     fprintf ('\n');
 
