@@ -9,8 +9,8 @@
 %
 %     'bootwild (y)' performs a null hypothesis significance test for the
 %     mean of y being equal to 0. This function implements wild bootstrap-t
-%     resampling of the Rademacher distribution of residuals, and computes
-%     p-values by imposing the null hypothesis (H0) [1,2]. The following
+%     resampling of the Rademacher distribution of the residuals, and computes
+%     p-values after imposing the null hypothesis (H0) [1,2]. The following
 %     statistics are printed to the standard output:
 %        • original: the mean of the data vector y
 %        • tstat: bootstrap bias estimate(s)
@@ -126,7 +126,7 @@ function [stats, bootstat] = bootwild (y, X, arg3, nboot, seed)
   % Evaluate cluster IDs or block size
   if ( (nargin > 2) && (~ isempty (arg3)) )
     if (isscalar (arg3))
-      % Prepare for block Bayesian bootstrap
+      % Prepare for wild block bootstrap
       blocksz = arg3;
       N = fix (n / blocksz);
       IC = (N + 1) * ones (n, 1);
@@ -134,7 +134,7 @@ function [stats, bootstat] = bootwild (y, X, arg3, nboot, seed)
       N = IC(end);
       method = 'block ';
     else
-      % Prepare for cluster Bayesian bootstrap
+      % Prepare for wild cluster bootstrap
       clustid = arg3;
       if (bsxfun (@ne, size (clustid), sz))
         error ('bootwild: clustid must be the same size as y')
