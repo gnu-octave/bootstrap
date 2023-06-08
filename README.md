@@ -58,6 +58,6 @@ To install (or test) the statistics-bootstrap package at it's existing location 
 At the Octave/MATLAB command prompt, type `help function-name` for more information about the function and it's input and output arguments. In Octave, you can also request demonstrations of function usage through examples by typing 'demo function-name` at the command prompt.
 
 ## Development roadmap
- 
- 
+
+* To create a function, `lm` with similar usage as `anovan`, in order to compute the design matrix and regression coefficients needed as imput to `bootcoeff` and `bootemm`. This addition will remove their current dependency for the Octave statistics package. The `lm` function will reside in the `param' folder.
 
