@@ -59,5 +59,5 @@ At the Octave/MATLAB command prompt, type `help function-name` for more informat
 
 ## Development roadmap
 
-* To create a function, `lm` with similar usage as `anovan`, in order to compute the design matrix and regression coefficients needed as imput to `bootcoeff` and `bootemm`. This addition will remove their current dependency for the Octave statistics package. The `lm` function will reside in the `param' folder.
+* To create a function, `lm` with similar usage as `anovan`, in order to compute the design matrix and regression coefficients needed as input to `bootcoeff` and `bootemm`. This addition will remove their current dependency for the Octave statistics package. The `lm` function will reside in the `param' folder.
 
