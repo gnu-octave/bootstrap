@@ -351,9 +351,13 @@ function print_output (stats, nboot, prob, prior, p, L, method)
     fprintf (['\nSummary of Bayesian bootstrap estimates of bias and precision for linear models\n',...
               '*******************************************************************************\n\n']);
     fprintf ('Bootstrap settings: \n');
-    fprintf (' Function: L * pinv (X'' * W * X) * (X'' * W * y)\n');
+    if ( (numel(L) > 1) || (L ~= 1) )
+      fprintf (' Function: L * pinv (X'' * W * X) * (X'' * W * y)\n');
+    else
+      fprintf (' Function: pinv (X'' * W * X) * (X'' * W * y)\n');
+    end
     fprintf (' Resampling method: Bayesian %sbootstrap\n', method)
-    fprintf (' Prior: Symmetric Dirichlet distribution (a = %.3g)\n', prior)
+    fprintf (' Prior: Symmetric Dirichlet distribution of weights (a = %.3g)\n', prior)
     fprintf (' Number of resamples: %u \n', nboot)
     if (~ isempty (prob) && ~ all (isnan (prob)))
       nprob = numel (prob);
