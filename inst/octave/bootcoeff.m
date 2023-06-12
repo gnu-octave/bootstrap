@@ -1,11 +1,9 @@
 % -- Function File: bootcoeff (STATS)
-% -- Function File: bootcoeff (STATS, CLUSTID)
-% -- Function File: bootcoeff (STATS, BLOCKSZ)
-% -- Function File: bootcoeff (STATS, ..., NBOOT)
-% -- Function File: bootcoeff (STATS, ..., NBOOT, PROB)
-% -- Function File: bootcoeff (STATS, ..., NBOOT, PROB)
-% -- Function File: bootcoeff (STATS, ..., NBOOT, PROB, SEED)
-% -- Function File: bootcoeff (STATS, ..., NBOOT, PROB, PRIOR, SEED)
+% -- Function File: bootcoeff (STATS, NBOOT)
+% -- Function File: bootcoeff (STATS, NBOOT, PROB)
+% -- Function File: bootcoeff (STATS, NBOOT, PROB)
+% -- Function File: bootcoeff (STATS, NBOOT, PROB, SEED)
+% -- Function File: bootcoeff (STATS, NBOOT, PROB, PRIOR, SEED)
 % -- Function File: COEFF = bootcoeff (STATS, ...)
 % -- Function File: [COEFF, BOOTSTAT] = bootcoeff (STATS, ...)
 %
@@ -15,23 +13,11 @@
 %     intervals and p-values respectively for each model coefficient. Please see
 %     the help for both of these functions for more information.
 %
-%     'bootcoeff (STATS, CLUSTID)' specifies a vector or cell array of numbers
-%     or strings respectively to be used as cluster labels or identifiers.
-%     Rows of the data with the same CLUSTID value are treated as clusters with
-%     dependent errors. If empty (default), no clustered resampling is performed
-%     and all errors are treated as independent.
-%
-%     'bootcoeff (STATS, BLOCKSZ)' specifies a scalar, which sets the block size
-%     for bootstrapping when the errors have serial dependence. Rows of the data
-%     within the same block are treated as having dependent errors. If empty
-%     (default), no clustered resampling is performed and all errors are treated
-%     as independent.
-%
-%     'bootcoeff (STATS, ..., NBOOT)' specifies the number of bootstrap
+%     'bootcoeff (STATS, NBOOT)' specifies the number of bootstrap
 %     resamples, where NBOOT must be a positive integer. If empty, the default
 %     value of NBOOT is the scalar: 2000.
 %
-%     'bootcoeff (STATS, ..., NBOOT, PROB)' where PROB is numeric and sets
+%     'bootcoeff (STATS, NBOOT, PROB)' where PROB is numeric and sets
 %     the lower and upper bounds of the credible interval(s). The value(s) of
 %     PROB must be between 0 and 1. PROB can either be:
 %        • scalar: To set the central mass of shortest probability intervals
@@ -42,7 +28,7 @@
 %          Credible intervals are not calculated when the value(s) of PROB
 %          is/are NaN. The default value of PROB is the scalar 0.95.
 %
-%     'bootcoeff (STATS, ..., NBOOT, PROB, PRIOR)' accepts a positive real
+%     'bootcoeff (STATS, NBOOT, PROB, PRIOR)' accepts a positive real
 %     numeric scalar to parametrize the form of the symmetric Dirichlet
 %     distribution. The Dirichlet distribution is the conjugate PRIOR used to
 %     randomly generate weights for linear least squares fitting of the observed
@@ -52,7 +38,7 @@
 %     Dirichlet distribution (in the range [0, 1]). For a weaker prior, set
 %     PRIOR to < 1 (e.g. 0.5 for Jeffrey's prior).
 %
-%     'bootcoeff (STATS, ..., NBOOT, PROB, PRIOR, SEED)' initialises the
+%     'bootcoeff (STATS, NBOOT, PROB, PRIOR, SEED)' initialises the
 %     Mersenne Twister random number generator using an integer SEED value so
 %     that `bootcoeff` results are reproducible.
 %
@@ -87,38 +73,35 @@
 %  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-function [coeffs, bootstat] = bootcoeff (STATS, arg2, nboot, prob, prior, seed)
+function [coeffs, bootstat] = bootcoeff (STATS, nboot, prob, prior, seed)
 
   % Check input aruments
   if (nargin < 1)
     error ('bootcoeff usage: ''bootcoeff (STATS)'' atleast 1 input arguments required');
   end
   if (nargin < 2)
-    arg2 = [];
-  end
-  if (nargin < 3)
     nboot = 2000;
   end
-  if (nargin < 4)
+  if (nargin < 3)
     prob = 0.95;
   end
-  if (nargin < 5)
+  if (nargin < 4)
     prior = []; % Use default in bootbayes
   end
-  if (nargin < 6)
+  if (nargin < 5)
     seed = []; % Use default in bootbayes
   end
 
   % Error checking
   info = ver; 
   ISOCTAVE = any (ismember ({info.Name}, 'Octave'));
-  if (~ ISOCTAVE)
-    error ('bootcoeff: Only supported by Octave')
-  end
-  statspackage = ismember ({info.Name}, 'statistics');
-  if ((~ any (statspackage)) || (str2double (info (statspackage).Version(1:3)) < 1.5))
-    error ('bootcoeff: Requires version >= 1.5 of the statistics package')
-  end
+  %if (~ ISOCTAVE)
+  %  error ('bootcoeff: Only supported by Octave')
+  %end
+  %statspackage = ismember ({info.Name}, 'statistics');
+  %if ((~ any (statspackage)) || (str2double (info (statspackage).Version(1:3)) < 1.5))
+  %  error ('bootcoeff: Requires version >= 1.5 of the statistics package')
+  %end
   if (nargin > 5)
     if (ISOCTAVE)
       randg ('seed', seed);
@@ -135,25 +118,29 @@ function [coeffs, bootstat] = bootcoeff (STATS, arg2, nboot, prob, prior, seed)
   resid = STATS.resid;
   y = fitted + resid;
   N = numel (resid);
-  if (~ all (diag (full (STATS.W) == 1)))
-    error ('bootcoeff: Incompatible with the ''weights'' argument in ''anovan'' or ''fitlm''')
+  if strcmpi (STATS.source,'anovan')
+    if (~ all (diag (full (STATS.W) == 1)))
+      error ('bootcoeff: Incompatible with the ''weights'' argument in ''anovan'' or ''fitlm''')
+    end
   end
 
   % Perform Bayesian bootstrap
   switch (nargout)
     case 0
-      bootbayes (y, X, arg2, nboot, prob, prior);
-      bootwild (y, X, arg2, nboot);
+      bootbayes (y, X, [], nboot, prob, prior);
+      bootwild (y, X, nboot);
     case 1
-      coeffs = bootbayes (y, X, arg2, nboot, prob, prior);
-      nhst = bootwild (y, X, arg2, nboot);
+      coeffs = bootbayes (y, X, [], nboot, prob, prior);
+      nhst = bootwild (y, X, nboot);
       coeffs.tstat = nhst.tstat;
       coeffs.pval = nhst.pval;
+      coeffs.fpr = nhst.fpr;
     otherwise
-      [coeffs, bootstat] = bootbayes (y, X, arg2, nboot, prob, prior);
-      nhst = bootwild (y, X, arg2, nboot);
+      [coeffs, bootstat] = bootbayes (y, X, [], nboot, prob, prior);
+      nhst = bootwild (y, X, nboot);
       coeffs.tstat = nhst.tstat;
       coeffs.pval = nhst.pval;
+      coeffs.fpr = nhst.fpr;
   end
 
 end
@@ -170,4 +157,4 @@ end
 %! [P,ATAB,STATS] = anovan (dv,g,'contrasts','treatment','sstype',2);
 %! STATS.coeffnames
 %! # Uniform prior, 95% credible intervals
-%! bootcoeff (STATS,[],2000,0.95,1.0)
+%! bootcoeff (STATS,2000,0.95,1.0)
