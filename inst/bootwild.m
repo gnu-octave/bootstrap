@@ -1,9 +1,7 @@
 % -- Function File: bootwild (y)
 % -- Function File: bootwild (y, X)
-% -- Function File: bootwild (y, X, CLUSTID)
-% -- Function File: bootwild (y, X, BLOCKSZ)
-% -- Function File: bootwild (y, X, .., NBOOT)
-% -- Function File: bootwild (y, X, .., NBOOT, SEED)
+% -- Function File: bootwild (y, X, NBOOT)
+% -- Function File: bootwild (y, X, NBOOT, SEED)
 % -- Function File: STATS = bootwild (y, ...)
 % -- Function File: [STATS, BOOTSTAT] = bootwild (y, ...)
 %
@@ -17,8 +15,8 @@
 %        • pval: two-tailed p-value(s) for the parameter(s) being equal to 0
 %        • fpr: minimum false positive risk for the corresponding p-value
 %          The p-values are computed following both of the guidelines by Hall
-%          and Wilson [3]. The minimum false positive risk (FPR) is computed
-%          according to the Sellke-Berger approach as described in [4,5].
+%          and Wilson [2]. The minimum false positive risk (FPR) is computed
+%          according to the Sellke-Berger approach as described in [3,4].
 %
 %     'bootwild (y, X)' also specifies the design matrix (X) for least squares
 %     regression of y on X. X should be a column vector or matrix the same
@@ -26,21 +24,6 @@
 %     is a column of ones (i.e. intercept only) and thus the statistic computed
 %     reduces to the mean (as above). The statistics calculated and returned in
 %     the output then relate to the coefficients from the regression of y on X.
-%
-%     'bootwild (y, X, CLUSTID)' specifies a vector or cell array of numbers
-%     or strings respectively to be used as cluster labels or identifiers.
-%     Rows in y (and X) with the same CLUSTID value are treated as clusters
-%     with dependent errors. Rows of y (and X) assigned to a particular
-%     cluster will have identical sign-flipping during wild bootstrap. If empty
-%     (default), no clustered resampling is performed and all errors are
-%     treated as independent.
-%
-%     'bootwild (y, X, BLOCKSZ)' specifies a scalar, which sets the block size
-%     for bootstrapping when the residuals have serial dependence. Identical
-%     sign-flipping occurs within each (consecutive) block of length BLOCKSZ
-%     during wild bootstrap. Rows of y (and X) within the same block are
-%     treated as having dependent errors. If empty (default), no block
-%     resampling is performed and all errors are treated as independent.
 %
 %     'bootwild (y, X, ..., NBOOT)' specifies the number of bootstrap resamples,
 %     where NBOOT must be a positive integer. If empty, the default value of
@@ -60,13 +43,11 @@
 %  Bibliography:
 %  [1] Wu (1986). Jackknife, bootstrap and other resampling methods in
 %        regression analysis (with discussions). Ann Stat.. 14: 1261–1350. 
-%  [2] Cameron, Gelbach and Miller (2008) Bootstrap-based Improvements for
-%        Inference with Clustered Errors. Rev Econ Stat. 90(3), 414-427
-%  [3] Hall and Wilson (1991) Two Guidelines for Bootstrap Hypothesis Testing.
+%  [2] Hall and Wilson (1991) Two Guidelines for Bootstrap Hypothesis Testing.
 %        Biometrics, 47(2), 757-762
-%  [4] Colquhoun (2019) The False Positive Risk: A Proposal Concerning What
+%  [3] Colquhoun (2019) The False Positive Risk: A Proposal Concerning What
 %        to Do About p-Values, Am Stat. 73:sup1, 192-201
-%  [5] Sellke, Bayarri and Berger (2001) Calibration of p-values for Testing
+%  [4] Sellke, Bayarri and Berger (2001) Calibration of p-values for Testing
 %        Precise Null Hypotheses. Am Stat. 55(1), 62-71
 %
 %  bootwild (version 2023.06.07)
@@ -123,53 +104,27 @@ function [stats, bootstat] = bootwild (y, X, arg3, nboot, seed)
   % Calculate number of parameters
   p = size (X, 2);
 
-  % Evaluate cluster IDs or block size
-  if ( (nargin > 2) && (~ isempty (arg3)) )
-    if (isscalar (arg3))
-      % Prepare for wild block bootstrap
-      blocksz = arg3;
-      N = fix (n / blocksz);
-      IC = (N + 1) * ones (n, 1);
-      IC(1 : blocksz * N, :) = reshape (ones (blocksz, 1) * [1 : N], [], 1);
-      N = IC(end);
-      method = 'block ';
-    else
-      % Prepare for wild cluster bootstrap
-      clustid = arg3;
-      if (bsxfun (@ne, size (clustid), sz))
-        error ('bootwild: clustid must be the same size as y')
-      end
-      [C, IA, IC] = unique (clustid);
-      N = numel (C); % Number of clusters
-      method = 'cluster ';
-    end
-  else
-    N = n;
-    IC = [];
-    method = "";
-  end
-
   % Evaluate number of bootstrap resamples
-  if ( (nargin < 4) || (isempty (nboot)) )
+  if ( (nargin < 3) || (isempty (nboot)) )
     nboot = 2000;
   else
     if (~ isa (nboot, 'numeric'))
       error ('bootwild: NBOOT must be numeric');
     end
     if (numel (nboot) > 1)
-      error ('bootwild: NBOOT must be a positive integer');
+      error ('bootwild: NBOOT must be scalar');
     end
     if (nboot ~= abs (fix (nboot)))
-      error ('bootwild: NBOOT must contain positive integers');
+      error ('bootwild: NBOOT must be a positive integers');
     end
   end
 
   % Set random seed
-  if ( (nargin > 4) && (~ isempty (seed)) )
+  if ( (nargin > 3) && (~ isempty (seed)) )
     if (ISOCTAVE)
       randn ('seed', seed);
     else
-      rng ('default');
+      rng (seed);
     end
   end
 
@@ -183,10 +138,7 @@ function [stats, bootstat] = bootwild (y, X, arg3, nboot, seed)
   t = original ./ std_err;
 
   % Perform sign flipping of the residuals and create resamples (Rademacher distribution)
-  s = sign (randn (N, nboot));
-  if (~ isempty (IC))
-    s = s(IC, :);  % Enforce clustering/blocking
-  end
+  s = sign (randn (n, nboot));
   yf = X * original;
   r = y - yf;
   Y = bsxfun (@plus, yf, r .* s);
@@ -203,8 +155,12 @@ function [stats, bootstat] = bootwild (y, X, arg3, nboot, seed)
   % Compute two-tailed p-values
   pval = nan (p, 1);
   for j = 1:p
-    [cdf, x] = empcdf (abs (T(j,:)));
-    pval(j) = 1 - interp1 (x, cdf, abs(t(j)), 'linear', 1);
+    if ( isnan (std_err(j)) )
+      pval(j) = NaN;
+    else
+      [cdf, x] = empcdf (abs (T(j,:)));
+      pval(j) = 1 - interp1 (x, cdf, abs(t(j)), 'linear', 1);
+    end
   end
 
   % Compute minimum false positive risk
@@ -219,7 +175,7 @@ function [stats, bootstat] = bootwild (y, X, arg3, nboot, seed)
 
   % Print output if no output arguments are requested
   if (nargout == 0) 
-    print_output (stats, nboot, p, method);
+    print_output (stats, nboot, p);
   end
 
 end
@@ -232,21 +188,20 @@ function S = lmfit (X, y)
 
   % Get model coefficients by solving the linear equation by matrix arithmetic
 
-  % Get size of data
-  [n, p] = size (X);
-
   % Solve linear equation to minimize least squares
   invG = pinv (X' * X);
-  b = invG * (X' * y);
+  b = invG * (X' * y);          % Regression coefficients
 
-  % Calculate heteroscedasticity-consistent standard errors (HC1) for the
+  % Calculate heteroscedasticity-consistent standard errors (HC2) for the
   % regression coefficients. The standard errors calculated here reproduce
-  % the HC1 standard errors calculated in R using vcovHC from the sandwich
+  % the HC2 standard errors calculated in R using vcovHC from the sandwich
   % package.
   % Ref: Long and Ervin (2000) Am. Stat, 54(3), 217-224
+  % HC2 standard errors are consistent with standard errors from Welch's t-test
   yf = X * b;
   r = y - yf;
-  se = sqrt (diag (n / (n - p) * invG * X' * diag (r.^2) * X * invG));
+  h = diag (X * invG * X');     % Leverage values
+  se = sqrt (diag (invG * X' * diag (r.^2 ./ (1 - h)) * X * invG));
 
   % Prepare output
   S.b = b;
@@ -312,6 +267,7 @@ function fpr = pval2fpr (p)
   % Calculate the false-positive risk from the minumum Bayes Factor
   L10 = 1 ./ minBF;      % Convert to Maximum Likelihood ratio L10 (P(H1)/P(H0))
   fpr = max (0, 1 ./ (1 + L10));  % Calculate minimum false positive risk 
+  fpr(isnan(p)) = NaN; 
 
 end
 
@@ -319,15 +275,15 @@ end
 
 %% FUNCTION TO PRINT OUTPUT
 
-function print_output (stats, nboot, p, method)
+function print_output (stats, nboot, p)
 
     fprintf (['\nSummary of wild bootstrap null hypothesis significance tests for linear models\n',...
               '*******************************************************************************\n\n']);
     fprintf ('Bootstrap settings: \n');
     fprintf (' Function: pinv (X'' * X) * (X'' * y)\n');
-    fprintf (' Resampling method: Wild %sbootstrap-t (H0 imposed)\n', method)
+    fprintf (' Resampling method: Wild bootstrap-t (H0 imposed)\n')
     fprintf (' Number of resamples: %u \n', nboot)
-    fprintf (' Standard error calculations: Heteroscedasticity-consistent (HC1)\n')
+    fprintf (' Standard error calculations: Heteroscedasticity-consistent (HC2)\n')
     fprintf (' Null value (H0) used for hypothesis testing (p-values): 0 \n')
     fprintf ('\nTest Statistics: \n');
     fprintf (' original       t-stat         p-val      FPR\n');
@@ -343,13 +299,13 @@ function print_output (stats, nboot, p, method)
         fprintf ('    1.000 ');
       end
       if (stats.fpr(j) <= 0.001)
-        fprintf ('   <.001 \n');
+        fprintf ('   <.001\n');
       elseif (stats.fpr(j) < 0.9995)
-        fprintf ('    .%03u \n', round (stats.fpr(j) * 1e+03));
+        fprintf ('    .%03u\n', round (stats.fpr(j) * 1e+03));
       elseif (isnan (stats.fpr(j)))
-        fprintf ('     NaN \n');
+        fprintf ('     NaN\n');
       else
-        fprintf ('    1.000 \n');
+        fprintf ('    1.000\n');
       end
     end
     fprintf ('\n');
