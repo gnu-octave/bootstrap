@@ -25,13 +25,13 @@
 %     reduces to the mean (as above). The statistics calculated and returned in
 %     the output then relate to the coefficients from the regression of y on X.
 %
-%     'bootwild (y, X, ..., NBOOT)' specifies the number of bootstrap resamples,
+%     'bootwild (y, X, NBOOT)' specifies the number of bootstrap resamples,
 %     where NBOOT must be a positive integer. If empty, the default value of
 %     NBOOT is 2000.
 %
-%     'bootwild (y, X, ..., NBOOT, SEED)' initialises the Mersenne Twister
-%     random number generator using an integer SEED value so that 'bootwild'
-%     results are reproducible.
+%     'bootwild (y, X, NBOOT, SEED)' initialises the Mersenne Twister random
+%     number generator using an integer SEED value so that 'bootwild' results
+%     are reproducible.
 %
 %     'STATS = bootwild (...) returns a structure with the following fields
 %     (defined above): original, tstat, pval and fpr. 
@@ -69,7 +69,7 @@
 %  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-function [stats, bootstat] = bootwild (y, X, arg3, nboot, seed)
+function [stats, bootstat] = bootwild (y, X, nboot, seed)
 
   % Check the number of function arguments
   if (nargin < 1)
@@ -351,10 +351,10 @@ end
 %!
 %! ## Compute test statistics and p-values
 %! stats = bootwild(heights-H0);
-%! stats = bootwild(heights-H0,[],[]);
-%! stats = bootwild(heights-H0,[],[],2000);
-%! stats = bootwild(heights-H0,[],[],2000,1);
-%! stats = bootwild(heights-H0,[],[],[],[]);
+%! stats = bootwild(heights-H0,[]);
+%! stats = bootwild(heights-H0,[],2000);
+%! stats = bootwild(heights-H0,[],2000,1);
+%! stats = bootwild(heights-H0,[],[],[]);
 %! [stats,bootstat] = bootwild(heights);
 
 %!test
@@ -373,7 +373,7 @@ end
 %!
 %! ## Compute test statistics and p-values
 %! stats = bootwild(y,X);
-%! stats = bootwild(y,X,[],2000);
-%! stats = bootwild(y,X,[],2000,1);
-%! stats = bootwild(y,X,[],[],[]);
+%! stats = bootwild(y,X,2000);
+%! stats = bootwild(y,X,2000,1);
+%! stats = bootwild(y,X,[],[]);
 %! [stats,bootstat] = bootwild(y,X);
