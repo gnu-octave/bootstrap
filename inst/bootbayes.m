@@ -185,10 +185,10 @@ function [stats, bootstat] = bootbayes (y, X, arg3, nboot, prob, prior, seed, L)
       error ('bootbayes: NBOOT must be numeric');
     end
     if (numel (nboot) > 1)
-      error ('bootbayes: NBOOT must be a positive integer');
+      error ('bootbayes: NBOOT must be scalar');
     end
     if (nboot ~= abs (fix (nboot)))
-      error ('bootbayes: NBOOT must contain positive integers');
+      error ('bootbayes: NBOOT must be a positive integers');
     end
   end
 
@@ -239,7 +239,7 @@ function [stats, bootstat] = bootbayes (y, X, arg3, nboot, prob, prior, seed, L)
     if (ISOCTAVE)
       randg ('seed', seed);
     else
-      rng ('default');
+      rng (seed);
     end
   end
 
