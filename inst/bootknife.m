@@ -444,11 +444,8 @@ function [stats, bootstat, bootsam] = bootknife (x, nboot, bootfun, alpha, ...
     gid = unique (strata);  % strata ID
     K = numel (gid);        % number of strata
     % Create strata matrix
-    g = false (n, K);
-    for k = 1:K
-      g(:, k) = (strata == gid(k));
-    end
-    nk = sum (g);          % strata sample sizes
+    g = cell2mat (cellfun (@(k) strata == gid(k), num2cell (1:K), 'UniformOutput', false));
+    nk = sum (g);           % strata sample sizes
   else 
     g = ones (n, 1);
     K = 1;
@@ -870,9 +867,9 @@ function print_output (stats, nboot, alpha, l, m, bootfun_str, strata)
       end
     end
     fprintf ('Bootstrap Statistics: \n');
-    fprintf (' original       bias           std_error      CI_lower       CI_upper    \n');
+    fprintf (' original     bias         std_error    CI_lower     CI_upper  \n');
     for i = 1:m
-      fprintf (' %#-+12.6g   %#-+12.6g   %#-+12.6g   %#-+12.6g   %#-+12.6g \n',... 
+      fprintf (' %#-+10.4g   %#-+10.4g   %#-+10.4g   %#-+10.4g   %#-+10.4g \n',... 
                [stats.original(i), stats.bias(i), stats.std_error(i), stats.CI_lower(i), stats.CI_upper(i)]);
     end
     fprintf ('\n');
