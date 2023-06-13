@@ -374,9 +374,9 @@ function print_output (stats, nboot, prob, prior, p, L, method)
       end
     end
     fprintf ('\nPosterior Statistics: \n');
-    fprintf (' original         bias              median           CI_lower         CI_upper\n');
+    fprintf (' original    bias        median      CI_lower     CI_upper\n');
     for j = 1:p
-      fprintf (' %#-+14.6g   %#-+14.6g    %#-+14.6g   %#-+14.6g   %#-+14.6g\n',... 
+      fprintf (' %#-+10.4g  %#-+10.4g  %#-+10.4g  %#-+10.4g   %#-+10.4g\n',... 
                [stats.original(j), stats.bias(j), stats.median(j), stats.CI_lower(j), stats.CI_upper(j)]);
     end
     fprintf ('\n');
