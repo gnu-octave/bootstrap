@@ -85,14 +85,14 @@
 %  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-function [emm, bootstat] = bootemm (STATS, dim, arg3, nboot, prob, prior, seed)
+function [emm, bootstat] = bootemm (STATS, dim, dep, nboot, prob, prior, seed)
 
   % Check input aruments
   if (nargin < 2)
     error ('bootemm usage: ''bootemm (STATS, dim)'' atleast 2 input arguments required');
   end
   if (nargin < 3)
-    arg3 = [];
+    dep = [];
   end
   if (nargin < 4)
     nboot = 2000;
@@ -163,11 +163,11 @@ function [emm, bootstat] = bootemm (STATS, dim, arg3, nboot, prob, prior, seed)
   % Perform Bayesian bootstrap
   switch (nargout)
     case 0
-      bootbayes (y, X, arg3, nboot, prob, prior, seed, L);
+      bootbayes (y, X, dep, nboot, prob, prior, seed, L);
     case 1
-      emm = bootbayes (y, X, arg3, nboot, prob, prior, seed, L);
+      emm = bootbayes (y, X, dep, nboot, prob, prior, seed, L);
     otherwise
-      [emm, bootstat] = bootbayes (y, X, arg3, nboot, prob, prior, seed, L);
+      [emm, bootstat] = bootbayes (y, X, dep, nboot, prob, prior, seed, L);
   end
 
 end
