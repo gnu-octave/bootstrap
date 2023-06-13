@@ -1,9 +1,11 @@
 % -- Function File: bootcoeff (STATS)
-% -- Function File: bootcoeff (STATS, NBOOT)
-% -- Function File: bootcoeff (STATS, NBOOT, PROB)
-% -- Function File: bootcoeff (STATS, NBOOT, PROB)
-% -- Function File: bootcoeff (STATS, NBOOT, PROB, SEED)
-% -- Function File: bootcoeff (STATS, NBOOT, PROB, PRIOR, SEED)
+% -- Function File: bootcoeff (STATS, CLUSTID)
+% -- Function File: bootcoeff (STATS, BLOCKSZ)
+% -- Function File: bootcoeff (STATS, ..., NBOOT)
+% -- Function File: bootcoeff (STATS, ..., NBOOT, PROB)
+% -- Function File: bootcoeff (STATS, ..., NBOOT, PROB)
+% -- Function File: bootcoeff (STATS, ..., NBOOT, PROB, SEED)
+% -- Function File: bootcoeff (STATS, ..., NBOOT, PROB, PRIOR, SEED)
 % -- Function File: COEFF = bootcoeff (STATS, ...)
 % -- Function File: [COEFF, BOOTSTAT] = bootcoeff (STATS, ...)
 %
@@ -13,11 +15,23 @@
 %     intervals and p-values respectively for each model coefficient. Please see
 %     the help for both of these functions for more information.
 %
-%     'bootcoeff (STATS, NBOOT)' specifies the number of bootstrap
+%     'bootcoeff (STATS, CLUSTID)' specifies a vector or cell array of numbers
+%     or strings respectively to be used as cluster labels or identifiers.
+%     Rows of the data with the same CLUSTID value are treated as clusters with
+%     dependent errors. If empty (default), no clustered resampling is performed
+%     and all errors are treated as independent.
+%
+%     'bootcoeff (STATS, BLOCKSZ)' specifies a scalar, which sets the block size
+%     for bootstrapping when the errors have serial dependence. Rows of the data
+%     within the same block are treated as having dependent errors. If empty
+%     (default), no clustered resampling is performed and all errors are treated
+%     as independent.
+%
+%     'bootcoeff (STATS, ..., NBOOT)' specifies the number of bootstrap
 %     resamples, where NBOOT must be a positive integer. If empty, the default
 %     value of NBOOT is the scalar: 2000.
 %
-%     'bootcoeff (STATS, NBOOT, PROB)' where PROB is numeric and sets
+%     'bootcoeff (STATS, ..., NBOOT, PROB)' where PROB is numeric and sets
 %     the lower and upper bounds of the credible interval(s). The value(s) of
 %     PROB must be between 0 and 1. PROB can either be:
 %        • scalar: To set the central mass of shortest probability intervals
@@ -28,7 +42,7 @@
 %          Credible intervals are not calculated when the value(s) of PROB
 %          is/are NaN. The default value of PROB is the scalar 0.95.
 %
-%     'bootcoeff (STATS, NBOOT, PROB, PRIOR)' accepts a positive real
+%     'bootcoeff (STATS, ..., NBOOT, PROB, PRIOR)' accepts a positive real
 %     numeric scalar to parametrize the form of the symmetric Dirichlet
 %     distribution. The Dirichlet distribution is the conjugate PRIOR used to
 %     randomly generate weights for linear least squares fitting of the observed
@@ -38,7 +52,7 @@
 %     Dirichlet distribution (in the range [0, 1]). For a weaker prior, set
 %     PRIOR to < 1 (e.g. 0.5 for Jeffrey's prior).
 %
-%     'bootcoeff (STATS, NBOOT, PROB, PRIOR, SEED)' initialises the
+%     'bootcoeff (STATS, ..., NBOOT, PROB, PRIOR, SEED)' initialises the
 %     Mersenne Twister random number generator using an integer SEED value so
 %     that `bootcoeff` results are reproducible.
 %
@@ -73,22 +87,25 @@
 %  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-function [coeffs, bootstat] = bootcoeff (STATS, nboot, prob, prior, seed)
+function [coeffs, bootstat] = bootcoeff (STATS, dep, nboot, prob, prior, seed)
 
   % Check input aruments
   if (nargin < 1)
     error ('bootcoeff usage: ''bootcoeff (STATS)'' atleast 1 input arguments required');
   end
   if (nargin < 2)
-    nboot = 2000;
+    dep = [];
   end
   if (nargin < 3)
-    prob = 0.95;
+    nboot = 2000;
   end
   if (nargin < 4)
-    prior = []; % Use default in bootbayes
+    prob = 0.95;
   end
   if (nargin < 5)
+    prior = []; % Use default in bootbayes
+  end
+  if (nargin < 6)
     seed = []; % Use default in bootbayes
   end
 
@@ -127,17 +144,17 @@ function [coeffs, bootstat] = bootcoeff (STATS, nboot, prob, prior, seed)
   % Perform Bayesian bootstrap
   switch (nargout)
     case 0
-      bootbayes (y, X, [], nboot, prob, prior);
-      bootwild (y, X, nboot);
+      bootbayes (y, X, dep, nboot, prob, prior);
+      bootwild (y, X, dep, nboot);
     case 1
-      coeffs = bootbayes (y, X, [], nboot, prob, prior);
-      nhst = bootwild (y, X, nboot);
+      coeffs = bootbayes (y, X, dep, nboot, prob, prior);
+      nhst = bootwild (y, X, dep, nboot);
       coeffs.tstat = nhst.tstat;
       coeffs.pval = nhst.pval;
       coeffs.fpr = nhst.fpr;
     otherwise
-      [coeffs, bootstat] = bootbayes (y, X, [], nboot, prob, prior);
-      nhst = bootwild (y, X, nboot);
+      [coeffs, bootstat] = bootbayes (y, X, dep, nboot, prob, prior);
+      nhst = bootwild (y, X, dep, nboot);
       coeffs.tstat = nhst.tstat;
       coeffs.pval = nhst.pval;
       coeffs.fpr = nhst.fpr;
@@ -157,4 +174,4 @@ end
 %! [P,ATAB,STATS] = anovan (dv,g,'contrasts','treatment','sstype',2);
 %! STATS.coeffnames
 %! # Uniform prior, 95% credible intervals
-%! bootcoeff (STATS,2000,0.95,1.0)
+%! bootcoeff (STATS,[],2000,0.95,1.0)
