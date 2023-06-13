@@ -211,7 +211,7 @@ function [stats, bootstat] = bootwild (y, X, arg3, nboot, seed)
       pval(j) = NaN;
     else
       [cdf, x] = empcdf (abs (T(j,:)));
-      pval(j) = 1 - interp1 (x, cdf, abs(t(j)), 'linear', 1);
+      pval(j) = 1 - interp1 (x, cdf, abs (t(j)), 'linear', 1);
     end
   end
 
