@@ -5,24 +5,24 @@
 %
 %        Fits a linear model with categorical and/or continuous predictors (i.e.
 %     independent variables) on a continuous outcome (i.e. dependent variable)
-%     and computes the following for each regression coefficient:
-%          - name: the name of the regression coefficient(s)
+%     and computes the following statistics for each regression coefficient:
+%          - name: the name(s) of the regression coefficient(s)
 %          - original: the value of the regression coefficient(s)
 %          - CI_lower: lower bound(s) of the 95% Bayesian credible interval (CI)
 %          - CI_upper: upper bound(s) of the 95% Bayesian credible interval (CI)
-%          - t-stat: Student's t-statistic (computed using HC0 standard errors)
+%          - t-stat: Student's t-statistic (based on HC0 standard errors)
 %          - p-val: two-tailed p-value(s) for the parameter(s) being equal to 0
-%        Credible intervals are calculated by nonparametric Bayesian bootstrap.
+%        Credible intervals are calculated by Bayesian nonparametric bootstrap.
 %     Null Hypothesis Significance Tests (NHSTs) for the regression coefficients
-%     (H0 = 0) are calculated are by wild bootstrap-t (with H0 imposed). 
-%     Usage of this function is very similar to that of ANOVAN.
-%        Data (Y) is a single vector y with groups specified by a corresponding
-%     matrix or cell array of group labels GROUP, where each column of GROUP has
-%     the same number of rows as Y. For example, if 'Y = [1.1;1.2]; GROUP =
-%     [1,2,1; 1,5,2];' then observation 1.1 was measured under conditions 1,2,1
-%     and observation 1.2 was measured under conditions 1,5,2. If the GROUP
-%     provided is empty, then the linear model is fit with just the intercept
-%     (no predictors).
+%     (H0 = 0) are calculated by wild bootstrap-t (with H0 imposed).
+%        Usage of this function is very similar to that of 'anovan'. Data (Y)
+%     is a single vector y with groups specified by a corresponding matrix or
+%     cell array of group labels GROUP, where each column of GROUP has the same
+%     number of rows as Y. For example, if 'Y = [1.1;1.2]; GROUP = [1,2,1; 
+%     1,5,2];' then observation 1.1 was measured under conditions 1,2,1 and
+%     observation 1.2 was measured under conditions 1,5,2. If the GROUP provided
+%     is empty, then the linear model is fit with just the intercept (i.e. no
+%     predictors).
 %
 %     'bootlm' can take a number of optional parameters as name-value
 %     pairs.
@@ -32,16 +32,16 @@
 %        • DIM is a scalar or vector specifying the dimension(s) over which
 %          bootlm calculates and returns estimated marginal means instead of
 %          regression coefficients. For example, the value [1 3] computes the
-%          estimated marginal mean for each combination of the first and third
-%          predictor values. The default value is empty, which makes 'bootlm'
-%          return the statistics for for the model coefficients. If DIM is, or
-%          includes, a continuous predictor then 'bootlm' will return an error.
-%          The following statistics are returned when specifying 'dim':
-%          - name: the names of the estimated marginal mean(s)
+%          estimated marginal mean for each combination of the levels of the
+%          first and third predictors. The default value is empty, which makes
+%          'bootlm' return the statistics for for the model coefficients. If DIM
+%          is, or includes, a continuous predictor then 'bootlm' will return an
+%          error. The following statistics are returned when specifying 'dim':
+%          - name: the name(s) of the estimated marginal mean(s)
 %          - original: the estimated marginal mean(s)
 %          - CI_lower: lower bound(s) of the 95% Bayesian credible interval (CI)
 %          - CI_upper: upper bound(s) of the 95% Bayesian credible interval (CI)
-%          - n: the sample size for the named level of the predictor
+%          - n: the sample size used to estimate the mean
 %
 %     '[...] = bootlm (Y, GROUP, ..., 'continuous', CONTINUOUS)'
 %
@@ -55,18 +55,18 @@
 %
 %        • MODELTYPE can specified as one of the following:
 %
-%             • 'linear' (default) : compute N main effects with no
+%             • 'linear' (default): compute N main effects with no
 %               interactions.
 %
-%             • 'interaction' : compute N effects and N*(N-1) interactions
+%             • 'interaction': compute N effects and N*(N-1) interactions
 %
-%             • 'full' : compute the N main effects and interactions at
+%             • 'full': compute the N main effects and interactions at
 %               all levels
 %
-%             • a scalar integer : representing the maximum interaction
+%             • a scalar integer: representing the maximum interaction
 %               order
 %
-%             • a matrix of term definitions : each row is a term and
+%             • a matrix of term definitions: each row is a term and
 %               each column is a predictor
 %
 %               -- Example:
@@ -81,10 +81,9 @@
 %
 %     '[...] = bootlm (Y, GROUP, ..., 'alpha', ALPHA)'
 %
-%        • ALPHA must be a scalar value between 0 and 1 requesting
-%          100*(1-ALPHA)% credible interval bounds for the regression
-%          coefficients returned in COEFFS (default 0.05 for 95%
-%          credible intervals).
+%        • ALPHA must be a scalar value between 0 and 1 requesting 100*(1-ALPHA)%
+%          credible interval limits for the regression coefficients (or estimated
+%          marginal means). Default is 0.05 for 95% credible intervals.
 %
 %     '[...] = bootlm (Y, GROUP, ..., 'display', DISPOPT)'
 %
@@ -125,7 +124,7 @@
 %               matrix must contain the same number of columns as there
 %               are the number of predictor levels minus one.
 %
-%          If the lm model contains more than one predictor and a
+%          If the linear model contains more than one predictor and a
 %          built-in contrast coding scheme was specified, then those
 %          contrasts are applied to all predictors. To specify different
 %          contrasts for different predictors in the model, CONTRASTS should
