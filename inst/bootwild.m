@@ -2,8 +2,8 @@
 % -- Function File: bootwild (y, X)
 % -- Function File: bootwild (y, X, CLUSTID)
 % -- Function File: bootwild (y, X, BLOCKSZ)
-% -- Function File: bootwild (y, X, .., NBOOT)
-% -- Function File: bootwild (y, X, .., NBOOT, SEED)
+% -- Function File: bootwild (y, X, ..., NBOOT)
+% -- Function File: bootwild (y, X, ..., NBOOT, SEED)
 % -- Function File: STATS = bootwild (y, ...)
 % -- Function File: [STATS, BOOTSTAT] = bootwild (y, ...)
 %
@@ -13,7 +13,8 @@
 %     p-values after imposing the null hypothesis (H0) [1,2]. The following
 %     statistics are printed to the standard output:
 %        • original: the mean of the data vector y
-%        • tstat: bootstrap bias estimate(s)
+%        • std_err: heteroscedasticity-consistent standard errpr(s)
+%        • tstat: Student's t-statistic
 %        • pval: two-tailed p-value(s) for the parameter(s) being equal to 0
 %        • fpr: minimum false positive risk for the corresponding p-value
 %          The p-values are computed following both of the guidelines by Hall
@@ -33,7 +34,7 @@
 %     with dependent errors. Rows of y (and X) assigned to a particular
 %     cluster will have identical sign-flipping during wild bootstrap. If empty
 %     (default), no clustered resampling is performed and all errors are
-%     treated as independent.
+%     treated as independent. The standard errors computed are cluster robust.
 %
 %     'bootwild (y, X, BLOCKSZ)' specifies a scalar, which sets the block size
 %     for bootstrapping when the residuals have serial dependence. Identical
@@ -41,6 +42,7 @@
 %     during wild bootstrap. Rows of y (and X) within the same block are
 %     treated as having dependent errors. If empty (default), no block
 %     resampling is performed and all errors are treated as independent.
+%     The standard errors computed are cluster robust.
 %
 %     'bootwild (y, X, ..., NBOOT)' specifies the number of bootstrap resamples,
 %     where NBOOT must be a positive integer. If empty, the default value of
@@ -88,7 +90,7 @@
 %  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-function [stats, bootstat] = bootwild (y, X, arg3, nboot, seed)
+function [stats, bootstat] = bootwild (y, X, dep, nboot, seed)
 
   % Check the number of function arguments
   if (nargin < 1)
@@ -124,10 +126,10 @@ function [stats, bootstat] = bootwild (y, X, arg3, nboot, seed)
   p = size (X, 2);
 
   % Evaluate cluster IDs or block size
-  if ( (nargin > 2) && (~ isempty (arg3)) )
-    if (isscalar (arg3))
+  if ( (nargin > 2) && (~ isempty (dep)) )
+    if (isscalar (dep))
       % Prepare for wild block bootstrap
-      blocksz = arg3;
+      blocksz = dep;
       G = fix (n / blocksz);
       IC = (G + 1) * ones (n, 1);
       IC(1 : blocksz * G, :) = reshape (ones (blocksz, 1) * [1 : G], [], 1);
@@ -135,7 +137,7 @@ function [stats, bootstat] = bootwild (y, X, arg3, nboot, seed)
       method = 'block ';
     else
       % Prepare for wild cluster bootstrap
-      clustid = arg3;
+      clustid = dep;
       if (bsxfun (@ne, size (clustid), sz))
         error ('bootwild: clustid must be the same size as y')
       end

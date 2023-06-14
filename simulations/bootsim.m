@@ -36,7 +36,7 @@ bootfun = @mean; nvar = 1; rnd = @(n) random ('norm', 0, 1, [n, 1]); theta = 0;
 %--------------------------------------------------------------
 
 % Define sample size
-n = 5;
+n = 10;
 
 % Define number of simulations
 sim = 1000;
@@ -85,13 +85,15 @@ for i=1:sim
   end
   
   % Bootstrap confidence interval
-  ci = bootci (nboot(1), {bootfun,x}, 'alpha', alpha, 'type', type, 'Options', paropt);
-  if (nvar > 1)
-    S = bootknife ({x, y}, nboot, bootfun, alpha, [], ncpus); ci = [S.CI_lower; S.CI_upper];
-  else
-    S = bootknife (x, nboot, bootfun, alpha, [], ncpus); ci = [S.CI_lower; S.CI_upper];
-     %S = bootwild (x, [], [], nboot(1)); ci=[0,0];
-  end
+  %ci = bootci (nboot(1), {bootfun,x}, 'alpha', alpha, 'type', type, 'Options', paropt);
+  %if (nvar > 1)
+  %  S = bootknife ({x, y}, nboot, bootfun, alpha, [], ncpus); ci = [S.CI_lower; S.CI_upper];
+  %else
+  %  S = bootknife (x, nboot, bootfun, alpha, [], ncpus); ci = [S.CI_lower; S.CI_upper];
+    prior = ((n^-1 - n^-2) * (1 + (n - 1))) / (((n-1)^-1 - (n-1)^-2) * (1 + n));
+    S = bootbayes (x, [], [], nboot(1), 1 - alpha, prior); ci = [S.CI_lower S.CI_upper];
+    %S = bootwild (x, [], [], nboot(1)); ci=[0,0];
+  %end
 
   % Coverage counter
   if (theta >= ci(1) && theta <= ci(2))

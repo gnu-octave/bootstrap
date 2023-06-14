@@ -2,10 +2,10 @@
 % -- Function File: bootbayes (y, X)
 % -- Function File: bootbayes (y, X, CLUSTID)
 % -- Function File: bootbayes (y, X, BLOCKSZ)
-% -- Function File: bootbayes (y, X, .., NBOOT)
-% -- Function File: bootbayes (y, X, .., NBOOT, PROB)
-% -- Function File: bootbayes (y, X, .., NBOOT, PROB, PRIOR)
-% -- Function File: bootbayes (y, X, .., NBOOT, PROB, PRIOR, SEED)
+% -- Function File: bootbayes (y, X, ..., NBOOT)
+% -- Function File: bootbayes (y, X, ..., NBOOT, PROB)
+% -- Function File: bootbayes (y, X, ..., NBOOT, PROB, PRIOR)
+% -- Function File: bootbayes (y, X, ..., NBOOT, PROB, PRIOR, SEED)
 % -- Function File: bootbayes (y, X, ..., NBOOT, PROB, PRIOR, SEED, L)
 % -- Function File: STATS = bootbayes (y, ...)
 % -- Function File: [STATS, BOOTSTAT] = bootbayes (y, ...)
@@ -69,8 +69,8 @@
 %     data, and subsequently to estimate the posterior for the regression
 %     coefficients by Bayesian bootstrap. If PRIOR is not provided, or is empty,
 %     it will be set to 1, corresponding to Bayes rule: a uniform (or flat)
-%     Dirichlet distribution (in the range [0, 1]). For a weaker prior, set
-%     PRIOR to < 1 (e.g. 0.5 for Jeffrey's prior).
+%     Dirichlet distribution (over all points in its support). For a weaker
+%     prior, set PRIOR to < 1 (e.g. 0.5 for Jeffrey's prior).
 %
 %     'bootbayes (y, X, ..., NBOOT, PROB, PRIOR, SEED)' initialises the
 %     Mersenne Twister random number generator using an integer SEED value so
@@ -116,7 +116,7 @@
 %  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-function [stats, bootstat] = bootbayes (y, X, arg3, nboot, prob, prior, seed, L)
+function [stats, bootstat] = bootbayes (y, X, dep, nboot, prob, prior, seed, L)
 
   % Check the number of function arguments
   if (nargin < 1)
@@ -152,10 +152,10 @@ function [stats, bootstat] = bootbayes (y, X, arg3, nboot, prob, prior, seed, L)
   p = size (X, 2);
 
   % Evaluate cluster IDs or block size
-  if ( (nargin > 2) && (~ isempty (arg3)) )
-    if (isscalar (arg3))
+  if ( (nargin > 2) && (~ isempty (dep)) )
+    if (isscalar (dep))
       % Prepare for block Bayesian bootstrap
-      blocksz = arg3;
+      blocksz = dep;
       N = fix (n / blocksz);
       IC = (N + 1) * ones (n, 1);
       IC(1 : blocksz * N, :) = reshape (ones (blocksz, 1) * [1 : N], [], 1);
@@ -163,7 +163,7 @@ function [stats, bootstat] = bootbayes (y, X, arg3, nboot, prob, prior, seed, L)
       method = 'block ';
     else
       % Prepare for cluster Bayesian bootstrap
-      clustid = arg3;
+      clustid = dep;
       if (bsxfun (@ne, size (clustid), sz))
         error ('bootbayes: clustid must be the same size as y')
       end

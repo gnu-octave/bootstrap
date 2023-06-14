@@ -112,20 +112,12 @@ function [coeffs, bootstat] = bootcoeff (STATS, dep, nboot, prob, prior, seed)
   % Error checking
   info = ver; 
   ISOCTAVE = any (ismember ({info.Name}, 'Octave'));
-  %if (~ ISOCTAVE)
-  %  error ('bootcoeff: Only supported by Octave')
-  %end
-  %statspackage = ismember ({info.Name}, 'statistics');
-  %if ((~ any (statspackage)) || (str2double (info (statspackage).Version(1:3)) < 1.5))
-  %  error ('bootcoeff: Requires version >= 1.5 of the statistics package')
-  %end
-  if (nargin > 5)
-    if (ISOCTAVE)
-      randg ('seed', seed);
-      randn ('seed', seed);
-    else
-      rng ('default');
-    end
+  if (~ ISOCTAVE)
+    error ('bootcoeff: Only supported by Octave')
+  end
+  statspackage = ismember ({info.Name}, 'statistics');
+  if ((~ any (statspackage)) || (str2double (info (statspackage).Version(1:3)) < 1.5))
+    error ('bootcoeff: Requires version >= 1.5 of the statistics package')
   end
 
   % Fetch required information from STATS structure
@@ -144,17 +136,17 @@ function [coeffs, bootstat] = bootcoeff (STATS, dep, nboot, prob, prior, seed)
   % Perform Bayesian bootstrap
   switch (nargout)
     case 0
-      bootbayes (y, X, dep, nboot, prob, prior);
-      bootwild (y, X, dep, nboot);
+      bootbayes (y, X, dep, nboot, prob, prior, seed);
+      bootwild (y, X, dep, nboot, seed);
     case 1
-      coeffs = bootbayes (y, X, dep, nboot, prob, prior);
-      nhst = bootwild (y, X, dep, nboot);
+      coeffs = bootbayes (y, X, dep, nboot, prob, prior, seed);
+      nhst = bootwild (y, X, dep, nboot, seed);
       coeffs.tstat = nhst.tstat;
       coeffs.pval = nhst.pval;
       coeffs.fpr = nhst.fpr;
     otherwise
-      [coeffs, bootstat] = bootbayes (y, X, dep, nboot, prob, prior);
-      nhst = bootwild (y, X, dep, nboot);
+      [coeffs, bootstat] = bootbayes (y, X, dep, nboot, prob, prior, seed);
+      nhst = bootwild (y, X, dep, nboot, seed);
       coeffs.tstat = nhst.tstat;
       coeffs.pval = nhst.pval;
       coeffs.fpr = nhst.fpr;

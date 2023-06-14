@@ -144,7 +144,7 @@ function [emm, bootstat] = bootemm (STATS, dim, dep, nboot, prob, prior, seed)
 
   % Prepare the hypothesis matrix (H)
   df = STATS.df;
-  i = 1 + cumsum(df);
+  i = 1 + cumsum (df);
   k = find (sum (STATS.terms(:,dim), 2) == sum (STATS.terms, 2));
   Nt = numel (k);
   H = zeros (N, sum (df) + 1);
