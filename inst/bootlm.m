@@ -30,7 +30,7 @@
 %     '[...] = bootlm (Y, GROUP, ..., 'dim', DIM)'
 %
 %        • DIM is a scalar or vector specifying the dimension(s) over which
-%          bootlm calculates and returns estimated marginal means instead of
+%          'bootlm' calculates and returns estimated marginal means instead of
 %          regression coefficients. For example, the value [1 3] computes the
 %          estimated marginal mean for each combination of the levels of the
 %          first and third predictors. The default value is empty, which makes
