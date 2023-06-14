@@ -86,14 +86,12 @@ for i=1:sim
   
   % Bootstrap confidence interval
   %ci = bootci (nboot(1), {bootfun,x}, 'alpha', alpha, 'type', type, 'Options', paropt);
-  %if (nvar > 1)
-  %  S = bootknife ({x, y}, nboot, bootfun, alpha, [], ncpus); ci = [S.CI_lower; S.CI_upper];
-  %else
-  %  S = bootknife (x, nboot, bootfun, alpha, [], ncpus); ci = [S.CI_lower; S.CI_upper];
-    prior = ((n^-1 - n^-2) * (1 + (n - 1))) / (((n-1)^-1 - (n-1)^-2) * (1 + n));
-    S = bootbayes (x, [], [], nboot(1), 1 - alpha, prior); ci = [S.CI_lower S.CI_upper];
+  if (nvar > 1)
+    S = bootknife ({x, y}, nboot, bootfun, alpha, [], ncpus); ci = [S.CI_lower; S.CI_upper];
+  else
+    S = bootknife (x, nboot, bootfun, alpha, [], ncpus); ci = [S.CI_lower; S.CI_upper];
     %S = bootwild (x, [], [], nboot(1)); ci=[0,0];
-  %end
+  end
 
   % Coverage counter
   if (theta >= ci(1) && theta <= ci(2))
