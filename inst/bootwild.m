@@ -202,8 +202,8 @@ function [stats, bootstat] = bootwild (y, X, dep, nboot, seed)
   bootstat = [bootout.b];
   bootse = [bootout.se];
 
-  % Enforce H0 and studentize the bootstrap statistics following both
-  % guidelines described in Hall and Wilson (1991) Biometrics, 47(2), 757-762
+  % Studentize the bootstrap statistics following both guidelines described in
+  % Hall and Wilson (1991) Biometrics, 47(2), 757-762
   T = bsxfun (@minus, bootstat, original) ./ bootse;
 
   % Compute two-tailed p-values
