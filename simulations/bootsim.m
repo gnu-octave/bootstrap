@@ -36,7 +36,7 @@ bootfun = @mean; nvar = 1; rnd = @(n) random ('norm', 0, 1, [n, 1]); theta = 0;
 %--------------------------------------------------------------
 
 % Define sample size
-n = 10;
+n = 6;
 
 % Define number of simulations
 sim = 1000;
@@ -90,7 +90,8 @@ for i=1:sim
     S = bootknife ({x, y}, nboot, bootfun, alpha, [], ncpus); ci = [S.CI_lower; S.CI_upper];
   else
     S = bootknife (x, nboot, bootfun, alpha, [], ncpus); ci = [S.CI_lower; S.CI_upper];
-    %S = bootwild (x, [], [], nboot(1)); ci=[0,0];
+    %S = bootbayes (x, [], [], nboot(1), 1 - alpha); ci=[S.CI_lower,S.CI_upper];
+    %S = bootwild (x, [], [], nboot(1)); ci=[S.CI_lower,S.CI_upper];
   end
 
   % Coverage counter

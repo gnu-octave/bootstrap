@@ -57,8 +57,8 @@
 %     number of rows.
 %
 %     'bootknife (..., NBOOT, BOOTFUN, ALPHA)', where ALPHA is numeric and
-%     sets sets the lower and upper bounds of the confidence interval(s).
-%     The value(s) of ALPHA must be between 0 and 1. ALPHA can either be:
+%     sets the lower and upper bounds of the confidence interval(s). The
+%     value(s) of ALPHA must be between 0 and 1. ALPHA can either be:
 %        • scalar: To set the (nominal) central coverage of equal-tailed
 %                  percentile confidence intervals to 100*(1-ALPHA)%. The
 %                  intervals are either simple percentiles for single

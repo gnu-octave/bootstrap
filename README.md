@@ -16,7 +16,6 @@ Core functions in this package are known to be compatible with versions of Octav
 
  * All parallel computing options require either the parallel package (in Octave) or the Parallel Computing Matlab Toolbox (in Matlab).  
  * The optional jackknife functionality in `bootnhst` requires the Statistics package (in Octave) or the Statistics and Machine Learning Toolbox (in Matlab).  
- * The `bootcoeff` and `bootemm` functions require the Statistics package version v1.5+ and therefore also Octave v6.1.0+.  
  
 ## Installation
  
@@ -46,18 +45,15 @@ To install (or test) the statistics-bootstrap package at it's existing location 
 
 * `boot` returns resamples data or indices created by balanced bootstrap or bootknife resampling  
 * `bootknife` performs balanced bootknife resampling and calculates bootstrap bias, standard error and confidence intervals for any user defined-function of the data. The interval types supported are simple percentile, bias-corrected and accelerated, or calibrated percentile. This function supports iterated and stratified resampling.
-* `bootbayes` performs Bayesian nonparametric bootstrap and calculates posterior statistics for the mean, or regression coefficients from a linear model. The calculation of the posterior assumes a uniform prior probability of the mean or regression coefficient(s) over the range of the relevant data values. Two credible interval types are supported: shortest probability intervals and percentile intervals. Cluster and block resampling is supported in cases where the distribution of residuals and errors in the model have a dependence structure. See also `bootcoeff` and `bootemm`.
-* `bootwild` performs wild bootstrap-t resampling (with the null hypothesis imposed) and calculates frequentist *p*-values for the mean, or regression coefficients from a linear model, compared to 0. Cluster and block resampling is supported in cases where the distribution of residuals and errors in the model have a dependence structure. See also `bootcoeff`.
+* `bootbayes` performs Bayesian nonparametric bootstrap and calculates posterior statistics for the mean, or regression coefficients from a linear model. The calculation of the posterior assumes a uniform prior probability of the mean or regression coefficient(s) over the range of the relevant data values. Two credible interval types are supported: shortest probability intervals and percentile intervals. Cluster and block resampling is supported in cases where the distribution of residuals and errors in the model have a dependence structure.
+* `bootwild` performs wild bootstrap-t resampling and calculates confidence intervals and frequentist *p*-values for the mean, or regression coefficients from a linear model (H0 = 0). Cluster and block resampling is supported in cases where the distribution of residuals and errors in the model have a dependence structure. See also `bootlm`.
+* `bootlm` is a function for calculating confidence intervals and *p*-values for the regression coefficients or estimated marginal means from a linear model. The usage of this function is similar to `anovan`. This function uses `bootwild` and is robust to heteroscedasticity and can implement cluster/block resampling.
 * `bootnhst` calculates *p*-values by bootstrap null-hypothesis significance testing (two-tailed) in simple designs comparing 2 or more (independent) samples in designs with a one-way layout. This function resamples under the null hypothesis (assuming exchangeability similar to a permutation test) and can be used to compare functions of the data other than the mean (e.g. robust estimators). The function also computes and returns multiple comparison tests that control the family-wise error rate.
 * `bootmode` uses bootstrap to evaluate the likely number of real modes in a distribution
 * `bootci` is a function for calculating bootstrap confidence intervals. This function is a wrapper of the `bootknife` function but has the same usage as the `bootci` function from Matlab's Statistics and Machine Learning toolbox.  
 * `bootstrp` is a function for calculating bootstrap statistics. This function is a wrapper of the `bootknife` function but has the same usage as the `bootstrp` function from Matlab's Statistics and Machine Learning toolbox.  
-* `bootcoeff` (Octave only) is a function for calculating credible intervals and frequentist *p*-values for the regression coefficients of a linear model, which was fitted using `anovan` or `fitlm`. This function uses `bootbayes` and `bootwild`, which are both nonparametric and suitable in cases of heteroscedasticity.
-* `bootemm` (Octave only) is a function for calculating Bayesian nonparametric bootstrap credible intervals for the estimated marginal means of a linear model, which was fitted using `anovan` or `fitlm`. This function uses `bootbayes`.
 
 At the Octave/MATLAB command prompt, type `help function-name` for more information about the function and it's input and output arguments. In Octave, you can also request demonstrations of function usage through examples by typing 'demo function-name` at the command prompt.
 
 ## Development roadmap
-
-* To create a function, `lm` with similar usage as `anovan`, for computing the design matrix and regression coefficients needed as input to `bootcoeff` and `bootemm`. This addition will remove their current dependency for the Octave statistics package. The `lm` function will reside in the `param' folder.
 

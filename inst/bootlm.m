@@ -1,20 +1,19 @@
 % -- statistics: bootlm (Y, GROUP)
 % -- statistics: bootlm (Y, GROUP, NAME, VALUE)
 % -- statistics: STATS = bootlm (...)
-% -- statistics: [STATS, BOOTSTAT] = bootlm (...)
+% -- statistics: [STATS, X] = bootlm (...)
 %
 %        Fits a linear model with categorical and/or continuous predictors (i.e.
 %     independent variables) on a continuous outcome (i.e. dependent variable)
 %     and computes the following statistics for each regression coefficient:
 %          - name: the name(s) of the regression coefficient(s)
-%          - original: the value of the regression coefficient(s)
-%          - CI_lower: lower bound(s) of the 95% Bayesian credible interval (CI)
-%          - CI_upper: upper bound(s) of the 95% Bayesian credible interval (CI)
+%          - coeff: the value of the regression coefficient(s)
+%          - CI_lower: lower bound(s) of the 95% confidence interval (CI)
+%          - CI_upper: upper bound(s) of the 95% confidence interval (CI)
 %          - t-stat: Student's t-statistic (based on HC0 standard errors)
 %          - p-val: two-tailed p-value(s) for the parameter(s) being equal to 0
-%        Credible intervals are calculated by Bayesian nonparametric bootstrap.
-%     Null Hypothesis Significance Tests (NHSTs) for the regression coefficients
-%     (H0 = 0) are calculated by wild bootstrap-t (with H0 imposed).
+%        Confidence intervals and Null Hypothesis Significance Tests (NHSTs) for
+%     the regression coefficients (H0 = 0) are calculated by wild bootstrap-t.
 %        Usage of this function is very similar to that of 'anovan'. Data (Y)
 %     is a single vector y with groups specified by a corresponding matrix or
 %     cell array of group labels GROUP, where each column of GROUP has the same
@@ -38,9 +37,9 @@
 %          is, or includes, a continuous predictor then 'bootlm' will return an
 %          error. The following statistics are returned when specifying 'dim':
 %          - name: the name(s) of the estimated marginal mean(s)
-%          - original: the estimated marginal mean(s)
-%          - CI_lower: lower bound(s) of the 95% Bayesian credible interval (CI)
-%          - CI_upper: upper bound(s) of the 95% Bayesian credible interval (CI)
+%          - mean: the estimated marginal mean(s)
+%          - CI_lower: lower bound(s) of the 95% confidence interval (CI)
+%          - CI_upper: upper bound(s) of the 95% confidence interval (CI)
 %          - n: the sample size used to estimate the mean
 %
 %     '[...] = bootlm (Y, GROUP, ..., 'continuous', CONTINUOUS)'
@@ -81,9 +80,22 @@
 %
 %     '[...] = bootlm (Y, GROUP, ..., 'alpha', ALPHA)'
 %
-%        • ALPHA must be a scalar value between 0 and 1 requesting 100*(1-ALPHA)%
-%          credible interval limits for the regression coefficients (or estimated
-%          marginal means). Default is 0.05 for 95% credible intervals.
+%        • ALPHA is numeric and sets the lower and upper bounds of the
+%          confidence interval(s). The value(s) of ALPHA must be between
+%          0 and 1. ALPHA can either be:
+%
+%             • scalar: To set the (nominal) central coverage of SYMMETRIC
+%                  bootstrap-t confidence interval(s) to 100*(1-ALPHA)%.
+%                  For example, 0.05 for a 95% confidence interval.
+%
+%             • vector: A pair of probabilities defining the (nominal) lower
+%                  and upper bounds of ASYMMETRIC bootstrap-t confidence
+%                  interval(s) as 100*(ALPHA(1))% and 100*(ALPHA(2))%
+%                  respectively. For example, [.025, .975] for a 95%
+%                  confidence interval.
+%
+%               The default value of ALPHA is the scalar: 0.05, for a symmetric
+%               95% bootstrap-t confidence interval.
 %
 %     '[...] = bootlm (Y, GROUP, ..., 'display', DISPOPT)'
 %
@@ -161,17 +173,6 @@
 %     Twister random number generator using an integer SEED value so that
 %     'bootlm' results are reproducible.
 %
-%     '[...] = bootlm (Y, GROUP, ..., 'prior', PRIOR)' accepts a positive real
-%     numeric scalar to parametrize the form of the symmetric Dirichlet
-%     distribution used for Bayesian nonparametric bootstrap. The Dirichlet
-%     distribution is the conjugate PRIOR used to randomly generate weights for
-%     linear least squares fitting of the observed data, and subsequently to
-%     estimate the posterior for the estimates by Bayesian bootstrap. If PRIOR
-%     is not provided, or is empty, it will be set to 1, corresponding to Bayes
-%     rule: a uniform (or flat) Dirichlet distribution (over all points in its
-%     support). For a weaker prior, set PRIOR to < 1 (e.g. 0.5 for Jeffrey's
-%     prior).
-%
 %     'bootlm' can return up to one output arguments:
 %
 %     'STATS = bootlm (...)' returns a structure with the following fields:
@@ -180,14 +181,13 @@
 %     'STATS = bootlm (..., 'dim', DIM)' returns a structure with the following
 %     fields: original, bias, median, CI_lower, CI_upper, n and name.
 %
-%     '[STATS, BOOTSTAT] = bootlm (...)' also returns a matrix with each row
-%     corresponding to the posterior values of a regression coefficient.
+%     '[STATS, X] = bootlm (...)' also returns the design matrix for the linear 
+%     model.
 %
-%     '[STATS, BOOTSTAT] = bootlm (..., 'dim', DIM)' also returns a matrix with
-%     each row corresponding to the posterior values of an estimated marginal
-%     mean.
+%     '[STATS, X, L] = bootlm (...)' also returns the hypothesis matrix used to
+%     compute the estimated marginal means.
 %
-%  bootlm (version 2023.06.09)
+%  bootlm (version 2023.06.16)
 %  Author: Andrew Charles Penn
 %  https://www.researchgate.net/profile/Andrew_Penn/
 %
@@ -202,11 +202,14 @@
 %  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 %  GNU General Public License for more details.
 
-function [STATS, BOOTSTAT] = bootlm (Y, GROUP, varargin)
+function [STATS, X, L] = bootlm (Y, GROUP, varargin)
 
     if (nargin < 2)
       error (strcat (['bootlm usage: ''bootlm (Y, GROUP)''; '], ...
                       [' atleast 2 input arguments required']));
+    end
+    if (nargout > 3)
+      error ('bootlm: Too many output arguments')
     end
 
     % Check supplied parameters
@@ -221,9 +224,9 @@ function [STATS, BOOTSTAT] = bootlm (Y, GROUP, varargin)
     ALPHA = 0.05;
     DIM = [];
     NBOOT = 10000;
-    PRIOR = 1;
     SEED = [];
     DEP = [];
+    L = [];
     for idx = 3:2:nargin
       name = varargin{idx-2};
       value = varargin{idx-1};
@@ -253,8 +256,6 @@ function [STATS, BOOTSTAT] = bootlm (Y, GROUP, varargin)
           DIM = value;
         case 'nboot'
           NBOOT = value;
-        case 'prior'
-          PRIOR = value;
         case 'seed'
           SEED = value;
         otherwise
@@ -378,14 +379,6 @@ function [STATS, BOOTSTAT] = bootlm (Y, GROUP, varargin)
       planned = true;
     end
 
-    % Evaluate alpha input argument
-    if (~ isa (ALPHA,'numeric') || numel (ALPHA) ~= 1)
-      error('bootlm: alpha must be a numeric scalar value');
-    end
-    if ((ALPHA <= 0) || (ALPHA >= 1))
-      error('bootlm: alpha must be a value between 0 and 1');
-    end
-
     % Remove NaN or non-finite observations
     if (isempty (GROUP))
       excl = any ([isnan(Y), isinf(Y)], 2);
@@ -489,7 +482,20 @@ function [STATS, BOOTSTAT] = bootlm (Y, GROUP, varargin)
     dft = n - 1;
     dfe = dft - sum (df);
 
+    % If applicable, create hypothesis matrix, names and compute sample sizes
+    if (~ isempty (DIM))
+      H = X;
+      for i = 1:Nt
+        if ( all (DIM ~= i) )
+          H{i+1}(:,:) = 0;
+        end
+      end
+      H = cell2mat (H);
+      L = unique (H, 'rows', 'stable');
+    end
+
     % Fit linear models, and calculate sums-of-squares
+    X = cell2mat (X);
     [b, sse, resid] = lmfit (X, Y);
 
     % Prepare model formula 
@@ -504,25 +510,40 @@ function [STATS, BOOTSTAT] = bootlm (Y, GROUP, varargin)
 
     % Use bootstrap methods to calculate statistics
     if isempty (DIM)
+
       % Model coefficients
-      [STATS, BOOTSTAT] = bootcoeff (Y, X, DEP, NBOOT, 1 - ALPHA, PRIOR, SEED);
+      STATS = bootwild (Y, X, DEP, NBOOT, ALPHA, SEED);
+
+      % Assign names for model coefficients
       NAMES = vertcat (coeffnames{:});
       STATS.name = NAMES;
+
     else
+
       % Model estimated marginal means
-      model = struct ('Y', Y, ...
-                      'X', X, ...
-                      'df', df, ...
-                      'contrasts', {CONTRASTS},...
-                      'continuous', cont_vec, ...
-                      'center_continuous', center_continuous, ...
-                      'terms', TERMS, ...
-                      'varnames', {VARNAMES}, ...
-                      'grpnames', {grpnames}, ...
-                      'grps', gid, ...
-                      'nlevels', nlevels);
-      [STATS, NAMES, BOOTSTAT] = bootemm (model, DIM, DEP, NBOOT, 1 - ALPHA, PRIOR, SEED);
+      STATS = bootwild (Y, X, DEP, NBOOT, ALPHA, SEED, L);
+
+      % Create names for estimated marginal means
+      idx = cellfun (@(l) find (all (H == l, 2), 1), num2cell (L, 2));
+      Ne = size (L, 1);
+      Np = numel (DIM);
+      NAMES = cell (Ne, 1);
+      for i = 1 : Ne
+        str = '';
+        for j = 1 : Np
+          str = sprintf('%s%s=%s, ', str, ...
+                    num2str (VARNAMES{DIM(j)}), ...
+                    num2str (grpnames{DIM(j)}{gid(idx(i),DIM(j))}));
+        end
+        NAMES{i} = str(1:end-2);
+        str = '';
+      end
       STATS.name = NAMES;
+
+      % Compute sample sizes and add them to the output structure
+      U = unique (gid(:,DIM), 'rows', 'stable');
+      STATS.n = cellfun (@(u) sum (all (gid(:,DIM) == u, 2)), num2cell (U, 2));
+
     end
 
     % Print table of model coefficients and make figure of diagnostic plots
@@ -537,17 +558,17 @@ function [STATS, BOOTSTAT] = bootlm (Y, GROUP, varargin)
         % Parameter estimates correspond to the contrasts we set.
         if (isempty (DIM))
           fprintf('\nMODEL COEFFICIENTS\n\n');
-          fprintf('name                        original    CI_lower    CI_upper    t-stat     p-val\n');
+          fprintf('name                                   coeff       CI_lower    CI_upper    p-val\n');
           fprintf('--------------------------------------------------------------------------------\n');
         else
           fprintf('\nMODEL ESTIMATED MARGINAL MEANS\n\n');
-          fprintf('name                                    original    CI_lower    CI_upper       n\n');
+          fprintf('name                                   mean        CI_lower    CI_upper        n\n');
           fprintf('--------------------------------------------------------------------------------\n');
         end
         for j = 1:size (NAMES, 1)
           if (isempty (DIM))
-            fprintf ('%-26s  %#-+10.4g  %#-+10.4g  %#-+10.4g  %#-+9.3g', ...
-                     NAMES{j}(1:min(end,20)), STATS.original(j), STATS.CI_lower(j), STATS.CI_upper(j), STATS.tstat(j));
+            fprintf ('%-37s  %#-+10.4g  %#-+10.4g  %#-+10.4g', ...
+                     NAMES{j}(1:min(end,37)), STATS.original(j), STATS.CI_lower(j), STATS.CI_upper(j));
             if (STATS.pval(j) <= 0.001)
               fprintf ('  <.001\n');
             elseif (STATS.pval(j) < 0.9995)
@@ -558,8 +579,8 @@ function [STATS, BOOTSTAT] = bootlm (Y, GROUP, varargin)
               fprintf ('   1.000\n');
             end
           else
-            fprintf ('%-38s  %#-+10.4g  %#-+10.4g  %#-+10.4g  %4u\n', ...
-                     NAMES{j}(1:min(end,44)), STATS.original(j), STATS.CI_lower(j), STATS.CI_upper(j), STATS.n(j));
+            fprintf ('%-37s  %#-+10.4g  %#-+10.4g  %#-+10.4g  %5u\n', ...
+                     NAMES{j}(1:min(end,37)), STATS.original(j), STATS.CI_lower(j), STATS.CI_upper(j), STATS.n(j));
           end
         end
         fprintf('\n');
@@ -726,9 +747,6 @@ function [X, levels, nlevels, df, termcols, coeffnames, vmeans, gid, CONTRASTS, 
     end
   end
 
-  % Finalise design matrix
-  X = cell2mat (X);
-
 end
 
 % BUILT IN CONTRAST CODING FUNCTIONS
@@ -822,152 +840,6 @@ function [b, sse, resid, ucov, hat] = lmfit (X, Y)
   if (nargout > 4)
     hat = Q * Q';
   end
-
-end
-
-function [COEFF, BOOTSTAT] = bootcoeff (Y, X, dep, nboot, prob, prior, seed)
-
-  % Check input aruments
-  if (nargin < 2)
-    error ('bootcoeff usage: ''bootcoeff (STATS)'' atleast 2 input arguments required');
-  end
-  if (nargin < 3)
-    dep = [];
-  end
-  if (nargin < 4)
-    nboot = 2000;
-  end
-  if (nargin < 5)
-    prob = 0.95;
-  end
-  if (nargin < 6)
-    prior = []; % Use default in bootbayes
-  end
-  if (nargin < 7)
-    seed = []; % Use default in bootbayes
-  end
-
-  % Perform Bayesian bootstrap
-  [cred_int, BOOTSTAT] = bootbayes (Y, X, dep, nboot, prob, prior, seed);
-  nhst = bootwild (Y, X, dep, nboot, seed);
-
-  % Prepare output
-  COEFF = cred_int;
-  COEFF.tstat = nhst.tstat;
-  COEFF.pval = nhst.pval;
-  COEFF.fpr = nhst.fpr;
-
-end
-
-function [EMM, NAMES, BOOTSTAT] = bootemm (STATS, DIM, dep, nboot, prob, prior, seed)
-
-  % Check input aruments
-  if (nargin < 2)
-    error ('bootemm usage: ''bootemm (STATS, DIM)'' atleast 2 input arguments required');
-  end
-  if (nargin < 3)
-    dep = [];
-  end
-  if (nargin < 4)
-    nboot = 2000;
-  end
-  if (nargin < 5)
-    prob = 0.95;
-  end
-  if (nargin < 6)
-    prior = [];
-  end
-  if (nargin < 7)
-    seed = []; % Use default in bootbayes
-  end
-
-  % Error checking
-  info = ver; 
-  ISOCTAVE = any (ismember ({info.Name}, 'Octave'));
-  if (ismember (DIM, find (STATS.continuous)))
-    error ('bootemm: Estimated marginal means are only calculated for categorical predictors')
-  end
-  N = numel (STATS.contrasts);
-  for j = 1:N
-    if (isnumeric (STATS.contrasts{j}))
-      % Check that the columns sum to 0
-      if (any (abs (sum (STATS.contrasts{j})) > eps('single')))
-        error (strcat (['bootemm: refit the model with a sum-to-zero '], ...
-                       [' contrast coding, e.g. ''simple''']))
-      end
-    end
-  end
-  % If applicable check DIM input argument
-  if (~ isempty (DIM))
-      % Check if DIM is numeric
-      if (~ isa (DIM, 'numeric'))
-        error ('bootemm: DIM must be numeric');
-      end
-      % Check if DIM is a scalar, positive integer
-      if (numel (DIM) > size (STATS.grpnames, 1))
-        error ('bootemm: length of DIM cannot exceed the number of predictors');
-      end
-      % Check that dim contains positive integers
-      if (any (DIM ~= abs (fix (DIM))))
-        error ('bootemm: DIM must contain positive integers');
-      end
-      % Check that DIM is within range
-      if (any (DIM > size (STATS.grpnames, 1)))
-        error ('bootemm: DIM exceeds the number of predictors in the model');
-      end
-      % Check what type of predictor is requested in DIM
-      if (any (STATS.nlevels(DIM) < 2))
-        error (strcat (['bootemm: DIM must specify only categorical'], ...
-                       [' predictors with 2 or more degrees of freedom.']));
-      end
-      % Check that all continuous variables were centered
-      if (any (STATS.continuous - STATS.center_continuous))
-        error (strcat (['bootemm: refit the model with a sum-to-zero '], ...
-                       [' contrast coding, e.g. ''simple''']))
-      end
-    end
-
-  % Prepare the hypothesis matrix (H)
-  Y = STATS.Y;
-  X = STATS.X;
-  n = numel (Y);
-  df = STATS.df;
-  i = 1 + cumsum(df);
-  k = find (sum (STATS.terms(:,DIM), 2) == sum (STATS.terms, 2));
-  Nt = numel (k);
-  H = zeros (n, sum (df) + 1);
-  for j = 1:Nt
-    H(:, i(k(j)) - df(k(j)) + 1 : i(k(j))) = STATS.X(:,i(k(j)) - ...
-                                             df(k(j)) + 1 : i(k(j)));
-  end
-  H(:,1) = 1;
-  L = unique (H, 'rows', 'stable');
-  Ng = size (L, 1);
-  idx = zeros (Ng, 1);
-  for k = 1:Ng
-    idx(k) = find (all (H == L(k, :), 2),1);
-  end
-
-  % If applicable, combine group names
-  NAMES = cell (Ng, 1);
-  Nd = numel (DIM);
-  for i = 1:Ng
-    str = '';
-    for j = 1:Nd
-      str = sprintf('%s%s=%s, ', str, ...
-                num2str(STATS.varnames{DIM(j)}), ...
-                num2str(STATS.grpnames{DIM(j)}{STATS.grps(idx(i),DIM(j))}));
-    end
-    NAMES{i} = str(1:end-2);
-    str = '';
-  end
-
-  % Perform Bayesian bootstrap
-  [EMM, BOOTSTAT] = bootbayes (Y, X, dep, nboot, prob, prior, seed, L);
-
-  % Compute sample sizes and add them to the output structure
-  U = unique (STATS.grps(:,DIM), 'rows', 'stable');
-  EMM.n = cellfun (@(u) sum (all (STATS.grps(:,DIM) == u, 2)), num2cell (U, 2));
 
 end
 

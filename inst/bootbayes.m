@@ -19,6 +19,7 @@
 %        • original: the mean of the data vector y
 %        • bias: bootstrap bias estimate(s)
 %        • median: the median of the posterior distribution(s)
+%        • stdev: the standard deviation of the posterior distribution(s)
 %        • CI_lower: lower bound(s) of the 95% credible interval
 %        • CI_upper: upper bound(s) of the 95% credible interval
 %          By default, the credible intervals are shortest probability intervals,
@@ -68,9 +69,20 @@
 %     randomly generate weights for linear least squares fitting of the observed
 %     data, and subsequently to estimate the posterior for the regression
 %     coefficients by Bayesian bootstrap. If PRIOR is not provided, or is empty,
-%     it will be set to 1, corresponding to Bayes rule: a uniform (or flat)
-%     Dirichlet distribution (over all points in its support). For a weaker
-%     prior, set PRIOR to < 1 (e.g. 0.5 for Jeffrey's prior).
+%     and the model is not intercept-only, then the default value of PRIOR is 1, 
+%     which corresponds to Bayes rule: a uniform (or flat) Dirichlet distribution
+%     (over all points in its support). If the model is an intercept-only model
+%     then the value of PRIOR is set to 'auto' to automatically determine a
+%     value for the PRIOR that effectively incorporates Bessel's correction.
+%     Thus, for y of length n and PRIOR set to 'auto', the standard deviation
+%     of the posterior (i.e. BOOTSTAT) becomes an unbiased estimator of the
+%     standard error of the mean. The calculation used for 'auto' is as follows:
+%
+%          PRIOR = N^-1 * (1 - N^-1) * ((N - 2) * (N - 1)^-2)^-1 - N^-1
+%
+%     For block or cluster bootstrap, N corresponds to the number of blocks or
+%     clusters (i.e. the number of indepedent sampling units). See the source
+%     code for a derivation of the above expression.
 %
 %     'bootbayes (y, X, ..., NBOOT, PROB, PRIOR, SEED)' initialises the
 %     Mersenne Twister random number generator using an integer SEED value so
@@ -82,7 +94,7 @@
 %     usually used to convert regression to estimated marginal means.
 %
 %     'STATS = bootbayes (...) returns a structure with the following fields
-%     (defined above): original, bias, median, CI_lower & CI_upper. 
+%     (defined above): original, bias, median, stdev, CI_lower and CI_upper. 
 %
 %     '[STATS, BOOTSTAT] = bootbayes (...)  also returns the a vector (or
 %     matrix) of bootstrap statistics (BOOTSTAT) calculated over the bootstrap
@@ -97,7 +109,7 @@
 %  [4] Hall and Wilson (1991) Two Guidelines for Bootstrap Hypothesis Testing.
 %        Biometrics, 47(2), 757-762
 %
-%  bootbayes (version 2023.06.07)
+%  bootbayes (version 2023.06.16)
 %  Author: Andrew Charles Penn
 %  https://www.researchgate.net/profile/Andrew_Penn/
 %
@@ -217,21 +229,70 @@ function [stats, bootstat] = bootbayes (y, X, dep, nboot, prob, prior, seed, L)
   end
 
   % Evaluate or set prior
+  %
+  % Using a symmetric Dirichlet distribution with parameter equal to 1 for
+  % Bayesian nonparametric bootstrap on data of length n will produce a
+  % posterior (for the mean functional) whose standard deviation is smaller
+  % than the standard error of the mean by a factor of sqrt ((n - 1) / n).
+  % Here, we will rationalise how an automatic choice of the parameter of the
+  % symmetric Dirichlet distribution (i.e. PRIOR, or 'a') can be made based on
+  % our understanding of how the narrowness bias relates to sample size.
+  % Choosing a positive real value for 'a' less than 1 will lead to a posterior
+  % whose variance increasingly resembles the variance of the sample as 'a'
+  % approaches zero. Therefore, setting an appropriate value of 'a' can be
+  % used to prevent the scale of our posterior having narrowness bias. In
+  % otherwords, we set a prior such that it incorporates Bessel's correction.
+  %
+  % Let the variance of symmetric Dirichlet-distributed random variables be:
+  % 
+  % var_dir = @(a, n) (at(a, n) * (1 - at(a, n))) / (a0(a, n) + 1);
+  %   where: 
+  %     a0 = @(a, n) a * n 
+  %     at = @(a, n) a / a0(a, n);
+  %
+  % Substituting the expressions for 'a0' and 'at' into 'var_dir' and
+  % simplifying gives us:
+  %
+  % var_dir = @(a, n) (n^-1 * (1 - n^-1)) / (a * n + 1);
+  %
+  % We can find a value for the parameter of a symmetric Dirichlet distribution
+  % that will give us an unbiased variance by finding the root of the following
+  % objective function:
+  %
+  % objfun = @(a) var_dir (a, n) - var_dir (1, n - 1);
+  %
+  % We can simplify this problem by substituting the expression for 'var_dir'
+  % into the 'objfun', rearranging the equation and then solving it for the
+  % sample size 'n' without iterative root finding:
+  %
+  % PRIOR = a = n^-1 * (1 - n^-1) * ((n - 2) * (n - 1)^-2)^-1 - n^-1
+  % 
   if ( (nargin < 6) || (isempty (prior)) )
-    prior = 1; % Bayes flat/uniform prior
-  else
-    if (~ isa (prior, 'numeric'))
+    if ((p == 1) && (all (X == 1)) )
+      prior = 'auto';
+    else
+      prior = 1; % Bayes flat/uniform prior
+    end
+  end
+  if (~ isa (prior, 'numeric'))
+    if strcmpi (prior, 'auto')
+      if ((p == 1) && (all (X == 1)) )
+        prior = N^-1 * (1 - N^-1) * ((N - 2) * (N - 1)^-2)^-1 - N^-1;
+      else
+        error ('bootbayes: PRIOR ''auto'' value only available for intercept-only models')
+      end
+    else
       error ('bootbayes: PRIOR must be numeric');
     end
-    if (numel (prior) > 1)
-      error ('bootbayes: PRIOR must be scalar');
-    end
-    if (prior ~= abs (prior))
-      error ('bootbayes: PRIOR must be positive');
-    end
-    if ~ (prior > 0)
-      error ('bootbayes: PRIOR must be greater than zero')
-    end
+  end
+  if (numel (prior) > 1)
+    error ('bootbayes: PRIOR must be scalar');
+  end
+  if (prior ~= abs (prior))
+    error ('bootbayes: PRIOR must be positive');
+  end
+  if ~ (prior > 0)
+    error ('bootbayes: PRIOR must be greater than zero')
   end
 
   % Set random seed
@@ -274,11 +335,6 @@ function [stats, bootstat] = bootbayes (y, X, dep, nboot, prob, prior, seed, L)
   % Compute bootstap statistics
   bootstat = cell2mat (cellfun (bootfun, num2cell (W, 1), 'UniformOutput', false));
 
-  %% Compute frequentist-like p-values following the first guideline described by 
-  %% Hall and Wilson (1991) Biometrics, 47(2), 757-762
-  %null = bsxfun (@minus, bootstat, original); % Null distribution
-  %pval = sum (bsxfun (@gt, abs (null), abs (original)), 2) / nboot; % 2-tailed
-  
   % Bootstrap bias estimation
   bias = mean (bootstat, 2) - original;
 
@@ -308,6 +364,7 @@ function [stats, bootstat] = bootbayes (y, X, dep, nboot, prob, prior, seed, L)
   stats.original = original;
   stats.bias = bias;
   stats.median = median (bootstat, 2);
+  stats.stdev = std (bootstat, 1, 2);
   stats.CI_lower = ci(:, 1);
   stats.CI_upper = ci(:, 2);
 
@@ -374,10 +431,10 @@ function print_output (stats, nboot, prob, prior, p, L, method)
       end
     end
     fprintf ('\nPosterior Statistics: \n');
-    fprintf (' original    bias        median      CI_lower     CI_upper\n');
+    fprintf (' original    bias        median      stdev       CI_lower     CI_upper\n');
     for j = 1:p
-      fprintf (' %#-+10.4g  %#-+10.4g  %#-+10.4g  %#-+10.4g   %#-+10.4g\n',... 
-               [stats.original(j), stats.bias(j), stats.median(j), stats.CI_lower(j), stats.CI_upper(j)]);
+      fprintf (' %#-+10.4g  %#-+10.4g  %#-+10.4g  %#-+10.4g  %#-+10.4g   %#-+10.4g\n',... 
+               [stats.original(j), stats.bias(j), stats.median(j), stats.stdev(j), stats.CI_lower(j), stats.CI_upper(j)]);
     end
     fprintf ('\n');
 

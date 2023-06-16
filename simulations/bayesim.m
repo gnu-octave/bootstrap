@@ -27,7 +27,7 @@ else
 end
 
 % Compute credible interval
-stats = bootbayes (y, [], [], nboot, prob);
+stats = bootbayes (y, [], [], nboot, prob, 1);
 CI = [stats.CI_lower stats.CI_upper];
 mu_within_range_of_CI = (CI(1) <= mu) & (mu <= CI(2));  % Frequentist inference
 

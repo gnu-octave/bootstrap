@@ -3,7 +3,8 @@
 % -- Function File: bootwild (y, X, CLUSTID)
 % -- Function File: bootwild (y, X, BLOCKSZ)
 % -- Function File: bootwild (y, X, ..., NBOOT)
-% -- Function File: bootwild (y, X, ..., NBOOT, SEED)
+% -- Function File: bootwild (y, X, ..., NBOOT, ALPHA)
+% -- Function File: bootwild (y, X, ..., NBOOT, ALPHA, SEED)
 % -- Function File: STATS = bootwild (y, ...)
 % -- Function File: [STATS, BOOTSTAT] = bootwild (y, ...)
 %
@@ -14,12 +15,16 @@
 %     statistics are printed to the standard output:
 %        • original: the mean of the data vector y
 %        • std_err: heteroscedasticity-consistent standard errpr(s)
+%        • CI_lower: lower bound(s) of the 95% bootstrap-t confidence interval
+%        • CI_upper: upper bound(s) of the 95% bootstrap-t confidence interval
 %        • tstat: Student's t-statistic
 %        • pval: two-tailed p-value(s) for the parameter(s) being equal to 0
 %        • fpr: minimum false positive risk for the corresponding p-value
-%          The p-values are computed following both of the guidelines by Hall
-%          and Wilson [3]. The minimum false positive risk (FPR) is computed
-%          according to the Sellke-Berger approach as described in [4,5].
+%          By default, the confidence intervals are symmetric, two-sided
+%          bootstrap-t confidence intervals. The p-values are computed
+%          following both of the guidelines by Hall and Wilson [3]. The minimum
+%          false positive risk (FPR) is computed according to the Sellke-Berger
+%          approach as described in [4,5].
 %
 %     'bootwild (y, X)' also specifies the design matrix (X) for least squares
 %     regression of y on X. X should be a column vector or matrix the same
@@ -48,16 +53,30 @@
 %     where NBOOT must be a positive integer. If empty, the default value of
 %     NBOOT is 2000.
 %
-%     'bootwild (y, X, ..., NBOOT, SEED)' initialises the Mersenne Twister
-%     random number generator using an integer SEED value so that 'bootwild'
-%     results are reproducible.
+%     'bootwild (y, X, ..., NBOOT, ALPHA)' is numeric and sets the lower and
+%     upper bounds of the confidence interval(s). The value(s) of ALPHA must
+%     be between 0 and 1. ALPHA can either be:
+%        • scalar: To set the (nominal) central coverage of SYMMETRIC
+%                  bootstrap-t confidence interval(s) to 100*(1-ALPHA)%.
+%                  For example, 0.05 for a 95% confidence interval.
+%        • vector: A pair of probabilities defining the (nominal) lower and
+%                  upper bounds of ASYMMETRIC bootstrap-t confidence interval(s)
+%                  as 100*(ALPHA(1))% and 100*(ALPHA(2))% respectively. For
+%                  example, [.025, .975] for a 95% confidence interval.
+%        The default value of ALPHA is the scalar: 0.05, for a symmetric 95%
+%        bootstrap-t confidence interval.
+%
+%     'bootwild (y, X, ..., NBOOT, ALPHA, SEED)' initialises the Mersenne
+%     Twister random number generator using an integer SEED value so that
+%     'bootwild' results are reproducible.
 %
 %     'STATS = bootwild (...) returns a structure with the following fields
-%     (defined above): original, tstat, pval and fpr. 
+%     (defined above): original, std_err, CI_lower, CI_upper, tstat, pval
+%     and fpr. 
 %
 %     '[STATS, BOOTSTAT] = bootwild (...)  also returns the a vector (or
 %     matrix) of bootstrap statistics (BOOTSTAT) calculated over the bootstrap
-%     resamples.
+%     resamples (before studentization).
 %
 %  Bibliography:
 %  [1] Wu (1986). Jackknife, bootstrap and other resampling methods in
@@ -71,7 +90,7 @@
 %  [5] Sellke, Bayarri and Berger (2001) Calibration of p-values for Testing
 %        Precise Null Hypotheses. Am Stat. 55(1), 62-71
 %
-%  bootwild (version 2023.06.07)
+%  bootwild (version 2023.06.16)
 %  Author: Andrew Charles Penn
 %  https://www.researchgate.net/profile/Andrew_Penn/
 %
@@ -90,13 +109,13 @@
 %  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-function [stats, bootstat] = bootwild (y, X, dep, nboot, seed)
+function [stats, bootstat] = bootwild (y, X, dep, nboot, alpha, seed, L)
 
   % Check the number of function arguments
   if (nargin < 1)
     error ('bootwild: y must be provided');
   end
-  if (nargin > 8)
+  if (nargin > 7)
     error ('bootwild: Too many input arguments')
   end
   if (nargout > 2)
@@ -170,8 +189,32 @@ function [stats, bootstat] = bootwild (y, X, dep, nboot, seed)
     end
   end
 
+  % Evaluate alpha
+  if ( (nargin < 5) || isempty (alpha) )
+    alpha = 0.05;
+    nalpha = 1;
+  else
+    nalpha = numel (alpha);
+    if (~ isa (alpha, 'numeric') || (nalpha > 2))
+      error ('bootwild: ALPHA must be a scalar (two-tailed probability) or a vector (pair of probabilities)');
+    end
+    if (size (alpha, 1) > 1)
+      alpha = alpha.';
+    end
+    if (any ((alpha < 0) | (alpha > 1)))
+      error ('bootwild: Value(s) in ALPHA must be between 0 and 1');
+    end
+    if (nalpha > 1)
+      % alpha is a pair of probabilities
+      % Make sure probabilities are in the correct order
+      if (alpha(1) > alpha(2) )
+        error ('bootwild: The pair of probabilities must be in ascending numeric order');
+      end
+    end
+  end
+
   % Set random seed
-  if ( (nargin > 4) && (~ isempty (seed)) )
+  if ( (nargin > 5) && (~ isempty (seed)) )
     if (ISOCTAVE)
       randn ('seed', seed);
     else
@@ -179,8 +222,16 @@ function [stats, bootstat] = bootwild (y, X, dep, nboot, seed)
     end
   end
 
+  % Set Hypothesis matrix (L)
+  if ( (nargin < 7) || (isempty (L)) )
+    L = 1;
+  else
+    % Calculate number of parameters
+    p = size (L, 1);
+  end
+
   % Create least squares anonymous function for bootstrap
-  bootfun = @(y) lmfit (X, y, clusters);
+  bootfun = @(y) lmfit (X, y, clusters, L);
 
   % Calculate estimate(s)
   S = bootfun (y);
@@ -193,7 +244,7 @@ function [stats, bootstat] = bootwild (y, X, dep, nboot, seed)
   if (~ isempty (IC))
     s = s(IC, :);  % Enforce clustering/blocking
   end
-  yf = X * original;
+  yf = X * (X \ y);
   r = y - yf;
   Y = bsxfun (@plus, yf, r .* s);
 
@@ -202,18 +253,25 @@ function [stats, bootstat] = bootwild (y, X, dep, nboot, seed)
   bootstat = [bootout.b];
   bootse = [bootout.se];
 
-  % Studentize the bootstrap statistics following both guidelines described in
-  % Hall and Wilson (1991) Biometrics, 47(2), 757-762
+  % Studentize the bootstrap statistics and compute two-tailed confidence
+  % intervals and p-values following both guidelines described in Hall and
+  % Wilson (1991) Biometrics, 47(2), 757-762
   T = bsxfun (@minus, bootstat, original) ./ bootse;
-
-  % Compute two-tailed p-values
+  ci = nan (p, 2);
   pval = nan (p, 1);
   for j = 1:p
-    if ( isnan (std_err(j)) )
-      pval(j) = NaN;
-    else
+    if ( ~ isnan (std_err(j)) )
       [cdf, x] = empcdf (abs (T(j,:)));
       pval(j) = 1 - interp1 (x, cdf, abs (t(j)), 'linear', 1);
+      switch nalpha
+        case 1
+          ci(j,:) = arrayfun (@(s) original(j) + s * std_err(j) * ...
+                              interp1 (cdf, x, 1 - alpha, 'linear'), [-1, +1]);
+        case 2
+         [cdf, x] = empcdf (T(j,:));
+          ci(j,:) = arrayfun (@(p) original(j) - std_err(j) *...
+                              interp1 (cdf, x, p, 'linear'), fliplr (alpha));
+      end
     end
   end
 
@@ -224,13 +282,15 @@ function [stats, bootstat] = bootwild (y, X, dep, nboot, seed)
   stats = struct;
   stats.original = original;
   stats.std_err = std_err;
+  stats.CI_lower = ci(:,1);
+  stats.CI_upper = ci(:,2);
   stats.tstat = t;
   stats.pval = pval;
   stats.fpr = fpr;
 
   % Print output if no output arguments are requested
   if (nargout == 0) 
-    print_output (stats, nboot, p, method);
+    print_output (stats, nboot, alpha, p, method);
   end
 
 end
@@ -239,9 +299,14 @@ end
 
 %% FUNCTION TO FIT THE LINEAR MODEL
 
-function S = lmfit (X, y, clusters)
+function S = lmfit (X, y, clusters, L)
 
   % Get model coefficients by solving the linear equation by matrix arithmetic
+
+  % Create hypothesis matrix L if not provided
+  if ( (nargin < 4) || isempty (L) )
+    L = 1;
+  end
 
   % Solve linear equation to minimize least squares and compute the
   % regression coefficients (b)
@@ -266,11 +331,11 @@ function S = lmfit (X, y, clusters)
                   num2cell (clusters, 1), 'UniformOutput', false);
     meat = sum (cat (3, Sigma{:}), 3);
   end
-  se = sqrt (diag (invG * meat * invG));
+  vcov = invG * meat * invG;
 
   % Prepare output
-  S.b = b;
-  S.se = se;
+  S.b = L * b;
+  S.se = sqrt (diag (L * vcov * L'));
 
 end
 
@@ -340,13 +405,13 @@ end
 
 %% FUNCTION TO PRINT OUTPUT
 
-function print_output (stats, nboot, p, method)
+function print_output (stats, nboot, alpha, p, method)
 
     fprintf (['\nSummary of wild bootstrap null hypothesis significance tests for linear models\n',...
               '*******************************************************************************\n\n']);
     fprintf ('Bootstrap settings: \n');
     fprintf (' Function: pinv (X'' * X) * (X'' * y)\n');
-    fprintf (' Resampling method: Wild %sbootstrap-t (H0-imposed)\n', method)
+    fprintf (' Resampling method: Wild %sbootstrap-t\n', method)
     fprintf (' Number of resamples: %u \n', nboot)
     fprintf (' Standard error calculations:');
     if (isempty (method))
@@ -354,12 +419,24 @@ function print_output (stats, nboot, p, method)
     else
       fprintf (' Cluster Robust (CR0)\n');
     end
+    nalpha = numel (alpha);
+    if (nalpha > 1)
+      % prob is a vector of probabilities
+      fprintf (' Confidence interval (CI) type: Asymmetric bootstrap-t interval\n');
+      coverage = 100 * abs (alpha(2) - alpha(1));
+      fprintf (' Nominal coverage (and the percentiles used): %.3g%% (%.1f%%, %.1f%%)\n', coverage, 100 * alpha(:));
+    else
+      % prob is a two-tailed probability
+      fprintf (' Confidence interval (CI) type: Symmetric bootstrap-t interval\n');
+      coverage = 100 * (1 - alpha);
+      fprintf (' Nominal central coverage: %.3g%%\n', coverage);
+    end
     fprintf (' Null value (H0) used for hypothesis testing (p-values): 0 \n')
     fprintf ('\nTest Statistics: \n');
-    fprintf (' original    std_err     t-stat     p-val    FPR\n');
+    fprintf (' original    std_err     CI_lower    CI_upper    t-stat     p-val    FPR\n');
     for j = 1:p
-      fprintf (' %#-+10.4g  %#-+10.4g  %#-+9.3g', ...
-               [stats.original(j), stats.std_err(j), stats.tstat(j)])
+      fprintf (' %#-+10.4g  %#-+10.4g  %#-+10.4g  %#-+10.4g  %#-+9.3g', ...
+               [stats.original(j), stats.std_err(j), stats.CI_lower(j), stats.CI_upper(j), stats.tstat(j)])
       if (stats.pval(j) <= 0.001)
         fprintf ('  <.001');
       elseif (stats.pval(j) < 0.9995)

@@ -23,8 +23,9 @@
 %     resampling. If UNBIASED is true, the resampling method used is balanced
 %     bootknife resampling [4]. The latter involves creating leave-one-out
 %     jackknife samples of size N - 1, and then drawing resamples of size N
-%     with replacement from the jackknife samples. UNBIASED must be a scalar
-%     logical value The default value of UNBIASED is false.
+%     with replacement from the jackknife samples, thereby incorporating Bessel's
+%     correction into the resampling procedure. UNBIASED must be a scalar
+%     logical value. The default value of UNBIASED is false.
 %
 %     'BOOTSAM = boot (..., NBOOT, UNBIASED, SEED)' sets a seed to initialize
 %     the pseudo-random number generator to make resampling reproducible between
