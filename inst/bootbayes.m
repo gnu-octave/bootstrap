@@ -11,12 +11,12 @@
 % -- Function File: [STATS, BOOTSTAT] = bootbayes (y, ...)
 %
 %     'bootbayes (y)' performs Bayesian nonparametric bootstrap [1] to create
-%     2000 bootstrap statistics, each representing the weighted mean of the
-%     column vector, y, using a vector of weights randomly generated from a
-%     symmetric Dirichlet distribution. The resulting bootstrap (or posterior
-%     [1,2]) distribution(s) is/are summarised with the following statistics
-%     printed to the standard output:
-%        • original: the mean of the data vector y
+%     2000 bootstrap statistics, each representing the weighted mean(s) of the
+%     column vector (or column-major matrix), y, using a vector of weights
+%     randomly generated from a symmetric Dirichlet distribution. The resulting
+%     bootstrap (or posterior [1,2]) distribution(s) is/are summarised with the
+%     following statistics printed to the standard output:
+%        • original: the mean(s) of the data column(s) of y
 %        • bias: bootstrap bias estimate(s)
 %        • median: the median of the posterior distribution(s)
 %        • stdev: the standard deviation of the posterior distribution(s)
@@ -32,6 +32,7 @@
 %     is a column of ones (i.e. intercept only) and thus the statistic computed
 %     reduces to the mean (as above). The statistics calculated and returned in
 %     the output then relate to the coefficients from the regression of y on X.
+%     y must be a column vector (not matrix) for regression.
 %
 %     'bootbayes (y, X, CLUSTID)' specifies a vector or cell array of numbers
 %     or strings respectively to be used as cluster labels or identifiers.
@@ -74,9 +75,9 @@
 %     (over all points in its support). If the model is an intercept-only model
 %     then the value of PRIOR is set to 'auto' to automatically determine a
 %     value for the PRIOR that effectively incorporates Bessel's correction.
-%     Thus, for y of length n and PRIOR set to 'auto', the standard deviation
-%     of the posterior (i.e. BOOTSTAT) becomes an unbiased estimator of the
-%     standard error of the mean. The calculation used for 'auto' is as follows:
+%     Thus, for y of length n and PRIOR set to 'auto', the variance of the
+%     posterior (i.e. BOOTSTAT) becomes an unbiased estimator of the sampling
+%     variance. The calculation used for 'auto' is as follows:
 %
 %          PRIOR = N^-1 * (1 - N^-1) * ((N - 2) * (N - 1)^-2)^-1 - N^-1
 %
@@ -150,9 +151,6 @@ function [stats, bootstat] = bootbayes (y, X, dep, nboot, prob, prior, seed, L)
     error ('bootbayes: DATA must be provided');
   end
   sz = size (y);
-  %if ( (sz(1) < 2) || (sz (2) > 1) )
-  %  error ('bootbayes: y must be a column vector');
-  %end
   n = sz(1);
 
   % Evaluate the design matrix
@@ -164,8 +162,20 @@ function [stats, bootstat] = bootbayes (y, X, dep, nboot, prob, prior, seed, L)
   p = size (X, 2);
   if ((p == 1) && (all (X == 1)) )
     intercept_only = true;
+    p = sz(2);
   else
     intercept_only = false;
+    if (sz(2) > 1) 
+      error ('bootbayes: y must be a column vector if X is not an intercept-only model');
+    end
+    % Evaluate hypothesis matrix (L)
+    if ( (nargin < 8) || isempty (L) )
+      % If L is not provided, set L to 1
+      L = 1;
+    else
+      % Calculate number of parameters
+      p = size (L, 1);
+    end
   end
 
   % Evaluate cluster IDs or block size
@@ -181,8 +191,8 @@ function [stats, bootstat] = bootbayes (y, X, dep, nboot, prob, prior, seed, L)
     else
       % Prepare for cluster Bayesian bootstrap
       clustid = dep;
-      if ( any (size (clustid) ~= sz) )
-        error ('bootbayes: CLUSTID must be the same size as y')
+      if ( any (size (clustid) ~= [n, 1]) )
+        error ('bootbayes: CLUSTID must be a column vector with the same number of rows as y')
       end
       [C, IA, IC] = unique (clustid);
       N = numel (C); % Number of clusters
@@ -309,25 +319,6 @@ function [stats, bootstat] = bootbayes (y, X, dep, nboot, prob, prior, seed, L)
     end
   end
 
-  % Evaluate hypothesis matrix (L)
-  if ( (nargin < 8) || isempty (L) )
-    % If L is not provided, set L to 1
-    L = 1;
-  else
-    % Calculate number of parameters
-    p = size (L, 1);
-  end
-
-  % Create weighted least squares anonymous function
-  if (intercept_only)
-    bootfun = @(w) sum (bsxfun (@times, y, w));  % Faster!
-  else
-    bootfun = @(w) lmfit (X, y, diag (w), L);
-  end
-
-  % Calculate estimate(s)
-  original = bootfun (n^-1 * ones (n, 1));
-
   % Create weights by randomly sampling from a symmetric Dirichlet distribution.
   % This can be achieved by normalizing a set of randomly generated values from
   % a Gamma distribution to their sum.
@@ -343,8 +334,12 @@ function [stats, bootstat] = bootbayes (y, X, dep, nboot, prob, prior, seed, L)
 
   % Compute bootstap statistics
   if (intercept_only)
-    bootstat = bootfun (W);
+    bootfun = @(y) sum (bsxfun (@times, y, W));  % Faster!
+    original = mean (y);
+    bootstat = cell2mat (cellfun (bootfun, num2cell (y, 1)', 'UniformOutput', false));
   else
+    bootfun = @(w) lmfit (X, y, diag (w), L);
+    original = bootfun (n^-1 * ones (n, 1));
     bootstat = cell2mat (cellfun (bootfun, num2cell (W, 1), 'UniformOutput', false));
   end
 
