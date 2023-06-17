@@ -237,16 +237,16 @@ function [stats, bootstat] = bootbayes (y, X, dep, nboot, prob, prior, seed, L)
   %
   % Using a symmetric Dirichlet distribution with parameter equal to 1 for
   % Bayesian nonparametric bootstrap on data of length n will produce a
-  % posterior (for the mean functional) whose standard deviation is smaller
-  % than the standard error of the mean by a factor of sqrt ((n - 1) / n).
-  % Here, we will rationalise how an automatic choice of the parameter of the
-  % symmetric Dirichlet distribution (i.e. PRIOR, or 'a') can be made based on
-  % our understanding of how the narrowness bias relates to sample size.
-  % Choosing a positive real value for 'a' less than 1 will lead to a posterior
-  % whose variance increasingly resembles the variance of the sample as 'a'
-  % approaches zero. Therefore, setting an appropriate value of 'a' can be
-  % used to prevent the scale of our posterior having narrowness bias. In
-  % otherwords, we set a prior such that it incorporates Bessel's correction.
+  % posterior (for the mean functional) whose variance is smaller than the
+  % sampling variance by a factor of (n - 1) / n. Here, we will rationalise
+  % how an automatic choice of the parameter of the symmetric Dirichlet
+  % distribution (i.e. PRIOR, or 'a') can be made based on our understanding
+  % of how the narrowness bias relates to sample size. Choosing a positive
+  % real value for 'a' less than 1 will lead to a posterior whose variance
+  % increasingly resembles the variance of the sample as 'a' approaches zero.
+  % Therefore, setting an appropriate value of 'a' can be used to prevent the
+  % scale of our posterior having narrowness bias. In otherwords, we set a
+  % prior such that it incorporates Bessel's correction.
   %
   % Let the variance of symmetric Dirichlet-distributed random variables be:
   % 
