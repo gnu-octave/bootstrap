@@ -1,4 +1,4 @@
-dirlist = {'param', 'octave'};
+dirlist = {'param'};
 dirname = fileparts (mfilename ('fullpath'));
 
 if ~exist (fullfile (dirname, 'inst'), 'dir')
