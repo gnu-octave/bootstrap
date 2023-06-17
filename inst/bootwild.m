@@ -433,27 +433,27 @@ function print_output (stats, nboot, alpha, p, method)
     end
     fprintf (' Null value (H0) used for hypothesis testing (p-values): 0 \n')
     fprintf ('\nTest Statistics: \n');
-    fprintf (' original    std_err     CI_lower    CI_upper    t-stat     p-val    FPR\n');
+    fprintf (' original     std_err      CI_lower     CI_upper     t-stat      p-val    FPR\n');
     for j = 1:p
-      fprintf (' %#-+10.4g  %#-+10.4g  %#-+10.4g  %#-+10.4g  %#-+9.3g', ...
+      fprintf (' %#-+10.4g   %#-+10.4g   %#-+10.4g   %#-+10.4g   %#-+9.3g', ...
                [stats.original(j), stats.std_err(j), stats.CI_lower(j), stats.CI_upper(j), stats.tstat(j)])
       if (stats.pval(j) <= 0.001)
-        fprintf ('  <.001');
+        fprintf ('   <.001');
       elseif (stats.pval(j) < 0.9995)
-        fprintf ('   .%03u', round (stats.pval(j) * 1e+03));
+        fprintf ('    .%03u', round (stats.pval(j) * 1e+03));
       elseif (isnan (stats.pval(j)))
-        fprintf ('    NaN');
+        fprintf ('     NaN');
       else
-        fprintf ('   1.000');
+        fprintf ('    1.000');
       end
       if (stats.fpr(j) <= 0.001)
-        fprintf ('  <.001\n');
+        fprintf ('   <.001\n');
       elseif (stats.fpr(j) < 0.9995)
-        fprintf ('   .%03u\n', round (stats.fpr(j) * 1e+03));
+        fprintf ('    .%03u\n', round (stats.fpr(j) * 1e+03));
       elseif (isnan (stats.fpr(j)))
-        fprintf ('    NaN\n');
+        fprintf ('     NaN\n');
       else
-        fprintf ('   1.000\n');
+        fprintf ('    1.000\n');
       end
     end
     fprintf ('\n');

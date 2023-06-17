@@ -150,18 +150,23 @@ function [stats, bootstat] = bootbayes (y, X, dep, nboot, prob, prior, seed, L)
     error ('bootbayes: DATA must be provided');
   end
   sz = size (y);
-  if ( (sz(1) < 2) || (sz (2) > 1) )
-    error ('bootbayes: y must be a column vector');
-  end
-  n = numel (y);
+  %if ( (sz(1) < 2) || (sz (2) > 1) )
+  %  error ('bootbayes: y must be a column vector');
+  %end
+  n = sz(1);
 
   % Evaluate the design matrix
   if ( (nargin < 2) || (isempty (X)) )
     X = ones (n, 1);
   end
 
-  % Calculate number of parameters
+  % Calculate the number of parameters
   p = size (X, 2);
+  if ((p == 1) && (all (X == 1)) )
+    intercept_only = true;
+  else
+    intercept_only = false;
+  end
 
   % Evaluate cluster IDs or block size
   if ( (nargin > 2) && (~ isempty (dep)) )
@@ -176,8 +181,8 @@ function [stats, bootstat] = bootbayes (y, X, dep, nboot, prob, prior, seed, L)
     else
       % Prepare for cluster Bayesian bootstrap
       clustid = dep;
-      if (bsxfun (@ne, size (clustid), sz))
-        error ('bootbayes: clustid must be the same size as y')
+      if ( any (size (clustid) ~= sz) )
+        error ('bootbayes: CLUSTID must be the same size as y')
       end
       [C, IA, IC] = unique (clustid);
       N = numel (C); % Number of clusters
@@ -268,15 +273,15 @@ function [stats, bootstat] = bootbayes (y, X, dep, nboot, prob, prior, seed, L)
   % PRIOR = a = n^-1 * (1 - n^-1) * ((n - 2) * (n - 1)^-2)^-1 - n^-1
   % 
   if ( (nargin < 6) || (isempty (prior)) )
-    if ((p == 1) && (all (X == 1)) )
+    if (intercept_only)
       prior = 'auto';
     else
       prior = 1; % Bayes flat/uniform prior
     end
   end
   if (~ isa (prior, 'numeric'))
-    if strcmpi (prior, 'auto')
-      if ((p == 1) && (all (X == 1)) )
+    if (strcmpi (prior, 'auto'))
+      if (intercept_only)
         prior = N^-1 * (1 - N^-1) * ((N - 2) * (N - 1)^-2)^-1 - N^-1;
       else
         error ('bootbayes: PRIOR ''auto'' value only available for intercept-only models')
@@ -291,7 +296,7 @@ function [stats, bootstat] = bootbayes (y, X, dep, nboot, prob, prior, seed, L)
   if (prior ~= abs (prior))
     error ('bootbayes: PRIOR must be positive');
   end
-  if ~ (prior > 0)
+  if ( ~ (prior > 0))
     error ('bootbayes: PRIOR must be greater than zero')
   end
 
@@ -305,7 +310,7 @@ function [stats, bootstat] = bootbayes (y, X, dep, nboot, prob, prior, seed, L)
   end
 
   % Evaluate hypothesis matrix (L)
-  if ((nargin < 8) || isempty (L))
+  if ( (nargin < 8) || isempty (L) )
     % If L is not provided, set L to 1
     L = 1;
   else
@@ -314,10 +319,14 @@ function [stats, bootstat] = bootbayes (y, X, dep, nboot, prob, prior, seed, L)
   end
 
   % Create weighted least squares anonymous function
-  bootfun = @(w) lmfit (X, y, diag (w), L);
+  if (intercept_only)
+    bootfun = @(w) sum (bsxfun (@times, y, w));  % Faster!
+  else
+    bootfun = @(w) lmfit (X, y, diag (w), L);
+  end
 
   % Calculate estimate(s)
-  original = bootfun (ones (n, 1));
+  original = bootfun (n^-1 * ones (n, 1));
 
   % Create weights by randomly sampling from a symmetric Dirichlet distribution.
   % This can be achieved by normalizing a set of randomly generated values from
@@ -333,7 +342,11 @@ function [stats, bootstat] = bootbayes (y, X, dep, nboot, prob, prior, seed, L)
   W = bsxfun (@rdivide, r, sum (r));
 
   % Compute bootstap statistics
-  bootstat = cell2mat (cellfun (bootfun, num2cell (W, 1), 'UniformOutput', false));
+  if (intercept_only)
+    bootstat = bootfun (W);
+  else
+    bootstat = cell2mat (cellfun (bootfun, num2cell (W, 1), 'UniformOutput', false));
+  end
 
   % Bootstrap bias estimation
   bias = mean (bootstat, 2) - original;
@@ -431,9 +444,9 @@ function print_output (stats, nboot, prob, prior, p, L, method)
       end
     end
     fprintf ('\nPosterior Statistics: \n');
-    fprintf (' original    bias        median      stdev       CI_lower     CI_upper\n');
+    fprintf (' original     bias         median       stdev        CI_lower      CI_upper\n');
     for j = 1:p
-      fprintf (' %#-+10.4g  %#-+10.4g  %#-+10.4g  %#-+10.4g  %#-+10.4g   %#-+10.4g\n',... 
+      fprintf (' %#-+10.4g   %#-+10.4g   %#-+10.4g   %#-+10.4g   %#-+10.4g    %#-+10.4g\n',... 
                [stats.original(j), stats.bias(j), stats.median(j), stats.stdev(j), stats.CI_lower(j), stats.CI_upper(j)]);
     end
     fprintf ('\n');
