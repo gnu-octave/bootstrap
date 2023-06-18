@@ -292,14 +292,14 @@ function [stats, bootstat] = bootbayes (Y, X, dep, nboot, prob, prior, seed, L)
     else
       r = gamrnd (prior, 1, N, nboot);
     end
-    if (~ isempty (IC))
-      r = r(IC, :);  % Enforce clustering/blocking
-    end
   else
     % Haldane prior
     r = zeros (N, nboot);
     idx = fix (rand (1, nboot) * N + [1 : N : nboot * N]);
     r(idx)=1;
+  end
+  if (~ isempty (IC))
+    r = r(IC, :);  % Enforce clustering/blocking
   end
   W = bsxfun (@rdivide, r, sum (r));
 
