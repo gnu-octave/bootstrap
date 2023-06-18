@@ -322,7 +322,7 @@ function [stats, bootstat] = bootbayes (Y, X, dep, nboot, prob, prior, seed, L)
   % Compute bootstap statistics
   if (intercept_only)
     bootfun = @(Y) sum (bsxfun (@times, Y, W));  % Faster!
-    original = mean (Y, 1);
+    original = mean (Y, 1)';
     bootstat = cell2mat (cellfun (bootfun, num2cell (Y, 1)', 'UniformOutput', false));
   else
     bootfun = @(w) lmfit (X, Y, diag (w), L);
@@ -353,7 +353,7 @@ function [stats, bootstat] = bootbayes (Y, X, dep, nboot, prob, prior, seed, L)
       end
     end
   end
-  
+
   % Prepare output arguments
   stats = struct;
   stats.original = original;
