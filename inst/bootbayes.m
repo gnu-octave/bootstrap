@@ -12,7 +12,7 @@
 %
 %     'bootbayes (Y)' performs Bayesian nonparametric bootstrap [1] to create
 %     2000 bootstrap statistics, each representing the weighted mean(s) of the
-%     column vector (or column-major matrix), y, using a vector of weights
+%     column vector (or column-major matrix), Y, using a vector of weights
 %     randomly generated from a symmetric Dirichlet distribution. The resulting
 %     bootstrap (or posterior [1,2]) distribution(s) is/are summarised with the
 %     following statistics printed to the standard output:
