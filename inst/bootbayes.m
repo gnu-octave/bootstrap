@@ -1,22 +1,22 @@
-% -- Function File: bootbayes (y)
-% -- Function File: bootbayes (y, X)
-% -- Function File: bootbayes (y, X, CLUSTID)
-% -- Function File: bootbayes (y, X, BLOCKSZ)
-% -- Function File: bootbayes (y, X, ..., NBOOT)
-% -- Function File: bootbayes (y, X, ..., NBOOT, PROB)
-% -- Function File: bootbayes (y, X, ..., NBOOT, PROB, PRIOR)
-% -- Function File: bootbayes (y, X, ..., NBOOT, PROB, PRIOR, SEED)
-% -- Function File: bootbayes (y, X, ..., NBOOT, PROB, PRIOR, SEED, L)
-% -- Function File: STATS = bootbayes (y, ...)
-% -- Function File: [STATS, BOOTSTAT] = bootbayes (y, ...)
+% -- Function File: bootbayes (Y)
+% -- Function File: bootbayes (Y, X)
+% -- Function File: bootbayes (Y, X, CLUSTID)
+% -- Function File: bootbayes (Y, X, BLOCKSZ)
+% -- Function File: bootbayes (Y, X, ..., NBOOT)
+% -- Function File: bootbayes (Y, X, ..., NBOOT, PROB)
+% -- Function File: bootbayes (Y, X, ..., NBOOT, PROB, PRIOR)
+% -- Function File: bootbayes (Y, X, ..., NBOOT, PROB, PRIOR, SEED)
+% -- Function File: bootbayes (Y, X, ..., NBOOT, PROB, PRIOR, SEED, L)
+% -- Function File: STATS = bootbayes (Y, ...)
+% -- Function File: [STATS, BOOTSTAT] = bootbayes (Y, ...)
 %
-%     'bootbayes (y)' performs Bayesian nonparametric bootstrap [1] to create
+%     'bootbayes (Y)' performs Bayesian nonparametric bootstrap [1] to create
 %     2000 bootstrap statistics, each representing the weighted mean(s) of the
 %     column vector (or column-major matrix), y, using a vector of weights
 %     randomly generated from a symmetric Dirichlet distribution. The resulting
 %     bootstrap (or posterior [1,2]) distribution(s) is/are summarised with the
 %     following statistics printed to the standard output:
-%        • original: the mean(s) of the data column(s) of y
+%        • original: the mean(s) of the data column(s) of Y
 %        • bias: bootstrap bias estimate(s)
 %        • median: the median of the posterior distribution(s)
 %        • stdev: the standard deviation of the posterior distribution(s)
@@ -26,34 +26,34 @@
 %          which represent a more computationally stable version of the highest
 %          posterior density interval [3].
 %
-%     'bootbayes (y, X)' also specifies the design matrix (X) for least squares
-%     regression of y on X. X should be a column vector or matrix the same
-%     number of rows as y. If the X input argument is empty, the default for X
+%     'bootbayes (Y, X)' also specifies the design matrix (X) for least squares
+%     regression of Y on X. X should be a column vector or matrix the same
+%     number of rows as Y. If the X input argument is empty, the default for X
 %     is a column of ones (i.e. intercept only) and thus the statistic computed
 %     reduces to the mean (as above). The statistics calculated and returned in
-%     the output then relate to the coefficients from the regression of y on X.
-%     y must be a column vector (not matrix) for regression.
+%     the output then relate to the coefficients from the regression of Y on X.
+%     Y must be a column vector (not matrix) for regression.
 %
-%     'bootbayes (y, X, CLUSTID)' specifies a vector or cell array of numbers
+%     'bootbayes (Y, X, CLUSTID)' specifies a vector or cell array of numbers
 %     or strings respectively to be used as cluster labels or identifiers.
-%     Rows in y (and X) with the same CLUSTID value are treated as clusters with
-%     dependent errors. Rows of y (and X) assigned to a particular cluster
+%     Rows in Y (and X) with the same CLUSTID value are treated as clusters with
+%     dependent errors. Rows of Y (and X) assigned to a particular cluster
 %     will have identical weights during Bayesian bootstrap. If empty (default),
 %     no clustered resampling is performed and all errors are treated as
 %     independent.
 %
-%     'bootbayes (y, X, BLOCKSZ)' specifies a scalar, which sets the block size
+%     'bootbayes (Y, X, BLOCKSZ)' specifies a scalar, which sets the block size
 %     for bootstrapping when the residuals have serial dependence. Identical
 %     weights are assigned within each (consecutive) block of length BLOCKSZ
-%     during Bayesian bootstrap. Rows of y (and X) within the same block are
+%     during Bayesian bootstrap. Rows of Y (and X) within the same block are
 %     treated as having dependent errors. If empty (default), no block
 %     resampling is performed and all errors are treated as independent.
 %
-%     'bootbayes (y, X, ..., NBOOT)' specifies the number of bootstrap resamples,
+%     'bootbayes (Y, X, ..., NBOOT)' specifies the number of bootstrap resamples,
 %     where NBOOT must be a positive integer. If empty, the default value of
 %     NBOOT is 2000.
 %
-%     'bootbayes (y, X, ..., NBOOT, PROB)' where PROB is numeric and sets the
+%     'bootbayes (Y, X, ..., NBOOT, PROB)' where PROB is numeric and sets the
 %     lower and upper bounds of the credible interval(s). The value(s) of PROB
 %     must be between 0 and 1. PROB can either be:
 %        • scalar: To set the central mass of shortest probability intervals
@@ -64,7 +64,7 @@
 %          Credible intervals are not calculated when the value(s) of PROB
 %          is/are NaN. The default value of PROB is 0.95.
 %
-%     'bootbayes (y, X, ..., NBOOT, PROB, PRIOR)' accepts a positive real
+%     'bootbayes (Y, X, ..., NBOOT, PROB, PRIOR)' accepts a positive real
 %     numeric scalar to parametrize the form of the symmetric Dirichlet
 %     distribution. The Dirichlet distribution is the conjugate PRIOR used to
 %     randomly generate weights for linear least squares fitting of the observed
@@ -75,7 +75,7 @@
 %     (over all points in its support). If the model is an intercept-only model
 %     then the value of PRIOR is set to 'auto' to automatically determine a
 %     value for the PRIOR that effectively incorporates Bessel's correction.
-%     Thus, for y of length n and PRIOR set to 'auto', the variance of the
+%     Thus, for Y of length n and PRIOR set to 'auto', the variance of the
 %     posterior (i.e. BOOTSTAT) becomes an unbiased estimator of the sampling
 %     variance. The calculation used for 'auto' is as follows:
 %
@@ -84,11 +84,11 @@
 %     For block or cluster bootstrap, N corresponds to the number of blocks or
 %     clusters (i.e. the number of indepedent sampling units).
 %
-%     'bootbayes (y, X, ..., NBOOT, PROB, PRIOR, SEED)' initialises the
+%     'bootbayes (Y, X, ..., NBOOT, PROB, PRIOR, SEED)' initialises the
 %     Mersenne Twister random number generator using an integer SEED value so
 %     that 'bootbayes' results are reproducible.
 %
-%     'bootbayes (y, X, ..., NBOOT, PROB, PRIOR, SEED, L)' multiplies the
+%     'bootbayes (Y, X, ..., NBOOT, PROB, PRIOR, SEED, L)' multiplies the
 %     regression coefficients by the hypothesis matrix L.  If L is not provided
 %     or is empty, it will assume the default value of 1. This functionality is
 %     usually used to convert regression to estimated marginal means.
@@ -128,11 +128,11 @@
 %  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-function [stats, bootstat] = bootbayes (y, X, dep, nboot, prob, prior, seed, L)
+function [stats, bootstat] = bootbayes (Y, X, dep, nboot, prob, prior, seed, L)
 
   % Check the number of function arguments
   if (nargin < 1)
-    error ('bootbayes: y must be provided');
+    error ('bootbayes: Y must be provided');
   end
   if (nargin > 8)
     error ('bootbayes: Too many input arguments')
@@ -145,11 +145,11 @@ function [stats, bootstat] = bootbayes (y, X, dep, nboot, prob, prior, seed, L)
   info = ver; 
   ISOCTAVE = any (ismember ({info.Name}, 'Octave'));
 
-  % Calculate the length of y
+  % Calculate the size of Y
   if (nargin < 1)
     error ('bootbayes: DATA must be provided');
   end
-  sz = size (y);
+  sz = size (Y);
   n = sz(1);
 
   % Evaluate the design matrix
@@ -166,7 +166,7 @@ function [stats, bootstat] = bootbayes (y, X, dep, nboot, prob, prior, seed, L)
   else
     intercept_only = false;
     if (sz(2) > 1) 
-      error ('bootbayes: y must be a column vector if X is not an intercept-only model');
+      error ('bootbayes: Y must be a column vector if X does not define an intercept-only model');
     end
     % Evaluate hypothesis matrix (L)
     if ( (nargin < 8) || isempty (L) )
@@ -192,7 +192,7 @@ function [stats, bootstat] = bootbayes (y, X, dep, nboot, prob, prior, seed, L)
       % Prepare for cluster Bayesian bootstrap
       clustid = dep;
       if ( any (size (clustid) ~= [n, 1]) )
-        error ('bootbayes: CLUSTID must be a column vector with the same number of rows as y')
+        error ('bootbayes: CLUSTID must be a column vector with the same number of rows as Y')
       end
       [C, IA, IC] = unique (clustid);
       N = numel (C); % Number of clusters
@@ -204,7 +204,7 @@ function [stats, bootstat] = bootbayes (y, X, dep, nboot, prob, prior, seed, L)
     method = "";
   end
   if (N < 2)
-    error ('bootbayes: y must contain more than one independent sampling unit');
+    error ('bootbayes: Y must contain more than one independent sampling unit');
   end
 
   % Evaluate number of bootstrap resamples
@@ -305,11 +305,11 @@ function [stats, bootstat] = bootbayes (y, X, dep, nboot, prob, prior, seed, L)
 
   % Compute bootstap statistics
   if (intercept_only)
-    bootfun = @(y) sum (bsxfun (@times, y, W));  % Faster!
-    original = mean (y);
-    bootstat = cell2mat (cellfun (bootfun, num2cell (y, 1)', 'UniformOutput', false));
+    bootfun = @(Y) sum (bsxfun (@times, Y, W));  % Faster!
+    original = mean (Y, 1);
+    bootstat = cell2mat (cellfun (bootfun, num2cell (Y, 1)', 'UniformOutput', false));
   else
-    bootfun = @(w) lmfit (X, y, diag (w), L);
+    bootfun = @(w) lmfit (X, Y, diag (w), L);
     original = bootfun (n^-1 * ones (n, 1));
     bootstat = cell2mat (cellfun (bootfun, num2cell (W, 1), 'UniformOutput', false));
   end
@@ -349,7 +349,7 @@ function [stats, bootstat] = bootbayes (y, X, dep, nboot, prob, prior, seed, L)
 
   % Print output if no output arguments are requested
   if (nargout == 0) 
-    print_output (stats, nboot, prob, prior, p, L, method);
+    print_output (stats, nboot, prob, prior, p, L, method, intercept_only);
   end
 
 end
@@ -382,15 +382,19 @@ end
 
 %% FUNCTION TO PRINT OUTPUT
 
-function print_output (stats, nboot, prob, prior, p, L, method)
+function print_output (stats, nboot, prob, prior, p, L, method, intercept_only)
 
     fprintf (['\nSummary of Bayesian bootstrap estimates of bias and precision for linear models\n',...
               '*******************************************************************************\n\n']);
     fprintf ('Bootstrap settings: \n');
-    if ( (numel(L) > 1) || (L ~= 1) )
-      fprintf (' Function: L * pinv (X'' * W * X) * (X'' * W * y)\n');
+    if (intercept_only)
+        fprintf (' Function: sum (w .* Y)\n');
     else
-      fprintf (' Function: pinv (X'' * W * X) * (X'' * W * y)\n');
+      if ( (numel(L) > 1) || (L ~= 1) )
+        fprintf (' Function: L * pinv (X'' * W * X) * (X'' * W * y)\n');
+      else
+        fprintf (' Function: pinv (X'' * W * X) * (X'' * W * y)\n');
+      end
     end
     fprintf (' Resampling method: Bayesian %sbootstrap\n', method)
     fprintf (' Prior: Symmetric Dirichlet distribution of weights (a = %.3g)\n', prior)
