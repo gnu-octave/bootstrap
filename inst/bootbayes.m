@@ -79,11 +79,10 @@
 %     posterior (i.e. BOOTSTAT) becomes an unbiased estimator of the sampling
 %     variance. The calculation used for 'auto' is as follows:
 %
-%          PRIOR = N^-1 * (1 - N^-1) * ((N - 2) * (N - 1)^-2)^-1 - N^-1
+%          PRIOR = 1 - 2 / N
 %
 %     For block or cluster bootstrap, N corresponds to the number of blocks or
-%     clusters (i.e. the number of indepedent sampling units). See the source
-%     code for a derivation of the above expression.
+%     clusters (i.e. the number of indepedent sampling units).
 %
 %     'bootbayes (y, X, ..., NBOOT, PROB, PRIOR, SEED)' initialises the
 %     Mersenne Twister random number generator using an integer SEED value so
@@ -110,7 +109,7 @@
 %  [4] Hall and Wilson (1991) Two Guidelines for Bootstrap Hypothesis Testing.
 %        Biometrics, 47(2), 757-762
 %
-%  bootbayes (version 2023.06.16)
+%  bootbayes (version 2023.06.18)
 %  Author: Andrew Charles Penn
 %  https://www.researchgate.net/profile/Andrew_Penn/
 %
@@ -163,6 +162,7 @@ function [stats, bootstat] = bootbayes (y, X, dep, nboot, prob, prior, seed, L)
   if ((p == 1) && (all (X == 1)) )
     intercept_only = true;
     p = sz(2);
+    L = 1;
   else
     intercept_only = false;
     if (sz(2) > 1) 
@@ -202,6 +202,9 @@ function [stats, bootstat] = bootbayes (y, X, dep, nboot, prob, prior, seed, L)
     N = n;
     IC = [];
     method = "";
+  end
+  if (N < 2)
+    error ('bootbayes: y must contain more than one independent sampling unit');
   end
 
   % Evaluate number of bootstrap resamples
@@ -244,44 +247,6 @@ function [stats, bootstat] = bootbayes (y, X, dep, nboot, prob, prior, seed, L)
   end
 
   % Evaluate or set prior
-  %
-  % Using a symmetric Dirichlet distribution with parameter equal to 1 for
-  % Bayesian nonparametric bootstrap on data of length n will produce a
-  % posterior (for the mean functional) whose variance is smaller than the
-  % sampling variance by a factor of (n - 1) / n. Here, we will rationalise
-  % how an automatic choice of the parameter of the symmetric Dirichlet
-  % distribution (i.e. PRIOR, or 'a') can be made based on our understanding
-  % of how the narrowness bias relates to sample size. Choosing a positive
-  % real value for 'a' less than 1 will lead to a posterior whose variance
-  % increasingly resembles the variance of the sample as 'a' approaches zero.
-  % Therefore, setting an appropriate value of 'a' can be used to prevent the
-  % scale of our posterior having narrowness bias. In otherwords, we set a
-  % prior such that it incorporates Bessel's correction.
-  %
-  % Let the variance of symmetric Dirichlet-distributed random variables be:
-  % 
-  % var_dir = @(a, n) (at(a, n) * (1 - at(a, n))) / (a0(a, n) + 1);
-  %   where: 
-  %     a0 = @(a, n) a * n 
-  %     at = @(a, n) a / a0(a, n);
-  %
-  % Substituting the expressions for 'a0' and 'at' into 'var_dir' and
-  % simplifying gives us:
-  %
-  % var_dir = @(a, n) (n^-1 * (1 - n^-1)) / (a * n + 1);
-  %
-  % We can find a value for the parameter of a symmetric Dirichlet distribution
-  % that will give us an unbiased variance by finding the root of the following
-  % objective function:
-  %
-  % objfun = @(a) var_dir (a, n) - var_dir (1, n - 1);
-  %
-  % We can simplify this problem by substituting the expression for 'var_dir'
-  % into the 'objfun', rearranging the equation and then solving it for the
-  % sample size 'n' without iterative root finding:
-  %
-  % PRIOR = a = n^-1 * (1 - n^-1) * ((n - 2) * (n - 1)^-2)^-1 - n^-1
-  % 
   if ( (nargin < 6) || (isempty (prior)) )
     if (intercept_only)
       prior = 'auto';
@@ -292,7 +257,9 @@ function [stats, bootstat] = bootbayes (y, X, dep, nboot, prob, prior, seed, L)
   if (~ isa (prior, 'numeric'))
     if (strcmpi (prior, 'auto'))
       if (intercept_only)
-        prior = N^-1 * (1 - N^-1) * ((N - 2) * (N - 1)^-2)^-1 - N^-1;
+        % Automatic prior selection to produce a posterior whose variance is an
+        % unbiased estimator of the sampling variance
+        prior = 1 - 2 / N;
       else
         error ('bootbayes: PRIOR ''auto'' value only available for intercept-only models')
       end
@@ -305,9 +272,6 @@ function [stats, bootstat] = bootbayes (y, X, dep, nboot, prob, prior, seed, L)
   end
   if (prior ~= abs (prior))
     error ('bootbayes: PRIOR must be positive');
-  end
-  if ( ~ (prior > 0))
-    error ('bootbayes: PRIOR must be greater than zero')
   end
 
   % Set random seed
@@ -322,13 +286,20 @@ function [stats, bootstat] = bootbayes (y, X, dep, nboot, prob, prior, seed, L)
   % Create weights by randomly sampling from a symmetric Dirichlet distribution.
   % This can be achieved by normalizing a set of randomly generated values from
   % a Gamma distribution to their sum.
-  if (ISOCTAVE)
-    r = randg (prior, N, nboot);
+  if (prior > 0)
+    if (ISOCTAVE)
+      r = randg (prior, N, nboot);
+    else
+      r = gamrnd (prior, 1, N, nboot);
+    end
+    if (~ isempty (IC))
+      r = r(IC, :);  % Enforce clustering/blocking
+    end
   else
-    r = gamrnd (prior, 1, N, nboot);
-  end
-  if (~ isempty (IC))
-    r = r(IC, :);  % Enforce clustering/blocking
+    % Haldane prior
+    r = zeros (N, nboot);
+    idx = fix (rand (1, nboot) * N + [1 : N : nboot * N]);
+    r(idx)=1;
   end
   W = bsxfun (@rdivide, r, sum (r));
 
@@ -439,9 +410,9 @@ function print_output (stats, nboot, prob, prior, p, L, method)
       end
     end
     fprintf ('\nPosterior Statistics: \n');
-    fprintf (' original     bias         median       stdev        CI_lower      CI_upper\n');
+    fprintf (' original     bias         median       stdev       CI_lower      CI_upper\n');
     for j = 1:p
-      fprintf (' %#-+10.4g   %#-+10.4g   %#-+10.4g   %#-+10.4g   %#-+10.4g    %#-+10.4g\n',... 
+      fprintf (' %#-+10.4g   %#-+10.4g   %#-+10.4g   %#-10.4g  %#-+10.4g    %#-+10.4g\n',... 
                [stats.original(j), stats.bias(j), stats.median(j), stats.stdev(j), stats.CI_lower(j), stats.CI_upper(j)]);
     end
     fprintf ('\n');
