@@ -69,29 +69,33 @@
 %     distribution. The Dirichlet distribution is the conjugate PRIOR used to
 %     randomly generate weights for linear least squares fitting of the observed
 %     data, and subsequently to estimate the posterior for the regression
-%     coefficients by Bayesian bootstrap. If PRIOR is not provided, or is empty,
-%     and the model is not intercept-only, then the default value of PRIOR is 1, 
-%     which corresponds to Bayes rule: a uniform (or flat) Dirichlet distribution
-%     (over all points in its support). If the model is an intercept-only model
-%     then the value of PRIOR is set to 'auto' to automatically determine a
-%     value for the PRIOR that effectively incorporates Bessel's correction.
-%     Thus, for Y of length n and PRIOR set to 'auto', the variance of the
-%     posterior (i.e. BOOTSTAT) becomes an unbiased estimator of the sampling
-%     variance. The calculation used for 'auto' is as follows:
+%     coefficients by Bayesian bootstrap.
+%        If PRIOR is not provided or is empty, and the model returns more
+%     than one estimate for a column of Y, then the default value of PRIOR
+%     is 1, which corresponds to Bayes rule: a uniform (or flat) Dirichlet
+%     distribution (over all points in its support). Otherwise, the value of
+%     PRIOR is set to 'auto'.
+%        The value 'auto' sets a value for PRIOR that effectively incorporates
+%     Bessel's correction a priori. Thus, for a sample size of N and PRIOR set
+%     to 'auto', the variance of the posterior (i.e. BOOTSTAT) becomes an
+%     unbiased estimator of the sampling variance. The calculation used for
+%     'auto' is as follows:
 %
 %          PRIOR = 1 - 2 / N
 %
-%     For block or cluster bootstrap, N corresponds to the number of blocks or
-%     clusters (i.e. the number of indepedent sampling units).
+%        For block or cluster bootstrap, N corresponds to the number of blocks
+%     or clusters (i.e. the number of independent sampling units).
 %
 %     'bootbayes (Y, X, ..., NBOOT, PROB, PRIOR, SEED)' initialises the
 %     Mersenne Twister random number generator using an integer SEED value so
 %     that 'bootbayes' results are reproducible.
 %
 %     'bootbayes (Y, X, ..., NBOOT, PROB, PRIOR, SEED, L)' multiplies the
-%     regression coefficients by the hypothesis matrix L.  If L is not provided
-%     or is empty, it will assume the default value of 1. This functionality is
-%     usually used to convert regression to estimated marginal means.
+%     regression coefficients by the hypothesis matrix L. If L is not provided
+%     or is empty, it will assume the default value of 1 (i.e. no effect on
+%     the design matrix). If not a value of 1, L must have the same number of
+%     columns as X. If L has only one row (i.e. to compute only one estimate),
+%     then the 'auto' value of PRIOR becomes available.
 %
 %     'STATS = bootbayes (...) returns a structure with the following fields
 %     (defined above): original, bias, median, stdev, CI_lower and CI_upper. 
@@ -251,17 +255,29 @@ function [stats, bootstat] = bootbayes (Y, X, dep, nboot, prob, prior, seed, L)
     if (intercept_only)
       prior = 'auto';
     else
-      prior = 1; % Bayes flat/uniform prior
+      if ( ~isempty (L) || (size (L, 1) == 1) )
+        prior = 'auto';
+      else
+        prior = 1; % Bayes flat/uniform prior
+      end
     end
   end
   if (~ isa (prior, 'numeric'))
     if (strcmpi (prior, 'auto'))
+      % Automatic prior selection to produce a posterior whose variance is an
+      % unbiased estimator of the sampling variance
       if (intercept_only)
-        % Automatic prior selection to produce a posterior whose variance is an
-        % unbiased estimator of the sampling variance
         prior = 1 - 2 / N;
+      elseif ( ~isempty (L) || (size (L, 1) == 1) )
+        idx = find (L);
+        if isempty (IC)
+          NL = sum (all (bsxfun (@eq, X(:,idx), L(1,idx)), 2));
+        else
+          NL = numel (unique (IC .* all (bsxfun (@eq, X(:,idx), L(1,idx)), 2))) - 1;
+        end
+        prior = 1 - 2 / NL;
       else
-        error ('bootbayes: PRIOR ''auto'' value only available for intercept-only models')
+        error ('bootbayes: PRIOR ''auto'' value only available for single estimates')
       end
     else
       error ('bootbayes: PRIOR must be numeric');
