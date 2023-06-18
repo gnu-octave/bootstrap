@@ -255,7 +255,7 @@ function [stats, bootstat] = bootbayes (Y, X, dep, nboot, prob, prior, seed, L)
     if (intercept_only)
       prior = 'auto';
     else
-      if ( ~isempty (L) || (size (L, 1) == 1) )
+      if ( ~isempty (L) && (size (L, 1) == 1) )
         prior = 'auto';
       else
         prior = 1; % Bayes flat/uniform prior
@@ -268,7 +268,7 @@ function [stats, bootstat] = bootbayes (Y, X, dep, nboot, prob, prior, seed, L)
       % unbiased estimator of the sampling variance
       if (intercept_only)
         prior = 1 - 2 / N;
-      elseif ( ~isempty (L) || (size (L, 1) == 1) )
+      elseif ( (~ isempty (L)) && (size (L, 1) == 1) )
         idx = find (L);
         if isempty (IC)
           NL = sum (all (bsxfun (@eq, X(:,idx), L(1,idx)), 2));
@@ -277,7 +277,7 @@ function [stats, bootstat] = bootbayes (Y, X, dep, nboot, prob, prior, seed, L)
         end
         prior = 1 - 2 / NL;
       else
-        error ('bootbayes: PRIOR ''auto'' value only available for single estimates')
+        error ('bootbayes: PRIOR ''auto'' requires the model to return a single estimate for a column of Y')
       end
     else
       error ('bootbayes: PRIOR must be numeric');
@@ -362,6 +362,7 @@ function [stats, bootstat] = bootbayes (Y, X, dep, nboot, prob, prior, seed, L)
   stats.stdev = std (bootstat, 1, 2);
   stats.CI_lower = ci(:, 1);
   stats.CI_upper = ci(:, 2);
+  stats.prior = prior;
 
   % Print output if no output arguments are requested
   if (nargout == 0) 
