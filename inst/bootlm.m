@@ -110,24 +110,77 @@
 %             • A string corresponding to one of the built-in contrasts
 %               listed below:
 %
-%                  • 'simple' or 'anova' (default): Simple (ANOVA)
-%                    contrast coding. (The first level appearing in the
-%                    GROUP column is the reference level)
+%                  • 'simple' or 'anova' (default): Simple (ANOVA) contrast
+%                    coding. The intercept represents the grand mean. Each 
+%                    slope coefficient represents the difference between one
+%                    level of a predictor (or interaction between predictors) to
+%                    the first level for that/those predictor(s), averaged over
+%                    all levels of the other predictor(s). The first (or
+%                    reference level) of the predictor(s) is defined as the
+%                    first level of the predictor (or combination of the
+%                    predictors) listed in the GROUP argument. The columns of
+%                    this contrast coding scheme sum to zero. This type of
+%                    contrast is ideal for nominal predictor variables modelled
+%                    together with a covariate or blocking factor.
 %
-%                  • 'poly': Polynomial contrast coding for trend
-%                    analysis.
+%                  • 'poly': Polynomial contrast coding for trend analysis.
+%                    The intercept represents the grand mean. The remaining
+%                    slope coefficients returned are for linear, quadratic,
+%                    cubic etc. trends across the levels. In addition to the
+%                    columns of this contrast coding scheme summing to zero,
+%                    this contrast coding is orthogonal (i.e. the off-diagonal
+%                    elements of its autocovariance matrix are zero) and so
+%                    the slope coefficients are independent. This type of
+%                    contrast is ideal for ordinal predictor variables, in
+%                    particular, predictors with ordered levels that are evenly
+%                    spaced.
 %
-%                  • 'helmert': Helmert contrast coding.
+%                  • 'helmert': Helmert contrast coding. The intercept
+%                    represents the grand mean. Each slope coefficient
+%                    represents the difference between one level of a predictor
+%                    (or interaction between predictors) with the mean of the
+%                    subsequent predictors, where the order of the predictors
+%                    their levels is as they appear in the GROUP argument.
+%                    In addition to the columns of this contrast coding scheme
+%                    summing to zero, this contrast coding is orthogonal (i.e.
+%                    the off-diagonal elements of its autocovariance matrix
+%                    are zero) and so the slope coefficients are independent.
+%                    This type of contrast is ideal for predictor variables that
+%                    are either ordinal, or nominal with their levels ordered
+%                    such that the contrast coding reflects tests of some
+%                    hypotheses of interest about the nested grouping of
+%                    the predictor levels.
 %
-%                  • 'effect': Deviation effect coding. (The first level
-%                    appearing in the GROUP column is omitted).
+%                  • 'effect': Deviation effect coding. The intercept represents
+%                    the grand mean. Each slope coefficient compares one level
+%                    of a predictor (or interaction between predictors) with the
+%                    grand mean. Note that a slope coefficient is omitted for
+%                    the first level of the predictor(s) listed in the GROUP
+%                    argument. The columns of this contrast coding scheme sum to
+%                    zero. This type of contrast is ideal for nominal predictor
+%                    variables when there is no obvious reference group.
 %
-%                  • 'sdif' or 'sdiff': Successive differences contrast
-%                    coding.
+%                  • 'sdif' or 'sdiff': Successive differences contrast coding.
+%                    The intercept represents the grand mean. Each slope
+%                    coefficient represents the difference between one level of
+%                    a predictor (or interaction between predictors) to the
+%                    previous one, where the order of the predictor levels is
+%                    as they appear in the GROUP argument. The columns of this
+%                    contrast coding coding scheme sum to zero. This type of
+%                    contrast is ideal for ordinal predictor variables.
 %
-%                  • 'treatment': Treatment contrast (or dummy) coding.
-%                    (The first level appearing in the GROUP column is
-%                    the reference level).
+%                  • 'treatment': Treatment contrast (or dummy) coding. The
+%                    intercept represents the mean of the first level of all
+%                    the predictors. Each slope coefficient compares one
+%                    level of a predictor (or interaction between predictors)
+%                    with the first level for that/those predictor(s), at the
+%                    first level of all the other predictors. The first (or
+%                    reference level) of the predictor(s) is defined as the
+%                    first level of the predictor (or combination of the
+%                    predictors) listed in the GROUP argument. This type of
+%                    contrast is ideal for one-way designs or factorial designs
+%                    (including interactions) of nominal predictor variables
+%                    that have an obvious reference or control group.
 %
 %             • A matrix containing a custom contrast coding scheme (i.e.
 %               the generalized inverse of contrast weights). Rows in
@@ -187,7 +240,7 @@
 %     '[STATS, X, L] = bootlm (...)' also returns the hypothesis matrix used to
 %     compute the estimated marginal means.
 %
-%  bootlm (version 2023.06.16)
+%  bootlm (version 2023.06.19)
 %  Author: Andrew Charles Penn
 %  https://www.researchgate.net/profile/Andrew_Penn/
 %
