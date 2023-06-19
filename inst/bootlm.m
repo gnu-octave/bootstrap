@@ -770,7 +770,7 @@ function C = contr_poly (N)
   [C, jnk] = qr (bsxfun (@power, [1:N]' - mean ([1:N]'), [0:N-1]));
   C(:,1) = [];
   s = ones (1, N-1);
-  s(1:2:N-1) = S(1:2:N-1) * -1;
+  s(1:2:N-1) = s(1:2:N-1) * -1;
   f = (sign(C(1,:)) ~= s);
   C(:,f) = C(:,f) * -1;
 
