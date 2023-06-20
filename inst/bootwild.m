@@ -70,9 +70,8 @@
 %     Twister random number generator using an integer SEED value so that
 %     'bootwild' results are reproducible.
 %
-%     'STATS = bootwild (...) returns a structure with the following fields
-%     (defined above): original, std_err, CI_lower, CI_upper, tstat, pval
-%     and fpr. 
+%     'STATS = bootwild (...) returns a structure with the following fields:
+%     original, std_err, CI_lower, CI_upper, tstat, pval & fpr. 
 %
 %     '[STATS, BOOTSTAT] = bootwild (...)  also returns the a vector (or
 %     matrix) of bootstrap statistics (BOOTSTAT) calculated over the bootstrap
