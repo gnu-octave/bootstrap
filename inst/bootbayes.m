@@ -494,6 +494,7 @@ end
 %!
 %! ## 95% credible interval for the mean 
 %! stats = bootbayes(heights);
+%! stats = bootbayes(repmat(heights,1,5));
 %! stats = bootbayes(heights,ones(10,1));
 %! stats = bootbayes(heights,[],2);
 %! stats = bootbayes(heights,[],[1;1;1;1;1;2;2;2;2;2]);
