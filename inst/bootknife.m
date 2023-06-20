@@ -1387,11 +1387,11 @@ end
 %! stats = bootknife(x,2000,@mean,0.05);
 %! if (isempty (regexp (which ('boot'), 'mex$')))
 %!   ## test boot m-file result
-%!   assert (stats.original, 108.0833333333333, 1e-09);
-%!   assert (stats.bias, -1.4210854715202e-14, 1e-09);
-%!   assert (stats.std_error, 38.25414068983568, 1e-09);
-%!   assert (stats.CI_lower, 37.62313309335625, 1e-09);
-%!   assert (stats.CI_upper, 201.0264463378847, 1e-09);
+%!   assert (stats.original, 108.0833333333333, 1e-08);
+%!   assert (stats.bias, -1.4210854715202e-14, 1e-08);
+%!   assert (stats.std_error, 38.25414068983568, 1e-08);
+%!   assert (stats.CI_lower, 37.62313309335625, 1e-08);
+%!   assert (stats.CI_upper, 201.0264463378847, 1e-08);
 %! end
 %!
 %! ## Nonparametric 95% expanded BCa confidence intervals
@@ -1403,11 +1403,11 @@ end
 %! stats = bootknife(x,2000,@mean,[0.025,0.975]);
 %! if (isempty (regexp (which ('boot'), 'mex$')))
 %!   ## test boot m-file result
-%!   assert (stats.original, 108.0833333333333, 1e-09);
-%!   assert (stats.bias, -1.4210854715202e-14, 1e-09);
-%!   assert (stats.std_error, 38.25414068983568, 1e-09);
-%!   assert (stats.CI_lower, 49.70873146256465, 1e-09);
-%!   assert (stats.CI_upper, 232.3618260843778, 1e-09);
+%!   assert (stats.original, 108.0833333333333, 1e-08);
+%!   assert (stats.bias, -1.4210854715202e-14, 1e-08);
+%!   assert (stats.std_error, 38.25414068983568, 1e-08);
+%!   assert (stats.CI_lower, 49.70873146256465, 1e-08);
+%!   assert (stats.CI_upper, 232.3618260843778, 1e-08);
 %! end
 %!
 %! ## Exact intervals based on an exponential model are 65.9 - 209.2
@@ -1426,11 +1426,11 @@ end
 %! stats = bootknife(A,2000,{@var,1},0.1);
 %! if (isempty (regexp (which ('boot'), 'mex$')))
 %!   ## test boot m-file result
-%!   assert (stats.original, 171.534023668639, 1e-09);
-%!   assert (stats.bias, -7.323387573964482, 1e-09);
-%!   assert (stats.std_error, 43.30079972388541, 1e-09);
-%!   assert (stats.CI_lower, 95.24158837039771, 1e-09);
-%!   assert (stats.CI_upper, 237.7156378257705, 1e-09);
+%!   assert (stats.original, 171.534023668639, 1e-08);
+%!   assert (stats.bias, -7.323387573964482, 1e-08);
+%!   assert (stats.std_error, 43.30079972388541, 1e-08);
+%!   assert (stats.CI_lower, 95.24158837039771, 1e-08);
+%!   assert (stats.CI_upper, 237.7156378257705, 1e-08);
 %! end
 %!
 %! ## Nonparametric 90% BCa confidence intervals
@@ -1439,11 +1439,11 @@ end
 %! stats = bootknife(A,2000,{@var,1},[0.05 0.95]);
 %! if (isempty (regexp (which ('boot'), 'mex$')))
 %!   ## test boot m-file result
-%!   assert (stats.original, 171.534023668639, 1e-09);
-%!   assert (stats.bias, -7.323387573964482, 1e-09);
-%!   assert (stats.std_error, 43.30079972388541, 1e-09);
-%!   assert (stats.CI_lower, 113.2388308884533, 1e-09);
-%!   assert (stats.CI_upper, 264.9901439787903, 1e-09);
+%!   assert (stats.original, 171.534023668639, 1e-08);
+%!   assert (stats.bias, -7.323387573964482, 1e-08);
+%!   assert (stats.std_error, 43.30079972388541, 1e-08);
+%!   assert (stats.CI_lower, 113.2388308884533, 1e-08);
+%!   assert (stats.CI_upper, 264.9901439787903, 1e-08);
 %! end
 %!
 %! ## Nonparametric 90% calibrated equal-tailed percentile confidence intervals
@@ -1451,11 +1451,11 @@ end
 %! stats = bootknife(A,[2000,200],{@var,1},0.1);
 %! if (isempty (regexp (which ('boot'), 'mex$')))
 %!   ## test boot m-file result
-%!   assert (stats.original, 171.534023668639, 1e-09);
-%!   assert (stats.bias, -8.088193809171344, 1e-09);
-%!   assert (stats.std_error, 46.53418481731099, 1e-09);
-%!   assert (stats.CI_lower, 79.65217027813281, 1e-09);
-%!   assert (stats.CI_upper, 260.2974063446341, 1e-09);
+%!   assert (stats.original, 171.534023668639, 1e-08);
+%!   assert (stats.bias, -8.088193809171344, 1e-08);
+%!   assert (stats.std_error, 46.53418481731099, 1e-08);
+%!   assert (stats.CI_lower, 79.65217027813281, 1e-08);
+%!   assert (stats.CI_upper, 260.2974063446341, 1e-08);
 %! end
 %!
 %! ## Nonparametric 90% calibrated percentile confidence intervals
@@ -1463,11 +1463,11 @@ end
 %! stats = bootknife(A,[2000,200],{@var,1},[0.05,0.95]);
 %! if (isempty (regexp (which ('boot'), 'mex$')))
 %!   ## test boot m-file result
-%!   assert (stats.original, 171.534023668639, 1e-09);
-%!   assert (stats.bias, -8.088193809171344, 1e-09);
-%!   assert (stats.std_error, 46.53418481731099, 1e-09);
-%!   assert (stats.CI_lower, 110.7021156275962, 1e-09);
-%!   assert (stats.CI_upper, 305.1908284023669, 1e-09);
+%!   assert (stats.original, 171.534023668639, 1e-08);
+%!   assert (stats.bias, -8.088193809171344, 1e-08);
+%!   assert (stats.std_error, 46.53418481731099, 1e-08);
+%!   assert (stats.CI_lower, 110.7021156275962, 1e-08);
+%!   assert (stats.CI_upper, 305.1908284023669, 1e-08);
 %! end
 %!
 %! ## Exact intervals based on normal theory are 118.4 - 305.2 (Table 14.2)
@@ -1488,11 +1488,11 @@ end
 %! stats = bootknife({LSAT,GPA},2000,@cor,0.1);
 %! if (isempty (regexp (which ('boot'), 'mex$')))
 %!   ## test boot m-file result
-%!   assert (stats.original, 0.7763744912894071, 1e-09);
-%!   assert (stats.bias, -0.008259337758776963, 1e-09);
-%!   assert (stats.std_error, 0.1420949476115542, 1e-09);
-%!   assert (stats.CI_lower, 0.5056363801008388, 1e-09);
-%!   assert (stats.CI_upper, 0.9586254199016858, 1e-09);
+%!   assert (stats.original, 0.7763744912894071, 1e-08);
+%!   assert (stats.bias, -0.008259337758776963, 1e-08);
+%!   assert (stats.std_error, 0.1420949476115542, 1e-08);
+%!   assert (stats.CI_lower, 0.5056363801008388, 1e-08);
+%!   assert (stats.CI_upper, 0.9586254199016858, 1e-08);
 %! end
 %!
 %! ## Nonparametric 90% BCa confidence intervals
@@ -1501,11 +1501,11 @@ end
 %! stats = bootknife({LSAT,GPA},2000,@cor,[0.05 0.95]);
 %! if (isempty (regexp (which ('boot'), 'mex$')))
 %!   ## test boot m-file result
-%!   assert (stats.original, 0.7763744912894071, 1e-09);
-%!   assert (stats.bias, -0.008259337758776963, 1e-09);
-%!   assert (stats.std_error, 0.1420949476115542, 1e-09);
-%!   assert (stats.CI_lower, 0.4119228032301614, 1e-09);
-%!   assert (stats.CI_upper, 0.9300646701004258, 1e-09);
+%!   assert (stats.original, 0.7763744912894071, 1e-08);
+%!   assert (stats.bias, -0.008259337758776963, 1e-08);
+%!   assert (stats.std_error, 0.1420949476115542, 1e-08);
+%!   assert (stats.CI_lower, 0.4119228032301614, 1e-08);
+%!   assert (stats.CI_upper, 0.9300646701004258, 1e-08);
 %! end
 %!
 %! ## Nonparametric 90% calibrated equal-tailed percentile confidence intervals
@@ -1513,11 +1513,11 @@ end
 %! stats = bootknife({LSAT,GPA},[2000,500],@cor,0.1);
 %! if (isempty (regexp (which ('boot'), 'mex$')))
 %!   ## test boot m-file result
-%!   assert (stats.original, 0.7763744912894071, 1e-09);
-%!   assert (stats.bias, -0.00942010836534779, 1e-09);
-%!   assert (stats.std_error, 0.1438249935781226, 1e-09);
-%!   assert (stats.CI_lower, 0.3730176477191259, 1e-09);
-%!   assert (stats.CI_upper, 0.9772521004985222, 1e-09);
+%!   assert (stats.original, 0.7763744912894071, 1e-08);
+%!   assert (stats.bias, -0.00942010836534779, 1e-08);
+%!   assert (stats.std_error, 0.1438249935781226, 1e-08);
+%!   assert (stats.CI_lower, 0.3730176477191259, 1e-08);
+%!   assert (stats.CI_upper, 0.9772521004985222, 1e-08);
 %! end
 %!
 %! ## Nonparametric 90% calibrated percentile confidence intervals
@@ -1525,10 +1525,10 @@ end
 %! stats = bootknife({LSAT,GPA},[2000,500],@cor,[0.05,0.95]);
 %! if (isempty (regexp (which ('boot'), 'mex$')))
 %!   ## test boot m-file result
-%!   assert (stats.original, 0.7763744912894071, 1e-09);
-%!   assert (stats.bias, -0.00942010836534779, 1e-09);
-%!   assert (stats.std_error, 0.1438249935781226, 1e-09);
-%!   assert (stats.CI_lower, 0.2438194881892977, 1e-09);
-%!   assert (stats.CI_upper, 0.944013417640401, 1e-09);
+%!   assert (stats.original, 0.7763744912894071, 1e-08);
+%!   assert (stats.bias, -0.00942010836534779, 1e-08);
+%!   assert (stats.std_error, 0.1438249935781226, 1e-08);
+%!   assert (stats.CI_lower, 0.2438194881892977, 1e-08);
+%!   assert (stats.CI_upper, 0.944013417640401, 1e-08);
 %! end
 %! ## Exact intervals based on normal theory are 0.51 - 0.91

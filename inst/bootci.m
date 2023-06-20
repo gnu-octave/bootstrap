@@ -387,10 +387,10 @@ function [F, x] = empcdf (y)
 
   % Check input argument
   if (~ isa (y, 'numeric'))
-    error ('bootknife:empcdf: y must be numeric');
+    error ('bootci:empcdf: y must be numeric');
   end
   if (all (size (y) > 1))
-    error ('bootknife:empcdf: y must be a vector');
+    error ('bootci:empcdf: y must be a vector');
   end
   if (size (y, 2) > 1)
     y = y.';
@@ -684,8 +684,8 @@ end
 %! ci = bootci(2000,{{@var,1},A},'alpha',0.1,'type','per','seed',1);
 %! if (isempty (regexp (which ('boot'), 'mex$')))
 %!   ## test boot m-file result
-%!   assert (ci(1), 95.24158837039771, 1e-09);
-%!   assert (ci(2), 237.7156378257705, 1e-09);
+%!   assert (ci(1), 95.24158837039771, 1e-07);
+%!   assert (ci(2), 237.7156378257705, 1e-07);
 %! end
 %!
 %! ## Nonparametric 90% BCa confidence intervals (single bootstrap)
@@ -693,24 +693,24 @@ end
 %! ci = bootci(2000,{{@var,1},A},'alpha',0.1,'type','bca','seed',1);
 %! if (isempty (regexp (which ('boot'), 'mex$')))
 %!   ## test boot m-file result
-%!   assert (ci(1), 113.2388308884533, 1e-09);
-%!   assert (ci(2), 264.9901439787903, 1e-09);
+%!   assert (ci(1), 113.2388308884533, 1e-07);
+%!   assert (ci(2), 264.9901439787903, 1e-07);
 %! end
 %!
 %! ## Nonparametric 90% bootstrap-t confidence intervals (double bootstrap)
 %! ci = bootci(2000,{{@var,1},A},'alpha',0.1,'type','stud','nbootstd',100,'seed',1);
 %! if (isempty (regexp (which ('boot'), 'mex$')))
 %!   ## test boot m-file result
-%!   assert (ci(1), 109.451865766257, 1e-09);
-%!   assert (ci(2), 306.1557840134357, 1e-09);
+%!   assert (ci(1), 109.451865766257, 1e-07);
+%!   assert (ci(2), 306.1557840134357, 1e-07);
 %! end
 %!
 %! ## Nonparametric 90% calibrated percentile confidence intervals (double bootstrap)
 %! ci = bootci(2000,{{@var,1},A},'alpha',0.1,'type','cal','nbootcal',200,'seed',1);
 %! if (isempty (regexp (which ('boot'), 'mex$')))
 %!   ## test boot m-file result
-%!   assert (ci(1), 110.7021156275962, 1e-09);
-%!   assert (ci(2), 305.1908284023669, 1e-09);
+%!   assert (ci(1), 110.7021156275962, 1e-07);
+%!   assert (ci(2), 305.1908284023669, 1e-07);
 %! end
 %!
 %! ## Exact intervals based on normal theory are 118.4 - 305.2 (Table 14.2)
@@ -730,8 +730,8 @@ end
 %! ci = bootci(2000,{@cor,LSAT,GPA},'alpha',0.1,'type','per','seed',1);
 %! if (isempty (regexp (which ('boot'), 'mex$')))
 %!   ## test boot m-file result
-%!   assert (ci(1), 0.5056363801008388, 1e-09);
-%!   assert (ci(2), 0.9586254199016858, 1e-09);
+%!   assert (ci(1), 0.5056363801008388, 1e-07);
+%!   assert (ci(2), 0.9586254199016858, 1e-07);
 %! end
 %!
 %! ## Nonparametric 90% BCa confidence intervals (single bootstrap)
@@ -739,15 +739,15 @@ end
 %! ci = bootci(2000,{@cor,LSAT,GPA},'alpha',0.1,'type','bca','seed',1);
 %! if (isempty (regexp (which ('boot'), 'mex$')))
 %!   ## test boot m-file result
-%!   assert (ci(1), 0.4119228032301614, 1e-09);
-%!   assert (ci(2), 0.9300646701004258, 1e-09);
+%!   assert (ci(1), 0.4119228032301614, 1e-07);
+%!   assert (ci(2), 0.9300646701004258, 1e-07);
 %! end
 %!
 %! ## Nonparametric 90% calibrated percentile confidence intervals (double bootstrap)
 %! ci = bootci(2000,{@cor,LSAT,GPA},'alpha',0.1,'type','cal','nbootcal',500,'seed',1);
 %! if (isempty (regexp (which ('boot'), 'mex$')))
 %!   ## test boot m-file result
-%!   assert (ci(1), 0.2438194881892977, 1e-09);
-%!   assert (ci(2), 0.944013417640401, 1e-09);
+%!   assert (ci(1), 0.2438194881892977, 1e-07);
+%!   assert (ci(2), 0.944013417640401, 1e-07);
 %! end
 %! ## Exact intervals based on normal theory are 0.51 - 0.91

@@ -170,7 +170,7 @@ function [stats, bootstat] = bootwild (y, X, dep, nboot, alpha, seed, L)
     G = n;
     IC = [];
     clusters = [];
-    method = "";
+    method = '';
   end
 
   % Evaluate number of bootstrap resamples
@@ -217,7 +217,7 @@ function [stats, bootstat] = bootwild (y, X, dep, nboot, alpha, seed, L)
     if (ISOCTAVE)
       randn ('seed', seed);
     else
-      rng (seed);
+      rng (seed, 'twister');
     end
   end
 
@@ -245,7 +245,8 @@ function [stats, bootstat] = bootwild (y, X, dep, nboot, alpha, seed, L)
   end
   yf = X * (X \ y);
   r = y - yf;
-  Y = bsxfun (@plus, yf, r .* s);
+  rs = bsxfun (@times, r, s);
+  Y = bsxfun (@plus, yf, rs);
 
   % Compute bootstap statistics
   bootout = cell2mat (cellfun (bootfun, num2cell (Y, 1), 'UniformOutput', false));

@@ -210,7 +210,7 @@ function [stats, bootstat] = bootbayes (Y, X, dep, nboot, prob, prior, seed, L)
   else
     N = n;
     IC = [];
-    method = "";
+    method = '';
   end
   if (N < 2)
     error ('bootbayes: Y must contain more than one independent sampling unit');
@@ -305,7 +305,7 @@ function [stats, bootstat] = bootbayes (Y, X, dep, nboot, prob, prior, seed, L)
     if (ISOCTAVE)
       randg ('seed', seed);
     else
-      rng (seed);
+      rng (seed, 'twister');
     end
   end
 
@@ -336,7 +336,7 @@ function [stats, bootstat] = bootbayes (Y, X, dep, nboot, prob, prior, seed, L)
     bootstat = cell2mat (cellfun (bootfun, num2cell (Y, 1)', 'UniformOutput', false));
   else
     bootfun = @(w) lmfit (X, Y, diag (w), L);
-    original = bootfun (n^-1 * ones (n, 1));
+    original = bootfun (ones (n, 1) / n);
     bootstat = cell2mat (cellfun (bootfun, num2cell (W, 1), 'UniformOutput', false));
   end
 

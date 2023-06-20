@@ -32,7 +32,7 @@ try
                         'precompiled_binaries/matlab/mac/maci64/',... 
                         'precompiled_binaries/matlab/linux/glnxa64/'};
       end
-      if ~all(cellfun(@isempty,arch_idx))
+      if ( ~ all (cellfun (@isempty,arch_idx)))
         retval = '0';
         while ~ismember (retval,{'1','2'})
           retval = input (sprintf(['Potentially compatible precompiled mex files found. ', ...
@@ -42,18 +42,18 @@ try
                                    'Answer (1 or 2): ']), 's');
         end
         if strcmpi(retval,'1')
-          copyfile (sprintf(repmat('%s',1,3), binary_paths{~cellfun(@isempty,arch_idx)}, 'boot.', mexext),...
-                    sprintf(repmat('%s',1,6), '.', filesep, 'inst', filesep, 'boot.', mexext), 'f');
-          copyfile (sprintf(repmat('%s',1,3), binary_paths{~cellfun(@isempty,arch_idx)}, 'smoothmedian.', mexext),... 
-                    sprintf(repmat('%s',1,8), '.', filesep, 'inst', filesep, 'param', filesep, 'smoothmedian.', mexext), 'f');
+          copyfile (sprintf (repmat ('%s',1,3), binary_paths{~cellfun (@isempty, arch_idx)}, 'boot.', mexext),...
+                    sprintf (repmat ('%s',1,6), '.', filesep, 'inst', filesep, 'boot.', mexext), 'f');
+          copyfile (sprintf (repmat ('%s',1,3), binary_paths{~cellfun (@isempty, arch_idx)}, 'smoothmedian.', mexext),... 
+                    sprintf (repmat ('%s',1,8), '.', filesep, 'inst', filesep, 'param', filesep, 'smoothmedian.', mexext), 'f');
         else
           error ('Break from try-catch statement')
         end
+        binary = false;
       else
         disp('No precompiled binaries are available for this architecture.');
         binary = false;
       end
-      binary = true;
   case 'B'
       binary = false;
   end
@@ -65,9 +65,9 @@ dirname = fileparts (mfilename ('fullpath'));
 
 % Attemt to compile binaries from source code automatically if no suitable binaries can be found
 if binary
-  fprintf('The following suitable binaries were detected and copied over to the inst directory: \n');
-  fprintf('%s%s%s%s%s\n', '.', filesep, binary_paths{~cellfun(@isempty,arch_idx)}, 'boot.', mexext);
-  fprintf('%s%s%s%s%s\n', '.', filesep, binary_paths{~cellfun(@isempty,arch_idx)}, 'smoothmedian.', mexext);
+  fprintf('The following suitable binaries were detected and copied over to the inst directory: ');
+  fprintf('\n%s%s%s%s%s', '.', filesep, binary_paths{~cellfun(@isempty,arch_idx)}, 'boot.', mexext);
+  fprintf('\n%s%s%s%s%s', '.', filesep, binary_paths{~cellfun(@isempty,arch_idx)}, 'smoothmedian.', mexext);
 else
   disp('Attempting to compile the source code...');
   if isoctave
@@ -123,9 +123,9 @@ else
   end
 end
 if errflag
-  fprintf('make completed with errors. Please review the details in the errors in the above output. \n')
+  fprintf('\nmake completed with errors. Please review the details in the errors in the above output. \n')
 else
-  fprintf('''make'' completed successfully. Please now run the ''install'' command. \n')
+  fprintf('\n''make'' completed. Please now run the ''install'' command. \n')
 end
 
 
