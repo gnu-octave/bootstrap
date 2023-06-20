@@ -499,10 +499,14 @@ end
 %!
 %! ## Compute test statistics and p-values
 %! stats = bootwild(heights-H0);
-%! stats = bootwild(heights-H0,[],[]);
+%! stats = bootwild(heights-H0,ones(10,1));
+%! stats = bootwild(heights-H0,[],2);
+%! stats = bootwild(heights-H0,[],[1;1;1;1;1;2;2;2;2;2]);
 %! stats = bootwild(heights-H0,[],[],2000);
-%! stats = bootwild(heights-H0,[],[],2000,1);
-%! stats = bootwild(heights-H0,[],[],[],[]);
+%! stats = bootwild(heights-H0,[],[],[],0.05);
+%! stats = bootwild(heights-H0,[],[],[],[0.025,0.975]);
+%! stats = bootwild(heights-H0,[],[],[],[],1);
+%! stats = bootwild(heights-H0,[],[],[],[],[]);
 %! [stats,bootstat] = bootwild(heights);
 
 %!test
@@ -521,7 +525,10 @@ end
 %!
 %! ## Compute test statistics and p-values
 %! stats = bootwild(y,X);
+%! stats = bootwild(y,X,4);
 %! stats = bootwild(y,X,[],2000);
-%! stats = bootwild(y,X,[],2000,1);
-%! stats = bootwild(y,X,[],[],[]);
+%! stats = bootwild(y,X,[],[],0.05);
+%! stats = bootwild(y,X,[],[],[0.025,0.975]);
+%! stats = bootwild(y,X,[],[],[],1);
+%! stats = bootwild(y,X,[],[],[],[]);
 %! [stats,bootstat] = bootwild(y,X);

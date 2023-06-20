@@ -93,10 +93,10 @@
 %     regression coefficients by the hypothesis matrix L. If L is not provided
 %     or is empty, it will assume the default value of 1 (i.e. no change to
 %     the design). Otherwise, L must have the same number of rows as the number
-%     of columns in X. If L has only one column (i.e. to compute only one
-%     estimate) and PRIOR is not specified or is empty, 'bootbayes' will attempt
-%     to set the PRIOR automatically (to effectively incorporate Bessel's
-%     correction) or will set PRIOR to 1..
+%     of columns in X. If L has only one column coded to compute an estimated
+%     marginal mean and if PRIOR is not specified or is empty, 'bootbayes' will
+%     set the PRIOR automatically to effectively incorporate Bessel's
+%     correction. Otherwise, PRIOR will be set to 1.
 %
 %     'STATS = bootbayes (...) returns a structure with the following fields:
 %     original, bias, median, stdev, CI_lower, CI_upper and prior.
@@ -163,8 +163,8 @@ function [stats, bootstat] = bootbayes (Y, X, dep, nboot, prob, prior, seed, L)
   end
 
   % Calculate the number of parameters
-  p = size (X, 2);
-  if ((p == 1) && (all (X == 1)) )
+  k = size (X, 2);
+  if ((k == 1) && (all (X == 1)) )
     intercept_only = true;
     p = sz(2);
     L = 1;
@@ -177,9 +177,13 @@ function [stats, bootstat] = bootbayes (Y, X, dep, nboot, prob, prior, seed, L)
     if ( (nargin < 8) || isempty (L) )
       % If L is not provided, set L to 1
       L = 1;
+      p = k;
     else
       % Calculate number of parameters
-      p = size (L, 2);
+      [m, p] = size (L);
+      if (m ~= k)
+        error ('bootbayes: the number rows in L must be the same as the number of columns in X')
+      end
     end
   end
 
@@ -256,21 +260,20 @@ function [stats, bootstat] = bootbayes (Y, X, dep, nboot, prob, prior, seed, L)
     if (intercept_only)
       prior = 'auto';
     else
-      if ( ~isempty (L) && (all (size (L) == [size(X, 2), 1])) )
+      if ( ~isempty (L) && (all (size (L) == [k, 1])) )
         prior = 'auto';
       else
         prior = 1; % Bayes flat/uniform prior
       end
     end
   end
-
   if (~ isa (prior, 'numeric'))
     if (strcmpi (prior, 'auto'))
       % Automatic prior selection to produce a posterior whose variance is an
       % unbiased estimator of the sampling variance
       if (intercept_only)
         prior = 1 - 2 / N;
-      elseif ( (~ isempty (L)) && (all (size (L) == [size(X, 2), 1])) )
+      elseif ( (~ isempty (L)) && (all (size (L) == [k, 1])) )
         prior = 'auto';
         idx = find (L);
         if (numel (idx) > 1)
@@ -281,7 +284,6 @@ function [stats, bootstat] = bootbayes (Y, X, dep, nboot, prob, prior, seed, L)
           end
           prior = 1 - 2 / NL;
         else
-          warning ('bootbayes: PRIOR ''auto'' not available for this hypothesis. PRIOR set to 1.');
           prior = 1;
         end
       else
@@ -492,10 +494,12 @@ end
 %!
 %! ## 95% credible interval for the mean 
 %! stats = bootbayes(heights);
-%! stats = bootbayes(heights,[],[]);
+%! stats = bootbayes(heights,ones(10,1));
+%! stats = bootbayes(heights,[],2);
+%! stats = bootbayes(heights,[],[1;1;1;1;1;2;2;2;2;2]);
 %! stats = bootbayes(heights,[],[],2000);
-%! stats = bootbayes(heights,[],[],2000,0.05);
-%! stats = bootbayes(heights,[],[],2000,[0.025,0.975]);
+%! stats = bootbayes(heights,[],[],[],0.05);
+%! stats = bootbayes(heights,[],[],[],[0.025,0.975]);
 %! stats = bootbayes(heights,[],[],[],[]);
 %! stats = bootbayes(heights,[],[],[],[],[],[]);
 %! [stats,bootstat] = bootbayes(heights);
@@ -516,8 +520,9 @@ end
 %!
 %! ## 95% credible interval for the mean 
 %! stats = bootbayes(y,X);
+%! stats = bootbayes(y,X,4);
 %! stats = bootbayes(y,X,[],2000);
-%! stats = bootbayes(y,X,[],2000,0.05);
-%! stats = bootbayes(y,X,[],2000,[0.025,0.975]);
+%! stats = bootbayes(y,X,[],[],0.05);
+%! stats = bootbayes(y,X,[],[],[0.025,0.975]);
 %! stats = bootbayes(y,X,[],[]);
 %! [stats,bootstat] = bootbayes(y,X);

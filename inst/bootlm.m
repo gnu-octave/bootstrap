@@ -120,8 +120,9 @@
 %                    first level of the predictor (or combination of the
 %                    predictors) listed in the GROUP argument. The columns of
 %                    this contrast coding scheme sum to zero. This type of
-%                    contrast is ideal for nominal predictor variables modelled
-%                    together with a covariate or blocking factor.
+%                    contrast is ideal for nominal predictor variables that
+%                    have an obvious reference or control group and that are
+%                    modelled together with a covariate or blocking factor.
 %
 %                  • 'poly': Polynomial contrast coding for trend analysis.
 %                    The intercept represents the grand mean. The remaining
@@ -179,8 +180,8 @@
 %                    first level of the predictor (or combination of the
 %                    predictors) listed in the GROUP argument. This type of
 %                    contrast is ideal for one-way designs or factorial designs
-%                    (including interactions) of nominal predictor variables
-%                    that have an obvious reference or control group.
+%                    of nominal predictor variables that have an obvious
+%                    reference or control group.
 %
 %             • A matrix containing a custom contrast coding scheme (i.e.
 %               the generalized inverse of contrast weights). Rows in
