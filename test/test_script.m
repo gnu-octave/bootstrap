@@ -1,19 +1,5 @@
 % Package error checking
 
-info = ver; 
-ISOCTAVE = any (ismember ({info.Name}, 'Octave'));
-
-% Turn off some warnings to keep tests tidy
-warning ('off', 'bootknife:parallel')
-%if ISOCTAVE
-%  warning ('off', 'Octave:divide-by-zero')
-%  warning ('off', 'Octave:nearly-singular-matrix')
-%  warning ('off', 'Octave:broadcast')
-%else
-%  warning ('off', 'MATLAB:rankDeficientMatrix')
-%  warning ('off', 'MATLAB:divideByZero')
-%end
-
 try 
   % boot
   boot (3, 20);
@@ -167,35 +153,78 @@ try
   Y = randn (20, 2); g = [zeros(10, 1); ones(10, 1)];
   func = @(M) cor (M(:,1), M(:,2));
   p = bootnhst (Y, g, 'bootfun', func, 'DisplayOpt', false);
-  % bootnhst:test:5
-  y = randn (20, 1); x = randn (20, 1); X = [ones(20, 1), x];
-  g = [zeros(10, 1); ones(10, 1)];
-  func = @(M) subsref (M(:,2:end) \ M(:,1), struct ('type', '()', 'subs', {{2}}));
-  p = bootnhst ([y, X], g, 'bootfun', func, 'DisplayOpt', false);
+
+  % bootwild
+  % bootwild:test:1
+  H0 = 150;
+  heights = [183, 192, 182, 183, 177, 185, 188, 188, 182, 185].';
+  stats = bootwild(heights-H0);
+  stats = bootwild(heights-H0,ones(10,1));
+  stats = bootwild(heights-H0,[],2);
+  stats = bootwild(heights-H0,[],[1;1;1;1;1;2;2;2;2;2]);
+  stats = bootwild(heights-H0,[],[],2000);
+  stats = bootwild(heights-H0,[],[],[],0.05);
+  stats = bootwild(heights-H0,[],[],[],[0.025,0.975]);
+  stats = bootwild(heights-H0,[],[],[],[],1);
+  stats = bootwild(heights-H0,[],[],[],[],[]);
+  [stats,bootstat] = bootwild(heights);
+  % bootwild:test:2
+  X = [ones(43,1),...
+      [01,02,03,04,05,06,07,08,09,10,11,...
+       12,13,14,15,16,17,18,19,20,21,22,...
+       23,25,26,27,28,29,30,31,32,33,34,...
+       35,36,37,38,39,40,41,42,43,44]'];
+  y = [188.0,170.0,189.0,163.0,183.0,171.0,185.0,168.0,173.0,183.0,173.0,...
+      173.0,175.0,178.0,183.0,192.4,178.0,173.0,174.0,183.0,188.0,180.0,...
+      168.0,170.0,178.0,182.0,180.0,183.0,178.0,182.0,188.0,175.0,179.0,...
+      183.0,192.0,182.0,183.0,177.0,185.0,188.0,188.0,182.0,185.0]';
+  stats = bootwild(y,X);
+  stats = bootwild(y,X,4);
+  stats = bootwild(y,X,[],2000);
+  stats = bootwild(y,X,[],[],0.05);
+  stats = bootwild(y,X,[],[],[0.025,0.975]);
+  stats = bootwild(y,X,[],[],[],1);
+  stats = bootwild(y,X,[],[],[],[]);
+  [stats,bootstat] = bootwild(y,X);
+    
+  % bootbayes
+  % bootbayes:test:1
+  heights = [183, 192, 182, 183, 177, 185, 188, 188, 182, 185].';
+  stats = bootbayes(heights);
+  stats = bootbayes(repmat(heights,1,5));
+  stats = bootbayes(heights,ones(10,1));
+  stats = bootbayes(heights,[],2);
+  stats = bootbayes(heights,[],[1;1;1;1;1;2;2;2;2;2]);
+  stats = bootbayes(heights,[],[],2000);
+  stats = bootbayes(heights,[],[],[],0.05);
+  stats = bootbayes(heights,[],[],[],[0.025,0.975]);
+  stats = bootbayes(heights,[],[],[],[]);
+  stats = bootbayes(heights,[],[],[],[],[],[]);
+  [stats,bootstat] = bootbayes(heights);
+  % bootbayes:test:2
+  X = [ones(43,1),...
+      [01,02,03,04,05,06,07,08,09,10,11,...
+       12,13,14,15,16,17,18,19,20,21,22,...
+       23,25,26,27,28,29,30,31,32,33,34,...
+       35,36,37,38,39,40,41,42,43,44]'];
+  y = [188.0,170.0,189.0,163.0,183.0,171.0,185.0,168.0,173.0,183.0,173.0,...
+      173.0,175.0,178.0,183.0,192.4,178.0,173.0,174.0,183.0,188.0,180.0,...
+      168.0,170.0,178.0,182.0,180.0,183.0,178.0,182.0,188.0,175.0,179.0,...
+      183.0,192.0,182.0,183.0,177.0,185.0,188.0,188.0,182.0,185.0]';
+  stats = bootbayes(y,X);
+  stats = bootbayes(y,X,4);
+  stats = bootbayes(y,X,[],2000);
+  stats = bootbayes(y,X,[],[],0.05);
+  stats = bootbayes(y,X,[],[],[0.025,0.975]);
+  stats = bootbayes(y,X,[],[]);
+  [stats,bootstat] = bootbayes(y,X);
+  
+  fprintf('Tests completed successfully.\n')
 
 catch exception
 
-  % Turn warnings back on 
-  warning ('on', 'bootknife:parallel')
-  %if ISOCTAVE
-  %  warning ('on', 'Octave:divide-by-zero')
-  %  warning ('on', 'Octave:nearly-singular-matrix')
-  %else
-  %  warning ('on', 'MATLAB:rankDeficientMatrix')
-  %  warning ('on', 'MATLAB:divideByZero')
-  %end
-  %rethrow (exception)
+  rethrow (exception)
 
+  fprintf('\nTests completed unsuccessfully.\n')
 
 end
-
-% Turn warnings back on 
-warning ('on', 'bootknife:parallel');
-%if ISOCTAVE
-%  warning ('on', 'Octave:divide-by-zero')
-%  warning ('on', 'Octave:nearly-singular-matrix')
-%  warning ('on', 'Octave:broadcast')
-%else
-%  warning ('on', 'MATLAB:rankDeficientMatrix')
-%  warning ('on', 'MATLAB:divideByZero')
-%end
