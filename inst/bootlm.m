@@ -10,7 +10,6 @@
 %          - coeff: the value of the regression coefficient(s)
 %          - CI_lower: lower bound(s) of the 95% confidence interval (CI)
 %          - CI_upper: upper bound(s) of the 95% confidence interval (CI)
-%          - t-stat: Student's t-statistic (based on HC0 standard errors)
 %          - p-val: two-tailed p-value(s) for the parameter(s) being equal to 0
 %        Confidence intervals and Null Hypothesis Significance Tests (NHSTs) for
 %     the regression coefficients (H0 = 0) are calculated by wild bootstrap-t.
@@ -807,6 +806,9 @@ function [X, levels, nlevels, df, termcols, coeffnames, vmeans, gid, CONTRASTS, 
       end
     end
   end
+
+  % Remove any empty cells
+  X = X(~ cellfun ('isempty', X));
 
 end
 
