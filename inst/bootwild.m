@@ -227,7 +227,7 @@ function [stats, bootstat] = bootwild (y, X, dep, nboot, alpha, seed, L)
     L = 1;
   else
     % Calculate number of parameters
-    p = size (L, 1);
+    p = size (L, 2);
   end
 
   % Create least squares anonymous function for bootstrap
@@ -334,8 +334,8 @@ function S = lmfit (X, y, clusters, L)
   vcov = invG * meat * invG;
 
   % Prepare output
-  S.b = L * b;
-  S.se = sqrt (diag (L * vcov * L'));
+  S.b = L' * b;
+  S.se = sqrt (diag (L' * vcov * L));
 
 end
 

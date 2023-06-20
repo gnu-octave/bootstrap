@@ -229,7 +229,7 @@
 %     'bootlm' can return up to one output arguments:
 %
 %     'STATS = bootlm (...)' returns a structure with the following fields:
-%     original, bias, median, CI_lower, CI_upper, tstat, pval, fpr and name,
+%     original, bias, median, CI_lower, CI_upper, tstat, pval, fpr and name.
 %
 %     'STATS = bootlm (..., 'dim', DIM)' returns a structure with the following
 %     fields: original, bias, median, CI_lower, CI_upper, n and name.
@@ -544,7 +544,7 @@ function [STATS, X, L] = bootlm (Y, GROUP, varargin)
         end
       end
       H = cell2mat (H);
-      L = unique (H, 'rows', 'stable');
+      L = unique (H, 'rows', 'stable').';
     end
 
     % Fit linear models, and calculate sums-of-squares
@@ -577,8 +577,8 @@ function [STATS, X, L] = bootlm (Y, GROUP, varargin)
       STATS = bootwild (Y, X, DEP, NBOOT, ALPHA, SEED, L);
 
       % Create names for estimated marginal means
-      idx = cellfun (@(l) find (all (H == l, 2), 1), num2cell (L, 2));
-      Ne = size (L, 1);
+      idx = cellfun (@(l) find (all (H == l, 2), 1), num2cell (L', 2));
+      Ne = size (L, 2);
       Np = numel (DIM);
       NAMES = cell (Ne, 1);
       for i = 1 : Ne
