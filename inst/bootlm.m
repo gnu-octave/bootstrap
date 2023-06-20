@@ -1147,3 +1147,6 @@ end
 %!
 %! STATS = bootlm (dv, g, 'contrasts', C, 'varnames', 'score', ...
 %!                          'alpha', 0.05, 'display', 'on');
+%!
+%! STATS = bootlm (dv, g, 'contrasts', C, 'varnames', 'score', ...
+%!                          'alpha', 0.05, 'display', 'on', 'dim', 1);
