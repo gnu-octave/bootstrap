@@ -229,10 +229,10 @@
 %     'bootlm' can return up to one output arguments:
 %
 %     'STATS = bootlm (...)' returns a structure with the following fields:
-%     original, bias, median, CI_lower, CI_upper, tstat, pval, fpr and name.
+%     original, std_err, CI_lower, CI_upper, tstat, pval, fpr & name.
 %
 %     'STATS = bootlm (..., 'dim', DIM)' returns a structure with the following
-%     fields: original, bias, median, CI_lower, CI_upper, n and name.
+%     fields: original, std_err, CI_lower, CI_upper, tstat, pval, fpr, name & n.
 %
 %     '[STATS, X] = bootlm (...)' also returns the design matrix for the linear 
 %     model.
