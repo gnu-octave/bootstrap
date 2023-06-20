@@ -413,11 +413,18 @@ function [STATS, X, L] = bootlm (Y, GROUP, varargin)
       end
       for i = 1:N
         if (~ isempty (CONTRASTS{i}))
-          msg = strcat('Note that the CONTRASTS do not sum to zero');
           if (isnumeric(CONTRASTS{i}))
             % Check that the columns sum to 0
             if (any (abs (sum (CONTRASTS{i})) > eps ('single')))
-              warning (msg);
+              warning (sprintf ( ...
+              'Note that the CONTRASTS for predictor %u do not sum to zero', i));
+            end
+            % Check whether contrasts are orthogonal
+            if any (abs (reshape (corr (CONTRASTS{i}) - ...
+                                          eye (size (CONTRASTS{i}, 2)), [], 1))...
+                                        > eps ('single'))
+              warning (sprintf ( ...
+              'Note that the CONTRASTS for predictor %u are not orthogonal', i));
             end
           else
             if (~ ismember (lower (CONTRASTS{i}), ...
