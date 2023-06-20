@@ -99,7 +99,7 @@
 %     correction. Otherwise, PRIOR will be set to 1.
 %
 %     'STATS = bootbayes (...) returns a structure with the following fields:
-%     original, bias, median, stdev, CI_lower, CI_upper and prior.
+%     original, bias, median, stdev, CI_lower, CI_upper & prior.
 %
 %     '[STATS, BOOTSTAT] = bootbayes (...)  also returns the a vector (or
 %     matrix) of bootstrap statistics (BOOTSTAT) calculated over the bootstrap
