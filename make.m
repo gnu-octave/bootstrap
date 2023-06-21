@@ -41,15 +41,16 @@ try
                                    ' 2) Compile new mex files from source.\n', ...
                                    'Answer (1 or 2): ']), 's');
         end
-        if strcmpi(retval,'1')
+        if (strcmpi (retval,'1'))
           copyfile (sprintf (repmat ('%s',1,3), binary_paths{~cellfun (@isempty, arch_idx)}, 'boot.', mexext),...
                     sprintf (repmat ('%s',1,6), '.', filesep, 'inst', filesep, 'boot.', mexext), 'f');
           copyfile (sprintf (repmat ('%s',1,3), binary_paths{~cellfun (@isempty, arch_idx)}, 'smoothmedian.', mexext),... 
                     sprintf (repmat ('%s',1,8), '.', filesep, 'inst', filesep, 'param', filesep, 'smoothmedian.', mexext), 'f');
+          binary = true;
         else
+          binary = false;
           error ('Break from try-catch statement')
         end
-        binary = false;
       else
         disp('No precompiled binaries are available for this architecture.');
         binary = false;
