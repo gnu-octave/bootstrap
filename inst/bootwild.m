@@ -5,6 +5,7 @@
 % -- Function File: bootwild (y, X, ..., NBOOT)
 % -- Function File: bootwild (y, X, ..., NBOOT, ALPHA)
 % -- Function File: bootwild (y, X, ..., NBOOT, ALPHA, SEED)
+% -- Function File: bootwild (y, X, ..., NBOOT, ALPHA, SEED, L)
 % -- Function File: STATS = bootwild (y, ...)
 % -- Function File: [STATS, BOOTSTAT] = bootwild (y, ...)
 %
@@ -69,6 +70,10 @@
 %     'bootwild (y, X, ..., NBOOT, ALPHA, SEED)' initialises the Mersenne
 %     Twister random number generator using an integer SEED value so that
 %     'bootwild' results are reproducible.
+%
+%     'bootwild (y, X, ..., NBOOT, ALPHA, SEED, L)' multiplies the regression
+%     coefficients by the hypothesis matrix L. If L is not provided or is empty,
+%     it will assume the default value of 1 (i.e. no change to the design). 
 %
 %     'STATS = bootwild (...) returns a structure with the following fields:
 %     original, std_err, CI_lower, CI_upper, tstat, pval & fpr. 
@@ -507,6 +512,8 @@ end
 %! stats = bootwild(heights-H0,[],[],[],[0.025,0.975]);
 %! stats = bootwild(heights-H0,[],[],[],[],1);
 %! stats = bootwild(heights-H0,[],[],[],[],[]);
+%! stats = bootwild(heights-H0,[],[],[],[],[],1);
+%! stats = bootwild(heights-H0,[],[],[],[],[],[]);
 %! [stats,bootstat] = bootwild(heights);
 
 %!test
@@ -531,4 +538,6 @@ end
 %! stats = bootwild(y,X,[],[],[0.025,0.975]);
 %! stats = bootwild(y,X,[],[],[],1);
 %! stats = bootwild(y,X,[],[],[],[]);
+%! stats = bootwild(y,X,[],[],[],[],1);
+%! stats = bootwild(y,X,[],[],[],[],[]);
 %! [stats,bootstat] = bootwild(y,X);

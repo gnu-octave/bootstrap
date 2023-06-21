@@ -13,6 +13,7 @@
 %          - p-val: two-tailed p-value(s) for the parameter(s) being equal to 0
 %        Confidence intervals and Null Hypothesis Significance Tests (NHSTs) for
 %     the regression coefficients (H0 = 0) are calculated by wild bootstrap-t.
+%     Note that the p-values are NOT adjusted for multiple comparisons.
 %        Usage of this function is very similar to that of 'anovan'. Data (Y)
 %     is a single vector y with groups specified by a corresponding matrix or
 %     cell array of group labels GROUP, where each column of GROUP has the same

@@ -197,16 +197,18 @@ try
   % bootwild:test:1
   H0 = 150;
   heights = [183, 192, 182, 183, 177, 185, 188, 188, 182, 185].';
-  stats = bootwild (heights-H0);
-  stats = bootwild (heights-H0, ones(10,1));
-  stats = bootwild (heights-H0, [], 2);
-  stats = bootwild (heights-H0, [], [1;1;1;1;1;2;2;2;2;2]);
-  stats = bootwild (heights-H0, [], [], 2000);
-  stats = bootwild (heights-H0, [], [], [], 0.05);
-  stats = bootwild (heights-H0, [], [], [], [0.025, 0.975]);
-  stats = bootwild (heights-H0, [], [], [], [], 1);
-  stats = bootwild (heights-H0, [], [], [], [], []);
-  [stats,bootstat] = bootwild(heights-H0);
+  stats = bootwild (heights - H0);
+  stats = bootwild (heights - H0, ones(10,1));
+  stats = bootwild (heights - H0, [], 2);
+  stats = bootwild (heights - H0, [], [1;1;1;1;1;2;2;2;2;2]);
+  stats = bootwild (heights - H0, [], [], 2000);
+  stats = bootwild (heights - H0, [], [], [], 0.05);
+  stats = bootwild (heights - H0, [], [], [], [0.025, 0.975]);
+  stats = bootwild (heights - H0, [], [], [], [], 1);
+  stats = bootwild (heights - H0, [], [], [], [], []);
+  stats = bootwild (heights - H0, [], [], [], [], [], 1);
+  stats = bootwild (heights - H0, [], [], [], [], [], []);
+  [stats,bootstat] = bootwild (heights - H0);
   % bootwild:test:2
   X = [ones(43,1),...
       [01,02,03,04,05,06,07,08,09,10,11,...
@@ -224,6 +226,8 @@ try
   stats = bootwild (y, X, [], [], [0.025, 0.975]);
   stats = bootwild (y, X, [], [], [], 1);
   stats = bootwild (y, X, [], [], [], []);
+  stats = bootwild (y, X, [], [], [], [], 1);
+  stats = bootwild (y, X, [], [], [], [], []);
   [stats, bootstat] = bootwild (y, X);
     
   % bootbayes
