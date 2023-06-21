@@ -1,5 +1,7 @@
-% Package error checking
+% This script checks for operational errors in the functions of this package
+
 lasterror ('reset');
+
 try
 
   % boot
@@ -188,22 +190,22 @@ try
   0.110;0.111;0.111;0.111;0.111;0.112;0.112;0.112;0.112;0.112;0.114;0.114;0.114;0.115;0.115;0.115;
   0.117;0.119;0.119;0.119;0.119;0.120;0.120;0.120;0.121;0.122;0.122;0.123;0.123;0.125;0.125;0.128;
   0.129;0.129;0.129;0.130;0.131];
-  [H, P, CRITVAL] = bootmode(x,1,2000,'Gaussian');
-  [H, P, CRITVAL] = bootmode(x,2,2000,'Gaussian');
+  [H, P, CRITVAL] = bootmode (x, 1, 2000, 'Gaussian');
+  [H, P, CRITVAL] = bootmode (x, 2, 2000, 'Gaussian');
 
   % bootwild
   % bootwild:test:1
   H0 = 150;
   heights = [183, 192, 182, 183, 177, 185, 188, 188, 182, 185].';
-  stats = bootwild(heights-H0);
-  stats = bootwild(heights-H0,ones(10,1));
-  stats = bootwild(heights-H0,[],2);
-  stats = bootwild(heights-H0,[],[1;1;1;1;1;2;2;2;2;2]);
-  stats = bootwild(heights-H0,[],[],2000);
-  stats = bootwild(heights-H0,[],[],[],0.05);
-  stats = bootwild(heights-H0,[],[],[],[0.025,0.975]);
-  stats = bootwild(heights-H0,[],[],[],[],1);
-  stats = bootwild(heights-H0,[],[],[],[],[]);
+  stats = bootwild (heights-H0);
+  stats = bootwild (heights-H0, ones(10,1));
+  stats = bootwild (heights-H0, [], 2);
+  stats = bootwild (heights-H0, [], [1;1;1;1;1;2;2;2;2;2]);
+  stats = bootwild (heights-H0, [], [], 2000);
+  stats = bootwild (heights-H0, [], [], [], 0.05);
+  stats = bootwild (heights-H0, [], [], [], [0.025, 0.975]);
+  stats = bootwild (heights-H0, [], [], [], [], 1);
+  stats = bootwild (heights-H0, [], [], [], [], []);
   [stats,bootstat] = bootwild(heights-H0);
   % bootwild:test:2
   X = [ones(43,1),...
@@ -215,29 +217,29 @@ try
       173.0,175.0,178.0,183.0,192.4,178.0,173.0,174.0,183.0,188.0,180.0,...
       168.0,170.0,178.0,182.0,180.0,183.0,178.0,182.0,188.0,175.0,179.0,...
       183.0,192.0,182.0,183.0,177.0,185.0,188.0,188.0,182.0,185.0]';
-  stats = bootwild(y,X);
-  stats = bootwild(y,X,4);
-  stats = bootwild(y,X,[],2000);
-  stats = bootwild(y,X,[],[],0.05);
-  stats = bootwild(y,X,[],[],[0.025,0.975]);
-  stats = bootwild(y,X,[],[],[],1);
-  stats = bootwild(y,X,[],[],[],[]);
-  [stats,bootstat] = bootwild(y,X);
+  stats = bootwild (y, X);
+  stats = bootwild (y, X, 4);
+  stats = bootwild (y, X, [], 2000);
+  stats = bootwild (y, X, [], [], 0.05);
+  stats = bootwild (y, X, [], [], [0.025, 0.975]);
+  stats = bootwild (y, X, [], [], [], 1);
+  stats = bootwild (y, X, [], [], [], []);
+  [stats, bootstat] = bootwild (y, X);
     
   % bootbayes
   % bootbayes:test:1
   heights = [183, 192, 182, 183, 177, 185, 188, 188, 182, 185].';
-  stats = bootbayes(heights);
-  stats = bootbayes(repmat(heights,1,5));
-  stats = bootbayes(heights,ones(10,1));
-  stats = bootbayes(heights,[],2);
-  stats = bootbayes(heights,[],[1;1;1;1;1;2;2;2;2;2]);
-  stats = bootbayes(heights,[],[],2000);
-  stats = bootbayes(heights,[],[],[],0.05);
-  stats = bootbayes(heights,[],[],[],[0.025,0.975]);
-  stats = bootbayes(heights,[],[],[],[]);
-  stats = bootbayes(heights,[],[],[],[],[],[]);
-  [stats,bootstat] = bootbayes(heights);
+  stats = bootbayes (heights);
+  stats = bootbayes (repmat (heights, 1, 5));
+  stats = bootbayes (heights, ones (10, 1));
+  stats = bootbayes (heights, [], 2);
+  stats = bootbayes (heights, [], [1;1;1;1;1;2;2;2;2;2]);
+  stats = bootbayes (heights, [], [], 2000);
+  stats = bootbayes (heights, [], [], [], 0.05);
+  stats = bootbayes (heights, [], [], [], [0.025, 0.975]);
+  stats = bootbayes (heights, [], [], [], []);
+  stats = bootbayes (heights, [], [], [], [], [], []);
+  [stats,bootstat] = bootbayes (heights);
   % bootbayes:test:2
   X = [ones(43,1),...
       [01,02,03,04,05,06,07,08,09,10,11,...
@@ -248,13 +250,13 @@ try
       173.0,175.0,178.0,183.0,192.4,178.0,173.0,174.0,183.0,188.0,180.0,...
       168.0,170.0,178.0,182.0,180.0,183.0,178.0,182.0,188.0,175.0,179.0,...
       183.0,192.0,182.0,183.0,177.0,185.0,188.0,188.0,182.0,185.0]';
-  stats = bootbayes(y,X);
-  stats = bootbayes(y,X,4);
-  stats = bootbayes(y,X,[],2000);
-  stats = bootbayes(y,X,[],[],0.05);
-  stats = bootbayes(y,X,[],[],[0.025,0.975]);
-  stats = bootbayes(y,X,[],[]);
-  [stats,bootstat] = bootbayes(y,X);
+  stats = bootbayes (y, X);
+  stats = bootbayes (y, X, 4);
+  stats = bootbayes (y, X, [], 2000);
+  stats = bootbayes (y, X, [], [], 0.05);
+  stats = bootbayes (y, X, [], [], [0.025, 0.975]);
+  stats = bootbayes (y, X, [], []);
+  [stats, bootstat] = bootbayes (y, X);
 
   % bootlm
   % bootlm:test:1
