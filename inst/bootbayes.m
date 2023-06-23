@@ -227,7 +227,7 @@ function [stats, bootstat] = bootbayes (Y, X, dep, nboot, prob, prior, seed, L)
       error ('bootbayes: NBOOT must be scalar');
     end
     if (nboot ~= abs (fix (nboot)))
-      error ('bootbayes: NBOOT must be a positive integers');
+      error ('bootbayes: NBOOT must be a positive integer');
     end
   end
 
