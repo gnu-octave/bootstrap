@@ -189,7 +189,7 @@ function [stats, bootstat] = bootwild (y, X, dep, nboot, alpha, seed, L)
       error ('bootwild: NBOOT must be scalar');
     end
     if (nboot ~= abs (fix (nboot)))
-      error ('bootwild: NBOOT must be a positive integers');
+      error ('bootwild: NBOOT must be a positive integer');
     end
   end
 
