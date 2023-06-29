@@ -350,11 +350,10 @@ function [stats, bootstat, bootsam] = bootknife (x, nboot, bootfun, alpha, ...
   % If applicable, check we have parallel computing capabilities
   if (ncpus > 1)
     if (ISOCTAVE)
-      pat = '^parallel';
       software = pkg ('list');
       names = cellfun (@(S) S.name, software, 'UniformOutput', false);
       status = cellfun (@(S) S.loaded, software, 'UniformOutput', false);
-      index = find (~ cellfun (@isempty, regexpi (names,pat)));
+      index = find (~ cellfun (@isempty, regexpi (names, '^parallel')));
       if (~ isempty (index))
         if (logical (status{index}))
           PARALLEL = true;
