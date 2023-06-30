@@ -101,8 +101,9 @@
 %     '[...] = bootlm (Y, GROUP, ..., 'display', DISPOPT)'
 %
 %        • DISPOPT can be either 'on' (or true, default) or 'off' (or false)
-%          and controls the display of the model formula and a table of model
-%          parameters. The p-values are formatted in APA-style.
+%          and controls the display of the model formula, a table of model
+%          parameter estimates and a figure of diagnostic plots. The p-values
+%          are formatted in APA-style.
 %
 %     '[...] = bootlm (Y, GROUP, ..., 'contrasts', CONTRASTS)'
 %
