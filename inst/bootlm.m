@@ -12,7 +12,8 @@
 %          - CI_upper: upper bound(s) of the 95% confidence interval (CI)
 %          - p-val: two-tailed p-value(s) for the parameter(s) being equal to 0
 %        Confidence intervals and Null Hypothesis Significance Tests (NHSTs) for
-%     the regression coefficients (H0 = 0) are calculated by wild bootstrap-t.
+%     the regression coefficients (H0 = 0) are calculated by wild bootstrap-t
+%     and so are robust when normality and homoscedasticity cannot be assumed.
 %     Note that the p-values are NOT adjusted for multiple comparisons.
 %        Usage of this function is very similar to that of 'anovan'. Data (Y)
 %     is a single vector y with groups specified by a corresponding matrix or
@@ -554,9 +555,9 @@ function [STATS, X, L] = bootlm (Y, GROUP, varargin)
       L = unique (H, 'rows', 'stable').';
     end
 
-    % Fit linear models, and calculate sums-of-squares
+    % Fit linear model, and calculate sums-of-squares
     X = cell2mat (X);
-    [b, sse, resid] = lmfit (X, Y);
+    [b, sse, resid, hat, ucov] = lmfit (X, Y);
 
     % Prepare model formula 
     formula = sprintf ('Y ~ 1');  % Initialise model formula
@@ -645,6 +646,51 @@ function [STATS, X, L] = bootlm (Y, GROUP, varargin)
         end
         fprintf('\n');
 
+        % Make figure of diagnostic plots
+        figure("Name", "Diagnostic plots: Standardized Model Residuals");
+        resid = resid;
+        std_resid = (resid - mean (resid)) ./ std (resid, 1);
+        fit = X * b;
+      
+        % Normal probability plot
+        subplot (2, 2, 1);
+        normplot (std_resid);
+        xlabel ("Standardized Residuals");
+      
+        % Checks for homoskedasticity assumption
+        subplot (2, 2, 2);
+        plot (fit, std_resid, "b+");
+        xlabel ("Fitted values");
+        ylabel ("Standardized Residuals");
+        title ("Residuals vs Fitted Values")
+        ax1_xlim = get (gca, 'XLim');
+        hold on; plot (ax1_xlim, zeros (1, 2), "r--"); grid ("on"); hold off;
+      
+        % Checks for outliers and heteroskedasticity
+        subplot (2, 2, 3);
+        plot (fit, sqrt (abs (std_resid)), "b+");
+        xlabel ("Fitted values");
+        ylabel ("sqrt ( |Standardized Residuals| )");
+        title ("Spread-Location Plot")
+        ax2_xlim = get (gca, 'XLim');
+        hold on; 
+        plot (ax2_xlim, ones (1, 2) * sqrt (2), "b--");
+        plot (ax2_xlim, ones (1, 2) * sqrt (3), "m--"); 
+        plot (ax2_xlim, ones (1, 2) * sqrt (4), "r--");
+        hold off;
+      
+        % Check for influential outliers
+        subplot (2, 2, 4);
+        plot (diag (hat), std_resid, "b+");
+        xlabel ("Leverage")
+        ylabel ("Standardized Residuals");
+        title ("Influential values")
+        ax3_xlim = get (gca, 'XLim');
+        ax3_ylim = get (gca, 'YLim');
+        hold on; plot (ax3_xlim, zeros (1, 2), "r--"); grid ("on"); hold off;
+        ylim (ax3_ylim);
+        set (findall ( gcf, '-property', 'FontSize'), 'FontSize', 7)
+
       case {'off', false}
 
         % do nothing
@@ -653,7 +699,7 @@ function [STATS, X, L] = bootlm (Y, GROUP, varargin)
 
         error ('bootlm: wrong value for ''display'' parameter.');
 
-    end
+  end
 
 end
 
@@ -876,17 +922,19 @@ end
 
 % FUNCTION TO FIT THE LINEAR MODEL
 
-function [b, sse, resid, ucov, hat] = lmfit (X, Y)
+function [b, sse, resid, hat, ucov] = lmfit (X, Y)
 
   % Get model coefficients by solving the linear equation by QR decomposition
   % The number of free parameters (i.e. intercept + coefficients) is equal
   % to n - dfe (i.e. the number of columns in X).
-  n = numel (Y);
   [Q, R] = qr (X, 0);
-  b = R \ Q' * Y;
+  b = R \ Q' * Y;            % Instead of pinv (X' * X) * (X' * y);
+
+  % Calculate the Hat matrix (i.e. X*(X'*X)^−1*X')
+  hat = Q * Q';
 
   % Get fitted values
-  fit = Q * R * b;   % This is equivalent to fit = X * b
+  fit = hat * Y;             % Instead of X * b;
 
   % Get residuals from the fit
   resid = Y - fit;
@@ -895,13 +943,8 @@ function [b, sse, resid, ucov, hat] = lmfit (X, Y)
   sse = sum (resid.^2);
 
   % Calculate the unscaled covariance matrix (i.e. inv (X'*X ))
-  if (nargout > 3)
-    ucov = R \ Q' / X';
-  end
-
-  % Calculate the Hat matrix (i.e. X*(X'*X)^−1*X')
   if (nargout > 4)
-    hat = Q * Q';
+    ucov = R \ Q' / X';
   end
 
 end
