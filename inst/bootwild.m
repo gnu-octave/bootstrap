@@ -235,7 +235,7 @@ function [stats, bootstat] = bootwild (y, X, dep, nboot, alpha, seed, L)
   end
 
   % Create least squares anonymous function for bootstrap
-  bootfun = @(y) lmfit (X, y, clusters, L);
+  bootfun = @(y) lmfit (X, y, clusters, L, ISOCTAVE);
 
   % Calculate estimate(s)
   S = bootfun (y);
@@ -304,7 +304,7 @@ end
 
 %% FUNCTION TO FIT THE LINEAR MODEL
 
-function S = lmfit (X, y, clusters, L)
+function S = lmfit (X, y, clusters, L, ISOCTAVE)
 
   % Get model coefficients by solving the linear equation by matrix arithmetic
 
@@ -314,9 +314,9 @@ function S = lmfit (X, y, clusters, L)
   end
 
   % Solve linear equation to minimize least squares and compute the
-  % regression coefficients (b)
-  invG = pinv (X' * X);
-  b = invG * (X' * y);
+  % regression coefficients (b) via Q/R decomposition
+  [Q, R] = qr (X, 0);
+  b = R \ Q' * y;            % Instead of pinv (X' * X) * (X' * y);
 
   % Calculate heteroscedasticity-consistent (HC) or cluster robust (CR) standard 
   % errors (CR) for the regression coefficients. When the number of observations
@@ -325,7 +325,13 @@ function S = lmfit (X, y, clusters, L)
   %   Long and Ervin (2000) Am. Stat, 54(3), 217-224
   %   Cameron, Gelbach and Miller (2008) Rev Econ Stat. 90(3), 414-427
   %   MacKinnon & Webb (2020) QED Working Paper Number 1421
-  yf = X * b;
+  if ISOCTAVE
+    invG = chol2inv (R);     % Instead of pinv (X' * X). Faster
+  else
+    invG = inv (R' * R);     % Instead of pinv (X' * X). Slower
+  end
+  hat = Q * Q';
+  yf = hat * y;              % Instead of X * b;
   u = y - yf;
   if ( (nargin < 3) || isempty (clusters) )
     % Heteroscedasticity-Consistent (HC0) standard errors
