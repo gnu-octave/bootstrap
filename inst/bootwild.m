@@ -308,15 +308,9 @@ function S = lmfit (X, y, clusters, L, ISOCTAVE)
 
   % Get model coefficients by solving the linear equation by matrix arithmetic
 
-  % Create hypothesis matrix L if not provided
-  if ( (nargin < 4) || isempty (L) )
-    L = 1;
-  end
-
   % Solve linear equation to minimize least squares and compute the
-  % regression coefficients (b) via Q/R decomposition
-  [Q, R] = qr (X, 0);
-  b = R \ Q' * y;            % Instead of pinv (X' * X) * (X' * y);
+  % regression coefficients (b) 
+  b = X \ y;                    % Instead of pinv (X' * X) * (X' * y);
 
   % Calculate heteroscedasticity-consistent (HC) or cluster robust (CR) standard 
   % errors (CR) for the regression coefficients. When the number of observations
@@ -325,13 +319,7 @@ function S = lmfit (X, y, clusters, L, ISOCTAVE)
   %   Long and Ervin (2000) Am. Stat, 54(3), 217-224
   %   Cameron, Gelbach and Miller (2008) Rev Econ Stat. 90(3), 414-427
   %   MacKinnon & Webb (2020) QED Working Paper Number 1421
-  if ISOCTAVE
-    invG = chol2inv (R);     % Instead of pinv (X' * X). Faster
-  else
-    invG = inv (R' * R);     % Instead of pinv (X' * X). Slower
-  end
-  hat = Q * Q';
-  yf = hat * y;              % Instead of X * b;
+  yf = X * b;              % Instead of X * b;
   u = y - yf;
   if ( (nargin < 3) || isempty (clusters) )
     % Heteroscedasticity-Consistent (HC0) standard errors
@@ -342,11 +330,21 @@ function S = lmfit (X, y, clusters, L, ISOCTAVE)
                   num2cell (clusters, 1), 'UniformOutput', false);
     meat = sum (cat (3, Sigma{:}), 3);
   end
-  vcov = invG * meat * invG;
+  [Q, R] = qr (X, 0);        % Economy-sized QR decomposition
+  if ISOCTAVE
+    ucov = chol2inv (R);     % Instead of pinv (X' * X). Faster
+  else
+    ucov = inv (R' * R);     % Instead of pinv (X' * X). Slower
+  end
+  vcov = ucov * meat * ucov;
+  if ( (nargin < 4) || isempty (L) )
+    S.b = b;
+    S.se = sqrt (diag (vcov));
+  else
+    S.b = L' * b;
+    S.se = sqrt (diag (L' * vcov * L));
+  end
 
-  % Prepare output
-  S.b = L' * b;
-  S.se = sqrt (diag (L' * vcov * L));
 
 end
 
