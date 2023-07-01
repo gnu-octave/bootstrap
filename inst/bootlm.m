@@ -652,48 +652,71 @@ function [STATS, X, L] = bootlm (Y, GROUP, varargin)
         fprintf('\n');
 
         % Make figure of diagnostic plots
-        figure("Name", "Diagnostic plots: Standardized Model Residuals");
-        resid = resid;
-        std_resid = (resid - mean (resid)) ./ std (resid, 1);
-        fit = X * b;
-      
+        figure('Name', 'Diagnostic Plots: Model Residuals');
+        h = diag (hat);                          % Leverage values
+        mse = sse / dfe;                         % Mean squared error
+        t = resid ./ (sqrt (mse * (1 - h)));     % Studentized residuals
+        p = n - dfe;                             % Number of parameters
+        D = (1 / p) * t.^2 .* (h ./ (1 - h));    % Cook's distances
+        fit = X * b;                             % Fitted values
+        [jnk, DS] = sort (D, 'descend');
+
         % Normal probability plot
         subplot (2, 2, 1);
-        normplot (std_resid);
-        xlabel ("Standardized Residuals");
-      
-        % Checks for homoskedasticity assumption
+        ax1 = normplot (t);
+        set (ax1, 'marker', 'o', 'markersize', 3, 'markeredgecolor','k', 'color', 'k');
+        xlabel ('Studentized Residuals');
+        title ('Normal Probability Plot')
+
+        % Spread-Location Plot
         subplot (2, 2, 2);
-        plot (fit, std_resid, "b+");
-        xlabel ("Fitted values");
-        ylabel ("Standardized Residuals");
-        title ("Residuals vs Fitted Values")
-        ax1_xlim = get (gca, 'XLim');
-        hold on; plot (ax1_xlim, zeros (1, 2), "r--"); grid ("on"); hold off;
-      
-        % Checks for outliers and heteroskedasticity
-        subplot (2, 2, 3);
-        plot (fit, sqrt (abs (std_resid)), "b+");
-        xlabel ("Fitted values");
-        ylabel ("sqrt ( |Standardized Residuals| )");
-        title ("Spread-Location Plot")
+        plot (fit, sqrt (abs (t)), 'ko', 'markersize', 3);
+        box off;
+        xlabel ('Fitted values');
+        ylabel ('sqrt ( | Studentized Residuals | )');
+        title ('Spread-Location Plot')
         ax2_xlim = get (gca, 'XLim');
         hold on; 
-        plot (ax2_xlim, ones (1, 2) * sqrt (2), "b--");
-        plot (ax2_xlim, ones (1, 2) * sqrt (3), "m--"); 
-        plot (ax2_xlim, ones (1, 2) * sqrt (4), "r--");
+        plot (ax2_xlim, ones (1, 2) * sqrt (2), 'k:');
+        plot (ax2_xlim, ones (1, 2) * sqrt (3), 'k-.'); 
+        plot (ax2_xlim, ones (1, 2) * sqrt (4), 'k--');
         hold off;
-      
-        % Check for influential outliers
-        subplot (2, 2, 4);
-        plot (diag (hat), std_resid, "b+");
-        xlabel ("Leverage")
-        ylabel ("Standardized Residuals");
-        title ("Influential values")
+        arrayfun (@(i) text (fit(DS(i)), sqrt (abs (t(DS(i)))), ...
+                             sprintf ('  %u', DS(i))), [1:min(3,n)]);
+        xlim (ax2_xlim); 
+
+        % Residual-Leverage plot
+        subplot (2, 2, 3);
+        plot (h, t, 'ko', 'markersize', 3);
+        box off;
+        xlabel ('Leverage')
+        ylabel ('Standardized Residuals');
+        title ('Residual-Leverage Plot')
         ax3_xlim = get (gca, 'XLim');
         ax3_ylim = get (gca, 'YLim');
-        hold on; plot (ax3_xlim, zeros (1, 2), "r--"); grid ("on"); hold off;
-        ylim (ax3_ylim);
+        hold on; plot (ax3_xlim, zeros (1, 2), 'k-'); hold off;
+        arrayfun (@(i) text (h(DS(i)), t(DS(i)), sprintf ('  %u', DS(i))), [1:min(3,n)]);
+        set (gca, "ygrid", "on");
+        xlim (ax3_xlim); ylim (ax3_ylim);
+
+        % Cook's distance stem plot
+        subplot (2, 2, 4);
+        stem (D, 'ko', 'markersize', 3, 'markerfacecolor', 'w');
+        box off;
+        xlabel ('Obs. number')
+        ylabel ('Cook''s distance')
+        title ('Cook''s Distance Stem Plot')
+        xlim ([0, n]);
+        ax4_xlim = get (gca, 'XLim');
+        ax4_ylim = get (gca, 'YLim');
+        hold on; 
+        plot (ax4_xlim, ones (1, 2) * 4 / dfe, 'k:');
+        plot (ax4_xlim, ones (1, 2) * 0.5, 'k-.');
+        plot (ax4_xlim, ones (1, 2), 'k--');
+        hold off;
+        arrayfun (@(i) text (DS(i), D(DS(i)), sprintf ('  %u', DS(i))), [1:min(3,n)]);
+        xlim (ax4_xlim); ylim (ax4_ylim);
+
         set (findall ( gcf, '-property', 'FontSize'), 'FontSize', 7)
 
       case {'off', false}
