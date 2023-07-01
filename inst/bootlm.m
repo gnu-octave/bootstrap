@@ -267,6 +267,10 @@ function [STATS, X, L] = bootlm (Y, GROUP, varargin)
       error ('bootlm: Too many output arguments')
     end
 
+    % Check if running in Octave (else assume Matlab)
+    info = ver; 
+    ISOCTAVE = any (ismember ({info.Name}, 'Octave'));
+
     % Check supplied parameters
     if ((numel (varargin) / 2) ~= fix (numel (varargin) / 2))
       error ('bootlm: wrong number of arguments.')
@@ -558,7 +562,7 @@ function [STATS, X, L] = bootlm (Y, GROUP, varargin)
 
     % Fit linear model, and calculate sums-of-squares
     X = cell2mat (X);
-    [b, sse, resid, hat, ucov] = lmfit (X, Y);
+    [b, sse, resid, ucov, hat] = lmfit (X, Y, ISOCTAVE);
 
     % Prepare model formula 
     formula = sprintf ('Y ~ 1');  % Initialise model formula
@@ -923,19 +927,15 @@ end
 
 % FUNCTION TO FIT THE LINEAR MODEL
 
-function [b, sse, resid, hat, ucov] = lmfit (X, Y)
+function [b, sse, resid, ucov, hat] = lmfit (X, Y, ISOCTAVE)
 
-  % Get model coefficients by solving the linear equation by QR decomposition
-  % The number of free parameters (i.e. intercept + coefficients) is equal
-  % to n - dfe (i.e. the number of columns in X).
-  [Q, R] = qr (X, 0);
-  b = R \ Q' * Y;            % Instead of pinv (X' * X) * (X' * y);
-
-  % Calculate the Hat matrix (i.e. X*(X'*X)^−1*X')
-  hat = Q * Q';
+  % Get model coefficients by solving the linear equation. The number of free
+  % parameters (i.e. intercept + coefficients) is equal to n - dfe (i.e. the
+  % number of columns in X).
+  b = X \ Y;                 % Equivalent to inv (X' * X) * (X' * y);
 
   % Get fitted values
-  fit = hat * Y;             % Instead of X * b;
+  fit = X * b;
 
   % Get residuals from the fit
   resid = Y - fit;
@@ -943,9 +943,16 @@ function [b, sse, resid, hat, ucov] = lmfit (X, Y)
   % Calculate the residual sums-of-squares
   sse = sum (resid.^2);
 
-  % Calculate the unscaled covariance matrix (i.e. inv (X'*X ))
-  if (nargout > 4)
-    ucov = R \ Q' / X';
+  % Calculate the unscaled covariance matrix (i.e. inv (X'*X )) and the Hat
+  % matrix (i.e. X*(X'*X)^−1*X') by QR decomposition
+  if (nargout > 3)
+    [Q, R] = qr (X, 0);      % Economy-sized QR decomposition
+    if ISOCTAVE
+      ucov = chol2inv (R);
+    else
+      ucov = inv (R' * R);
+    end
+    hat = Q * Q';
   end
 
 end
