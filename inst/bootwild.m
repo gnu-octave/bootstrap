@@ -270,11 +270,13 @@ function [stats, bootstat] = bootwild (y, X, dep, nboot, alpha, seed, L)
       switch nalpha
         case 1
           ci(j,:) = arrayfun (@(s) original(j) + s * std_err(j) * ...
-                              interp1 (cdf, x, 1 - alpha, 'linear'), [-1, +1]);
+                              interp1 (cdf, x, 1 - alpha, 'linear', min (x)), ...
+                              [-1, +1]);
         case 2
          [cdf, x] = empcdf (T(j,:));
           ci(j,:) = arrayfun (@(p) original(j) - std_err(j) *...
-                              interp1 (cdf, x, p, 'linear'), fliplr (alpha));
+                              interp1 (cdf, x, p, 'linear', min (x)), ...
+                              fliplr (alpha));
       end
       pval(j) = interp1 (P(:,1), P(:,2), abs (t(j)), 'linear', 0);
     end
@@ -358,10 +360,10 @@ function [F, x, P] = empcdf (y, qtype)
 
   % Check input argument
   if (~ isa (y, 'numeric'))
-    error ('bootlm:empcdf: y must be numeric');
+    error ('bootwild:empcdf: y must be numeric');
   end
   if (all (size (y) > 1))
-    error ('bootlm:empcdf: y must be a vector');
+    error ('bootwild:empcdf: y must be a vector');
   end
   if (size (y, 2) > 1)
     y = y.';
@@ -395,7 +397,7 @@ function [F, x, P] = empcdf (y, qtype)
     case 8
       F = (k - 1 / 3) / (N + 1 / 3);
     otherwise
-      error ('bootlm:empcdf: unrecognised qtype. Options are 4, 5, 6 , 7 and 8')
+      error ('bootwild:empcdf: unrecognised qtype. Options are 4, 5, 6 , 7 and 8')
   end
 
   if (nargout > 2)
@@ -404,7 +406,7 @@ function [F, x, P] = empcdf (y, qtype)
     [ux, up, ui] = unique (x);
     P = unique (cat (1, [0, 1], ... 
                      [x, 1 - arrayfun(@(i) up(ui(i)) - 1, [1:N]') / N]), ...
-                     'rows','last');
+                     'rows', 'last');
   end
 
 end
