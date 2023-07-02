@@ -547,6 +547,9 @@ function [STATS, X, L] = bootlm (Y, GROUP, varargin)
       mDesignMatrix (GROUP, TERMS, CONTINUOUS, CONTRASTS, VARNAMES, n, Nm, Nx, Ng, cont_vec);
     dft = n - 1;
     dfe = dft - sum (df);
+    if (dfe < 1)
+      error ('bootlm: there are no error degrees of freedom in the specified model')
+    end
 
     % If applicable, create hypothesis matrix, names and compute sample sizes
     if (~ isempty (DIM))
@@ -652,21 +655,39 @@ function [STATS, X, L] = bootlm (Y, GROUP, varargin)
         fprintf('\n');
 
         % Make figure of diagnostic plots
-        figure('Name', 'Diagnostic Plots: Model Residuals');
+        figure ('Name', 'Diagnostic Plots: Model Residuals');
         h = diag (hat);                          % Leverage values
         mse = sse / dfe;                         % Mean squared error
         t = resid ./ (sqrt (mse * (1 - h)));     % Studentized residuals
         p = n - dfe;                             % Number of parameters
-        D = (1 / p) * t.^2 .* (h ./ (1 - h));    % Cook's distances
         fit = X * b;                             % Fitted values
-        [jnk, DS] = sort (D, 'descend');
+        D = (1 / p) * t.^2 .* (h ./ (1 - h));    % Cook's distances
+        [jnk, DI] = sort (D, 'descend');         % Sorted Cook's distances
+        nk = 3;                                  % Number of influential data points to label
 
-        % Normal probability plot
+        % Normal quantile-quantile plot
         subplot (2, 2, 1);
-        ax1 = normplot (t);
-        set (ax1, 'marker', 'o', 'markersize', 3, 'markeredgecolor','k', 'color', 'k');
-        xlabel ('Studentized Residuals');
-        title ('Normal Probability Plot')
+        x = ((1 : n)' - .5) / n;
+        stdnorminv = @(p) sqrt (2) * erfinv (2 * p - 1);
+        q = stdnorminv (x);
+        [F, ts, I] = empcdf (t);
+        plot (q, ts, 'ok', 'markersize', 3);
+        box off;
+        grid on;
+        xlabel ('Theoretical quantiles');
+        ylabel ('Studentized Residuals');
+        title ('Normal Q-Q Plot');
+        iqr = [0.25; 0.75];
+        M = unique ([F, ts],'rows','last');
+        yl = interp1 (M(:,1), M(:,2), iqr, 'linear');  % eq. to qtype 4 in R
+        xl = stdnorminv (iqr);
+        slope = diff (yl) / diff (xl);
+        int = yl(1) - slope * xl(1);
+        ax1_xlim = get (gca, 'XLim');
+        hold on; plot (ax1_xlim, slope * ax1_xlim + int, 'k:'); hold off;
+        set (gca, 'Xlim', ax1_xlim);
+        arrayfun (@(i) text (q(I == DI(i)), t(DI(i)), ...
+                             sprintf ('  %u', DI(i))), [1:min(nk,n)])
 
         % Spread-Location Plot
         subplot (2, 2, 2);
@@ -681,8 +702,8 @@ function [STATS, X, L] = bootlm (Y, GROUP, varargin)
         plot (ax2_xlim, ones (1, 2) * sqrt (3), 'k-.'); 
         plot (ax2_xlim, ones (1, 2) * sqrt (4), 'k--');
         hold off;
-        arrayfun (@(i) text (fit(DS(i)), sqrt (abs (t(DS(i)))), ...
-                             sprintf ('  %u', DS(i))), [1:min(3,n)]);
+        arrayfun (@(i) text (fit(DI(i)), sqrt (abs (t(DI(i)))), ...
+                             sprintf ('  %u', DI(i))), [1:min(nk,n)]);
         xlim (ax2_xlim); 
 
         % Residual-Leverage plot
@@ -690,18 +711,19 @@ function [STATS, X, L] = bootlm (Y, GROUP, varargin)
         plot (h, t, 'ko', 'markersize', 3);
         box off;
         xlabel ('Leverage')
-        ylabel ('Standardized Residuals');
+        ylabel ('Studentized Residuals');
         title ('Residual-Leverage Plot')
         ax3_xlim = get (gca, 'XLim');
         ax3_ylim = get (gca, 'YLim');
         hold on; plot (ax3_xlim, zeros (1, 2), 'k-'); hold off;
-        arrayfun (@(i) text (h(DS(i)), t(DS(i)), sprintf ('  %u', DS(i))), [1:min(3,n)]);
+        arrayfun (@(i) text (h(DI(i)), t(DI(i)), ...
+                             sprintf ('  %u', DI(i))), [1:min(nk,n)]);
         set (gca, "ygrid", "on");
         xlim (ax3_xlim); ylim (ax3_ylim);
 
         % Cook's distance stem plot
         subplot (2, 2, 4);
-        stem (D, 'ko', 'markersize', 3, 'markerfacecolor', 'w');
+        stem (D, 'ko', 'markersize', 3);
         box off;
         xlabel ('Obs. number')
         ylabel ('Cook''s distance')
@@ -714,7 +736,8 @@ function [STATS, X, L] = bootlm (Y, GROUP, varargin)
         plot (ax4_xlim, ones (1, 2) * 0.5, 'k-.');
         plot (ax4_xlim, ones (1, 2), 'k--');
         hold off;
-        arrayfun (@(i) text (DS(i), D(DS(i)), sprintf ('  %u', DS(i))), [1:min(3,n)]);
+        arrayfun (@(i) text (DI(i), D(DI(i)), ...
+                             sprintf ('  %u', DI(i))), [1:min(nk,n)]);
         xlim (ax4_xlim); ylim (ax4_ylim);
 
         set (findall ( gcf, '-property', 'FontSize'), 'FontSize', 7)
@@ -730,6 +753,8 @@ function [STATS, X, L] = bootlm (Y, GROUP, varargin)
   end
 
 end
+
+%--------------------------------------------------------------------------
 
 function [X, levels, nlevels, df, termcols, coeffnames, vmeans, gid, CONTRASTS, center_continuous] = ...
          mDesignMatrix (GROUP, TERMS, CONTINUOUS, CONTRASTS, VARNAMES, n, Nm, Nx, Ng, cont_vec)
@@ -886,6 +911,8 @@ function [X, levels, nlevels, df, termcols, coeffnames, vmeans, gid, CONTRASTS, 
 
 end
 
+%--------------------------------------------------------------------------
+
 % BUILT IN CONTRAST CODING FUNCTIONS
 
 function C = contr_simple (N)
@@ -947,6 +974,7 @@ function C = contr_treatment (N)
 
 end
 
+%--------------------------------------------------------------------------
 
 % FUNCTION TO FIT THE LINEAR MODEL
 
@@ -979,6 +1007,43 @@ function [b, sse, resid, ucov, hat] = lmfit (X, Y, ISOCTAVE)
   end
 
 end
+
+%--------------------------------------------------------------------------
+
+%% FUNCTION TO COMPUTE EMPIRICAL DISTRIBUTION FUNCTION
+
+function [F, x, I] = empcdf (y)
+
+  % Subfunction to calculate empirical cumulative distribution function
+
+  % Check input argument
+  if (~ isa (y, 'numeric'))
+    error ('bootwild:empcdf: y must be numeric');
+  end
+  if (all (size (y) > 1))
+    error ('bootwild:empcdf: y must be a vector');
+  end
+  if (size (y, 2) > 1)
+    y = y.';
+  end
+
+  % Discard NaN values
+  ridx = isnan (y);
+  y(ridx) = [];
+
+  % Get size of y
+  N = numel (y);
+
+  % Create empirical CDF in the presence of ties based on competition ranking:
+  % https://brainder.org/2012/11/28/competition-ranking-and-empirical-distributions/
+  [x, I] = sort (y);
+  [ux, up, ui] = unique (x);
+  max_rank = [up(2:end);N+1] - 1;
+  F = arrayfun (@(i) max_rank(ui(i)), [1:N]') / N;
+
+end
+
+%--------------------------------------------------------------------------
 
 
 %!demo
