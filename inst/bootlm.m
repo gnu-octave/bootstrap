@@ -679,12 +679,12 @@ function [STATS, X, L] = bootlm (Y, GROUP, varargin)
         title ('Normal Q-Q Plot');
         iqr = [0.25; 0.75];
         M = unique ([F, ts],'rows','last');
-        yl = interp1 (M(:,1), M(:,2), iqr, 'linear');  % eq. to qtype 4 in R
+        yl = interp1 (M(:,1), M(:,2), iqr, 'linear');  % eq. to qtype 7 in R
         xl = stdnorminv (iqr);
         slope = diff (yl) / diff (xl);
         int = yl(1) - slope * xl(1);
         ax1_xlim = get (gca, 'XLim');
-        hold on; plot (ax1_xlim, slope * ax1_xlim + int, 'k:'); hold off;
+        hold on; plot (ax1_xlim, slope * ax1_xlim + int, 'k-'); hold off;
         set (gca, 'Xlim', ax1_xlim);
         arrayfun (@(i) text (q(I == DI(i)), t(DI(i)), ...
                              sprintf ('  %u', DI(i))), [1:min(nk,n)])
@@ -1012,19 +1012,22 @@ end
 
 %% FUNCTION TO COMPUTE EMPIRICAL DISTRIBUTION FUNCTION
 
-function [F, x, I] = empcdf (y)
+function [F, x, I] = empcdf (y, qtype)
 
   % Subfunction to calculate empirical cumulative distribution function
 
   % Check input argument
   if (~ isa (y, 'numeric'))
-    error ('bootwild:empcdf: y must be numeric');
+    error ('bootlm:empcdf: y must be numeric');
   end
   if (all (size (y) > 1))
-    error ('bootwild:empcdf: y must be a vector');
+    error ('bootlm:empcdf: y must be a vector');
   end
   if (size (y, 2) > 1)
     y = y.';
+  end
+  if (nargin < 2)
+    qtype = 7;
   end
 
   % Discard NaN values
@@ -1034,12 +1037,26 @@ function [F, x, I] = empcdf (y)
   % Get size of y
   N = numel (y);
 
-  % Create empirical CDF in the presence of ties based on competition ranking:
-  % https://brainder.org/2012/11/28/competition-ranking-and-empirical-distributions/
+  % Create empirical CDF
+  % See also: Hyndman and Fan (1996) Am Stat. 50(4):361-365
   [x, I] = sort (y);
-  [ux, up, ui] = unique (x);
-  max_rank = [up(2:end);N+1] - 1;
-  F = arrayfun (@(i) max_rank(ui(i)), [1:N]') / N;
+  k = [1:N].';
+
+  % Complete calculation of the CDF
+  switch qtype
+    case 4
+      F = k / N;
+    case 5
+      F = (k - 0.5) / N;
+    case 6
+      F = k / (N + 1);
+    case 7
+      F = (k - 1) / (N - 1);
+    case 8
+      F = (k - 1 / 3) / (N + 1 / 3);
+    otherwise
+      error ('bootlm:empcdf: unrecognised qtype. Options are 4, 5, 6 , 7 and 8')
+  end
 
 end
 
