@@ -266,8 +266,8 @@ function [stats, bootstat] = bootwild (y, X, dep, nboot, alpha, seed, L)
   pval = nan (p, 1);
   for j = 1:p
     if ( ~ isnan (std_err(j)) )
-      [cdf, x] = empcdf (abs (T(j,:)));
-      pval(j) = 1 - interp1 (x, cdf, abs (t(j)), 'linear', 1);
+      [cdf, x, P] = empcdf (abs (T(j,:)));
+      pval(j) = interp1 (P(:,1), P(:,2), abs (t(j)), 'linear', 0);
       switch nalpha
         case 1
           ci(j,:) = arrayfun (@(s) original(j) + s * std_err(j) * ...
@@ -352,19 +352,22 @@ end
 
 %% FUNCTION TO COMPUTE EMPIRICAL DISTRIBUTION FUNCTION
 
-function [F, x] = empcdf (y)
+function [F, x, P] = empcdf (y, qtype)
 
   % Subfunction to calculate empirical cumulative distribution function
 
   % Check input argument
   if (~ isa (y, 'numeric'))
-    error ('bootwild:empcdf: y must be numeric');
+    error ('bootlm:empcdf: y must be numeric');
   end
   if (all (size (y) > 1))
-    error ('bootwild:empcdf: y must be a vector');
+    error ('bootlm:empcdf: y must be a vector');
   end
   if (size (y, 2) > 1)
     y = y.';
+  end
+  if (nargin < 2)
+    qtype = 7;
   end
 
   % Discard NaN values
@@ -375,10 +378,35 @@ function [F, x] = empcdf (y)
   N = numel (y);
 
   % Create empirical CDF
-  x = sort (y);
-  [x, F] = unique (x,'rows','last');
-  F = (F - 1) / (N - 1);
+  % See also: Hyndman and Fan (1996) Am Stat. 50(4):361-365
+  [x, I] = sort (y);
+  k = [1:N].';
 
+  % Complete calculation of the CDF
+  switch qtype
+    case 4
+      F = k / N;
+    case 5
+      F = (k - 0.5) / N;
+    case 6
+      F = k / (N + 1);
+    case 7
+      F = (k - 1) / (N - 1);
+    case 8
+      F = (k - 1 / 3) / (N + 1 / 3);
+    otherwise
+      error ('bootlm:empcdf: unrecognised qtype. Options are 4, 5, 6 , 7 and 8')
+  end
+
+  if (nargout > 2)
+    % Create p-value distribution based on competition ranking
+    % https://brainder.org/2012/11/28/competition-ranking-and-empirical-distributions/
+    [ux, up, ui] = unique (x);
+    P = cat (1, [0, 1], ...
+          unique (cat (2, x, 1 - arrayfun (@(i) up(ui(i)) - 1, [1:N]') / N), ...
+                'rows','last'));
+  end
+P
 end
 
 %--------------------------------------------------------------------------
@@ -442,7 +470,7 @@ function print_output (stats, nboot, alpha, p, method)
     end
     fprintf (' Null value (H0) used for hypothesis testing (p-values): 0 \n')
     fprintf ('\nTest Statistics: \n');
-    fprintf (' original     std_err      CI_lower     CI_upper     t-stat      p-val    FPR\n');
+    fprintf (' original     std_err      CI_lower     CI_upper     t-stat      p-val     FPR\n');
     for j = 1:p
       fprintf (' %#-+10.4g   %#-+10.4g   %#-+10.4g   %#-+10.4g   %#-+9.3g', ...
                [stats.original(j), stats.std_err(j), stats.CI_lower(j), stats.CI_upper(j), stats.tstat(j)])
@@ -453,7 +481,7 @@ function print_output (stats, nboot, alpha, p, method)
       elseif (isnan (stats.pval(j)))
         fprintf ('     NaN');
       else
-        fprintf ('    1.000');
+        fprintf ('   1.000');
       end
       if (stats.fpr(j) <= 0.001)
         fprintf ('   <.001\n');
@@ -462,7 +490,7 @@ function print_output (stats, nboot, alpha, p, method)
       elseif (isnan (stats.fpr(j)))
         fprintf ('     NaN\n');
       else
-        fprintf ('    1.000\n');
+        fprintf ('   1.000\n');
       end
     end
     fprintf ('\n');
