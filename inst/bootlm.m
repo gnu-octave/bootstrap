@@ -679,7 +679,7 @@ function [STATS, X, L] = bootlm (Y, GROUP, varargin)
         title ('Normal Q-Q Plot');
         iqr = [0.25; 0.75];
         M = unique ([F, ts],'rows','last');
-        yl = interp1 (M(:,1), M(:,2), iqr, 'linear');  % eq. to qtype 7 in R
+        yl = interp1 (M(:,1), M(:,2), iqr, 'linear', min (ts));
         xl = stdnorminv (iqr);
         slope = diff (yl) / diff (xl);
         int = yl(1) - slope * xl(1);
@@ -1027,7 +1027,7 @@ function [F, x, I] = empcdf (y, qtype)
     y = y.';
   end
   if (nargin < 2)
-    qtype = 7;
+    qtype = 4;
   end
 
   % Discard NaN values
