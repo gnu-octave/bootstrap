@@ -267,7 +267,6 @@ function [stats, bootstat] = bootwild (y, X, dep, nboot, alpha, seed, L)
   for j = 1:p
     if ( ~ isnan (std_err(j)) )
       [cdf, x, P] = empcdf (abs (T(j,:)));
-      pval(j) = interp1 (P(:,1), P(:,2), abs (t(j)), 'linear', 0);
       switch nalpha
         case 1
           ci(j,:) = arrayfun (@(s) original(j) + s * std_err(j) * ...
@@ -277,6 +276,7 @@ function [stats, bootstat] = bootwild (y, X, dep, nboot, alpha, seed, L)
           ci(j,:) = arrayfun (@(p) original(j) - std_err(j) *...
                               interp1 (cdf, x, p, 'linear'), fliplr (alpha));
       end
+      pval(j) = interp1 (P(:,1), P(:,2), abs (t(j)), 'linear', 0);
     end
   end
 
@@ -406,7 +406,7 @@ function [F, x, P] = empcdf (y, qtype)
           unique (cat (2, x, 1 - arrayfun (@(i) up(ui(i)) - 1, [1:N]') / N), ...
                 'rows','last'));
   end
-P
+
 end
 
 %--------------------------------------------------------------------------
