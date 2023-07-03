@@ -668,26 +668,27 @@ function [STATS, X, L] = bootlm (Y, GROUP, varargin)
         % Normal quantile-quantile plot
         subplot (2, 2, 1);
         x = ((1 : n)' - .5) / n;
+        [ts, I] = sort (t);
         stdnorminv = @(p) sqrt (2) * erfinv (2 * p - 1);
         q = stdnorminv (x);
-        [F, ts, I] = empcdf (t);
         plot (q, ts, 'ok', 'markersize', 3);
         box off;
         grid on;
         xlabel ('Theoretical quantiles');
         ylabel ('Studentized Residuals');
         title ('Normal Q-Q Plot');
-        iqr = [0.25; 0.75];
-        M = unique ([F, ts],'rows','last');
-        yl = interp1 (M(:,1), M(:,2), iqr, 'linear', min (ts));
+        arrayfun (@(i) text (q(I == DI(i)), t(DI(i)), ...
+                             sprintf ('  %u', DI(i))), [1:min(nk,n)])
+        iqr = [0.25; 0.75]; 
+        [ts, F] = empcdf (t, true);
+        F = (F * n) / (n + 1);  % To form quantiles analgous to R, qtype 6
+        yl = interp1 (F, ts, iqr, 'linear', min (ts));
         xl = stdnorminv (iqr);
         slope = diff (yl) / diff (xl);
         int = yl(1) - slope * xl(1);
         ax1_xlim = get (gca, 'XLim');
         hold on; plot (ax1_xlim, slope * ax1_xlim + int, 'k-'); hold off;
         set (gca, 'Xlim', ax1_xlim);
-        arrayfun (@(i) text (q(I == DI(i)), t(DI(i)), ...
-                             sprintf ('  %u', DI(i))), [1:min(nk,n)])
 
         % Spread-Location Plot
         subplot (2, 2, 2);
@@ -1012,22 +1013,22 @@ end
 
 %% FUNCTION TO COMPUTE EMPIRICAL DISTRIBUTION FUNCTION
 
-function [F, x, I] = empcdf (y, qtype)
+function [x, F, P] = empcdf (y, trim)
 
   % Subfunction to calculate empirical cumulative distribution function
 
   % Check input argument
   if (~ isa (y, 'numeric'))
-    error ('bootlm:empcdf: y must be numeric');
+    error ('bootwild:empcdf: y must be numeric');
   end
   if (all (size (y) > 1))
-    error ('bootlm:empcdf: y must be a vector');
+    error ('bootwild:empcdf: y must be a vector');
   end
   if (size (y, 2) > 1)
     y = y.';
   end
   if (nargin < 2)
-    qtype = 4;
+    trim = true;
   end
 
   % Discard NaN values
@@ -1037,38 +1038,32 @@ function [F, x, I] = empcdf (y, qtype)
   % Get size of y
   N = numel (y);
 
-  % Create empirical CDF
-  % See also: Hyndman and Fan (1996) Am Stat. 50(4):361-365
-  [x, I] = sort (y);
-  k = [1:N].';
+  % Create empirical CDF accounting for ties by competition ranking
+  x = sort (y);
+  [jnk, IA, IC] = unique (x);
+  N = numel (x);
+  R = cat (1, IA(2:end) - 1, N);
+  F = arrayfun (@(i) R(IC(i)), [1:N]') / N;
 
-  % Complete calculation of the CDF
-  switch qtype
-    case 4
-      F = k / N;
-    case 5
-      F = (k - 0.5) / N;
-    case 6
-      F = k / (N + 1);
-    case 7
-      F = (k - 1) / (N - 1);
-    case 8
-      F = (k - 1 / 3) / (N + 1 / 3);
-    otherwise
-      error ('bootlm:empcdf: unrecognised qtype. Options are 4, 5, 6 , 7 and 8')
+  % Create p-value distribution accounting for ties by competition ranking
+  P = 1 - arrayfun(@(i) IA(IC(i)) - 1, [1:N]') / N;
+
+  % Remove redundancy
+  if trim
+    M = unique ([x, F, P], 'rows', 'last');
+    x = M(:,1); F = M(:,2); P = M(:,3);
   end
 
 end
+
 
 %--------------------------------------------------------------------------
 
 
 %!demo
 %!
-%! # Two-sample unpaired test on independent samples (equivalent to Student's
-%! # t-test). Note that the absolute value of t-statistic can be obtained by
-%! # taking the square root of the reported F statistic. In this example,
-%! # t = sqrt (1.44) = 1.20.
+%! # Two-sample unpaired test on independent samples (equivalent to Welch's
+%! # t-test). 
 %!
 %! score = [54 23 45 54 45 43 34 65 77 46 65]';
 %! gender = {'male' 'male' 'male' 'male' 'male' 'female' 'female' 'female' ...
@@ -1079,8 +1074,7 @@ end
 %!demo
 %!
 %! # Two-sample paired test on dependent or matched samples equivalent to a
-%! # paired t-test. As for the first example, the t-statistic can be obtained by
-%! # taking the square root of the reported F statistic.
+%! # paired t-test.
 %!
 %! score = [4.5 5.6; 3.7 6.4; 5.3 6.4; 5.4 6.0; 3.9 5.7]';
 %! treatment = {'before' 'after'; 'before' 'after'; 'before' 'after';
@@ -1093,8 +1087,8 @@ end
 
 %!demo
 %!
-%! # One-way design on the data from a study on the strength of structural beams,
-%! # in Hogg and Ledolter (1987) Engineering Statistics. New York: MacMillan
+%! # One-way design. The data is from a study on the strength of structural
+%! # beams, in Hogg and Ledolter (1987) Engineering Statistics. NY: MacMillan
 %!
 %! strength = [82 86 79 83 84 85 86 87 74 82 ...
 %!            78 75 76 77 79 79 77 78 82 79]';
@@ -1106,7 +1100,7 @@ end
 
 %!demo
 %!
-%! # One-way repeated measures design on the data from a study on the number of
+%! # One-way repeated measures design. The data is from a study on the number of
 %! # words recalled by 10 subjects for three time condtions, in Loftus & Masson
 %! # (1994) Psychon Bull Rev. 1(4):476-490, Table 2.
 %!
@@ -1123,9 +1117,9 @@ end
 
 %!demo
 %!
-%! # Balanced two-way design with interaction on the data from a study of popcorn
-%! # brands and popper types, in Hogg and Ledolter (1987) Engineering Statistics.
-%! # New York: MacMillan
+%! # Balanced two-way design with interaction. The data is from a study of
+%! # popcorn brands and popper types, in Hogg and Ledolter (1987) Engineering
+%! # Statistics. NY: MacMillan
 %!
 %! popcorn = [5.5, 4.5, 3.5; 5.5, 4.5, 4.0; 6.0, 4.0, 3.0; ...
 %!            6.5, 5.0, 4.0; 7.0, 5.5, 5.0; 7.0, 5.0, 4.5];
@@ -1144,8 +1138,8 @@ end
 
 %!demo
 %!
-%! # Unbalanced two-way design (2x2) on the data from a study on the effects of
-%! # gender and having a college degree on salaries of company employees,
+%! # Unbalanced two-way design (2x2). The data is from a study on the effects
+%! # of gender and having a college degree on salaries of company employees,
 %! # in Maxwell, Delaney and Kelly (2018): Chapter 7, Table 15
 %!
 %! salary = [24 26 25 24 27 24 27 23 15 17 20 16, ...
@@ -1160,7 +1154,7 @@ end
 
 %!demo
 %!
-%! # Unbalanced two-way design (3x2) on the data from a study of the effect of
+%! # Unbalanced two-way design (3x2). The data is from a study of the effect of
 %! # adding sugar and/or milk on the tendency of coffee to make people babble,
 %! # in from Navarro (2019): 16.10
 %!
@@ -1176,9 +1170,9 @@ end
 
 %!demo
 %!
-%! # Unbalanced three-way design (3x2x2) on the data from a study of the effects
-%! # of three different drugs, biofeedback and diet on patient blood pressure,
-%! # adapted* from Maxwell, Delaney and Kelly (2018): Chapter 8, Table 12
+%! # Unbalanced three-way design (3x2x2). The data is from a study of the
+%! # effects of three different drugs, biofeedback and diet on patient blood
+%! # pressure, adapted* from Maxwell, Delaney and Kelly (2018): Ch 8, Table 12
 %! # * Missing values introduced to make the sample sizes unequal to test the
 %! #   calculation of different types of sums-of-squares
 %!
@@ -1227,7 +1221,7 @@ end
 
 %!demo
 %!
-%! # One-way design with continuous covariate on data from a study of the
+%! # One-way design with continuous covariate. The data is from a study of the
 %! # additive effects of species and temperature on chirpy pulses of crickets,
 %! # from Stitch, The Worst Stats Text eveR
 %!
@@ -1247,7 +1241,7 @@ end
 
 %!demo
 %!
-%! # Factorial design with continuous covariate on data from a study of the
+%! # Factorial design with continuous covariate. The data is from a study of the
 %! # effects of treatment and exercise on stress reduction score after adjusting
 %! # for age. Data from R datarium package).
 %!
@@ -1305,10 +1299,8 @@ end
 
 %!test
 %!
-%! # Two-sample unpaired test on independent samples (equivalent to Student's
-%! # t-test). Note that the absolute value of t-statistic can be obtained by
-%! # taking the square root of the reported F statistic. In this example,
-%! # t = sqrt (1.44) = 1.20.
+%! # Two-sample unpaired test on independent samples (equivalent to Welch's
+%! # t-test).
 %!
 %! score = [54 23 45 54 45 43 34 65 77 46 65]';
 %! gender = {'male' 'male' 'male' 'male' 'male' 'female' 'female' 'female' ...
@@ -1319,8 +1311,7 @@ end
 %!test
 %!
 %! # Two-sample paired test on dependent or matched samples equivalent to a
-%! # paired t-test. As for the first example, the t-statistic can be obtained by
-%! # taking the square root of the reported F statistic.
+%! # paired t-test.
 %!
 %! score = [4.5 5.6; 3.7 6.4; 5.3 6.4; 5.4 6.0; 3.9 5.7]';
 %! treatment = {'before' 'after'; 'before' 'after'; 'before' 'after';
@@ -1333,8 +1324,8 @@ end
 
 %!test
 %!
-%! # One-way design on the data from a study on the strength of structural beams,
-%! # in Hogg and Ledolter (1987) Engineering Statistics. New York: MacMillan
+%! # One-way design. The data is from a study on the strength of structural
+%! # beams, in Hogg and Ledolter (1987) Engineering Statistics. NY: MacMillan
 %!
 %! strength = [82 86 79 83 84 85 86 87 74 82 ...
 %!            78 75 76 77 79 79 77 78 82 79]';
@@ -1346,7 +1337,7 @@ end
 
 %!test
 %!
-%! # One-way repeated measures design on the data from a study on the number of
+%! # One-way repeated measures design. The data is from a study on the number of
 %! # words recalled by 10 subjects for three time condtions, in Loftus & Masson
 %! # (1994) Psychon Bull Rev. 1(4):476-490, Table 2.
 %!
@@ -1363,9 +1354,9 @@ end
 
 %!test
 %!
-%! # Balanced two-way design with interaction on the data from a study of popcorn
-%! # brands and popper types, in Hogg and Ledolter (1987) Engineering Statistics.
-%! # New York: MacMillan
+%! # Balanced two-way design with interaction. The data is from a study of
+%! # popcorn brands and popper types, in Hogg and Ledolter (1987) Engineering
+%! # Statistics. New York: MacMillan
 %!
 %! popcorn = [5.5, 4.5, 3.5; 5.5, 4.5, 4.0; 6.0, 4.0, 3.0; ...
 %!            6.5, 5.0, 4.0; 7.0, 5.5, 5.0; 7.0, 5.0, 4.5];
@@ -1384,8 +1375,8 @@ end
 
 %!test
 %!
-%! # Unbalanced two-way design (2x2) on the data from a study on the effects of
-%! # gender and having a college degree on salaries of company employees,
+%! # Unbalanced two-way design (2x2). The data is from a study on the effects
+%! # of gender and having a college degree on salaries of company employees,
 %! # in Maxwell, Delaney and Kelly (2018): Chapter 7, Table 15
 %!
 %! salary = [24 26 25 24 27 24 27 23 15 17 20 16, ...
@@ -1400,7 +1391,7 @@ end
 
 %!test
 %!
-%! # Unbalanced two-way design (3x2) on the data from a study of the effect of
+%! # Unbalanced two-way design (3x2). The data is from a study of the effect of
 %! # adding sugar and/or milk on the tendency of coffee to make people babble,
 %! # in from Navarro (2019): 16.10
 %!
@@ -1416,9 +1407,9 @@ end
 
 %!test
 %!
-%! # Unbalanced three-way design (3x2x2) on the data from a study of the effects
-%! # of three different drugs, biofeedback and diet on patient blood pressure,
-%! # adapted* from Maxwell, Delaney and Kelly (2018): Chapter 8, Table 12
+%! # Unbalanced three-way design (3x2x2). The data is from a study of the
+%! # effects of three different drugs, biofeedback and diet on patient blood
+%! # pressure, adapted* from Maxwell, Delaney and Kelly (2018): Ch 8, Table 12
 %! # * Missing values introduced to make the sample sizes unequal to test the
 %! #   calculation of different types of sums-of-squares
 %!
@@ -1467,7 +1458,7 @@ end
 
 %!test
 %!
-%! # One-way design with continuous covariate on data from a study of the
+%! # One-way design with continuous covariate. The data is from a study of the
 %! # additive effects of species and temperature on chirpy pulses of crickets,
 %! # from Stitch, The Worst Stats Text eveR
 %!
@@ -1487,7 +1478,7 @@ end
 
 %!test
 %!
-%! # Factorial design with continuous covariate on data from a study of the
+%! # Factorial design with continuous covariate. The data is from a study of the
 %! # effects of treatment and exercise on stress reduction score after adjusting
 %! # for age. Data from R datarium package).
 %!
