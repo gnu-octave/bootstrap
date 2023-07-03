@@ -262,20 +262,27 @@ function [stats, bootstat] = bootwild (y, X, dep, nboot, alpha, seed, L)
   % intervals and p-values following both guidelines described in Hall and
   % Wilson (1991) Biometrics, 47(2), 757-762
   T = bsxfun (@minus, bootstat, original) ./ bootse;
+  if (any (isnan (T)))
+    error ('bootwild: the studentized bootstrap statistics contain NaN values')
+  end
   ci = nan (p, 2);
   pval = nan (p, 1);
   for j = 1:p
     if ( ~ isnan (std_err(j)) )
       [x, F, P] = empcdf (abs (T(j,:)));
-      pval(j) = interp1 ([0; x], [1; P], abs (t(j)), 'linear', 0);
+      if (x(1) > 0)
+        pval(j) = interp1 ([0; x], [1; P], abs (t(j)), 'linear', 0);
+      else
+        pval(j) = interp1 (x, P, abs (t(j)), 'linear', 0);
+      end
       switch nalpha
         case 1
           ci(j,:) = arrayfun (@(s) original(j) + s * std_err(j) * ...
-                              interp1 (F, x, 1 - alpha, 'linear', min(x)), [-1, +1]);
+                              interp1 (F, x, 1 - alpha, 'linear'), [-1, +1]);
         case 2
           [x, F] = empcdf (T(j,:));
           ci(j,:) = arrayfun (@(p) original(j) - std_err(j) *...
-                              interp1 (F, x, p, 'linear', min(x)), fliplr (alpha));
+                              interp1 (F, x, p, 'linear'), fliplr (alpha));
       end
     end
   end
@@ -352,7 +359,7 @@ end
 
 %% FUNCTION TO COMPUTE EMPIRICAL DISTRIBUTION FUNCTION
 
-function [x, F, P] = empcdf (y)
+function [x, F, P] = empcdf (y, trim)
 
   % Subfunction to calculate empirical cumulative distribution function
 
@@ -366,6 +373,9 @@ function [x, F, P] = empcdf (y)
   if (size (y, 2) > 1)
     y = y.';
   end
+  if (nargin < 2)
+    trim = true;
+  end
 
   % Discard NaN values
   ridx = isnan (y);
@@ -375,7 +385,7 @@ function [x, F, P] = empcdf (y)
   N = numel (y);
 
   % Create empirical CDF accounting for ties by competition ranking
-  [x, I] = sort (y);
+  x = sort (y);
   [jnk, IA, IC] = unique (x);
   N = numel (x);
   R = cat (1, IA(2:end) - 1, N);
@@ -385,8 +395,10 @@ function [x, F, P] = empcdf (y)
   P = 1 - arrayfun(@(i) IA(IC(i)) - 1, [1:N]') / N;
 
   % Remove redundancy
-  M = unique ([x, F, P], 'rows', 'last');
-  x = M(:,1); F = M(:,2); P = M(:,3);
+  if trim
+    M = unique ([x, F, P], 'rows', 'last');
+    x = M(:,1); F = M(:,2); P = M(:,3);
+  end
 
 end
 
