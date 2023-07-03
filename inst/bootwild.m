@@ -269,7 +269,7 @@ function [stats, bootstat] = bootwild (y, X, dep, nboot, alpha, seed, L)
   pval = nan (p, 1);
   for j = 1:p
     if ( ~ isnan (std_err(j)) )
-      [x, F, P] = empcdf (abs (T(j,:)));
+      [x, F, P] = empcdf (abs (T(j,:)), true, 1);
       if (x(1) > 0)
         pval(j) = interp1 ([0; x], [1; P], abs (t(j)), 'linear', 0);
       else
@@ -280,7 +280,7 @@ function [stats, bootstat] = bootwild (y, X, dep, nboot, alpha, seed, L)
           ci(j,:) = arrayfun (@(s) original(j) + s * std_err(j) * ...
                               interp1 (F, x, 1 - alpha, 'linear'), [-1, +1]);
         case 2
-          [x, F] = empcdf (T(j,:));
+          [x, F] = empcdf (T(j,:), true, 1);
           ci(j,:) = arrayfun (@(p) original(j) - std_err(j) *...
                               interp1 (F, x, p, 'linear'), fliplr (alpha));
       end
@@ -359,7 +359,7 @@ end
 
 %% FUNCTION TO COMPUTE EMPIRICAL DISTRIBUTION FUNCTION
 
-function [x, F, P] = empcdf (y, trim)
+function [x, F, P] = empcdf (y, trim, m)
 
   % Subfunction to calculate empirical cumulative distribution function
 
@@ -376,6 +376,19 @@ function [x, F, P] = empcdf (y, trim)
   if (nargin < 2)
     trim = true;
   end
+  if ( (~ islogical (trim)) && (~ ismember (trim, [0, 1])) )
+    error ('bootwild:empcdf: m must be scalar');
+  end
+  if (nargin < 3)
+    % Denominator in calculation of quantiles: (N + m)
+    m = 0;
+  end
+  if (~ isscalar (m))
+    error ('bootwild:empcdf: m must be scalar');
+  end
+  if (~ ismember (m, [0, 1]))
+    error ('bootwild:empcdf: m must be either 0 or 1');
+  end
 
   % Discard NaN values
   ridx = isnan (y);
@@ -389,7 +402,7 @@ function [x, F, P] = empcdf (y, trim)
   [jnk, IA, IC] = unique (x);
   N = numel (x);
   R = cat (1, IA(2:end) - 1, N);
-  F = arrayfun (@(i) R(IC(i)), [1:N]') / N;
+  F = arrayfun (@(i) R(IC(i)), [1:N]') / (N + m);
 
   % Create p-value distribution accounting for ties by competition ranking
   P = 1 - arrayfun(@(i) IA(IC(i)) - 1, [1:N]') / N;
