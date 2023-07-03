@@ -266,19 +266,17 @@ function [stats, bootstat] = bootwild (y, X, dep, nboot, alpha, seed, L)
   pval = nan (p, 1);
   for j = 1:p
     if ( ~ isnan (std_err(j)) )
-      [cdf, x, P] = empcdf (abs (T(j,:)));
+      [x, F, P] = empcdf (abs (T(j,:)));
+      pval(j) = interp1 ([0; x], [1; P], abs (t(j)), 'linear', 0);
       switch nalpha
         case 1
           ci(j,:) = arrayfun (@(s) original(j) + s * std_err(j) * ...
-                              interp1 (cdf, x, 1 - alpha, 'linear', min (x)), ...
-                              [-1, +1]);
+                              interp1 (F, x, 1 - alpha, 'linear', min(x)), [-1, +1]);
         case 2
-         [cdf, x] = empcdf (T(j,:));
+          [x, F] = empcdf (T(j,:));
           ci(j,:) = arrayfun (@(p) original(j) - std_err(j) *...
-                              interp1 (cdf, x, p, 'linear', min (x)), ...
-                              fliplr (alpha));
+                              interp1 (F, x, p, 'linear', min(x)), fliplr (alpha));
       end
-      pval(j) = interp1 (P(:,1), P(:,2), abs (t(j)), 'linear', 0);
     end
   end
 
@@ -354,7 +352,7 @@ end
 
 %% FUNCTION TO COMPUTE EMPIRICAL DISTRIBUTION FUNCTION
 
-function [F, x, P] = empcdf (y, qtype)
+function [x, F, P] = empcdf (y)
 
   % Subfunction to calculate empirical cumulative distribution function
 
@@ -368,9 +366,6 @@ function [F, x, P] = empcdf (y, qtype)
   if (size (y, 2) > 1)
     y = y.';
   end
-  if (nargin < 2)
-    qtype = 7;
-  end
 
   % Discard NaN values
   ridx = isnan (y);
@@ -379,35 +374,19 @@ function [F, x, P] = empcdf (y, qtype)
   % Get size of y
   N = numel (y);
 
-  % Create empirical CDF
-  % See also: Hyndman and Fan (1996) Am Stat. 50(4):361-365
+  % Create empirical CDF accounting for ties by competition ranking
   [x, I] = sort (y);
-  k = [1:N].';
+  [jnk, IA, IC] = unique (x);
+  N = numel (x);
+  R = cat (1, IA(2:end) - 1, N);
+  F = arrayfun (@(i) R(IC(i)), [1:N]') / N;
 
-  % Complete calculation of the CDF
-  switch qtype
-    case 4
-      F = k / N;
-    case 5
-      F = (k - 0.5) / N;
-    case 6
-      F = k / (N + 1);
-    case 7
-      F = (k - 1) / (N - 1);
-    case 8
-      F = (k - 1 / 3) / (N + 1 / 3);
-    otherwise
-      error ('bootwild:empcdf: unrecognised qtype. Options are 4, 5, 6 , 7 and 8')
-  end
+  % Create p-value distribution accounting for ties by competition ranking
+  P = 1 - arrayfun(@(i) IA(IC(i)) - 1, [1:N]') / N;
 
-  if (nargout > 2)
-    % Create p-value distribution based on competition ranking
-    % https://brainder.org/2012/11/28/competition-ranking-and-empirical-distributions/
-    [ux, up, ui] = unique (x);
-    P = unique (cat (1, [0, 1], ... 
-                     [x, 1 - arrayfun(@(i) up(ui(i)) - 1, [1:N]') / N]), ...
-                     'rows', 'last');
-  end
+  % Remove redundancy
+  M = unique ([x, F, P], 'rows', 'last');
+  x = M(:,1); F = M(:,2); P = M(:,3);
 
 end
 
