@@ -680,8 +680,7 @@ function [STATS, X, L] = bootlm (Y, GROUP, varargin)
         arrayfun (@(i) text (q(I == DI(i)), t(DI(i)), ...
                              sprintf ('  %u', DI(i))), [1:min(nk,n)])
         iqr = [0.25; 0.75]; 
-        [ts, F] = empcdf (t, true);
-        F = (F * n) / (n + 1);  % To form quantiles analgous to R, qtype 6
+        [ts, F] = empcdf (t, true, 1);
         yl = interp1 (F, ts, iqr, 'linear', min (ts));
         xl = stdnorminv (iqr);
         slope = diff (yl) / diff (xl);
@@ -1013,22 +1012,35 @@ end
 
 %% FUNCTION TO COMPUTE EMPIRICAL DISTRIBUTION FUNCTION
 
-function [x, F, P] = empcdf (y, trim)
+function [x, F, P] = empcdf (y, trim, m)
 
   % Subfunction to calculate empirical cumulative distribution function
 
   % Check input argument
   if (~ isa (y, 'numeric'))
-    error ('bootwild:empcdf: y must be numeric');
+    error ('bootlm:empcdf: y must be numeric');
   end
   if (all (size (y) > 1))
-    error ('bootwild:empcdf: y must be a vector');
+    error ('bootlm:empcdf: y must be a vector');
   end
   if (size (y, 2) > 1)
     y = y.';
   end
   if (nargin < 2)
     trim = true;
+  end
+  if ( (~ islogical (trim)) && (~ ismember (trim, [0, 1])) )
+    error ('bootlm:empcdf: m must be scalar');
+  end
+  if (nargin < 3)
+    % Denominator in calculation of quantiles: (N + m)
+    m = 0;
+  end
+  if (~ isscalar (m))
+    error ('bootlm:empcdf: m must be scalar');
+  end
+  if (~ ismember (m, [0, 1]))
+    error ('bootlm:empcdf: m must be either 0 or 1');
   end
 
   % Discard NaN values
@@ -1043,7 +1055,7 @@ function [x, F, P] = empcdf (y, trim)
   [jnk, IA, IC] = unique (x);
   N = numel (x);
   R = cat (1, IA(2:end) - 1, N);
-  F = arrayfun (@(i) R(IC(i)), [1:N]') / N;
+  F = arrayfun (@(i) R(IC(i)), [1:N]') / (N + m);
 
   % Create p-value distribution accounting for ties by competition ranking
   P = 1 - arrayfun(@(i) IA(IC(i)) - 1, [1:N]') / N;
@@ -1055,7 +1067,6 @@ function [x, F, P] = empcdf (y, trim)
   end
 
 end
-
 
 %--------------------------------------------------------------------------
 
