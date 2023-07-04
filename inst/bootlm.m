@@ -265,7 +265,8 @@
 %     model.
 %
 %     '[STATS, X, L] = bootlm (...)' also returns the hypothesis matrix used to
-%     compute the estimated marginal means.
+%     compute the estimated marginal means or posthoc tests from the regression
+%     coefficients.
 %
 %  bootlm (version 2023.07.04)
 %  Author: Andrew Charles Penn
@@ -654,15 +655,15 @@ function [STATS, X, L] = bootlm (Y, GROUP, varargin)
             if (~ strcmpi (POSTHOC{1}, 'trt_vs_ctrl'))
               error ('bootlm: REF can only be used to specify a control group for ''trt_vs_ctrl''')
             end
-            [L_POSTHOC, pairs] = feval (POSTHOC{1}, L, POSTHOC{2:end});
+            [L, pairs] = feval (POSTHOC{1}, L, POSTHOC{2:end});
             POSTHOC = POSTHOC{1};
           else
             if (~ ismember (POSTHOC, {'pairwise', 'trt_vs_ctrl'}))
               error ('bootlm: available options for POSTHOC are ''pairwise'' and ''trt_vs_ctrl''')
             end
-            [L_POSTHOC, pairs] = feval (POSTHOC, L);
+            [L pairs] = feval (POSTHOC, L);
           end
-          STATS = bootwild (Y, X, DEP, NBOOT, ALPHA, SEED, L_POSTHOC);
+          STATS = bootwild (Y, X, DEP, NBOOT, ALPHA, SEED, L);
 
           % Create names of posthoc comparisons and assign to the output structure
           STATS.name = arrayfun(@(i) sprintf ('%s - %s', NAMES{pairs(i,:)}), ...
