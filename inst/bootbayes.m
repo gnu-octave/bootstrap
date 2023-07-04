@@ -282,7 +282,11 @@ function [stats, bootstat] = bootbayes (Y, X, dep, nboot, prob, prior, seed, L)
           else
             NL = numel (unique (IC .* all (bsxfun (@eq, X(:,idx), L(idx,1)'), 2))) - 1;
           end
-          prior = 1 - 2 / NL;
+          if (NL > 0)
+            prior = 1 - 2 / NL;
+          else
+            prior = 1;
+          end
         else
           prior = 1;
         end
