@@ -5,10 +5,10 @@
 % -- Function File: bootnhst (..., 'ref', REF)
 % -- Function File: bootnhst (..., 'alpha', ALPHA)
 % -- Function File: bootnhst (..., 'Options', PAROPT)
-% -- Function File: P = bootnhst (DATA, GROUP, ...)
-% -- Function File: [P, C] = bootnhst (DATA, GROUP, ...)
-% -- Function File: [P, C, STATS] = bootnhst (DATA, GROUP, ...)
-% -- Function File: [...] = bootnhst (..., 'DisplayOpt', DISPLAYOPT)
+% -- Function File: PVAL = bootnhst (DATA, GROUP, ...)
+% -- Function File: [PVAL, C] = bootnhst (DATA, GROUP, ...)
+% -- Function File: [PVAL, C, STATS] = bootnhst (DATA, GROUP, ...)
+% -- Function File: [...] = bootnhst (..., 'display', DISPLAYOPT)
 %
 %     'bootnhst (DATA, GROUP)' performs a bootstrap variant of a one-way
 %     analysis of variance (ANOVA) on DATA, which is categorized according
@@ -72,13 +72,13 @@
 %                          has already been started. 
 %        • 'nproc':        nproc sets the number of parallel processes
 %
-%     'P = bootnhst (DATA, GROUP, ...)' returns the p-value for the omnibus
+%     'PVAL = bootnhst (DATA, GROUP, ...)' returns the p-value for the omnibus
 %     hypothesis test. Note that the p-value returned will be truncated at the
 %     resolution limit determined by the number of bootstrap replicates,
 %     specifically 1/NBOOT(1). 
 %
-%     '[P, C] = bootnhst (DATA, GROUP, ...)' also returns a 9 column matrix that
-%     summarises post hoc test results. The columns of C are:
+%     '[PVAL, C] = bootnhst (DATA, GROUP, ...)' also returns a 9 column matrix
+%     that summarises post hoc test results. The columns of C are:
 %       • column 1: reference GROUP number
 %       • column 2: test GROUP number
 %       • column 3: value of BOOTFUN evaluated for the reference GROUP
@@ -89,7 +89,7 @@
 %       • column 8: LOWER bound of the 100*(1-ALPHA)% bootstrap-t CI
 %       • column 9: UPPER bound of the 100*(1-ALPHA)% bootstrap-t CI
 %
-%     '[P, C, STATS] = bootnhst (DATA, GROUP, ...)' also returns a structure 
+%     '[PVAL, C, STATS] = bootnhst (DATA, GROUP, ...)' also returns a structure 
 %     containing additional statistics. The stats structure contains the 
 %     following fields:
 %
@@ -107,11 +107,11 @@
 %       alpha    - two-tailed significance level for the CI reported in c.
 %       bootstat - test statistic computed for each bootstrap resample 
 %
-%     '[...] = bootnhst (..., 'DisplayOpt', DISPLAYOPT)' a logical value (true 
+%     '[...] = bootnhst (..., 'display', DISPLAYOPT)' a logical value (true 
 %      or false) used to specify whether to display the results and plot the
 %      graph in addition to creating the output arguments. The default is true.
 %
-%  bootnhst (version 2023.02.05)
+%  bootnhst (version 2023.07.04)
 %  Bootstrap Null Hypothesis Significance Test
 %  Author: Andrew Charles Penn
 %  https://www.researchgate.net/profile/Andrew_Penn/
@@ -131,7 +131,7 @@
 %  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-function [p, c, stats] = bootnhst (data, group, varargin)
+function [pval, c, stats] = bootnhst (data, group, varargin)
 
   % Evaluate the number of function arguments
   if (nargin < 2)
@@ -171,11 +171,11 @@ function [p, c, stats] = bootnhst (data, group, varargin)
         nboot = argin3{end};
       elseif (strcmpi (argin3{end-1},'ref'))
         ref = argin3{end};
-      elseif (any (strcmpi ({'Options','Option'},argin3{end-1})))
+      elseif (any (strcmpi (argin3{end-1},{'Options','Option'})))
         paropt = argin3{end};
       elseif (strcmpi (argin3{end-1},'alpha'))
         alpha = argin3{end};
-      elseif (strcmpi (argin3{end-1},'DisplayOpt'))
+      elseif (any (strcmpi (argin3{end-1},{'DisplayOpt','Display'})))
         DisplayOpt = argin3{end};
       else
         error ('bootnhst: Unrecognised input argument to bootnhst')
@@ -301,11 +301,10 @@ function [p, c, stats] = bootnhst (data, group, varargin)
   % If applicable, check we have parallel computing capabilities
   if (paropt.UseParallel)
     if (ISOCTAVE)
-      pat = '^parallel';
       software = pkg ('list');
       names = cellfun (@(S) S.name, software, 'UniformOutput', false);
       status = cellfun (@(S) S.loaded, software, 'UniformOutput', false);
-      index = find (~ cellfun (@isempty, regexpi (names, pat)));
+      index = find (~ cellfun (@isempty, regexpi (names, '^parallel')));
       if (~ isempty (index))
         if (logical (status{index}))
           PARALLEL = true;
@@ -447,13 +446,10 @@ function [p, c, stats] = bootnhst (data, group, varargin)
   % when calculating standard error of the difference
   w = nk_bar ./ nk;
 
-  % Prepare to make symmetrical bootstrap-t confidence intervals
-  % Create empirical distribution functions
-  [cdf, QS] = empcdf (Q);
-  [jnk, I] = unique (QS);
-  unique_cdf = cdf(I);
-  unique_QS = QS(I);
-  
+  % Prepare to make symmetrical bootstrap-t confidence intervals and 2-tailed p-values
+  % Create empirical distribution function
+  [Q, F, P] = empcdf (Q, true, 1);
+
   % Compute resolution limit of the p-values as determined by resampling with nboot(1) resamples
   res_lim = 1 / nboot(1);
 
@@ -474,13 +470,13 @@ function [p, c, stats] = bootnhst (data, group, varargin)
       c(i,5) = c(i,4) - c(i,3);
       SED = sqrt (Var * (w(c(i,1)) + w(c(i,2))));
       c(i,6) = abs (c(i,5)) / SED;
-      if (c(i,6) < QS(1))
-        c(i,7) = interp1 (unique_QS, 1 - unique_cdf, c(i,6), 'linear', 1);
+      if (c(i,6) < Q(1))
+        c(i,7) = interp1 (Q, P, c(i,6), 'linear', 1);
       else
-        c(i,7) = interp1 (unique_QS, 1 - unique_cdf, c(i,6), 'linear', res_lim);
+        c(i,7) = interp1 (Q, P, c(i,6), 'linear', res_lim);
       end
-      c(i,8) = c(i,5) - SED * interp1 (cdf, QS, 1 - alpha, 'linear');
-      c(i,9) = c(i,5) + SED * interp1 (cdf, QS, 1 - alpha, 'linear');
+      c(i,8) = c(i,5) - SED * interp1 (F, Q, 1 - alpha, 'linear', max (Q));
+      c(i,9) = c(i,5) + SED * interp1 (F, Q, 1 - alpha, 'linear', max (Q));
     end
   else
     % Single-step maxT procedure for treatment vs control comparisons is a resampling version of Dunnett's test
@@ -493,20 +489,20 @@ function [p, c, stats] = bootnhst (data, group, varargin)
       c(j,5) = c(j,4) - c(j,3); 
       SED = sqrt (Var * (w(c(j,1)) + w(c(j,2))));
       c(j,6) = abs (c(j,5)) / SED;
-      if (c(j,6) < QS(1))
-        c(j,7) = interp1 (unique_QS, 1 - unique_cdf, c(j,6), 'linear', 1);
+      if (c(j,6) < Q(1))
+        c(j,7) = interp1 (Q, P, c(j,6), 'linear', 1);
       else
-        c(j,7) = interp1 (unique_QS, 1 - unique_cdf, c(j,6), 'linear', res_lim);
+        c(j,7) = interp1 (Q, P, c(j,6), 'linear', res_lim);
       end
-      c(j,8) = c(j,5) - SED * interp1 (cdf, QS, 1 - alpha, 'linear');
-      c(j,9) = c(j,5) + SED * interp1 (cdf, QS, 1 - alpha, 'linear');
+      c(j,8) = c(j,5) - SED * interp1 (F, Q, 1 - alpha, 'linear', max (Q));
+      c(j,9) = c(j,5) + SED * interp1 (F, Q, 1 - alpha, 'linear', max (Q));
     end
     c(ref,:) = [];
   end
 
   % Calculate (maximum) test statistic and (minimum) p-value for the omnibus test
   maxT = max (c(:,6));
-  p = min (c(:,7));
+  pval = min (c(:,7));
 
   % Prepare stats output structure
   stats = struct;
@@ -518,8 +514,8 @@ function [p, c, stats] = bootnhst (data, group, varargin)
   stats.groups(:,2) = theta;
   stats.groups(:,3) = nk;
   stats.groups(:,4) = SE;
-  stats.groups(:,5) = theta - sqrt ((0.5 * (w + 1)) .* Var / 2) * interp1 (cdf, QS, 1 - alpha, 'linear');
-  stats.groups(:,6) = theta + sqrt ((0.5 * (w + 1)) .* Var / 2) * interp1 (cdf, QS, 1 - alpha, 'linear');
+  stats.groups(:,5) = theta - sqrt ((0.5 * (w + 1)) .* Var / 2) * interp1 (F, Q, 1 - alpha, 'linear', max (Q));
+  stats.groups(:,6) = theta + sqrt ((0.5 * (w + 1)) .* Var / 2) * interp1 (F, Q, 1 - alpha, 'linear', max (Q));
   stats.Var = Var;
   stats.maxT = maxT;
   if (any (strcmp (func2str (bootfun), {'mean','smoothmedian'})))
@@ -567,15 +563,15 @@ function [p, c, stats] = bootnhst (data, group, varargin)
     else
       dfstr = '';
     end
-    if (p <= 0.001)
+    if (pval <= 0.001)
       fprintf (['Maximum t = %.2f, p = <.001 \n', dfstr, ...
                 '------------------------------------------------------------------------------\n'], maxT);
-    elseif (p > 0.999)
+    elseif (pval > 0.999)
       fprintf (['Maximum t = %.2f, p = 1.000 \n', dfstr, ...
           '------------------------------------------------------------------------------\n'], maxT);
     else
       fprintf (['Maximum t = %.2f, p = .%03u \n', dfstr, ...
-                '------------------------------------------------------------------------------\n'], maxT, round (p*1000));
+                '------------------------------------------------------------------------------\n'], maxT, round (pval*1000));
     end
     if (size (c,1) >= 1)
       fprintf (['POST HOC TESTS with control of the FWER by the single-step maxT procedure\n', ...
@@ -734,19 +730,40 @@ end
 
 %--------------------------------------------------------------------------
 
-function [F, x] = empcdf (y)
+function [x, F, P] = empcdf (y, trim, m)
 
-  % Subfunction to calculate empirical cumulative distribution function
+  % Subfunction to calculate empirical cumulative distribution function in the
+  % presence of ties
+  % https://brainder.org/2012/11/28/competition-ranking-and-empirical-distributions/
 
   % Check input argument
   if (~ isa (y, 'numeric'))
-    error ('bootknife:empcdf: y must be numeric');
+    error ('bootnhst:empcdf: y must be numeric');
   end
   if (all (size (y) > 1))
-    error ('bootknife:empcdf: y must be a vector');
+    error ('bootnhst:empcdf: y must be a vector');
   end
   if (size (y, 2) > 1)
     y = y.';
+  end
+  if (nargin < 2)
+    trim = true;
+  end
+  if ( (~ islogical (trim)) && (~ ismember (trim, [0, 1])) )
+    error ('bootnhst:empcdf: m must be scalar');
+  end
+  if (nargin < 3)
+    % Denominator in calculation of F is (N + m)
+    % When m is 1, quantiles formed from x and F are akin to qtype (definition) 6
+    % https://www.rdocumentation.org/packages/stats/versions/3.6.2/topics/quantile
+    % Hyndman and Fan (1996) Am Stat. 50(4):361-365
+    m = 0;
+  end
+  if (~ isscalar (m))
+    error ('bootnhst:empcdf: m must be scalar');
+  end
+  if (~ ismember (m, [0, 1]))
+    error ('bootnhst:empcdf: m must be either 0 or 1');
   end
 
   % Discard NaN values
@@ -756,9 +773,21 @@ function [F, x] = empcdf (y)
   % Get size of y
   N = numel (y);
 
-  % Create empirical CDF
+  % Create empirical CDF accounting for ties by competition ranking
   x = sort (y);
-  F = linspace (0, 1, N).';
+  [jnk, IA, IC] = unique (x);
+  N = numel (x);
+  R = cat (1, IA(2:end) - 1, N);
+  F = arrayfun (@(i) R(IC(i)), [1:N].') / (N + m);
+
+  % Create p-value distribution accounting for ties by competition ranking
+  P = 1 - arrayfun (@(i) IA(IC(i)) - 1, [1:N]') / N;
+
+  % Remove redundancy
+  if trim
+    M = unique ([x, F, P], 'rows', 'last');
+    x = M(:,1); F = M(:,2); P = M(:,3);
+  end
 
 end
 
@@ -899,12 +928,12 @@ end
 %! p = bootnhst (y(:),g(:),'ref',1,'nboot',[1000,0],'DisplayOpt',false);
 %! if (isempty (regexp (which ('boot'), 'mex$')))
 %!   # test boot m-file result
-%!   assert (p, 0.01164893509863332, 1e-06);
+%!   assert (p, 0.01263728616353474, 1e-06);
 %! end
-%! p = bootnhst (y(:),g(:),'nboot',[1000,0]);
+%! p = bootnhst (y(:),g(:),'nboot',[1000,0],'DisplayOpt',false);
 %! if (isempty (regexp (which ('boot'), 'mex$')))
 %!   # test boot m-file result
-%!   assert (p, 0.03997098281051187, 1e-06);
+%!   assert (p, 0.0409310118277014, 1e-06);
 %! end
 %! # Result from anova1 is 0.0387
 
@@ -924,12 +953,12 @@ end
 %! p = bootnhst (y(:),g(:),'ref','male','nboot',[1000,0],'DisplayOpt',false);
 %! if (isempty (regexp (which ('boot'), 'mex$')))
 %!   # test boot m-file result
-%!   assert (p, 0.2755221089800137, 1e-06);
+%!   assert (p, 0.2762465868710338, 1e-06);
 %! end
 %! p = bootnhst (y(:),g(:),'nboot',[1000,0],'DisplayOpt',false);
 %! if (isempty (regexp (which ('boot'), 'mex$')))
 %!   # test boot m-file result
-%!   assert (p, 0.2755221089800137, 1e-06);
+%!   assert (p, 0.2762465868710338, 1e-06);
 %! end
 %! # Result from anova1 is 0.2613
 
@@ -968,6 +997,10 @@ end
 %!       1   2   3];
 %! p = bootnhst (y(:),g(:),'bootfun',@(y)std(y,1),'DisplayOpt',false);
 %! p = bootnhst (y(:),g(:),'bootfun',{@std,1},'DisplayOpt',false);
+%! if (isempty (regexp (which ('boot'), 'mex$')))
+%!   # test boot m-file result
+%!   assert (p, 0.4311780499762276, 1e-06);
+%! end
 
 %!test
 %! % Compare correlation coefficients

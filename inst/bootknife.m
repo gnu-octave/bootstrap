@@ -156,7 +156,7 @@
 %  [9] Gleason, J.R. (1988) Algorithms for Balanced Bootstrap Simulations. 
 %        The American Statistician. Vol. 42, No. 4 pp. 263-266
 %
-%  bootknife (version 2023.01.28)
+%  bootknife (version 2023.07.04)
 %  Author: Andrew Charles Penn
 %  https://www.researchgate.net/profile/Andrew_Penn/
 %
@@ -630,19 +630,21 @@ function [stats, bootstat, bootsam] = bootknife (x, nboot, bootfun, alpha, ...
           case 1
             % alpha is a two-tailed probability (scalar)
             % Calibrate central coverage and construct equal-tailed intervals (2-sided)
-            [cdf, v] = localfunc.empcdf (abs (2 * U(j, :) - 1));
-            vk = interp1 (cdf, v, 1 - alpha, 'linear');
+            [v, cdf] = localfunc.empcdf (abs (2 * U(j, :) - 1), true, 1);
+            vk = interp1 (cdf, v, 1 - alpha, 'linear', max (v));
             l(j, :) = arrayfun (@(sign) 0.5 * (1 + sign * vk), [-1, 1]);
           case 2
             % alpha is a pair of probabilities (vector)
             % Calibrate coverage but construct endpoints separately (1-sided)
             % This is equivalent to algorithm 18.1 in Efron, and Tibshirani (1993)
-            [cdf, u] = localfunc.empcdf (U(j, :));
-            l(j, :) = arrayfun (@(p) interp1 (cdf, u, p, 'linear'), alpha);
+            [u, cdf] = localfunc.empcdf (U(j, :), true, 1);
+            l(j, 1) = interp1 (cdf, u, alpha(1), 'linear', min (u));
+            l(j, 2) = interp1 (cdf, u, alpha(2), 'linear', max (u));
         end
         % Linear interpolation
-        [cdf, t1] = localfunc.empcdf (bootstat(j, :));
-        ci(j, :) = arrayfun (@(p) interp1 (cdf, t1, p, 'linear'), l(j, :));
+        [t1, cdf] = localfunc.empcdf (bootstat(j, :), true, 1);
+        ci(j, 1) = interp1 (cdf, t1, l(j, 1), 'linear', min (t1));
+        ci(j, 2) = interp1 (cdf, t1, l(j, 2), 'linear', max (t1));
       end
     else
       ci = nan (m, 2);
@@ -671,7 +673,7 @@ function [stats, bootstat, bootsam] = bootknife (x, nboot, bootfun, alpha, ...
       end
       % Create distribution functions
       stdnormcdf = @(x) 0.5 * (1 + erf (x / sqrt (2)));
-      stdnorminv = @(p) sqrt (2) * erfinv (2 * p-1);
+      stdnorminv = @(p) sqrt (2) * erfinv (2 * p - 1);
       switch nalpha
         case 1
           % Create equal-tailed probabilities for the percentiles
@@ -736,8 +738,9 @@ function [stats, bootstat, bootsam] = bootknife (x, nboot, bootfun, alpha, ...
         catch
           % Linear interpolation (legacy)
           fprintf ('Note: Falling back to linear interpolation to calculate percentiles for interval pair %u\n', j);
-          [cdf, t1] = localfunc.empcdf (bootstat(j, :));
-          ci(j, :) = arrayfun (@(p) interp1 (cdf, t1, p, 'linear'), l(j, :));
+          [t1, cdf] = localfunc.empcdf (bootstat(j, :), true, 1);
+          ci(j, 1) = interp1 (cdf, t1, l(j, 1), 'linear', min (t1));
+          ci(j, 2) = interp1 (cdf, t1, l(j, 2), 'linear', max (t1));
         end
       end
       warning (state);
@@ -895,9 +898,11 @@ end
 
 %--------------------------------------------------------------------------
 
-function [F, x] = empcdf (y)
+function [x, F, P] = empcdf (y, trim, m)
 
-  % Subfunction to calculate empirical cumulative distribution function
+  % Subfunction to calculate empirical cumulative distribution function in the
+  % presence of ties
+  % https://brainder.org/2012/11/28/competition-ranking-and-empirical-distributions/
 
   % Check input argument
   if (~ isa (y, 'numeric'))
@@ -909,6 +914,25 @@ function [F, x] = empcdf (y)
   if (size (y, 2) > 1)
     y = y.';
   end
+  if (nargin < 2)
+    trim = true;
+  end
+  if ( (~ islogical (trim)) && (~ ismember (trim, [0, 1])) )
+    error ('bootknife:empcdf: m must be scalar');
+  end
+  if (nargin < 3)
+    % Denominator in calculation of F is (N + m)
+    % When m is 1, quantiles formed from x and F are akin to qtype (definition) 6
+    % https://www.rdocumentation.org/packages/stats/versions/3.6.2/topics/quantile
+    % Hyndman and Fan (1996) Am Stat. 50(4):361-365
+    m = 0;
+  end
+  if (~ isscalar (m))
+    error ('bootknife:empcdf: m must be scalar');
+  end
+  if (~ ismember (m, [0, 1]))
+    error ('bootknife:empcdf: m must be either 0 or 1');
+  end
 
   % Discard NaN values
   ridx = isnan (y);
@@ -917,9 +941,21 @@ function [F, x] = empcdf (y)
   % Get size of y
   N = numel (y);
 
-  % Create empirical CDF
+  % Create empirical CDF accounting for ties by competition ranking
   x = sort (y);
-  F = linspace (0, 1, N).';
+  [jnk, IA, IC] = unique (x);
+  N = numel (x);
+  R = cat (1, IA(2:end) - 1, N);
+  F = arrayfun (@(i) R(IC(i)), [1:N].') / (N + m);
+
+  % Create p-value distribution accounting for ties by competition ranking
+  P = 1 - arrayfun (@(i) IA(IC(i)) - 1, [1:N]') / N;
+
+  % Remove redundancy
+  if trim
+    M = unique ([x, F, P], 'rows', 'last');
+    x = M(:,1); F = M(:,2); P = M(:,3);
+  end
 
 end
 
@@ -1453,8 +1489,8 @@ end
 %!   assert (stats.original, 171.534023668639, 1e-08);
 %!   assert (stats.bias, -8.088193809171344, 1e-08);
 %!   assert (stats.std_error, 46.53418481731099, 1e-08);
-%!   assert (stats.CI_lower, 79.65217027813281, 1e-08);
-%!   assert (stats.CI_upper, 260.2974063446341, 1e-08);
+%!   assert (stats.CI_lower, 79.46067430166357, 1e-08);
+%!   assert (stats.CI_upper, 260.9171292390822, 1e-08);
 %! end
 %!
 %! ## Nonparametric 90% calibrated percentile confidence intervals
@@ -1465,7 +1501,7 @@ end
 %!   assert (stats.original, 171.534023668639, 1e-08);
 %!   assert (stats.bias, -8.088193809171344, 1e-08);
 %!   assert (stats.std_error, 46.53418481731099, 1e-08);
-%!   assert (stats.CI_lower, 110.7021156275962, 1e-08);
+%!   assert (stats.CI_lower, 110.6138073406352, 1e-08);
 %!   assert (stats.CI_upper, 305.1908284023669, 1e-08);
 %! end
 %!
@@ -1515,8 +1551,8 @@ end
 %!   assert (stats.original, 0.7763744912894071, 1e-08);
 %!   assert (stats.bias, -0.00942010836534779, 1e-08);
 %!   assert (stats.std_error, 0.1438249935781226, 1e-08);
-%!   assert (stats.CI_lower, 0.3730176477191259, 1e-08);
-%!   assert (stats.CI_upper, 0.9772521004985222, 1e-08);
+%!   assert (stats.CI_lower, 0.3706033532632082, 1e-08);
+%!   assert (stats.CI_upper, 0.978329929008979, 1e-08);
 %! end
 %!
 %! ## Nonparametric 90% calibrated percentile confidence intervals
@@ -1527,7 +1563,7 @@ end
 %!   assert (stats.original, 0.7763744912894071, 1e-08);
 %!   assert (stats.bias, -0.00942010836534779, 1e-08);
 %!   assert (stats.std_error, 0.1438249935781226, 1e-08);
-%!   assert (stats.CI_lower, 0.2438194881892977, 1e-08);
-%!   assert (stats.CI_upper, 0.944013417640401, 1e-08);
+%!   assert (stats.CI_lower, 0.2307337185192847, 1e-08);
+%!   assert (stats.CI_upper, 0.9444347128107354, 1e-08);
 %! end
 %! ## Exact intervals based on normal theory are 0.51 - 0.91

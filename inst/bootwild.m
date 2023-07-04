@@ -94,7 +94,7 @@
 %  [5] Sellke, Bayarri and Berger (2001) Calibration of p-values for Testing
 %        Precise Null Hypotheses. Am Stat. 55(1), 62-71
 %
-%  bootwild (version 2023.06.16)
+%  bootwild (version 2023.07.04)
 %  Author: Andrew Charles Penn
 %  https://www.researchgate.net/profile/Andrew_Penn/
 %
@@ -192,6 +192,9 @@ function [stats, bootstat] = bootwild (y, X, dep, nboot, alpha, seed, L)
       error ('bootwild: NBOOT must be a positive integer');
     end
   end
+  % Compute resolution limit of the p-values as determined by resampling
+  % with nboot resamples
+  res_lim = 1 / nboot;
 
   % Evaluate alpha
   if ( (nargin < 5) || isempty (alpha) )
@@ -270,19 +273,19 @@ function [stats, bootstat] = bootwild (y, X, dep, nboot, alpha, seed, L)
   for j = 1:p
     if ( ~ isnan (std_err(j)) )
       [x, F, P] = empcdf (abs (T(j,:)), true, 1);
-      if (x(1) > 0)
-        pval(j) = interp1 ([0; x], [1; P], abs (t(j)), 'linear', 0);
+      if (abs (t(j)) < x(1))
+        pval(j) = interp1 (x, P, abs (t(j)), 'linear', 1);
       else
-        pval(j) = interp1 (x, P, abs (t(j)), 'linear', 0);
+        pval(j) = interp1 (x, P, abs (t(j)), 'linear', res_lim);
       end
       switch nalpha
         case 1
-          ci(j,:) = arrayfun (@(s) original(j) + s * std_err(j) * ...
-                              interp1 (F, x, 1 - alpha, 'linear'), [-1, +1]);
+          ci(j,1) = original(j) - std_err(j) * interp1 (F, x, 1 - alpha, 'linear', max (x));
+          ci(j,2) = original(j) + std_err(j) * interp1 (F, x, 1 - alpha, 'linear', max (x));
         case 2
           [x, F] = empcdf (T(j,:), true, 1);
-          ci(j,:) = arrayfun (@(p) original(j) - std_err(j) *...
-                              interp1 (F, x, p, 'linear'), fliplr (alpha));
+          ci(j,1) = original(j) - std_err(j) * interp1 (F, x, alpha(2), 'linear', max (x));
+          ci(j,2) = original(j) - std_err(j) * interp1 (F, x, alpha(1), 'linear', min (x));
       end
     end
   end
@@ -317,7 +320,7 @@ function S = lmfit (X, y, clusters, L, ISOCTAVE)
 
   % Solve linear equation to minimize least squares and compute the
   % regression coefficients (b) 
-  b = X \ y;                    % Instead of pinv (X' * X) * (X' * y);
+  b = X \ y;                    % Instead of inv (X' * X) * (X' * y);
 
   % Calculate heteroscedasticity-consistent (HC) or cluster robust (CR) standard 
   % errors (CR) for the regression coefficients. When the number of observations
@@ -361,7 +364,9 @@ end
 
 function [x, F, P] = empcdf (y, trim, m)
 
-  % Subfunction to calculate empirical cumulative distribution function
+  % Subfunction to calculate empirical cumulative distribution function in the
+  % presence of ties
+  % https://brainder.org/2012/11/28/competition-ranking-and-empirical-distributions/
 
   % Check input argument
   if (~ isa (y, 'numeric'))
@@ -380,7 +385,10 @@ function [x, F, P] = empcdf (y, trim, m)
     error ('bootwild:empcdf: m must be scalar');
   end
   if (nargin < 3)
-    % Denominator in calculation of quantiles: (N + m)
+    % Denominator in calculation of F is (N + m)
+    % When m is 1, quantiles formed from x and F are akin to qtype (definition) 6
+    % https://www.rdocumentation.org/packages/stats/versions/3.6.2/topics/quantile
+    % Hyndman and Fan (1996) Am Stat. 50(4):361-365
     m = 0;
   end
   if (~ isscalar (m))
@@ -402,10 +410,10 @@ function [x, F, P] = empcdf (y, trim, m)
   [jnk, IA, IC] = unique (x);
   N = numel (x);
   R = cat (1, IA(2:end) - 1, N);
-  F = arrayfun (@(i) R(IC(i)), [1:N]') / (N + m);
+  F = arrayfun (@(i) R(IC(i)), (1 : N)') / (N + m);
 
   % Create p-value distribution accounting for ties by competition ranking
-  P = 1 - arrayfun(@(i) IA(IC(i)) - 1, [1:N]') / N;
+  P = 1 - arrayfun (@(i) IA(IC(i)) - 1, (1 : N)') / N;
 
   % Remove redundancy
   if trim
@@ -453,7 +461,7 @@ function print_output (stats, nboot, alpha, p, method)
     fprintf (['\nSummary of wild bootstrap null hypothesis significance tests for linear models\n',...
               '*******************************************************************************\n\n']);
     fprintf ('Bootstrap settings: \n');
-    fprintf (' Function: pinv (X'' * X) * (X'' * y)\n');
+    fprintf (' Function: inv (X'' * X) * (X'' * y) \n');
     fprintf (' Resampling method: Wild %sbootstrap-t\n', method)
     fprintf (' Number of resamples: %u \n', nboot)
     fprintf (' Standard error calculations:');
@@ -534,17 +542,18 @@ end
 %! ## Please be patient, the calculations will be completed soon...
 
 %!test
-%! ## Test if the mean is equal to population value of 150 (one-tailed test)
+%! ## Test if the mean is equal to a population value of 181.5 (one-tailed test)
 %!
 %! ## Input univariate dataset
-%! H0 = 150;
+%! H0 = 181.5;
 %! heights = [183, 192, 182, 183, 177, 185, 188, 188, 182, 185].';
 %!
 %! ## Compute test statistics and p-values
+%! [stats,bootstat] = bootwild(heights);
 %! stats = bootwild(heights-H0);
 %! stats = bootwild(heights-H0,ones(10,1));
 %! stats = bootwild(heights-H0,[],2);
-%! stats = bootwild(heights-H0,[],[1;1;1;1;1;2;2;2;2;2]);
+%! stats = bootwild(heights-H0,[],[1;1;2;2;3;3;4;4;5;5]);
 %! stats = bootwild(heights-H0,[],[],2000);
 %! stats = bootwild(heights-H0,[],[],[],0.05);
 %! stats = bootwild(heights-H0,[],[],[],[0.025,0.975]);
@@ -552,7 +561,39 @@ end
 %! stats = bootwild(heights-H0,[],[],[],[],[]);
 %! stats = bootwild(heights-H0,[],[],[],[],[],1);
 %! stats = bootwild(heights-H0,[],[],[],[],[],[]);
-%! [stats,bootstat] = bootwild(heights);
+%! stats = bootwild(heights-H0,[],[],[],0.05,1);
+%! assert (stats.original, 3.0, 1e-06);
+%! assert (stats.std_err, 1.242980289465605, 1e-06);
+%! assert (stats.CI_lower, 0.1637453303377177, 1e-06);
+%! assert (stats.CI_upper, 5.836254669662281, 1e-06);
+%! assert (stats.tstat, 2.413553960127389, 1e-06);
+%! assert (stats.pval, 0.04631399387321838, 1e-06);
+%! assert (stats.fpr, 0.278908747660042, 1e-06);
+%! # ttest gives a p-value of 0.0478
+%! stats = bootwild(heights-H0,[],[],[],[0.025,0.975],1);
+%! assert (stats.original, 3.0, 1e-06);
+%! assert (stats.std_err, 1.242980289465605, 1e-06);
+%! assert (stats.CI_lower, 0.1637453303377181, 1e-06);
+%! assert (stats.CI_upper, 5.836254669662282, 1e-06);
+%! assert (stats.tstat, 2.413553960127389, 1e-06);
+%! assert (stats.pval, 0.04631399387321838, 1e-06);
+%! assert (stats.fpr, 0.278908747660042, 1e-06);
+%! stats = bootwild(heights-H0,[],2,[],0.05,1);
+%! assert (stats.original, 3.0, 1e-06);
+%! assert (stats.std_err, 1.240967364599086, 1e-06);
+%! assert (stats.CI_lower, -2.051371625886509, 1e-06);
+%! assert (stats.CI_upper, 8.051371625886508, 1e-06);
+%! assert (stats.tstat, 2.41746889207614, 1e-06);
+%! assert (stats.pval, 0.1424125098793937, 1e-06);
+%! assert (stats.fpr, 0.4300377984322045, 1e-06);
+%! stats = bootwild(heights-H0,[],[1;1;2;2;3;3;4;4;5;5],[],0.05,1);
+%! assert (stats.original, 3.0, 1e-06);
+%! assert (stats.std_err, 1.240967364599086, 1e-06);
+%! assert (stats.CI_lower, -2.051371625886509, 1e-06);
+%! assert (stats.CI_upper, 8.051371625886508, 1e-06);
+%! assert (stats.tstat, 2.41746889207614, 1e-06);
+%! assert (stats.pval, 0.1424125098793937, 1e-06);
+%! assert (stats.fpr, 0.4300377984322045, 1e-06);
 
 %!test
 %! ## Test if the regression coefficients equal 0
@@ -569,8 +610,9 @@ end
 %!     183.0,192.0,182.0,183.0,177.0,185.0,188.0,188.0,182.0,185.0]';
 %!
 %! ## Compute test statistics and p-values
+%! [stats,bootstat] = bootwild(y,X);
 %! stats = bootwild(y,X);
-%! stats = bootwild(y,X,4);
+%! stats = bootwild(y,X,3);
 %! stats = bootwild(y,X,[],2000);
 %! stats = bootwild(y,X,[],[],0.05);
 %! stats = bootwild(y,X,[],[],[0.025,0.975]);
@@ -578,4 +620,28 @@ end
 %! stats = bootwild(y,X,[],[],[],[]);
 %! stats = bootwild(y,X,[],[],[],[],1);
 %! stats = bootwild(y,X,[],[],[],[],[]);
-%! [stats,bootstat] = bootwild(y,X);
+%! stats = bootwild(y,X,[],[],0.05,1);
+%! assert (stats.original(2), 0.1904211996616223, 1e-06);
+%! assert (stats.std_err(2), 0.08261019852213342, 1e-06);
+%! assert (stats.CI_lower(2), -0.009830957256557721, 1e-06);
+%! assert (stats.CI_upper(2), 0.3906733565798023, 1e-06);
+%! assert (stats.tstat(2), 2.305056797685863, 1e-06);
+%! assert (stats.pval(2), 0.05676347525464715, 1e-06);
+%! assert (stats.fpr(2), 0.3068373877468356, 1e-06);
+%! # fitlm gives a CI of [0.0333, 0.34753] and a p-value of 0.018743
+%! stats = bootwild(y,X,[],[],[0.025,0.975],1);
+%! assert (stats.original(2), 0.1904211996616223, 1e-06);
+%! assert (stats.std_err(2), 0.08261019852213342, 1e-06);
+%! assert (stats.CI_lower(2), -0.014393451422619, 1e-06);
+%! assert (stats.CI_upper(2), 0.3813135974019127, 1e-06);
+%! assert (stats.tstat(2), 2.305056797685863, 1e-06);
+%! assert (stats.pval(2), 0.05676347525464715, 1e-06);
+%! assert (stats.fpr(2), 0.3068373877468356, 1e-06);
+%! stats = bootwild(y,X,3,[],0.05,1);
+%! assert (stats.original(2), 0.1904211996616223, 1e-06);
+%! assert (stats.std_err(2), 0.07170701459665534, 1e-06);
+%! assert (stats.CI_lower(2), -0.02743217748374913, 1e-06);
+%! assert (stats.CI_upper(2), 0.4082745768069936, 1e-06);
+%! assert (stats.tstat(2), 2.655544938423697, 1e-06);
+%! assert (stats.pval(2), 0.07667715650213876, 1e-06);
+%! assert (stats.fpr(2), 0.3486530639466603, 1e-06);

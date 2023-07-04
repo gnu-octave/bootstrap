@@ -2,6 +2,7 @@
 % -- statistics: bootlm (Y, GROUP, NAME, VALUE)
 % -- statistics: STATS = bootlm (...)
 % -- statistics: [STATS, X] = bootlm (...)
+% -- statistics: [STATS, X, L] = bootlm (...)
 %
 %        Fits a linear model with categorical and/or continuous predictors (i.e.
 %     independent variables) on a continuous outcome (i.e. dependent variable)
@@ -14,7 +15,9 @@
 %        Confidence intervals and Null Hypothesis Significance Tests (NHSTs) for
 %     the regression coefficients (H0 = 0) are calculated by wild bootstrap-t
 %     and so are robust when normality and homoscedasticity cannot be assumed.
-%     Note that the p-values are NOT adjusted for multiple comparisons.
+%     Note that the p-values are NOT adjusted for multiple comparisons and will
+%     be truncated at the resolution limit determined by the number of bootstrap
+%     replicates (specifically 1/NBOOT, see NAME-VALUE pairs below).
 %        Usage of this function is very similar to that of 'anovan'. Data (Y)
 %     is a single vector y with groups specified by a corresponding matrix or
 %     cell array of group labels GROUP, where each column of GROUP has the same
@@ -242,7 +245,7 @@
 %     '[STATS, X, L] = bootlm (...)' also returns the hypothesis matrix used to
 %     compute the estimated marginal means.
 %
-%  bootlm (version 2023.06.19)
+%  bootlm (version 2023.07.04)
 %  Author: Andrew Charles Penn
 %  https://www.researchgate.net/profile/Andrew_Penn/
 %
@@ -663,7 +666,7 @@ function [STATS, X, L] = bootlm (Y, GROUP, varargin)
         fit = X * b;                             % Fitted values
         D = (1 / p) * t.^2 .* (h ./ (1 - h));    % Cook's distances
         [jnk, DI] = sort (D, 'descend');         % Sorted Cook's distances
-        nk = 3;                                  % Number of influential data points to label
+        nk = 3;                                  % Number of most influential data points to label
 
         % Normal quantile-quantile plot
         subplot (2, 2, 1);
@@ -921,7 +924,7 @@ function C = contr_simple (N)
   % These contrasts are centered (i.e. sum to 0)
   % Ideal for unordered predictors, with comparison to a reference level
   % The first predictor level is the reference level
-  C =  cat (1, zeros (1,N-1), eye(N-1)) - 1/N;
+  C =  cat (1, zeros (1, N - 1), eye (N - 1)) - (1 / N);
 
 end
 
@@ -931,10 +934,10 @@ function C = contr_poly (N)
   % for trend analysis of ordered categorical predictor levels
   % These contrasts are orthogonal and centered (i.e. sum to 0)
   % Ideal for ordered predictors
-  [C, jnk] = qr (bsxfun (@power, [1:N]' - mean ([1:N]'), [0:N-1]));
+  [C, jnk] = qr (bsxfun (@power, (1 : N)' - mean ((1 : N)'), [0 : N - 1]));
   C(:,1) = [];
-  s = ones (1, N-1);
-  s(1:2:N-1) = s(1:2:N-1) * -1;
+  s = ones (1, N - 1);
+  s(1 : 2 : N - 1) = s(1 : 2 : N - 1) * -1;
   f = (sign(C(1,:)) ~= s);
   C(:,f) = C(:,f) * -1;
 
@@ -944,8 +947,8 @@ function C = contr_helmert (N)
 
   % Create contrast matrix (of doubles) using Helmert coding contrasts
   % These contrasts are orthogonal and centered (i.e. sum to 0)
-  C = cat (1, tril (-ones (N-1), -1) + diag (N-1:-1:1), ...
-              -ones (1, N-1)) ./ (N:-1:2);
+  C = cat (1, tril (- ones (N - 1), -1) + diag (N - 1 : -1 : 1), ...
+              -ones (1, N - 1)) ./ (N : -1 : 2);
 
 end
 
@@ -953,7 +956,7 @@ function C = contr_sum (N)
 
   % Create contrast matrix (of doubles) using deviation effect coding
   % These contrasts are centered (i.e. sum to 0)
-  C =  cat (1, - (ones (1,N-1)), eye (N-1));
+  C =  cat (1, - (ones (1, N - 1)), eye (N - 1));
 
 end
 
@@ -970,7 +973,7 @@ function C = contr_treatment (N)
   % Create contrast matrix (of doubles) using treatment contrast coding
   % Ideal for unordered predictors, with comparison to a reference level
   % The first predictor level is the reference level
-  C =  cat (1, zeros (1,N-1), eye(N-1));
+  C =  cat (1, zeros (1, N - 1), eye (N - 1));
 
 end
 
@@ -1014,7 +1017,9 @@ end
 
 function [x, F, P] = empcdf (y, trim, m)
 
-  % Subfunction to calculate empirical cumulative distribution function
+  % Subfunction to calculate empirical cumulative distribution function in the
+  % presence of ties
+  % https://brainder.org/2012/11/28/competition-ranking-and-empirical-distributions/
 
   % Check input argument
   if (~ isa (y, 'numeric'))
@@ -1033,7 +1038,10 @@ function [x, F, P] = empcdf (y, trim, m)
     error ('bootlm:empcdf: m must be scalar');
   end
   if (nargin < 3)
-    % Denominator in calculation of quantiles: (N + m)
+    % Denominator in calculation of F is (N + m)
+    % When m is 1, quantiles formed from x and F are akin to qtype (definition) 6
+    % https://www.rdocumentation.org/packages/stats/versions/3.6.2/topics/quantile
+    % Hyndman and Fan (1996) Am Stat. 50(4):361-365
     m = 0;
   end
   if (~ isscalar (m))
@@ -1055,10 +1063,10 @@ function [x, F, P] = empcdf (y, trim, m)
   [jnk, IA, IC] = unique (x);
   N = numel (x);
   R = cat (1, IA(2:end) - 1, N);
-  F = arrayfun (@(i) R(IC(i)), [1:N]') / (N + m);
+  F = arrayfun (@(i) R(IC(i)), (1 : N)') / (N + m);
 
   % Create p-value distribution accounting for ties by competition ranking
-  P = 1 - arrayfun(@(i) IA(IC(i)) - 1, [1:N]') / N;
+  P = 1 - arrayfun (@(i) IA(IC(i)) - 1, (1 : N)') / N;
 
   % Remove redundancy
   if trim
@@ -1317,7 +1325,11 @@ end
 %! gender = {'male' 'male' 'male' 'male' 'male' 'female' 'female' 'female' ...
 %!           'female' 'female' 'female'}';
 %!
-%! STATS = bootlm (score, gender, 'display', 'off', 'varnames', 'gender');
+%! stats = bootlm (score, gender, 'display', 'off', 'varnames', 'gender', ...
+%!                                'seed', 1);
+%!
+%! assert (stats.pval(2), 0.2598477704902071, 1e-09);
+%! # ttest2 (with 'vartype' = 'unequal') gives a p-value of 0.2501;
 
 %!test
 %!
@@ -1329,9 +1341,16 @@ end
 %!              'before' 'after'; 'before' 'after'}';
 %! subject = {'GS' 'GS'; 'JM' 'JM'; 'HM' 'HM'; 'JW' 'JW'; 'PS' 'PS'}';
 %!
-%! STATS = bootlm (score(:), {treatment(:), subject(:)}, ...
+%! stats = bootlm (score(:), {treatment(:), subject(:)}, 'seed', 1, ...
 %!                            'model', 'linear', 'display', 'off', ...
 %!                            'varnames', {'treatment', 'subject'});
+%!
+%! assert (stats.pval(1), 0.02809999999999607, 1e-09);
+%! assert (stats.pval(2), 0.0001, 1e-09);
+%! assert (stats.pval(3), 0.8867504105747056, 1e-09);
+%! assert (stats.pval(4), 0.05077777777777787, 1e-09);
+%! assert (stats.pval(5), 0.4672831090796068, 1e-09);
+%! assert (stats.pval(6), 0.4023688272304305, 1e-09);
 
 %!test
 %!
@@ -1344,7 +1363,13 @@ end
 %!          'al1','al1','al1','al1','al1','al1', ...
 %!          'al2','al2','al2','al2','al2','al2'}';
 %!
-%! STATS = bootlm (strength, alloy, 'display', 'off', 'varnames', 'alloy');
+%! stats = bootlm (strength, alloy, 'display', 'off', 'varnames', 'alloy', ...
+%!                                  'seed', 1);
+%!
+%! assert (stats.CI_lower(2), -10.22415128602109, 1e-09);
+%! assert (stats.CI_upper(2), -3.775848713978915, 1e-09);
+%! assert (stats.CI_lower(3), -7.588817226181499, 1e-09);
+%! assert (stats.CI_upper(3), -2.411182773818494, 1e-09);
 
 %!test
 %!
@@ -1359,9 +1384,14 @@ end
 %! subject = [ 1  1  1;  2  2  2;  3  3  3;  4  4  4;  5  5  5; ...
 %!             6  6  6;  7  7  7;  8  8  8;  9  9  9; 10 10 10];
 %!
-%! STATS = bootlm (words(:), {seconds(:), subject(:)}, ...
+%! stats = bootlm (words(:), {seconds(:), subject(:)}, 'seed', 1, ...
 %!                            'model', 'linear', 'display', 'off', ...
 %!                            'varnames', {'seconds', 'subject'});
+%!
+%! assert (stats.CI_lower(2), 1.268506249739885, 1e-09);
+%! assert (stats.CI_upper(2), 2.731493750260111, 1e-09);
+%! assert (stats.CI_lower(3), 2.550621791797973, 1e-09);
+%! assert (stats.CI_upper(3), 3.849378208202028, 1e-09);
 
 %!test
 %!
@@ -1380,9 +1410,21 @@ end
 %! popper = {'oil', 'oil', 'oil'; 'oil', 'oil', 'oil'; 'oil', 'oil', 'oil'; ...
 %!           'air', 'air', 'air'; 'air', 'air', 'air'; 'air', 'air', 'air'};
 %!
-%! STATS = bootlm (popcorn(:), {brands(:), popper(:)}, ...
+%! stats = bootlm (popcorn(:), {brands(:), popper(:)}, 'seed', 1, ...
 %!                            'display', 'off', 'model', 'full', ...
 %!                            'varnames', {'brands', 'popper'});
+%!
+%! assert (stats.pval(2), 0.0001, 1e-09);
+%! assert (stats.pval(3), 0.0001, 1e-09);
+%! assert (stats.pval(4), 0.0001, 1e-09);
+%! assert (stats.pval(5), 0.3505, 1e-09);
+%! assert (stats.pval(6), 0.6931785595635835, 1e-09);
+%! assert (stats.fpr(2), 0.00249737757706675, 1e-09);
+%! assert (stats.fpr(3), 0.00249737757706675, 1e-09);
+%! assert (stats.fpr(4), 0.00249737757706675, 1e-09);
+%! assert (stats.fpr(5), 0.4997163607846966, 1e-09);
+%! assert (stats.fpr(6), 0.5, 1e-09);
+
 
 %!test
 %!
@@ -1396,9 +1438,16 @@ end
 %!           'm' 'm' 'm' 'm' 'm' 'm' 'm' 'm' 'm' 'm'}';
 %! degree = [1 1 1 1 1 1 1 1 0 0 0 0 1 1 1 0 0 0 0 0 0 0]';
 %!
-%! STATS = bootlm (salary, {gender, degree}, 'model', 'full', ...
+%! stats = bootlm (salary, {gender, degree}, 'model', 'full', ...
 %!                            'display', 'off', 'varnames', ...
-%!                            {'gender', 'degree'});
+%!                            {'gender', 'degree'}, 'seed', 1);
+%!
+%! assert (stats.pval(2), 0.01347437900654173, 1e-09);
+%! assert (stats.pval(3), 0.0001, 1e-09);
+%! assert (stats.pval(4), 0.5809132471172398, 1e-09);
+%! assert (stats.fpr(2), 0.1362570884700073, 1e-09);
+%! assert (stats.fpr(3), 0.00249737757706675, 1e-09);
+%! assert (stats.fpr(4), 0.5, 1e-09);
 
 %!test
 %!
@@ -1413,8 +1462,13 @@ end
 %! babble = [4.6 4.4 3.9 5.6 5.1 5.5 3.9 3.5 3.7...
 %!           5.6 4.7 5.9 6.0 5.4 6.6 5.8 5.3 5.7]';
 %!
-%! STATS = bootlm (babble, {sugar, milk}, 'model', 'full', 'display', 'off', ...
-%!                                        'varnames', {'sugar', 'milk'});
+%! stats = bootlm (babble, {sugar, milk}, 'model', 'full', 'display', 'off', ...
+%!                                'seed', 1, 'varnames', {'sugar', 'milk'});
+%!
+%! assert (stats.pval(5), 0.005336667238225245, 1e-09);
+%! assert (stats.pval(6), 0.05728167864593372, 1e-09);
+%! assert (stats.fpr(5), 0.07055862620821904, 1e-09);
+%! assert (stats.fpr(6), 0.3080968745469571, 1e-09);
 
 %!test
 %!
@@ -1443,10 +1497,16 @@ end
 %!       180 187 199 170 204 194 162 184 183 156 180 173 ...
 %!       202 228 190 206 224 204 205 199 170 160 NaN NaN];
 %!
-%! STATS = bootlm (BP(:), {drug(:), feedback(:), diet(:)}, ...
+%! stats = bootlm (BP(:), {drug(:), feedback(:), diet(:)}, ...
+%!                                    'seed', 1, ...
 %!                                    'model', 'full', ...
 %!                                    'display', 'off', ...
 %!                                    'varnames', {'drug', 'feedback', 'diet'});
+%!
+%! assert (stats.pval(11), 0.02383996122376443, 1e-09);
+%! assert (stats.pval(12), 0.7045300973398985, 1e-09);
+%! assert (stats.fpr(11), 0.1949326841768444, 1e-09);
+%! assert (stats.fpr(12), 0.5, 1e-09);
 
 %!test
 %!
@@ -1462,10 +1522,19 @@ end
 %! treatment={'C' 'T' 'C' 'T' 'C' 'T' 'C' 'T' 'C' 'T' 'C' 'T' 'C' 'T' 'C' 'T'}';
 %! block = [1 1 1 1 1 1 1 1 2 2 2 2 2 2 2 2]';
 %!
-%! STATS = bootlm (measurement/10, {strain, treatment, block}, ...
+%! stats = bootlm (measurement/10, {strain, treatment, block}, ...
 %!                            'model', [1 0 0; 0 1 0; 0 0 1; 1 1 0], ...
 %!                            'varnames', {'strain', 'treatment', 'block'}, ...
-%!                            'display', 'off');
+%!                            'display', 'off', 'seed', 1);
+%!
+%! assert (stats.pval(5), 0.0262316632688982, 1e-09);
+%! assert (stats.pval(7), 0.5000494547288942, 1e-09);
+%! assert (stats.pval(8), 0.1943950071604845, 1e-09);
+%! assert (stats.pval(9), 0.4984435890168324, 1e-09);
+%! assert (stats.fpr(5), 0.206101326545084, 1e-09);
+%! assert (stats.fpr(7), 0.5, 1e-09);
+%! assert (stats.fpr(8), 0.4639450181245126, 1e-09);
+%! assert (stats.fpr(9), 0.5, 1e-09);
 
 %!test
 %!
@@ -1483,9 +1552,14 @@ end
 %!            'ex' 'ex' 'ex' 'niv' 'niv' 'niv' 'niv' 'niv' 'niv' 'niv' ...
 %!            'niv' 'niv' 'niv' 'niv' 'niv' 'niv' 'niv' 'niv' 'niv' 'niv'};
 %!
-%! STATS = bootlm (pulse, {species, temp}, 'model', 'linear', ...
+%! stats = bootlm (pulse, {species, temp}, 'model', 'linear', ...
 %!                           'continuous', 2, 'display', 'off', ...
-%!                           'varnames', {'species', 'temp'});
+%!                           'varnames', {'species', 'temp'}, 'seed', 1);
+%!
+%! assert (stats.CI_lower(2), -11.40684062169122, 1e-09);
+%! assert (stats.CI_upper(2), -8.723741847406771, 1e-09);
+%! assert (stats.CI_lower(3), 3.408111031033375, 1e-09);
+%! assert (stats.CI_upper(3), 3.797394718682978, 1e-09);
 
 %!test
 %!
@@ -1515,10 +1589,15 @@ end
 %!        58 56 57 59 59 60 55 53 55 58 68 62 61 54 59 63 60 67 60 67 ...
 %!        75 54 57 62 65 60 58 61 65 57 56 58 58 58 52 53 60 62 61 61]';
 %!
-%! STATS = bootlm (score, {treatment, exercise, age}, ...
+%! stats = bootlm (score, {treatment, exercise, age}, 'seed', 1, ...
 %!                            'model', [1 0 0; 0 1 0; 0 0 1; 1 1 0], ...
 %!                            'continuous', 3, 'display', 'off', ...
 %!                            'varnames', {'treatment', 'exercise', 'age'});
+%!
+%! assert (stats.pval(6), 0.961027014448505, 1e-09);
+%! assert (stats.pval(7), 0.01545815447130454, 1e-09);
+%! assert (stats.fpr(6), 0.5, 1e-09);
+%! assert (stats.fpr(7), 0.1490852008925364, 1e-09);
 
 %!test
 %!
@@ -1539,8 +1618,28 @@ end
 %!      -0.6002401  0.0000000  0.0  0.5
 %!      -0.6002401  0.0000000  0.0 -0.5];
 %!
-%! STATS = bootlm (dv, g, 'contrasts', C, 'varnames', 'score', ...
+%! stats = bootlm (dv, g, 'contrasts', C, 'varnames', 'score', 'seed', 1, ...
 %!                          'alpha', 0.05, 'display', false);
 %!
-%! STATS = bootlm (dv, g, 'contrasts', C, 'varnames', 'score', ...
+%! assert (stats.pval(2), 0.0001, 1e-09);
+%! assert (stats.pval(3), 0.001545627153779012, 1e-09);
+%! assert (stats.pval(4), 0.0001, 1e-09);
+%! assert (stats.pval(5), 0.0004796588939914593, 1e-09);
+%! assert (stats.fpr(2), 0.00249737757706675, 1e-09);
+%! assert (stats.fpr(3), 0.02647326194014595, 1e-09);
+%! assert (stats.fpr(4), 0.00249737757706675, 1e-09);
+%! assert (stats.fpr(5), 0.009866261365983219, 1e-09);
+%!
+%! stats = bootlm (dv, g, 'contrasts', C, 'varnames', 'score', 'seed', 1, ...
 %!                          'alpha', 0.05, 'display', false, 'dim', 1);
+%!
+%! assert (stats.CI_lower(1), 7.810735451847229, 1e-09);
+%! assert (stats.CI_lower(2), 13.97854961933067, 1e-09);
+%! assert (stats.CI_lower(3), 16.46964675567744, 1e-09);
+%! assert (stats.CI_lower(4), 18.58334304121367, 1e-09);
+%! assert (stats.CI_lower(5), 26.78896222629294, 1e-09);
+%! assert (stats.CI_upper(1), 12.18926454815282, 1e-09);
+%! assert (stats.CI_upper(2), 22.02145038066936, 1e-09);
+%! assert (stats.CI_upper(3), 21.53035324432259, 1e-09);
+%! assert (stats.CI_upper(4), 23.41694267307205, 1e-09);
+%! assert (stats.CI_upper(5), 31.2112599959293, 1e-09);

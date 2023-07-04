@@ -7,8 +7,8 @@ state = warning ('query', 'all');
 warning ('off', 'all');
 
 % Set significance level
-alpha = .05;          % 95% confidence interval
-%alpha = [.025,.975];  % 95% confidence interval
+%alpha = .05;          % 95% confidence interval
+alpha = [.025,.975];  % 95% confidence interval
 
 %--------------------------------------------------------------
 % Uncomment one of the following example simulation conditions
@@ -36,7 +36,7 @@ bootfun = @mean; nvar = 1; rnd = @(n) random ('norm', 0, 1, [n, 1]); theta = 0;
 %--------------------------------------------------------------
 
 % Define sample size
-n = 10;
+n = 7;
 
 % Define number of simulations
 sim = 1000;
@@ -48,8 +48,8 @@ above = 0;
 below = 0;
 
 % Bootstrap resampling
-nboot = [10000,0];
-type = 'bca';
+nboot = [2000,200];
+type = 'per';
 
 % Print settings
 fprintf ('----- BOOTSTRAP CONFIDENCE INTERVAL (CI) SIMULATION -----\n')

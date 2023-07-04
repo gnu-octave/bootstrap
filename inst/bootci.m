@@ -113,7 +113,7 @@
 %  [10] Polansky (2000) Stabilizing bootstrap-t confidence intervals
 %        for small samples. Can J Stat. 28(3):501-516
 %
-%  bootci (version 2023.01.04)
+%  bootci (version 2023.07.04)
 %  Author: Andrew Charles Penn
 %  https://www.researchgate.net/profile/Andrew_Penn/
 %
@@ -252,11 +252,10 @@ function [ci, bootstat, bootsam] = bootci (argin1, argin2, varargin)
   % If applicable, check we have parallel computing capabilities
   if (ncpus > 1)
     if (ISOCTAVE)
-      pat = '^parallel';
-      software = pkg('list');
+      software = pkg ('list');
       names = cellfun (@(S) S.name, software, 'UniformOutput', false);
       status = cellfun (@(S) S.loaded, software, 'UniformOutput', false);
-      index = find (~ cellfun (@isempty, regexpi (names,pat)));
+      index = find (~ cellfun (@isempty, regexpi (names, '^parallel')));
       if (~ isempty (index))
         if (~ logical (status{index}))
           ncpus = 0;
@@ -359,8 +358,9 @@ function [ci, bootstat, bootsam] = bootci (argin1, argin2, varargin)
       m = size (bootstat, 1);
       ci = zeros (m, 2);
       for j = 1:m
-        [cdf, t] = empcdf (T(j,:));
-        ci(j,:) = fliplr (arrayfun (@(p) stats.original(j) - stats.std_error(j) * interp1 (cdf, t, p, 'linear'), alpha));
+        [t, cdf] = empcdf (T(j,:), true, 1);
+        ci(j,1) = stats.original(j) - stats.std_error(j) * interp1 (cdf, t, alpha(2), 'linear', max (t));
+        ci(j,2) = stats.original(j) - stats.std_error(j) * interp1 (cdf, t, alpha(1), 'linear', min (t));
       end
       ci = ci.';
 
@@ -381,9 +381,11 @@ end
 
 %--------------------------------------------------------------------------
 
-function [F, x] = empcdf (y)
+function [x, F, P] = empcdf (y, trim, m)
 
-  % Subfunction to calculate empirical cumulative distribution function
+  % Subfunction to calculate empirical cumulative distribution function in the
+  % presence of ties
+  % https://brainder.org/2012/11/28/competition-ranking-and-empirical-distributions/
 
   % Check input argument
   if (~ isa (y, 'numeric'))
@@ -395,6 +397,25 @@ function [F, x] = empcdf (y)
   if (size (y, 2) > 1)
     y = y.';
   end
+  if (nargin < 2)
+    trim = true;
+  end
+  if ( (~ islogical (trim)) && (~ ismember (trim, [0, 1])) )
+    error ('bootci:empcdf: m must be scalar');
+  end
+  if (nargin < 3)
+    % Denominator in calculation of F is (N + m)
+    % When m is 1, quantiles formed from x and F are akin to qtype (definition) 6
+    % https://www.rdocumentation.org/packages/stats/versions/3.6.2/topics/quantile
+    % Hyndman and Fan (1996) Am Stat. 50(4):361-365
+    m = 0;
+  end
+  if (~ isscalar (m))
+    error ('bootci:empcdf: m must be scalar');
+  end
+  if (~ ismember (m, [0, 1]))
+    error ('bootci:empcdf: m must be either 0 or 1');
+  end
 
   % Discard NaN values
   ridx = isnan (y);
@@ -403,9 +424,21 @@ function [F, x] = empcdf (y)
   % Get size of y
   N = numel (y);
 
-  % Create empirical CDF
+  % Create empirical CDF accounting for ties by competition ranking
   x = sort (y);
-  F = linspace (0, 1, N).';
+  [jnk, IA, IC] = unique (x);
+  N = numel (x);
+  R = cat (1, IA(2:end) - 1, N);
+  F = arrayfun (@(i) R(IC(i)), [1:N].') / (N + m);
+
+  % Create p-value distribution accounting for ties by competition ranking
+  P = 1 - arrayfun (@(i) IA(IC(i)) - 1, [1:N]') / N;
+
+  % Remove redundancy
+  if trim
+    M = unique ([x, F, P], 'rows', 'last');
+    x = M(:,1); F = M(:,2); P = M(:,3);
+  end
 
 end
 
@@ -701,15 +734,15 @@ end
 %! ci = bootci(2000,{{@var,1},A},'alpha',0.1,'type','stud','nbootstd',100,'seed',1);
 %! if (isempty (regexp (which ('boot'), 'mex$')))
 %!   ## test boot m-file result
-%!   assert (ci(1), 109.451865766257, 1e-07);
-%!   assert (ci(2), 306.1557840134357, 1e-07);
+%!   assert (ci(1), 109.3907006307414, 1e-07);
+%!   assert (ci(2), 306.8096054314711, 1e-07);
 %! end
 %!
 %! ## Nonparametric 90% calibrated percentile confidence intervals (double bootstrap)
 %! ci = bootci(2000,{{@var,1},A},'alpha',0.1,'type','cal','nbootcal',200,'seed',1);
 %! if (isempty (regexp (which ('boot'), 'mex$')))
 %!   ## test boot m-file result
-%!   assert (ci(1), 110.7021156275962, 1e-07);
+%!   assert (ci(1), 110.6138073406352, 1e-07);
 %!   assert (ci(2), 305.1908284023669, 1e-07);
 %! end
 %!
@@ -747,7 +780,7 @@ end
 %! ci = bootci(2000,{@cor,LSAT,GPA},'alpha',0.1,'type','cal','nbootcal',500,'seed',1);
 %! if (isempty (regexp (which ('boot'), 'mex$')))
 %!   ## test boot m-file result
-%!   assert (ci(1), 0.2438194881892977, 1e-07);
-%!   assert (ci(2), 0.944013417640401, 1e-07);
+%!   assert (ci(1), 0.2307337185192847, 1e-07);
+%!   assert (ci(2), 0.9444347128107354, 1e-07);
 %! end
 %! ## Exact intervals based on normal theory are 0.51 - 0.91
