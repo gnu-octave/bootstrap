@@ -329,7 +329,7 @@ function S = lmfit (X, y, clusters, L, ISOCTAVE)
   %   Long and Ervin (2000) Am. Stat, 54(3), 217-224
   %   Cameron, Gelbach and Miller (2008) Rev Econ Stat. 90(3), 414-427
   %   MacKinnon & Webb (2020) QED Working Paper Number 1421
-  yf = X * b;              % Instead of X * b;
+  yf = X * b;                % Instead of X * b;
   u = y - yf;
   if ( (nargin < 3) || isempty (clusters) )
     % Heteroscedasticity-Consistent (HC0) standard errors

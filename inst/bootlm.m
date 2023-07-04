@@ -18,6 +18,7 @@
 %     Note that the p-values are NOT adjusted for multiple comparisons and will
 %     be truncated at the resolution limit determined by the number of bootstrap
 %     replicates (specifically 1/NBOOT, see NAME-VALUE pairs below).
+%
 %        Usage of this function is very similar to that of 'anovan'. Data (Y)
 %     is a single vector y with groups specified by a corresponding matrix or
 %     cell array of group labels GROUP, where each column of GROUP has the same
@@ -227,6 +228,27 @@
 %          no clustered resampling is performed and all errors are treated
 %          as independent. The standard errors computed are cluster robust.
 %
+%     '[...] = bootlm (Y, GROUP, ..., 'posthoc', POSTHOC)'
+%
+%        • When DIM is specified, POSTHOC comparisons along DIM can be specified
+%          as one of the following:
+%
+%             • 'none' : No posthoc comparisons are performed. The statistics
+%               returned are for the estimated marginal means.
+%
+%             • 'pairwise' : Pairwise comparisons are performed.
+%
+%             • 'trt_vs_ctrl' : Treatment vs. Control comparisons are performed.
+%                The control is the first group listed when POSTHOC is set to
+%                'none'.
+%
+%             • {'trt_vs_ctrl', k} : Treatment vs. Control comparisons are
+%                performed. The control is the group number k listed when
+%                POSTHOC is set to 'none'.
+%
+%          Note that the p-values are NOT corrected for multiple comparisons and
+%          thus are akin to Fisher's least significant difference (LSD).
+%
 %     '[...] = bootlm (Y, GROUP, ..., 'seed', SEED)' initialises the Mersenne
 %     Twister random number generator using an integer SEED value so that
 %     'bootlm' results are reproducible.
@@ -288,6 +310,7 @@ function [STATS, X, L] = bootlm (Y, GROUP, varargin)
     NBOOT = 10000;
     SEED = [];
     DEP = [];
+    POSTHOC = 'none';
     L = [];
     for idx = 3:2:nargin
       name = varargin{idx-2};
@@ -316,6 +339,8 @@ function [STATS, X, L] = bootlm (Y, GROUP, varargin)
           DEP = value;
         case {'dim', 'dimension'}
           DIM = value;
+        case {'posthoc', 'posttest'}
+          POSTHOC = value;
         case 'nboot'
           NBOOT = value;
         case 'seed'
@@ -557,8 +582,9 @@ function [STATS, X, L] = bootlm (Y, GROUP, varargin)
     % If applicable, create hypothesis matrix, names and compute sample sizes
     if (~ isempty (DIM))
       H = X;
+      ridx = ~ ismember ((1 : Nm), DIM);
       for i = 1:Nt
-        if ( all (DIM ~= i) )
+        if ( any (and (TERMS(i,:), ridx)) )
           H{i+1}(:,:) = 0;
         end
       end
@@ -592,9 +618,6 @@ function [STATS, X, L] = bootlm (Y, GROUP, varargin)
 
     else
 
-      % Model estimated marginal means
-      STATS = bootwild (Y, X, DEP, NBOOT, ALPHA, SEED, L);
-
       % Create names for estimated marginal means
       idx = cellfun (@(l) find (all (bsxfun (@eq, H, l), 2), 1), num2cell (L', 2));
       Ne = size (L, 2);
@@ -610,11 +633,43 @@ function [STATS, X, L] = bootlm (Y, GROUP, varargin)
         NAMES{i} = str(1:end-2);
         str = '';
       end
-      STATS.name = NAMES;
 
-      % Compute sample sizes and add them to the output structure
-      U = unique (gid(:,DIM), 'rows', 'stable');
-      STATS.n = cellfun (@(u) sum (all (gid(:,DIM) == u, 2)), num2cell (U, 2));
+      switch (lower (POSTHOC))
+        case 'none'
+
+          % Model estimated marginal means
+          STATS = bootwild (Y, X, DEP, NBOOT, ALPHA, SEED, L);
+
+          % Compute sample sizes and add them to the output structure
+          U = unique (gid(:,DIM), 'rows', 'stable');
+          STATS.n = cellfun (@(u) sum (all (gid(:,DIM) == u, 2)), num2cell (U, 2));
+
+          % Assign NAMES of groups to output structure
+          STATS.name = NAMES;
+
+        otherwise
+
+          % Model posthoc comparisons
+          if (iscell (POSTHOC))
+            if (~ strcmpi (POSTHOC{1}, 'trt_vs_ctrl'))
+              error ('bootlm: REF can only be used to specify a control group for ''trt_vs_ctrl''')
+            end
+            [L_POSTHOC, pairs] = feval (POSTHOC{1}, L, POSTHOC{2:end});
+            POSTHOC = POSTHOC{1};
+          else
+            if (~ ismember (POSTHOC, {'pairwise', 'trt_vs_ctrl'}))
+              error ('bootlm: available options for POSTHOC are ''pairwise'' and ''trt_vs_ctrl''')
+            end
+            [L_POSTHOC, pairs] = feval (POSTHOC, L);
+          end
+          STATS = bootwild (Y, X, DEP, NBOOT, ALPHA, SEED, L_POSTHOC);
+
+          % Create names of posthoc comparisons and assign to the output structure
+          STATS.name = arrayfun(@(i) sprintf ('%s - %s', NAMES{pairs(i,:)}), ...
+                                (1 : size (pairs,1))', 'UniformOutput', false);
+          NAMES = STATS.name;
+
+      end
 
     end
 
@@ -633,12 +688,19 @@ function [STATS, X, L] = bootlm (Y, GROUP, varargin)
           fprintf('name                                   coeff       CI_lower    CI_upper    p-val\n');
           fprintf('--------------------------------------------------------------------------------\n');
         else
-          fprintf('\nMODEL ESTIMATED MARGINAL MEANS\n\n');
-          fprintf('name                                   mean        CI_lower    CI_upper        n\n');
-          fprintf('--------------------------------------------------------------------------------\n');
+          switch (lower (POSTHOC))
+            case 'none'
+              fprintf('\nMODEL ESTIMATED MARGINAL MEANS\n\n');
+              fprintf('name                                   mean        CI_lower    CI_upper        n\n');
+              fprintf('--------------------------------------------------------------------------------\n');
+            case {'pairwise', 'trt_vs_ctrl'}
+              fprintf('\nMODEL POSTHOC COMPARISONS\n\n');
+              fprintf('name                                   mean        CI_lower    CI_upper    p-val\n');
+              fprintf('--------------------------------------------------------------------------------\n');
+          end
         end
         for j = 1:size (NAMES, 1)
-          if (isempty (DIM))
+          if ( (isempty (DIM)) || (ismember (lower (POSTHOC), {'pairwise', 'trt_vs_ctrl'})) )
             fprintf ('%-37s  %#-+10.4g  %#-+10.4g  %#-+10.4g', ...
                      NAMES{j}(1:min(end,37)), STATS.original(j), STATS.CI_lower(j), STATS.CI_upper(j));
             if (STATS.pval(j) <= 0.001)
