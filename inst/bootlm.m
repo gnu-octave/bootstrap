@@ -1076,6 +1076,73 @@ end
 
 %--------------------------------------------------------------------------
 
+function [L, pairs] = pairwise (L_EMM)
+
+  % Get number of group members from the hypothesis matrix used 
+  % to generate estimated marginal means
+  Ng = size (unique (L_EMM','rows'), 1);
+
+  % Create pairs matrix for pairwise comparisons
+  gid = (1 : Ng)';  % Create numeric group ID
+  A = ones (Ng, 1) * gid';
+  B = tril (gid * ones(1, Ng),-1);
+  pairs = [A(:), B(:)];
+  ridx = (pairs(:, 2) == 0);
+  pairs(ridx, :) = [];
+
+  % Calculate hypothesis matrix for pairwise comparisons from the
+  % estimated marginal means
+  Np = size (pairs, 1);
+  L_PWC = zeros (Np, Ng);
+  for j = 1:Np
+    L_PWC(j, pairs(j,:)) = [1,-1];
+  end
+  
+  % Create hypothesis matrix to generate pairwise comparisons directly
+  % from the regression coefficients. Note that the contrasts used to
+  % fit the original model must sum to zero
+  L = (L_PWC * L_EMM')';
+
+end
+
+%--------------------------------------------------------------------------
+
+function [L, pairs] = trt_vs_ctrl (L_EMM, REF)
+
+  if (nargin < 2)
+    REF = 1;
+  end
+
+  % Get number of group members from the hypothesis matrix used 
+  % to generate estimated marginal means
+  Ng = size (unique (L_EMM','rows'), 1);
+  if (REF > Ng)
+    error ('trt_vs_ctrl: REF exceeds number of groups (i.e. rows in L_EMM)');
+  end
+
+  % Create pairs matrix for pairwise comparisons
+  gid = (1 : Ng)';  % Create numeric group ID
+  pairs = zeros (Ng - 1, 2);
+  pairs(:, 1) = REF;
+  pairs(:, 2) = gid(gid ~= REF);
+
+  % Calculate hypothesis matrix for pairwise comparisons from the
+  % estimated marginal means
+  Np = size (pairs, 1);
+  L_PWC = zeros (Np, Ng);
+  for j = 1:Np
+    L_PWC(j, pairs(j,:)) = [1,-1];
+  end
+  
+  % Create hypothesis matrix to generate pairwise comparisons directly
+  % from the regression coefficients. Note that the contrasts used to
+  % fit the original model must sum to zero
+  L = (L_PWC * L_EMM')';
+
+end
+
+%--------------------------------------------------------------------------
+
 %% FUNCTION TO COMPUTE EMPIRICAL DISTRIBUTION FUNCTION
 
 function [x, F, P] = empcdf (y, trim, m)
