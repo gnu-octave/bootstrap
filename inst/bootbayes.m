@@ -424,7 +424,7 @@ function print_output (stats, nboot, prob, prior, p, L, method, intercept_only)
         fprintf (' Function: sum (w .* Y)\n');
     else
       if ( (numel(L) > 1) || (L ~= 1) )
-        fprintf (' Function: L * pinv (X'' * W * X) * (X'' * W * y)\n');
+        fprintf (' Function: L'' * pinv (X'' * W * X) * (X'' * W * y)\n');
       else
         fprintf (' Function: pinv (X'' * W * X) * (X'' * W * y)\n');
       end
