@@ -305,7 +305,7 @@ function [stats, bootstat] = bootwild (y, X, dep, nboot, alpha, seed, L)
 
   % Print output if no output arguments are requested
   if (nargout == 0) 
-    print_output (stats, nboot, alpha, p, method);
+    print_output (stats, nboot, alpha, p, L, method);
   end
 
 end
@@ -456,12 +456,16 @@ end
 
 %% FUNCTION TO PRINT OUTPUT
 
-function print_output (stats, nboot, alpha, p, method)
+function print_output (stats, nboot, alpha, p, L, method)
 
     fprintf (['\nSummary of wild bootstrap null hypothesis significance tests for linear models\n',...
               '*******************************************************************************\n\n']);
     fprintf ('Bootstrap settings: \n');
-    fprintf (' Function: inv (X'' * X) * (X'' * y) \n');
+    if ( (numel(L) > 1) || (L ~= 1) )
+      fprintf (' Function: L'' * X \\ y\n');
+    else
+      fprintf (' Function: X \\ y\n');
+    end
     fprintf (' Resampling method: Wild %sbootstrap-t\n', method)
     fprintf (' Number of resamples: %u \n', nboot)
     fprintf (' Standard error calculations:');
