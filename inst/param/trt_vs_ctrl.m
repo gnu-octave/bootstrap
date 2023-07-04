@@ -50,7 +50,7 @@ function [L, pairs] = trt_vs_ctrl (L_EMM, REF)
   gid = (1 : Ng)';  % Create numeric group ID
   pairs = zeros (Ng - 1, 2);
   pairs(:, 1) = REF;
-  pairs(:, 2) = gid(gid != REF);
+  pairs(:, 2) = gid(gid ~= REF);
 
   % Calculate hypothesis matrix for pairwise comparisons from the
   % estimated marginal means
