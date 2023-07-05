@@ -200,7 +200,7 @@ try
   stats = bootwild (heights - H0);
   stats = bootwild (heights - H0, ones(10,1));
   stats = bootwild (heights - H0, [], 2);
-  stats = bootwild (heights - H0, [], [1;1;1;1;1;2;2;2;2;2]);
+  stats = bootwild (heights - H0, [], [1;1;2;2;3;3;4;4;5;5]);
   stats = bootwild (heights - H0, [], [], 2000);
   stats = bootwild (heights - H0, [], [], [], 0.05);
   stats = bootwild (heights - H0, [], [], [], [0.025, 0.975]);
@@ -237,7 +237,7 @@ try
   stats = bootbayes (repmat (heights, 1, 5));
   stats = bootbayes (heights, ones (10, 1));
   stats = bootbayes (heights, [], 2);
-  stats = bootbayes (heights, [], [1;1;1;1;1;2;2;2;2;2]);
+  stats = bootbayes (heights, [], [1;1;2;2;3;3;4;4;5;5]);
   stats = bootbayes (heights, [], [], 2000);
   stats = bootbayes (heights, [], [], [], 0.05);
   stats = bootbayes (heights, [], [], [], [0.025, 0.975]);
