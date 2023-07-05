@@ -184,7 +184,6 @@ function [stats, bootstat, bootsam] = bootknife (x, nboot, bootfun, alpha, ...
 
   % Store local functions in a stucture for parallel processes
   localfunc = struct ('col2args', @col2args, ...
-                      'empcdf', @empcdf, ...
                       'kdeinv', @kdeinv, ...
                       'ExpandProbs', @ExpandProbs);
 
@@ -630,19 +629,19 @@ function [stats, bootstat, bootsam] = bootknife (x, nboot, bootfun, alpha, ...
           case 1
             % alpha is a two-tailed probability (scalar)
             % Calibrate central coverage and construct equal-tailed intervals (2-sided)
-            [v, cdf] = localfunc.empcdf (abs (2 * U(j, :) - 1), true, 1);
+            [v, cdf] = bootcdf (abs (2 * U(j, :) - 1), true, 1);
             vk = interp1 (cdf, v, 1 - alpha, 'linear', max (v));
             l(j, :) = arrayfun (@(sign) 0.5 * (1 + sign * vk), [-1, 1]);
           case 2
             % alpha is a pair of probabilities (vector)
             % Calibrate coverage but construct endpoints separately (1-sided)
             % This is equivalent to algorithm 18.1 in Efron, and Tibshirani (1993)
-            [u, cdf] = localfunc.empcdf (U(j, :), true, 1);
+            [u, cdf] = bootcdf (U(j, :), true, 1);
             l(j, 1) = interp1 (cdf, u, alpha(1), 'linear', min (u));
             l(j, 2) = interp1 (cdf, u, alpha(2), 'linear', max (u));
         end
         % Linear interpolation
-        [t1, cdf] = localfunc.empcdf (bootstat(j, :), true, 1);
+        [t1, cdf] = bootcdf (bootstat(j, :), true, 1);
         ci(j, 1) = interp1 (cdf, t1, l(j, 1), 'linear', min (t1));
         ci(j, 2) = interp1 (cdf, t1, l(j, 2), 'linear', max (t1));
       end
@@ -708,7 +707,7 @@ function [stats, bootstat, bootsam] = bootknife (x, nboot, bootfun, alpha, ...
           catch
             % Revert to bias-corrected (BC) bootstrap confidence intervals
             warning ('bootknife:jackfail', ...
-              'BOOTFUN failed during jackknife calculations; acceleration constant set to 0\n');
+              'BOOTFUN failed during jackknife calculations; acceleration constant set to 0.\n');
             a = zeros (m, 1);
           end
           % Calculate the bias correction constant (z0)
@@ -717,7 +716,7 @@ function [stats, bootstat, bootsam] = bootknife (x, nboot, bootfun, alpha, ...
           if (~ all (isfinite (z0)))
             % Revert to percentile bootstrap confidence intervals
             warning ('bootknife:biasfail', ...
-              'Unable to calculate the bias correction constant; reverting to percentile intervals\n');
+              'Unable to calculate the bias correction constant; reverting to percentile intervals.\n');
             z0 = zeros (m, 1);
             a = zeros (m, 1); 
             l = repmat (expan_alpha, m, 1);
@@ -738,7 +737,7 @@ function [stats, bootstat, bootsam] = bootknife (x, nboot, bootfun, alpha, ...
         catch
           % Linear interpolation (legacy)
           fprintf ('Note: Falling back to linear interpolation to calculate percentiles for interval pair %u\n', j);
-          [t1, cdf] = localfunc.empcdf (bootstat(j, :), true, 1);
+          [t1, cdf] = bootcdf (bootstat(j, :), true, 1);
           ci(j, 1) = interp1 (cdf, t1, l(j, 1), 'linear', min (t1));
           ci(j, 2) = interp1 (cdf, t1, l(j, 2), 'linear', max (t1));
         end
@@ -893,69 +892,6 @@ function retval = col2args (func, x, szx)
 
   % Evaluate column vectors as independent of arguments to bootfun
   retval = func (xcell{:});
-
-end
-
-%--------------------------------------------------------------------------
-
-function [x, F, P] = empcdf (y, trim, m)
-
-  % Subfunction to calculate empirical cumulative distribution function in the
-  % presence of ties
-  % https://brainder.org/2012/11/28/competition-ranking-and-empirical-distributions/
-
-  % Check input argument
-  if (~ isa (y, 'numeric'))
-    error ('bootknife:empcdf: y must be numeric');
-  end
-  if (all (size (y) > 1))
-    error ('bootknife:empcdf: y must be a vector');
-  end
-  if (size (y, 2) > 1)
-    y = y.';
-  end
-  if (nargin < 2)
-    trim = true;
-  end
-  if ( (~ islogical (trim)) && (~ ismember (trim, [0, 1])) )
-    error ('bootknife:empcdf: m must be scalar');
-  end
-  if (nargin < 3)
-    % Denominator in calculation of F is (N + m)
-    % When m is 1, quantiles formed from x and F are akin to qtype (definition) 6
-    % https://www.rdocumentation.org/packages/stats/versions/3.6.2/topics/quantile
-    % Hyndman and Fan (1996) Am Stat. 50(4):361-365
-    m = 0;
-  end
-  if (~ isscalar (m))
-    error ('bootknife:empcdf: m must be scalar');
-  end
-  if (~ ismember (m, [0, 1]))
-    error ('bootknife:empcdf: m must be either 0 or 1');
-  end
-
-  % Discard NaN values
-  ridx = isnan (y);
-  y(ridx) = [];
-
-  % Get size of y
-  N = numel (y);
-
-  % Create empirical CDF accounting for ties by competition ranking
-  x = sort (y);
-  [jnk, IA, IC] = unique (x);
-  N = numel (x);
-  R = cat (1, IA(2:end) - 1, N);
-  F = arrayfun (@(i) R(IC(i)), [1:N].') / (N + m);
-
-  % Create p-value distribution accounting for ties by competition ranking
-  P = 1 - arrayfun (@(i) IA(IC(i)) - 1, [1:N]') / N;
-
-  % Remove redundancy
-  if trim
-    M = unique ([x, F, P], 'rows', 'last');
-    x = M(:,1); F = M(:,2); P = M(:,3);
-  end
 
 end
 

@@ -239,11 +239,11 @@
 %             • 'pairwise' : Pairwise comparisons are performed.
 %
 %             • 'trt_vs_ctrl' : Treatment vs. Control comparisons are performed.
-%                The control is the first group listed when POSTHOC is set to
-%                'none'.
+%                The control is the first group number 1 as returned when 
+%                POSTHOC is set to 'none'.
 %
 %             • {'trt_vs_ctrl', k} : Treatment vs. Control comparisons are
-%                performed. The control is the group number k listed when
+%                performed. The control is group number k as returned when
 %                POSTHOC is set to 'none'.
 %
 %          Note that the p-values are NOT corrected for multiple comparisons and
@@ -350,6 +350,8 @@ function [STATS, X, L] = bootlm (Y, GROUP, varargin)
           error (sprintf ('bootlm: parameter %s is not supported', name));
       end
     end
+
+    % Error checking of NBOOT, ALPHA and SEED is handled by the function bootwild
 
     % Evaluate continuous input argument
     if (isnumeric (CONTINUOUS))
@@ -582,6 +584,12 @@ function [STATS, X, L] = bootlm (Y, GROUP, varargin)
 
     % If applicable, create hypothesis matrix, names and compute sample sizes
     if (~ isempty (DIM))
+      if (any (DIM < 1))
+        error ('bootlm: DIM must contain positive integers');
+      end
+      if (~ all (ismember (DIM, (1:Nm))))
+        error ('bootlm: values in DIM cannot exceed the number of predictors');
+      end
       H = X;
       ridx = ~ ismember ((1 : Nm), DIM);
       for i = 1:Nt
@@ -618,6 +626,26 @@ function [STATS, X, L] = bootlm (Y, GROUP, varargin)
       STATS.name = NAMES;
 
     else
+
+      % Error checking
+      % Check what type of factor is requested in DIM
+      if (any (nlevels(DIM) < 2))
+          error (strcat (['bootlm: DIM must specify only categorical'], ...
+                         [' factors with 2 or more degrees of freedom.']));
+      end
+      % Check that all continuous variables were centered
+      msg = 'bootlm: model must be refit with a sum-to-zero contrast coding';
+      if (any (cont_vec - center_continuous))
+        error (msg)
+      end
+      % Check that the columns of CONTRASTS sum to 0
+      for j = 1:N
+        if (isnumeric (CONTRASTS{j}))
+          if (any (abs (sum (CONTRASTS{j})) > eps("single")))
+            error (msg);
+          end
+        end
+      end
 
       % Create names for estimated marginal means
       idx = cellfun (@(l) find (all (bsxfun (@eq, H, l), 2), 1), num2cell (L', 2));
@@ -746,7 +774,7 @@ function [STATS, X, L] = bootlm (Y, GROUP, varargin)
         arrayfun (@(i) text (q(I == DI(i)), t(DI(i)), ...
                              sprintf ('  %u', DI(i))), [1:min(nk,n)])
         iqr = [0.25; 0.75]; 
-        [ts, F] = empcdf (t, true, 1);
+        [ts, F] = bootcdf (t, true, 1);
         yl = interp1 (F, ts, iqr, 'linear', min (ts));
         xl = stdnorminv (iqr);
         slope = diff (yl) / diff (xl);
@@ -1142,72 +1170,6 @@ function [L, pairs] = trt_vs_ctrl (L_EMM, REF)
 end
 
 %--------------------------------------------------------------------------
-
-%% FUNCTION TO COMPUTE EMPIRICAL DISTRIBUTION FUNCTION
-
-function [x, F, P] = empcdf (y, trim, m)
-
-  % Subfunction to calculate empirical cumulative distribution function in the
-  % presence of ties
-  % https://brainder.org/2012/11/28/competition-ranking-and-empirical-distributions/
-
-  % Check input argument
-  if (~ isa (y, 'numeric'))
-    error ('bootlm:empcdf: y must be numeric');
-  end
-  if (all (size (y) > 1))
-    error ('bootlm:empcdf: y must be a vector');
-  end
-  if (size (y, 2) > 1)
-    y = y.';
-  end
-  if (nargin < 2)
-    trim = true;
-  end
-  if ( (~ islogical (trim)) && (~ ismember (trim, [0, 1])) )
-    error ('bootlm:empcdf: m must be scalar');
-  end
-  if (nargin < 3)
-    % Denominator in calculation of F is (N + m)
-    % When m is 1, quantiles formed from x and F are akin to qtype (definition) 6
-    % https://www.rdocumentation.org/packages/stats/versions/3.6.2/topics/quantile
-    % Hyndman and Fan (1996) Am Stat. 50(4):361-365
-    m = 0;
-  end
-  if (~ isscalar (m))
-    error ('bootlm:empcdf: m must be scalar');
-  end
-  if (~ ismember (m, [0, 1]))
-    error ('bootlm:empcdf: m must be either 0 or 1');
-  end
-
-  % Discard NaN values
-  ridx = isnan (y);
-  y(ridx) = [];
-
-  % Get size of y
-  N = numel (y);
-
-  % Create empirical CDF accounting for ties by competition ranking
-  x = sort (y);
-  [jnk, IA, IC] = unique (x);
-  N = numel (x);
-  R = cat (1, IA(2:end) - 1, N);
-  F = arrayfun (@(i) R(IC(i)), (1 : N)') / (N + m);
-
-  % Create p-value distribution accounting for ties by competition ranking
-  P = 1 - arrayfun (@(i) IA(IC(i)) - 1, (1 : N)') / N;
-
-  % Remove redundancy
-  if trim
-    M = unique ([x, F, P], 'rows', 'last');
-    x = M(:,1); F = M(:,2); P = M(:,3);
-  end
-
-end
-
-%--------------------------------------------------------------------------
-
 
 %!demo
 %!

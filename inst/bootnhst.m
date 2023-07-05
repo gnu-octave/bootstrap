@@ -140,7 +140,7 @@ function [pval, c, stats] = bootnhst (data, group, varargin)
 
   % Store local functions in a stucture for parallel processes
   localfunc = struct ('maxstat',@maxstat, ...
-                      'empcdf',@empcdf);
+                      'bootcdf',@bootcdf);
 
   % Check if running in Octave (else assume Matlab)
   info = ver; 
@@ -448,7 +448,7 @@ function [pval, c, stats] = bootnhst (data, group, varargin)
 
   % Prepare to make symmetrical bootstrap-t confidence intervals and 2-tailed p-values
   % Create empirical distribution function
-  [Q, F, P] = empcdf (Q, true, 1);
+  [Q, F, P] = bootcdf (Q, true, 1);
 
   % Compute resolution limit of the p-values as determined by resampling with nboot(1) resamples
   res_lim = 1 / nboot(1);
@@ -726,69 +726,6 @@ function maxT = maxstat (Y, g, nboot, bootfun, ref, ISOCTAVE)
   end
   maxT = max(t);
   
-end
-
-%--------------------------------------------------------------------------
-
-function [x, F, P] = empcdf (y, trim, m)
-
-  % Subfunction to calculate empirical cumulative distribution function in the
-  % presence of ties
-  % https://brainder.org/2012/11/28/competition-ranking-and-empirical-distributions/
-
-  % Check input argument
-  if (~ isa (y, 'numeric'))
-    error ('bootnhst:empcdf: y must be numeric');
-  end
-  if (all (size (y) > 1))
-    error ('bootnhst:empcdf: y must be a vector');
-  end
-  if (size (y, 2) > 1)
-    y = y.';
-  end
-  if (nargin < 2)
-    trim = true;
-  end
-  if ( (~ islogical (trim)) && (~ ismember (trim, [0, 1])) )
-    error ('bootnhst:empcdf: m must be scalar');
-  end
-  if (nargin < 3)
-    % Denominator in calculation of F is (N + m)
-    % When m is 1, quantiles formed from x and F are akin to qtype (definition) 6
-    % https://www.rdocumentation.org/packages/stats/versions/3.6.2/topics/quantile
-    % Hyndman and Fan (1996) Am Stat. 50(4):361-365
-    m = 0;
-  end
-  if (~ isscalar (m))
-    error ('bootnhst:empcdf: m must be scalar');
-  end
-  if (~ ismember (m, [0, 1]))
-    error ('bootnhst:empcdf: m must be either 0 or 1');
-  end
-
-  % Discard NaN values
-  ridx = isnan (y);
-  y(ridx) = [];
-
-  % Get size of y
-  N = numel (y);
-
-  % Create empirical CDF accounting for ties by competition ranking
-  x = sort (y);
-  [jnk, IA, IC] = unique (x);
-  N = numel (x);
-  R = cat (1, IA(2:end) - 1, N);
-  F = arrayfun (@(i) R(IC(i)), [1:N].') / (N + m);
-
-  % Create p-value distribution accounting for ties by competition ranking
-  P = 1 - arrayfun (@(i) IA(IC(i)) - 1, [1:N]') / N;
-
-  % Remove redundancy
-  if trim
-    M = unique ([x, F, P], 'rows', 'last');
-    x = M(:,1); F = M(:,2); P = M(:,3);
-  end
-
 end
 
 %--------------------------------------------------------------------------
