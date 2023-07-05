@@ -1106,6 +1106,8 @@ end
 
 %--------------------------------------------------------------------------
 
+% BUILT IN POSTHOC HYPOTHESIS TEST FUNCTIONS
+
 function [L, pairs] = pairwise (L_EMM)
 
   % Get number of group members from the hypothesis matrix used 
@@ -1692,12 +1694,35 @@ end
 %! assert (stats.pval(7), 0.01545815447130454, 1e-09);
 %! assert (stats.fpr(6), 0.5, 1e-09);
 %! assert (stats.fpr(7), 0.1490852008925364, 1e-09);
+%!
+%! stats = bootlm (score, {treatment, exercise, age}, 'seed', 1, ...
+%!                            'model', [1 0 0; 0 1 0; 0 0 1; 1 1 0], ...
+%!                            'continuous', 3, 'display', 'off', ...
+%!                            'varnames', {'treatment', 'exercise', 'age'},...
+%!                            'dim', [1, 2]);
+%!
+%! assert (stats.original(1), 86.9787857062843,1e-09)
+%! assert (stats.original(2), 86.9962428587431,1e-09)
+%! assert (stats.original(3), 73.2754755236922,1e-09)
+%! assert (stats.original(4), 88.5073652962921 ,1e-09)
+%! assert (stats.original(5), 88.6798510137784,1e-09)
+%! assert (stats.original(6), 83.02227960120982,1e-09)
+%!
+%! stats = bootlm (score, {treatment, exercise, age}, 'seed', 1, ...
+%!                            'model', [1 0 0; 0 1 0; 0 0 1; 1 1 0], ...
+%!                            'continuous', 3, 'display', 'off', ...
+%!                            'varnames', {'treatment', 'exercise', 'age'},...
+%!                            'dim', [1, 2], 'posthoc', 'trt_vs_ctrl');
+%!
+%! assert (stats.original(1), -0.0174571524588316,1e-09)
+%! assert (stats.original(2), 13.7033101825921,1e-09)
+%! assert (stats.original(3), -1.52857959000781,1e-09)
+%! assert (stats.original(4), -1.70106530749405,1e-09)
+%! assert (stats.original(5), 3.9565061050745,1e-09)
 
 %!test
 %!
-%! # Unbalanced one-way design with custom, orthogonal contrasts. The statistics
-%! # relating to the contrasts are shown in the table of model parameters, and
-%! # can be retrieved from the STATS.coeffs output.
+%! # Unbalanced one-way design with custom, orthogonal contrasts.
 %!
 %! dv =  [ 8.706 10.362 11.552  6.941 10.983 10.092  6.421 14.943 15.931 ...
 %!        22.968 18.590 16.567 15.944 21.637 14.492 17.965 18.851 22.891 ...
