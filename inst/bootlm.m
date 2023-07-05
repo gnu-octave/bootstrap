@@ -1424,7 +1424,7 @@ end
 %! stats = bootlm (score, gender, 'display', 'off', 'varnames', 'gender', ...
 %!                                'seed', 1);
 %!
-%! assert (stats.pval(2), 0.2598477704902071, 1e-09);
+%! assert (stats.pval(2), 0.2522434820916731, 1e-09);
 %! # ttest2 (with 'vartype' = 'unequal') gives a p-value of 0.2501;
 
 %!test
@@ -1441,12 +1441,12 @@ end
 %!                            'model', 'linear', 'display', 'off', ...
 %!                            'varnames', {'treatment', 'subject'});
 %!
-%! assert (stats.pval(1), 0.02809999999999607, 1e-09);
-%! assert (stats.pval(2), 0.0001, 1e-09);
-%! assert (stats.pval(3), 0.8867504105747056, 1e-09);
-%! assert (stats.pval(4), 0.05077777777777787, 1e-09);
-%! assert (stats.pval(5), 0.4672831090796068, 1e-09);
-%! assert (stats.pval(6), 0.4023688272304305, 1e-09);
+%! assert (stats.pval(1), 0.001000777701198764, 1e-09);
+%! assert (stats.pval(2), 0.002867840158012744, 1e-09);
+%! assert (stats.pval(3), 0.9892683710586393, 1e-09);
+%! assert (stats.pval(4), 0.06086784830200559, 1e-09);
+%! assert (stats.pval(5), 0.4388894053151342, 1e-09);
+%! assert (stats.pval(6), 0.3548738532465109, 1e-09);
 
 %!test
 %!
@@ -1462,10 +1462,10 @@ end
 %! stats = bootlm (strength, alloy, 'display', 'off', 'varnames', 'alloy', ...
 %!                                  'seed', 1);
 %!
-%! assert (stats.CI_lower(2), -10.22415128602109, 1e-09);
-%! assert (stats.CI_upper(2), -3.775848713978915, 1e-09);
-%! assert (stats.CI_lower(3), -7.588817226181499, 1e-09);
-%! assert (stats.CI_upper(3), -2.411182773818494, 1e-09);
+%! assert (stats.CI_lower(2), -10.20034706842519, 1e-09);
+%! assert (stats.CI_upper(2), -3.799652931574816, 1e-09);
+%! assert (stats.CI_lower(3), -7.457413164212708, 1e-09);
+%! assert (stats.CI_upper(3), -2.542586835787285, 1e-09);
 
 %!test
 %!
@@ -1484,10 +1484,10 @@ end
 %!                            'model', 'linear', 'display', 'off', ...
 %!                            'varnames', {'seconds', 'subject'});
 %!
-%! assert (stats.CI_lower(2), 1.268506249739885, 1e-09);
-%! assert (stats.CI_upper(2), 2.731493750260111, 1e-09);
-%! assert (stats.CI_lower(3), 2.550621791797973, 1e-09);
-%! assert (stats.CI_upper(3), 3.849378208202028, 1e-09);
+%! assert (stats.CI_lower(2), 1.276378387227352, 1e-09);
+%! assert (stats.CI_upper(2), 2.723621612772645, 1e-09);
+%! assert (stats.CI_lower(3), 2.544457263681858, 1e-09);
+%! assert (stats.CI_upper(3), 3.855542736318144, 1e-09);
 
 %!test
 %!
@@ -1510,15 +1510,15 @@ end
 %!                            'display', 'off', 'model', 'full', ...
 %!                            'varnames', {'brands', 'popper'});
 %!
-%! assert (stats.pval(2), 0.0001, 1e-09);
+%! assert (stats.pval(2), 0.0001436362896133916, 1e-09);
 %! assert (stats.pval(3), 0.0001, 1e-09);
 %! assert (stats.pval(4), 0.0001, 1e-09);
-%! assert (stats.pval(5), 0.3505, 1e-09);
-%! assert (stats.pval(6), 0.6931785595635835, 1e-09);
-%! assert (stats.fpr(2), 0.00249737757706675, 1e-09);
+%! assert (stats.pval(5), 0.340305601474268, 1e-09);
+%! assert (stats.pval(6), 0.726369901983256, 1e-09);
+%! assert (stats.fpr(2), 0.00344284198423098, 1e-09);
 %! assert (stats.fpr(3), 0.00249737757706675, 1e-09);
 %! assert (stats.fpr(4), 0.00249737757706675, 1e-09);
-%! assert (stats.fpr(5), 0.4997163607846966, 1e-09);
+%! assert (stats.fpr(5), 0.4992784734098805, 1e-09);
 %! assert (stats.fpr(6), 0.5, 1e-09);
 
 
@@ -1538,10 +1538,10 @@ end
 %!                            'display', 'off', 'varnames', ...
 %!                            {'gender', 'degree'}, 'seed', 1);
 %!
-%! assert (stats.pval(2), 0.01347437900654173, 1e-09);
+%! assert (stats.pval(2), 0.01406677927315368, 1e-09);
 %! assert (stats.pval(3), 0.0001, 1e-09);
-%! assert (stats.pval(4), 0.5809132471172398, 1e-09);
-%! assert (stats.fpr(2), 0.1362570884700073, 1e-09);
+%! assert (stats.pval(4), 0.5809878766370681, 1e-09);
+%! assert (stats.fpr(2), 0.1401860113422069, 1e-09);
 %! assert (stats.fpr(3), 0.00249737757706675, 1e-09);
 %! assert (stats.fpr(4), 0.5, 1e-09);
 
@@ -1561,10 +1561,10 @@ end
 %! stats = bootlm (babble, {sugar, milk}, 'model', 'full', 'display', 'off', ...
 %!                                'seed', 1, 'varnames', {'sugar', 'milk'});
 %!
-%! assert (stats.pval(5), 0.005336667238225245, 1e-09);
-%! assert (stats.pval(6), 0.05728167864593372, 1e-09);
-%! assert (stats.fpr(5), 0.07055862620821904, 1e-09);
-%! assert (stats.fpr(6), 0.3080968745469571, 1e-09);
+%! assert (stats.pval(5), 0.003916954740159856, 1e-09);
+%! assert (stats.pval(6), 0.05672498172560773, 1e-09);
+%! assert (stats.fpr(5), 0.05572409265877926, 1e-09);
+%! assert (stats.fpr(6), 0.3067434008224693, 1e-09);
 
 %!test
 %!
@@ -1599,9 +1599,9 @@ end
 %!                                    'display', 'off', ...
 %!                                    'varnames', {'drug', 'feedback', 'diet'});
 %!
-%! assert (stats.pval(11), 0.02383996122376443, 1e-09);
-%! assert (stats.pval(12), 0.7045300973398985, 1e-09);
-%! assert (stats.fpr(11), 0.1949326841768444, 1e-09);
+%! assert (stats.pval(11), 0.0229762813997758, 1e-09);
+%! assert (stats.pval(12), 0.7057038095651759, 1e-09);
+%! assert (stats.fpr(11), 0.1907190420087378, 1e-09);
 %! assert (stats.fpr(12), 0.5, 1e-09);
 
 %!test
@@ -1623,13 +1623,13 @@ end
 %!                            'varnames', {'strain', 'treatment', 'block'}, ...
 %!                            'display', 'off', 'seed', 1);
 %!
-%! assert (stats.pval(5), 0.0262316632688982, 1e-09);
-%! assert (stats.pval(7), 0.5000494547288942, 1e-09);
-%! assert (stats.pval(8), 0.1943950071604845, 1e-09);
-%! assert (stats.pval(9), 0.4984435890168324, 1e-09);
-%! assert (stats.fpr(5), 0.206101326545084, 1e-09);
+%! assert (stats.pval(5), 0.01068887104705482, 1e-09);
+%! assert (stats.pval(7), 0.4990414461739578, 1e-09);
+%! assert (stats.pval(8), 0.1519455977707359, 1e-09);
+%! assert (stats.pval(9), 0.4758405903655626, 1e-09);
+%! assert (stats.fpr(5), 0.1165057544373564, 1e-09);
 %! assert (stats.fpr(7), 0.5, 1e-09);
-%! assert (stats.fpr(8), 0.4639450181245126, 1e-09);
+%! assert (stats.fpr(8), 0.4376482514129591, 1e-09);
 %! assert (stats.fpr(9), 0.5, 1e-09);
 
 %!test
@@ -1652,10 +1652,10 @@ end
 %!                           'continuous', 2, 'display', 'off', ...
 %!                           'varnames', {'species', 'temp'}, 'seed', 1);
 %!
-%! assert (stats.CI_lower(2), -11.40684062169122, 1e-09);
-%! assert (stats.CI_upper(2), -8.723741847406771, 1e-09);
-%! assert (stats.CI_lower(3), 3.408111031033375, 1e-09);
-%! assert (stats.CI_upper(3), 3.797394718682978, 1e-09);
+%! assert (stats.CI_lower(2), -11.40242992551029, 1e-09);
+%! assert (stats.CI_upper(2), -8.728152543587701, 1e-09);
+%! assert (stats.CI_lower(3), 3.40849070718928, 1e-09);
+%! assert (stats.CI_upper(3), 3.797015042527074, 1e-09);
 
 %!test
 %!
@@ -1690,10 +1690,10 @@ end
 %!                            'continuous', 3, 'display', 'off', ...
 %!                            'varnames', {'treatment', 'exercise', 'age'});
 %!
-%! assert (stats.pval(6), 0.961027014448505, 1e-09);
-%! assert (stats.pval(7), 0.01545815447130454, 1e-09);
+%! assert (stats.pval(6), 0.961810620344299, 1e-09);
+%! assert (stats.pval(7), 0.01466073954248088, 1e-09);
 %! assert (stats.fpr(6), 0.5, 1e-09);
-%! assert (stats.fpr(7), 0.1490852008925364, 1e-09);
+%! assert (stats.fpr(7), 0.1440396660793112, 1e-09);
 %!
 %! stats = bootlm (score, {treatment, exercise, age}, 'seed', 1, ...
 %!                            'model', [1 0 0; 0 1 0; 0 0 1; 1 1 0], ...
@@ -1741,24 +1741,24 @@ end
 %!                          'alpha', 0.05, 'display', false);
 %!
 %! assert (stats.pval(2), 0.0001, 1e-09);
-%! assert (stats.pval(3), 0.001545627153779012, 1e-09);
+%! assert (stats.pval(3), 0.001675378909005749, 1e-09);
 %! assert (stats.pval(4), 0.0001, 1e-09);
-%! assert (stats.pval(5), 0.0004796588939914593, 1e-09);
+%! assert (stats.pval(5), 0.0002874804236437349, 1e-09);
 %! assert (stats.fpr(2), 0.00249737757706675, 1e-09);
-%! assert (stats.fpr(3), 0.02647326194014595, 1e-09);
+%! assert (stats.fpr(3), 0.02828548822041226, 1e-09);
 %! assert (stats.fpr(4), 0.00249737757706675, 1e-09);
-%! assert (stats.fpr(5), 0.009866261365983219, 1e-09);
+%! assert (stats.fpr(5), 0.006331895873321279, 1e-09);
 %!
 %! stats = bootlm (dv, g, 'contrasts', C, 'varnames', 'score', 'seed', 1, ...
 %!                          'alpha', 0.05, 'display', false, 'dim', 1);
 %!
-%! assert (stats.CI_lower(1), 7.810735451847229, 1e-09);
-%! assert (stats.CI_lower(2), 13.97854961933067, 1e-09);
-%! assert (stats.CI_lower(3), 16.46964675567744, 1e-09);
-%! assert (stats.CI_lower(4), 18.58334304121367, 1e-09);
-%! assert (stats.CI_lower(5), 26.78896222629294, 1e-09);
-%! assert (stats.CI_upper(1), 12.18926454815282, 1e-09);
-%! assert (stats.CI_upper(2), 22.02145038066936, 1e-09);
-%! assert (stats.CI_upper(3), 21.53035324432259, 1e-09);
-%! assert (stats.CI_upper(4), 23.41694267307205, 1e-09);
-%! assert (stats.CI_upper(5), 31.2112599959293, 1e-09);
+%! assert (stats.CI_lower(1), 7.802482742093751, 1e-09);
+%! assert (stats.CI_lower(2), 14.51601578737414, 1e-09);
+%! assert (stats.CI_lower(3), 16.53331995111334, 1e-09);
+%! assert (stats.CI_lower(4), 18.55567988824789, 1e-09);
+%! assert (stats.CI_lower(5), 26.64733564673533, 1e-09);
+%! assert (stats.CI_upper(1), 12.1975172579063, 1e-09);
+%! assert (stats.CI_upper(2), 21.48398421262589, 1e-09);
+%! assert (stats.CI_upper(3), 21.46668004888669, 1e-09);
+%! assert (stats.CI_upper(4), 23.44460582603784, 1e-09);
+%! assert (stats.CI_upper(5), 31.35288657548691, 1e-09);
