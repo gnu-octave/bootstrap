@@ -260,6 +260,9 @@ function [stats, bootstat] = bootwild (y, X, dep, nboot, alpha, seed, L)
   bootout = cell2mat (cellfun (bootfun, num2cell (Y, 1), 'UniformOutput', false));
   bootstat = [bootout.b];
   bootse = [bootout.se];
+  if (any (bootse < eps ('single')))
+    warning ('bootwild: some bootstrap standard errors are close to zero')
+  end
 
   % Studentize the bootstrap statistics and compute two-tailed confidence
   % intervals and p-values following both guidelines described in Hall and
