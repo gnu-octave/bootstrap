@@ -759,7 +759,7 @@ function [STATS, X, L] = bootlm (Y, GROUP, varargin)
         fit = X * b;                             % Fitted values
         D = (1 / p) * t.^2 .* (h ./ (1 - h));    % Cook's distances
         [jnk, DI] = sort (D, 'descend');         % Sorted Cook's distances
-        nk = 3;                                  % Number of most influential data points to label
+        nk = 4;                                  % Number of most influential data points to label
 
         % Normal quantile-quantile plot
         subplot (2, 2, 1);
