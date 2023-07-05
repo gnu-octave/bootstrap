@@ -246,8 +246,10 @@
 %                performed. The control is group number k as returned when
 %                POSTHOC is set to 'none'.
 %
-%          Note that the p-values are NOT corrected for multiple comparisons and
-%          thus are akin to Fisher's least significant difference (LSD).
+%          Note that the p-values are NOT modified to control the type 1 error
+%          across multiple comparisons and thus are akin to Fisher's least
+%          significant difference (LSD). A separate function would be required
+%          to correct the p-values returned in STATS for multiple comparisons.
 %
 %     '[...] = bootlm (Y, GROUP, ..., 'seed', SEED)' initialises the Mersenne
 %     Twister random number generator using an integer SEED value so that
