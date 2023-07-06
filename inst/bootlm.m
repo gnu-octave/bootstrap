@@ -1412,6 +1412,19 @@ end
 %! STATS = bootlm (dv, g, 'contrasts', C, 'varnames', 'score', ...
 %!                          'alpha', 0.05, 'display', true, 'dim', 1);
 
+%!demo
+%!
+%! # One-way design.
+%!
+%! g = [1, 1, 1, 1, 1, 1, 1, 1, ...
+%!      2, 2, 2, 2, 2, 2, 2, 2, ...
+%!      3, 3, 3, 3, 3, 3, 3, 3]';
+%! y = [13, 16, 16,  7, 11,  5,  1,  9, ...
+%!      10, 25, 66, 43, 47, 56,  6, 39, ...
+%!      11, 39, 26, 35, 25, 14, 24, 17]';
+%!
+%! stats = bootlm (y, g, 'display', 'on', 'dim', 1, 'posthoc', 'pairwise');
+
 %!test
 %!
 %! # Two-sample unpaired test on independent samples (equivalent to Welch's
