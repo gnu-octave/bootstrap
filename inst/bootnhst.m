@@ -48,7 +48,7 @@
 %     is a scalar value, or if NBOOT(2) is set to 0, then standard errors are
 %     calculated either without resampling (if BOOTFUN @mean) or using Tukey's
 %     jackknife. This implementation of jackknife requires the Statistics
-%     package/toolbox. The default value of NBOOT is the vector: [1000,100].
+%     package/toolbox. The default value of NBOOT is the vector: [999,99].
 %
 %     'bootnhst (..., 'ref', REF)' sets the GROUP to use as the reference group
 %     for the post hoc tests. If REF is a recognised member of GROUP, then the
@@ -148,7 +148,7 @@ function [pval, c, stats] = bootnhst (data, group, varargin)
   
   % Apply defaults
   bootfun = 'mean';
-  nboot = [1000,100];
+  nboot = [999,99];
   ref = [];
   alpha = 0.05;
   DisplayOpt = true;
@@ -240,8 +240,8 @@ function [pval, c, stats] = bootnhst (data, group, varargin)
   elseif (numel (nboot) < 2)
     nboot = cat (2, nboot, 0);
   end
-  if (nboot(1) < 1000)
-    error ('bootnhst: The minimum allowable value of NBOOT(1) is 1000')
+  if (nboot(1) < 999)
+    error ('bootnhst: The minimum allowable value of NBOOT(1) is 999')
   end 
   if (nboot(2) == 0) && (nvar > 1)
     error ('bootnhst: Jackknife currently only available for analysis of univariate data.')
@@ -253,7 +253,7 @@ function [pval, c, stats] = bootnhst (data, group, varargin)
       else
         warning ('bootnhst:jackfail','''jackknife'' function from statistics toolbox not found. nboot(2) set to 100.')
       end
-      nboot(2) = 100;
+      nboot(2) = 99;
     end
   end
   
@@ -451,7 +451,7 @@ function [pval, c, stats] = bootnhst (data, group, varargin)
   [Q, F, P] = bootcdf (Q, true, 1);
 
   % Compute resolution limit of the p-values as determined by resampling with nboot(1) resamples
-  res_lim = 1 / nboot(1);
+  res_lim = 1 / (nboot(1) + 1);
 
   % Calculate p-values for comparisons adjusted to simultaneously control the FWER
   if (isempty (ref))
@@ -744,7 +744,7 @@ end
 %!      1 2 3 4 5 6 7;
 %!      1 2 3 4 5 6 7];
 %!
-%! bootnhst (y(:),g(:),'ref',1,'nboot',5000);
+%! bootnhst (y(:),g(:),'ref',1,'nboot',4999);
 %!
 %! ## Please be patient, the calculations will be completed soon...
 
@@ -762,7 +762,7 @@ end
 %!      1 2 3 4 5 6 7;
 %!      1 2 3 4 5 6 7];
 %!
-%! bootnhst (y(:), g(:), 'ref', 1, 'nboot', 5000, 'bootfun', 'robust');
+%! bootnhst (y(:), g(:), 'ref', 1, 'nboot', 4999, 'bootfun', 'robust');
 %!
 %! ## Please be patient, the calculations will be completed soon...
 
@@ -785,7 +785,7 @@ end
 %!      'male' 'female'
 %!      'male' 'female'};
 %!
-%! bootnhst (y(:), g(:), 'ref', 'male', 'nboot', 5000);
+%! bootnhst (y(:), g(:), 'ref', 'male', 'nboot', 4999);
 %!
 %! ## Please be patient, the calculations will be completed soon...
 
@@ -807,7 +807,7 @@ end
 %!       1   2   3
 %!       1   2   3];
 %!
-%! bootnhst (y(:), g(:), 'nboot', 5000);
+%! bootnhst (y(:), g(:), 'nboot', 4999);
 %!
 %! ## Please be patient, the calculations will be completed soon...
 
@@ -862,15 +862,15 @@ end
 %!      1 2 3 4 5 6 7;
 %!      1 2 3 4 5 6 7;
 %!      1 2 3 4 5 6 7];
-%! p = bootnhst (y(:),g(:),'ref',1,'nboot',[1000,0],'DisplayOpt',false);
+%! p = bootnhst (y(:),g(:),'ref',1,'nboot',[999,0],'DisplayOpt',false);
 %! if (isempty (regexp (which ('boot'), 'mex$')))
 %!   # test boot m-file result
-%!   assert (p, 0.01263728616353474, 1e-06);
+%!   assert (p, 0.01264993609963437, 1e-06);
 %! end
-%! p = bootnhst (y(:),g(:),'nboot',[1000,0],'DisplayOpt',false);
+%! p = bootnhst (y(:),g(:),'nboot',[999,0],'DisplayOpt',false);
 %! if (isempty (regexp (which ('boot'), 'mex$')))
 %!   # test boot m-file result
-%!   assert (p, 0.0409310118277014, 1e-06);
+%!   assert (p, 0.04197298481251393, 1e-06);
 %! end
 %! # Result from anova1 is 0.0387
 
@@ -887,15 +887,15 @@ end
 %!      'male' 'female'
 %!      'male' 'female'
 %!      'male' 'female'};
-%! p = bootnhst (y(:),g(:),'ref','male','nboot',[1000,0],'DisplayOpt',false);
+%! p = bootnhst (y(:),g(:),'ref','male','nboot',[999,0],'DisplayOpt',false);
 %! if (isempty (regexp (which ('boot'), 'mex$')))
 %!   # test boot m-file result
-%!   assert (p, 0.2762465868710338, 1e-06);
+%!   assert (p, 0.2775241109820157, 1e-06);
 %! end
-%! p = bootnhst (y(:),g(:),'nboot',[1000,0],'DisplayOpt',false);
+%! p = bootnhst (y(:),g(:),'nboot',[999,0],'DisplayOpt',false);
 %! if (isempty (regexp (which ('boot'), 'mex$')))
 %!   # test boot m-file result
-%!   assert (p, 0.2762465868710338, 1e-06);
+%!   assert (p, 0.2775241109820157, 1e-06);
 %! end
 %! # Result from anova1 is 0.2613
 
@@ -912,7 +912,7 @@ end
 %!       1   2   3
 %!       1   2   3
 %!       1   2   3];
-%! p = bootnhst (y(:),g(:),'nboot',[1000,0],'DisplayOpt',false);
+%! p = bootnhst (y(:),g(:),'nboot',[999,0],'DisplayOpt',false);
 %! if (isempty (regexp (which ('boot'), 'mex$')))
 %!   # test boot m-file result
 %!   assert (p, 0.001, 1e-06); # truncated at 0.001
@@ -936,7 +936,7 @@ end
 %! p = bootnhst (y(:),g(:),'bootfun',{@std,1},'DisplayOpt',false);
 %! if (isempty (regexp (which ('boot'), 'mex$')))
 %!   # test boot m-file result
-%!   assert (p, 0.4311780499762276, 1e-06);
+%!   assert (p, 0.4421449140843043, 1e-06);
 %! end
 
 %!test
