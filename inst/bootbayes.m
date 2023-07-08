@@ -11,7 +11,7 @@
 % -- Function File: [STATS, BOOTSTAT] = bootbayes (Y, ...)
 %
 %     'bootbayes (Y)' performs Bayesian nonparametric bootstrap [1] to create
-%     2000 bootstrap statistics, each representing the weighted mean(s) of the
+%     1999 bootstrap statistics, each representing the weighted mean(s) of the
 %     column vector (or column-major matrix), Y, using a vector of weights
 %     randomly generated from a symmetric Dirichlet distribution. The resulting
 %     bootstrap (or posterior [1,2]) distribution(s) is/are summarised with the
@@ -51,7 +51,7 @@
 %
 %     'bootbayes (Y, X, ..., NBOOT)' specifies the number of bootstrap resamples,
 %     where NBOOT must be a positive integer. If empty, the default value of
-%     NBOOT is 2000.
+%     NBOOT is 1999.
 %
 %     'bootbayes (Y, X, ..., NBOOT, PROB)' where PROB is numeric and sets the
 %     lower and upper bounds of the credible interval(s). The value(s) of PROB
@@ -70,10 +70,10 @@
 %     randomly generate weights for linear least squares fitting of the observed
 %     data, and subsequently to estimate the posterior for the regression
 %     coefficients by Bayesian bootstrap.
-%        If PRIOR is not provided or is empty, and the model is intercept-only,
-%     then the default value of PRIOR is 1, which corresponds to Bayes rule: a
-%     uniform (or flat) Dirichlet distribution (over all points in its support).
-%     Otherwise, the value of PRIOR is set to 'auto'.
+%        If PRIOR is not provided or is empty, and the model is not intercept
+%     -only, then the default value of PRIOR is 1, which corresponds to Bayes
+%     rule: a uniform (or flat) Dirichlet distribution (over all points in its
+%     support). Otherwise, the value of PRIOR is set to 'auto'.
 %        The value 'auto' sets a value for PRIOR that effectively incorporates
 %     Bessel's correction a priori. Thus, for a sample size of N and PRIOR set
 %     to 'auto', the variance of the posterior (i.e. BOOTSTAT) becomes an
@@ -111,10 +111,8 @@
 %        Bootstrap Mean. Ann. Statist. 17(2):705-710
 %  [3] Liu, Gelman & Zheng (2015). Simulation-efficient shortest probability
 %        intervals. Statistics and Computing, 25(4), 809–819. 
-%  [4] Hall and Wilson (1991) Two Guidelines for Bootstrap Hypothesis Testing.
-%        Biometrics, 47(2), 757-762
 %
-%  bootbayes (version 2023.06.18)
+%  bootbayes (version 2023.07.06)
 %  Author: Andrew Charles Penn
 %  https://www.researchgate.net/profile/Andrew_Penn/
 %
@@ -218,7 +216,7 @@ function [stats, bootstat] = bootbayes (Y, X, dep, nboot, prob, prior, seed, L)
 
   % Evaluate number of bootstrap resamples
   if ( (nargin < 4) || (isempty (nboot)) )
-    nboot = 2000;
+    nboot = 1999;
   else
     if (~ isa (nboot, 'numeric'))
       error ('bootbayes: NBOOT must be numeric');
@@ -349,9 +347,10 @@ function [stats, bootstat] = bootbayes (Y, X, dep, nboot, prob, prior, seed, L)
 
   % Compute credible intervals
   % https://discourse.mc-stan.org/t/shortest-posterior-intervals/16281/16
+  % This solution avoids fencepost errors
   ci = nan (p, 2);
   bootstat = sort (bootstat, 2);
-  gap = round (prob * nboot);
+  gap = round (prob * (nboot + 1));
   for j = 1:p
     if (nprob > 1)
       % Percentile intervals
@@ -360,10 +359,14 @@ function [stats, bootstat] = bootbayes (Y, X, dep, nboot, prob, prior, seed, L)
       end
     else
       % Shortest probability interval
+      % This implementation ensures that if there are multiple minima, the
+      % the shortest probability interval closest to the central interval is
+      % chosen
       width = bootstat(j, (gap + 1) : nboot) - bootstat(j, 1 : (nboot - gap));
-      index = min (find (width == min (width)));
+      index = find (width == min (width))';
+      best_index = index (dsearchn (index, 0.5 * (1 - prob) * (nboot + 1)));
       if (~ isnan (prob))
-        ci(j, :) = bootstat(j, [index, index + gap]);
+        ci(j, :) = bootstat(j, [best_index, best_index + gap]);
       end
     end
   end
@@ -502,7 +505,7 @@ end
 %! stats = bootbayes(heights,ones(10,1));
 %! stats = bootbayes(heights,[],2);
 %! stats = bootbayes(heights,[],[1;1;1;1;1;2;2;2;2;2]);
-%! stats = bootbayes(heights,[],[],2000);
+%! stats = bootbayes(heights,[],[],1999);
 %! stats = bootbayes(heights,[],[],[],0.05);
 %! stats = bootbayes(heights,[],[],[],[0.025,0.975]);
 %! stats = bootbayes(heights,[],[],[],[]);
@@ -526,7 +529,7 @@ end
 %! ## 95% credible interval for the mean 
 %! stats = bootbayes(y,X);
 %! stats = bootbayes(y,X,4);
-%! stats = bootbayes(y,X,[],2000);
+%! stats = bootbayes(y,X,[],1999);
 %! stats = bootbayes(y,X,[],[],0.05);
 %! stats = bootbayes(y,X,[],[],[0.025,0.975]);
 %! stats = bootbayes(y,X,[],[]);
