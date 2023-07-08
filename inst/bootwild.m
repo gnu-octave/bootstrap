@@ -52,7 +52,7 @@
 %
 %     'bootwild (y, X, ..., NBOOT)' specifies the number of bootstrap resamples,
 %     where NBOOT must be a positive integer. If empty, the default value of
-%     NBOOT is 2000.
+%     NBOOT is 1999.
 %
 %     'bootwild (y, X, ..., NBOOT, ALPHA)' is numeric and sets the lower and
 %     upper bounds of the confidence interval(s). The value(s) of ALPHA must
@@ -184,7 +184,7 @@ function [stats, bootstat] = bootwild (y, X, dep, nboot, alpha, seed, L)
 
   % Evaluate number of bootstrap resamples
   if ( (nargin < 4) || (isempty (nboot)) )
-    nboot = 2000;
+    nboot = 1999;
   else
     if (~ isa (nboot, 'numeric'))
       error ('bootwild: NBOOT must be numeric');
@@ -198,7 +198,7 @@ function [stats, bootstat] = bootwild (y, X, dep, nboot, alpha, seed, L)
   end
   % Compute resolution limit of the p-values as determined by resampling
   % with nboot resamples
-  res_lim = 1 / nboot;
+  res_lim = 1 / (nboot + 1);
 
   % Evaluate alpha
   if ( (nargin < 5) || isempty (alpha) )
@@ -501,7 +501,7 @@ end
 %! stats = bootwild(heights-H0,ones(10,1));
 %! stats = bootwild(heights-H0,[],2);
 %! stats = bootwild(heights-H0,[],[1;1;2;2;3;3;4;4;5;5]);
-%! stats = bootwild(heights-H0,[],[],2000);
+%! stats = bootwild(heights-H0,[],[],1999);
 %! stats = bootwild(heights-H0,[],[],[],0.05);
 %! stats = bootwild(heights-H0,[],[],[],[0.025,0.975]);
 %! stats = bootwild(heights-H0,[],[],[],[],1);
@@ -511,36 +511,36 @@ end
 %! stats = bootwild(heights-H0,[],[],[],0.05,1);
 %! assert (stats.original, 3.0, 1e-06);
 %! assert (stats.std_err, 1.242980289465605, 1e-06);
-%! assert (stats.CI_lower, 0.1930312588344436, 1e-06);
-%! assert (stats.CI_upper, 5.806968741165555, 1e-06);
+%! assert (stats.CI_lower, 0.192974029740606, 1e-06);
+%! assert (stats.CI_upper, 5.807025970259393, 1e-06);
 %! assert (stats.tstat, 2.413553960127389, 1e-06);
-%! assert (stats.pval, 0.03928900167275051, 1e-06);
-%! assert (stats.fpr, 0.2568850231062232, 1e-06);
+%! assert (stats.pval, 0.03930865600075086, 1e-06);
+%! assert (stats.fpr, 0.2569510022708824, 1e-06);
 %! # ttest gives a p-value of 0.0478
 %! stats = bootwild(heights-H0,[],[],[],[0.025,0.975],1);
 %! assert (stats.original, 3.0, 1e-06);
 %! assert (stats.std_err, 1.242980289465605, 1e-06);
-%! assert (stats.CI_lower, 0.194262704692489, 1e-06);
-%! assert (stats.CI_upper, 5.83748458179292, 1e-06);
+%! assert (stats.CI_lower, 0.1941186116173519, 1e-06);
+%! assert (stats.CI_upper, 5.838265571832242, 1e-06);
 %! assert (stats.tstat, 2.413553960127389, 1e-06);
-%! assert (stats.pval, 0.03928900167275051, 1e-06);
-%! assert (stats.fpr, 0.2568850231062232, 1e-06);
+%! assert (stats.pval, 0.03930865600075086, 1e-06);
+%! assert (stats.fpr, 0.2569510022708824, 1e-06);
 %! stats = bootwild(heights-H0,[],2,[],0.05,1);
 %! assert (stats.original, 3.0, 1e-06);
 %! assert (stats.std_err, 1.240967364599086, 1e-06);
-%! assert (stats.CI_lower, -2.862056326073133, 1e-06);
-%! assert (stats.CI_upper, 8.862056326073132, 1e-06);
+%! assert (stats.CI_lower, -2.862072249982984, 1e-06);
+%! assert (stats.CI_upper, 8.862072249982983, 1e-06);
 %! assert (stats.tstat, 2.41746889207614, 1e-06);
-%! assert (stats.pval, 0.1231328642149123, 1e-06);
-%! assert (stats.fpr, 0.4121267059887464, 1e-06);
+%! assert (stats.pval, 0.1231944614456351, 1e-06);
+%! assert (stats.fpr, 0.4121900184840715, 1e-06);
 %! stats = bootwild(heights-H0,[],[1;1;2;2;3;3;4;4;5;5],[],0.05,1);
 %! assert (stats.original, 3.0, 1e-06);
 %! assert (stats.std_err, 1.240967364599086, 1e-06);
-%! assert (stats.CI_lower, -2.862056326073133, 1e-06);
-%! assert (stats.CI_upper, 8.862056326073132, 1e-06);
+%! assert (stats.CI_lower, -2.862072249982984, 1e-06);
+%! assert (stats.CI_upper, 8.862072249982983, 1e-06);
 %! assert (stats.tstat, 2.41746889207614, 1e-06);
-%! assert (stats.pval, 0.1231328642149123, 1e-06);
-%! assert (stats.fpr, 0.4121267059887464, 1e-06);
+%! assert (stats.pval, 0.1231944614456351, 1e-06);
+%! assert (stats.fpr, 0.4121900184840715, 1e-06);
 
 %!test
 %! ## Test if the regression coefficients equal 0
@@ -560,7 +560,7 @@ end
 %! [stats,bootstat] = bootwild(y,X);
 %! stats = bootwild(y,X);
 %! stats = bootwild(y,X,3);
-%! stats = bootwild(y,X,[],2000);
+%! stats = bootwild(y,X,[],1999);
 %! stats = bootwild(y,X,[],[],0.05);
 %! stats = bootwild(y,X,[],[],[0.025,0.975]);
 %! stats = bootwild(y,X,[],[],[],1);
@@ -570,25 +570,25 @@ end
 %! stats = bootwild(y,X,[],[],0.05,1);
 %! assert (stats.original(2), 0.1904211996616223, 1e-06);
 %! assert (stats.std_err(2), 0.08261019852213342, 1e-06);
-%! assert (stats.CI_lower(2), -0.005714323847808789, 1e-06);
-%! assert (stats.CI_upper(2), 0.3865567231710533, 1e-06);
+%! assert (stats.CI_lower(2), -0.005756584267003151, 1e-06);
+%! assert (stats.CI_upper(2), 0.3865989835902477, 1e-06);
 %! assert (stats.tstat(2), 2.305056797685863, 1e-06);
-%! assert (stats.pval(2), 0.05425822987055964, 1e-06);
-%! assert (stats.fpr(2), 0.3005934119755423, 1e-06);
+%! assert (stats.pval(2), 0.05428537255683808, 1e-06);
+%! assert (stats.fpr(2), 0.3006624755702829, 1e-06);
 %! # fitlm gives a CI of [0.0333, 0.34753] and a p-value of 0.018743
 %! stats = bootwild(y,X,[],[],[0.025,0.975],1);
 %! assert (stats.original(2), 0.1904211996616223, 1e-06);
 %! assert (stats.std_err(2), 0.08261019852213342, 1e-06);
-%! assert (stats.CI_lower(2), -0.01011303070821321, 1e-06);
-%! assert (stats.CI_upper(2), 0.3840528233473264, 1e-06);
+%! assert (stats.CI_lower(2), -0.01012856677977617, 1e-06);
+%! assert (stats.CI_upper(2), 0.3840597512351299, 1e-06);
 %! assert (stats.tstat(2), 2.305056797685863, 1e-06);
-%! assert (stats.pval(2), 0.05425822987055964, 1e-06);
-%! assert (stats.fpr(2), 0.3005934119755423, 1e-06);
+%! assert (stats.pval(2), 0.05428537255683808, 1e-06);
+%! assert (stats.fpr(2), 0.3006624755702829, 1e-06);
 %! stats = bootwild(y,X,3,[],0.05,1);
 %! assert (stats.original(2), 0.1904211996616223, 1e-06);
 %! assert (stats.std_err(2), 0.07170701459665534, 1e-06);
-%! assert (stats.CI_lower(2), -0.02152975601594129, 1e-06);
-%! assert (stats.CI_upper(2), 0.4023721553391858, 1e-06);
+%! assert (stats.CI_lower(2), -0.02153328646880504, 1e-06);
+%! assert (stats.CI_upper(2), 0.4023756857920496, 1e-06);
 %! assert (stats.tstat(2), 2.655544938423697, 1e-06);
-%! assert (stats.pval(2), 0.06945712706821157, 1e-06);
-%! assert (stats.fpr(2), 0.3349069434571838, 1e-06);
+%! assert (stats.pval(2), 0.06949187300471388, 1e-06);
+%! assert (stats.fpr(2), 0.3349765740645297, 1e-06);
