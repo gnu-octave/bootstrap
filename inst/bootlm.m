@@ -364,7 +364,11 @@ function [STATS, X, L] = bootlm (Y, GROUP, varargin)
       end
     end
 
-    % Error checking of NBOOT, ALPHA and SEED is handled by the function bootwild
+    % Most error checking for NBOOT, ALPHA and SEED is handled by the functions
+    % bootwild and bootbayes
+    if (size (ALPHA,1) > 1)
+      ALPHA = ALPHA.';
+    end
 
     % Evaluate continuous input argument
     if (isnumeric (CONTINUOUS))
