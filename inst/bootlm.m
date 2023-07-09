@@ -729,7 +729,7 @@ function [STATS, X, L] = bootlm (Y, GROUP, varargin)
             case 'wild'
               STATS = bootwild (Y, X, DEP, NBOOT, ALPHA, SEED, L);
             case {'bayes', 'bayesian'}
-              wgt = bsxfun (@rdivide, n_dim(pairs), sum (n_dim(pairs), 2));
+              wgt = bsxfun (@rdivide, n_dim(pairs), sum (n_dim(pairs)')');
               prior = sum ((1 - wgt) .* (1 - 2 ./ n_dim(pairs)), 2);
               STATS = flatten_struct (cell2mat (arrayfun (@ (i) bootbayes ...
                         (Y, X, DEP, NBOOT, fliplr (1 - ALPHA), prior(i), SEED, ...
