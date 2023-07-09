@@ -642,6 +642,8 @@ function [STATS, X, L] = bootlm (Y, GROUP, varargin)
         case {'bayes', 'bayesian'}
           STATS = bootbayes (Y, X, DEP, NBOOT, fliplr (1 - ALPHA), 1, SEED);
           STATS.pval = nan (size (b));
+        otherwise
+          error ('bootlm: unrecignised bootstrap method. Use ''wild'' or bayesian''.');
       end
 
       % Assign names for model coefficients
@@ -702,6 +704,8 @@ function [STATS, X, L] = bootlm (Y, GROUP, varargin)
               STATS = flatten_struct (cell2mat (arrayfun (@ (i) bootbayes ...
                         (Y, X, DEP, NBOOT, fliplr (1 - ALPHA), prior(i), SEED, ...
                         L(:, i)), (1:Ne), 'UniformOutput', false)));
+            otherwise
+              error ('bootlm: unrecignised bootstrap method. Use ''wild'' or bayesian''.');
           end
 
           % Add sample sizes to the output structure
@@ -733,8 +737,10 @@ function [STATS, X, L] = bootlm (Y, GROUP, varargin)
               prior = sum ((1 - wgt) .* (1 - 2 ./ n_dim(pairs')'), 2);
               STATS = flatten_struct (cell2mat (arrayfun (@ (i) bootbayes ...
                         (Y, X, DEP, NBOOT, fliplr (1 - ALPHA), prior(i), SEED, ...
-                        L(:, i)), (1:size (L, 2)), 'UniformOutput', false)));
+                        L(:, i)), (1:size (L, 2)), 'UniformOutput', false)))
               STATS.pval = nan (size (pairs, 1), 1);
+            otherwise
+              error ('bootlm: unrecignised bootstrap method. Use ''wild'' or bayesian''.');
           end
 
           % Add sample sizes to the output structure
