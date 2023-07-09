@@ -93,10 +93,7 @@
 %     regression coefficients by the hypothesis matrix L. If L is not provided
 %     or is empty, it will assume the default value of 1 (i.e. no change to
 %     the design). Otherwise, L must have the same number of rows as the number
-%     of columns in X. If L has only one column coded to compute an estimated
-%     marginal mean and if PRIOR is not specified or is empty, 'bootbayes' will
-%     set the PRIOR automatically to effectively incorporate Bessel's
-%     correction. Otherwise, PRIOR will be set to 1.
+%     of columns in X.
 %
 %     'STATS = bootbayes (...) returns a structure with the following fields:
 %     original, bias, median, stdev, CI_lower, CI_upper & prior.
@@ -258,11 +255,7 @@ function [stats, bootstat] = bootbayes (Y, X, dep, nboot, prob, prior, seed, L)
     if (intercept_only)
       prior = 'auto';
     else
-      if ( ~isempty (L) && (all (size (L) == [k, 1])) )
-        prior = 'auto';
-      else
-        prior = 1; % Bayes flat/uniform prior
-      end
+      prior = 1; % Bayes flat/uniform prior
     end
   end
   if (~ isa (prior, 'numeric'))
@@ -271,25 +264,8 @@ function [stats, bootstat] = bootbayes (Y, X, dep, nboot, prob, prior, seed, L)
       % unbiased estimator of the sampling variance
       if (intercept_only)
         prior = 1 - 2 / N;
-      elseif ( (~ isempty (L)) && (all (size (L) == [k, 1])) )
-        prior = 'auto';
-        idx = find (L);
-        if (numel (idx) > 1)
-          if isempty (IC)
-            NL = sum (all (bsxfun (@eq, X(:,idx), L(idx,1)'), 2));
-          else
-            NL = numel (unique (IC .* all (bsxfun (@eq, X(:,idx), L(idx,1)'), 2))) - 1;
-          end
-          if (NL > 0)
-            prior = 1 - 2 / NL;
-          else
-            prior = 1;
-          end
-        else
-          prior = 1;
-        end
       else
-        error ('bootbayes: PRIOR ''auto'' requires the model to return a single estimate for a column of Y')
+        prior = 1
       end
     else
       error ('bootbayes: PRIOR must be numeric');
