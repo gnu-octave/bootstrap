@@ -636,7 +636,7 @@ function [STATS, X, L] = bootlm (Y, GROUP, varargin)
         case 'wild'
           STATS = bootwild (Y, X, DEP, NBOOT, ALPHA, SEED);
         case {'bayes', 'bayesian'}
-          STATS = bootbayes (Y, X, DEP, NBOOT, sort (1 - ALPHA), 1, SEED);
+          STATS = bootbayes (Y, X, DEP, NBOOT, fliplr (1 - ALPHA), 1, SEED);
           STATS.pval = nan (size (b));
       end
 
@@ -696,7 +696,7 @@ function [STATS, X, L] = bootlm (Y, GROUP, varargin)
             case {'bayes', 'bayesian'}
               prior = 1 - 2 ./ n_dim;
               STATS = flatten_struct (cell2mat (arrayfun (@ (i) bootbayes ...
-                        (Y, X, DEP, NBOOT, sort (1 - ALPHA), prior(i), SEED, ...
+                        (Y, X, DEP, NBOOT, fliplr (1 - ALPHA), prior(i), SEED, ...
                         L(:, i)), (1:Ne), 'UniformOutput', false)));
           end
 
@@ -727,7 +727,7 @@ function [STATS, X, L] = bootlm (Y, GROUP, varargin)
             case {'bayes', 'bayesian'}
               prior = 1 - 2 ./ sqrt (prod (n_dim(pairs), 2));
               STATS = flatten_struct (cell2mat (arrayfun (@ (i) bootbayes ...
-                        (Y, X, DEP, NBOOT, sort (1 - ALPHA), prior(i), SEED, ...
+                        (Y, X, DEP, NBOOT, fliplr (1 - ALPHA), prior(i), SEED, ...
                         L(:, i)), (1:size (L, 2)), 'UniformOutput', false)));
               STATS.pval = nan (size (pairs, 1), 1);
           end
