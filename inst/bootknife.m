@@ -13,7 +13,7 @@
 % -- Function File: [STATS, BOOTSTAT, BOOTSAM] = bootknife (...)
 %
 %     'bootknife (DATA)' uses a variant of nonparametric bootstrap, called
-%     bootknife [1], to generate 2000 resamples from the rows of the DATA
+%     bootknife [1], to generate 1999 resamples from the rows of the DATA
 %     (column vector or matrix) and compute their means and display the
 %     following statistics:
 %        • original: the original estimate(s) calculated by BOOTFUN and the DATA
@@ -28,10 +28,8 @@
 %                  resamples [2,3] for single bootstrap, or
 %        • vector: A pair of positive integers defining the number of outer and
 %                  inner (nested) resamples for iterated (a.k.a. double)
-%                  bootstrap and coverage calibration [3-6]. Be wary of extreme 
-%                  corrections to the percentiles (i.e. to 0% or 100%), which
-%                  can arise when sample sizes are small.
-%        THe default value of NBOOT is the scalar: 2000.
+%                  bootstrap and coverage calibration [3-6].
+%        THe default value of NBOOT is the scalar: 1999.
 %
 %     'bootknife (DATA, NBOOT, BOOTFUN)' also specifies BOOTFUN: the function
 %     calculated on the original sample and the bootstrap resamples. BOOTFUN
@@ -105,8 +103,8 @@
 %     drawn from the nonscalar DATA argument to create that sample.
 %
 %  REQUIREMENTS:
-%    The function file boot.m (or better boot.mex) also distributed in the
-%  statistics-bootstrap package.
+%    The function file boot.m (or better boot.mex) and bootcdf, which are
+%    distributed with the statistics-bootstrap package.
 %
 %  DETAILS:
 %    For a DATA sample with n rows, bootknife resampling involves creating
@@ -193,7 +191,7 @@ function [stats, bootstat, bootsam] = bootknife (x, nboot, bootfun, alpha, ...
       error ('bootknife: DATA must be provided');
     end
     if ((nargin < 2) || isempty (nboot))
-      nboot = [2000, 0];
+      nboot = [1999, 0];
     else
       if (~ isa (nboot, 'numeric'))
         error ('bootknife: NBOOT must be numeric');
@@ -765,15 +763,16 @@ function [stats, bootstat, bootsam] = bootknife (x, nboot, bootfun, alpha, ...
     pr = sum (I, 2);
     t = cell2mat (arrayfun (@(j) ...
          [max([min(bootstat(j, :)), max(bootstat(j, I(j, :)))]),...
-          min([max(bootstat(j, :)), min(bootstat(j, ~ I(j, :)))])], (1:m).', ...
+          min([max(bootstat(j, :)), min(bootstat(j, ~ I(j, :)))])], (1:m)', ...
           'UniformOutput', false));
     dt = t(:, 2) - t(:, 1);
-    chk = and (pr < B, dt > 0);
+    chk = (pr < B) & (dt > 0);
     Pr = zeros (m, 1);
     Pr(chk, 1) = pr(chk, 1) + ((REF(chk, 1) - t(chk, 1) ).* ...
                         (min (pr(chk, 1) + 1, B) - pr(chk, 1)) ./ dt(chk, 1));
     Pr(~ chk, 1) = pr(~ chk, 1);
-    stats.Pr = Pr / B;
+    stats.Pr = max (Pr, 1) / (B + 1);
+
   end
   bootstat = bootstat_all;
 
@@ -983,7 +982,7 @@ end
 %!         0 33 28 34 4 32 24 47 41 24 26 30 41].';
 %!
 %! ## 95% expanded BCa bootstrap confidence intervals for the mean
-%! bootknife (data, 2000, @mean);
+%! bootknife (data, 1999, @mean);
 
 %!demo
 %!
@@ -992,7 +991,7 @@ end
 %!         0 33 28 34 4 32 24 47 41 24 26 30 41].';
 %!
 %! ## 95% calibrated percentile bootstrap confidence intervals for the mean
-%! bootknife (data, [2000, 200], @mean);
+%! bootknife (data, [1999, 199], @mean);
 %!
 %! ## Please be patient, the calculations will be completed soon...
 
@@ -1004,7 +1003,7 @@ end
 %!
 %! ## 95% calibrated percentile bootstrap confidence intervals for the median
 %! ## with smoothing.
-%! bootknife (data, [2000, 200], @smoothmedian);
+%! bootknife (data, [1999, 199], @smoothmedian);
 %!
 %! ## Please be patient, the calculations will be completed soon...
 
@@ -1015,7 +1014,7 @@ end
 %!         0 33 28 34 4 32 24 47 41 24 26 30 41].';
 %!
 %! ## 90% equal-tailed percentile bootstrap confidence intervals for the variance
-%! bootknife (data, 2000, {@var, 1}, 0.1);
+%! bootknife (data, 1999, {@var, 1}, 0.1);
 
 %!demo
 %!
@@ -1024,7 +1023,7 @@ end
 %!         0 33 28 34 4 32 24 47 41 24 26 30 41].';
 %!
 %! ## 90% BCa bootstrap confidence intervals for the variance
-%! bootknife (data, 2000, {@var, 1}, [0.05 0.95]);
+%! bootknife (data, 1999, {@var, 1}, [0.05 0.95]);
 
 %!demo
 %!
@@ -1034,7 +1033,7 @@ end
 %!
 %! ## 90% calibrated equal-tailed percentile bootstrap confidence intervals for
 %! ## the variance.
-%! bootknife (data, [2000, 200], {@var, 1}, 0.1);
+%! bootknife (data, [1999, 199], {@var, 1}, 0.1);
 %!
 %! ## Please be patient, the calculations will be completed soon...
 
@@ -1045,7 +1044,7 @@ end
 %!         0 33 28 34 4 32 24 47 41 24 26 30 41].';
 %!
 %! ## 90% calibrated percentile bootstrap confidence intervals for the variance
-%! bootknife (data, [2000, 200], {@var, 1}, [0.05, 0.95]);
+%! bootknife (data, [1999, 199], {@var, 1}, [0.05, 0.95]);
 %!
 %! ## Please be patient, the calculations will be completed soon...
 
@@ -1055,7 +1054,7 @@ end
 %! y = randn (20,1); x = randn (20,1); X = [ones(20,1), x];
 %!
 %! ## 90% BCa confidence interval for regression coefficients 
-%! bootknife ({y,X}, 2000, @(y,X) X\y, [0.05 0.95]); % Could also use @regress
+%! bootknife ({y,X}, 1999, @(y,X) X\y, [0.05 0.95]); % Could also use @regress
 
 
 %!demo
@@ -1065,7 +1064,7 @@ end
 %! y = [3.39 3.3 2.81 3.03 3.44 3.07 3 3.43 3.36 3.13 3.12 2.74 2.76 2.88 2.96].'; 
 %!
 %! ## 95% BCa bootstrap confidence intervals for the correlation coefficient
-%! bootknife ({x, y}, 2000, @cor);
+%! bootknife ({x, y}, 1999, @cor);
 %!
 %! ## Please be patient, the calculations will be completed soon...
 
@@ -1076,7 +1075,7 @@ end
 %! ## University Press)
 %!
 %! ## AIM: to construct 95% nonparametric bootstrap confidence intervals for
-%! ## the mean failure time from the sample x (n = 9). The mean(x,1) = 108.1 
+%! ## the mean failure time from the sample x (n = 12). The mean(x,1) = 108.1 
 %! ## and exact intervals based on an exponential model are [65.9, 209.2].
 %!
 %! ## Calculations using the 'bootstrap' and 'resample' packages in R
@@ -1084,11 +1083,11 @@ end
 %! ## x <- c(3, 5, 7, 18, 43, 85, 91, 98, 100, 130, 230, 487);
 %! ##
 %! ## library (bootstrap)  # Functions from Efron and Tibshirani (1993)
-%! ## set.seed(1); ci1 <- boott (x, mean, nboott=20000, nbootsd=500, perc=c(.025,.975))
-%! ## set.seed(1); ci2a <- bcanon (x, 20000, mean, alpha = c(0.025,0.975))
+%! ## set.seed(1); ci1 <- boott (x, mean, nboott=19999, nbootsd=499, perc=c(.025,.975))
+%! ## set.seed(1); ci2a <- bcanon (x, 19999, mean, alpha = c(0.025,0.975))
 %! ##
 %! ## library (resample)  # Functions from Hesterberg, Tim (2014)
-%! ## bootout <- bootstrap (x, mean, R=20000, seed=1)
+%! ## bootout <- bootstrap (x, mean, R=19999, seed=1)
 %! ## ci2b <- CI.bca (bootout, confidence=0.95, expand=FALSE)
 %! ## ci3 <- CI.bca (bootout, confidence=0.95, expand=TRUE)
 %! ## ci4 <- CI.percentile (bootout, confidence=0.95, expand=FALSE)
@@ -1098,8 +1097,8 @@ end
 %! ##
 %! ## method                                |   0.05 |   0.95 | length | shape |  
 %! ## --------------------------------------|--------|--------|--------|-------|
-%! ## ci1a - bootstrap-t (bootstrap)        |   48.2 |  287.2 |  239.0 |  2.98 |
-%! ## ci2a - BCa (bootstrap)                |   56.7 |  224.4 |  167.7 |  2.26 |
+%! ## ci1  - bootstrap-t (bootstrap)        |   45.2 |  301.6 |  256.4 |  3.08 |
+%! ## ci2a - BCa (bootstrap)                |   57.1 |  226.5 |  169.4 |  2.32 |
 %! ## ci2b - BCa (resample)                 |   57.5 |  223.4 |  165.9 |  2.27 |
 %! ## ci3  - expanded BCa (resample)        |   52.0 |  252.5 |  200.0 |  2.57 |
 %! ## ci4  - percentile (resample)          |   47.7 |  191.8 |  144.1 |  1.39 |
@@ -1108,34 +1107,35 @@ end
 %! ## Calculations using the 'statistics-bootstrap' package for Octave/Matlab
 %! ##
 %! ## x = [3 5 7 18 43 85 91 98 100 130 230 487]';
-%! ## boot (1,1,false,1); ci3 = bootknife (x, 20000, @mean, [.025,.975]);
-%! ## boot (1,1,false,1); ci5 = bootknife (x, 20000, @mean, 0.05);
-%! ## boot (1,1,false,1); ci6 = bootknife (x, [20000,500], @mean, [.025,.975]);
+%! ## boot (1,1,false,1); ci3 = bootknife (x, 19999, @mean, [.025,.975]);
+%! ## boot (1,1,false,1); ci5 = bootknife (x, 19999, @mean, 0.05);
+%! ## boot (1,1,false,1); ci6 = bootknife (x, [19999,499], @mean, [.025,.975]);
 %! ##
 %! ## Confidence intervals from 'statistics-bootstrap' package for Octave/Matlab
 %! ##
 %! ## method                                |  0.025 |  0.975 | length | shape |
 %! ## --------------------------------------|--------|--------|--------|-------|
-%! ## ci3  - expanded BCa                   |   50.6 |  253.0 |  202.4 |  2.52 |
-%! ## ci5  - expanded percentile            |   36.9 |  207.2 |  170.3 |  1.39 |
-%! ## ci6  - calibrated                     |   50.0 |  334.6 |  284.6 |  3.89 |
+%! ## ci3  - expanded BCa                   |   51.4 |  255.6 |  204.2 |  2.60 |
+%! ## ci5  - expanded percentile            |   37.3 |  207.4 |  170.1 |  1.40 |
+%! ## ci6  - calibrated                     |   50.3 |  245.3 |  194.9 |  2.37 |
 %! ## --------------------------------------|--------|--------|--------|-------|
 %! ## parametric - exact                    |   65.9 |  209.2 |  143.3 |  3.40 |
 %! ##
 %! ## Simulation results for constructing 95% confidence intervals for the
 %! ## mean of populations with different distributions. The simulation was
-%! ## of 1000 random samples of size 9 (analagous to the situation above). 
-%! ## Simulation performed using the bootsim script with nboot of 2000.
+%! ## of 1000 random samples of size 12 (analagous to the situation above).
+%! ## Simulation performed using the bootsim script with nboot of 1999 (for
+%! ## single bootstrap) or [1999,199] (for double bootstrap).
 %! ##
 %! ## --------------------------------------------------------------------------
 %! ## expanded BCa
 %! ## --------------------------------------------------------------------------
 %! ## Population                 | coverage |  lower |  upper | length | shape |
 %! ## ---------------------------|----------|--------|--------|--------|-------|
-%! ## Normal N(0,1)              |    94.7% |   2.8% |   2.5% |   1.48 |  1.01 |
-%! ## Folded normal |N(0,1)|     |    94.6% |   1.3% |   4.1% |   0.88 |  1.33 |
-%! ## Exponential exp(1)         |    91.3% |   0.7% |   8.0% |   1.35 |  1.58 |
-%! ## Log-normal exp(N(0,1))     |    88.4% |   0.4% |  11.2% |   2.21 |  1.81 |
+%! ## Normal N(0,1)              |    94.8% |   2.7% |   2.5% |   1.22 |  0.99 |
+%! ## Folded normal |N(0,1)|     |    94.9% |   1.8% |   3.3% |   0.75 |  1.34 |
+%! ## Laplace exp(1) - exp(1)    |    92.0% |   3.1% |   4.9% |   1.67 |  0.99 |
+%! ## Log-normal exp(N(0,1))     |    87.4% |   0.6% |  12.0% |   1.95 |  1.82 |
 %! ## ---------------------------|----------|--------|--------|--------|-------|
 %! ##
 %! ## --------------------------------------------------------------------------
@@ -1143,10 +1143,10 @@ end
 %! ## --------------------------------------------------------------------------
 %! ## Population                 | coverage |  lower |  upper | length | shape |
 %! ## ---------------------------|----------|--------|--------|--------|-------|
-%! ## Normal N(0,1)              |    95.4% |   2.9% |   1.7% |   1.48 |  1.01 |
-%! ## Folded normal |N(0,1)|     |    93.9% |   1.0% |   5.1% |   0.86 |  1.11 |
-%! ## Exponential exp(1)         |    89.9% |   0.6% |   9.5% |   1.28 |  1.18 |
-%! ## Log-normal exp(N(0,1))     |    85.6% |   0.0% |  14.4% |   2.05 |  1.25 |
+%! ## Normal N(0,1)              |    94.8% |   2.2% |   3.0% |   1.22 |  1.00 |
+%! ## Folded normal |N(0,1)|     |    92.1% |   1.5% |   6.4% |   0.71 |  1.10 |
+%! ## Laplace exp(1) - exp(1)    |    94.7% |   1.9% |   3.4% |   1.61 |  1.00 |
+%! ## Log-normal exp(N(0,1))     |    86.4% |   0.1% |  13.5% |   1.74 |  1.24 |
 %! ## ---------------------------|----------|--------|--------|--------|-------|
 %! ##
 %! ## --------------------------------------------------------------------------
@@ -1154,10 +1154,10 @@ end
 %! ## --------------------------------------------------------------------------
 %! ## Population                 | coverage |  lower |  upper | length | shape |
 %! ## ---------------------------|----------|--------|--------|--------|-------|
-%! ## Normal N(0,1)              |    95.7% |   2.4% |   1.9% |   1.76 |  1.06 |
-%! ## Folded normal |N(0,1)|     |    96.3% |   1.5% |   2.2% |   1.03 |  1.78 |
-%! ## Exponential exp(1)         |    93.9% |   0.8% |   5.3% |   1.50 |  2.06 |
-%! ## Log-normal exp(N(0,1))     |    91.4% |   1.4% |   7.2% |   2.52 |  2.25 |
+%! ## Normal N(0,1)              |    95.5% |   2.9% |   1.6% |   1.30 |  1.00 |
+%! ## Folded normal |N(0,1)|     |    95.1% |   0.8% |   4.1% |   0.79 |  1.14 |
+%! ## Laplace exp(1) - exp(1)    |    94.7% |   2.3% |   3.0% |   1.76 |  0.99 |
+%! ## Log-normal exp(N(0,1))     |    88.8% |   0.3% |  10.9% |   1.99 |  1.39 |
 %! ## ---------------------------|----------|--------|--------|--------|-------|
 %! ##
 %! ## --------------------------------------------------------------------------
@@ -1165,10 +1165,10 @@ end
 %! ## --------------------------------------------------------------------------
 %! ## Population                 | coverage |  lower |  upper | length | shape |
 %! ## ---------------------------|----------|--------|--------|--------|-------|
-%! ## Normal N(0,1)              |    95.7% |   2.4% |   1.9% |   1.76 |  1.06 |
-%! ## Folded normal |N(0,1)|     |    96.3% |   1.5% |   2.2% |   1.03 |  1.78 |
-%! ## Exponential exp(1)         |    93.9% |   0.8% |   5.3% |   1.50 |  2.06 |
-%! ## Log-normal exp(N(0,1))     |    91.4% |   1.4% |   7.2% |   2.52 |  2.25 |
+%! ## Normal N(0,1)              |    95.5% |   3.1% |   1.4% |   1.28 |  1.01 |
+%! ## Folded normal |N(0,1)|     |    95.5% |   0.9% |   3.6% |   0.75 |  1.40 |
+%! ## Laplace exp(1) - exp(1)    |    93.3% |   3.4% |   3.3% |   1.74 |  1.02 |
+%! ## Log-normal exp(N(0,1))     |    89.4% |   0.9% |   9.7% |   1.97 |  1.78 |
 %! ## ---------------------------|----------|--------|--------|--------|-------|
 
 %!demo
@@ -1201,7 +1201,7 @@ end
 %! ##               var.t <- sum (U^2 / (n * (n - 1)));
 %! ##               return ( c(t, var.t) ) };
 %! ## set.seed(1)
-%! ## var.boot <- boot (data=A, statistic=boot.fun, R=20000, sim='balanced')
+%! ## var.boot <- boot (data=A, statistic=boot.fun, R=19999, sim='balanced')
 %! ## ci1 <- boot.ci (var.boot, conf=0.90, type="norm")
 %! ## ci2 <- boot.ci (var.boot, conf=0.90, type="perc")
 %! ## ci3 <- boot.ci (var.boot, conf=0.90, type="basic")
@@ -1209,20 +1209,20 @@ end
 %! ## ci5 <- boot.ci (var.boot, conf=0.90, type="stud")
 %! ##
 %! ## library (bootstrap)  # Functions from Efron and Tibshirani (1993)
-%! ## set.seed(1); ci4a <- bcanon (A, 20000, var.fun, alpha=c(0.05,0.95))
-%! ## set.seed(1); ci5a <- boott (A, var.fun, nboott=20000, nbootsd=500, perc=c(.05,.95))
+%! ## set.seed(1); ci4a <- bcanon (A, 19999, var.fun, alpha=c(0.05,0.95))
+%! ## set.seed(1); ci5a <- boott (A, var.fun, nboott=19999, nbootsd=499, perc=c(.05,.95))
 %! ##
 %! ## Confidence intervals from 'boot' and 'bootstrap' packages in R
 %! ##
 %! ## method                                |   0.05 |   0.95 | length | shape |  
 %! ## --------------------------------------|--------|--------|--------|-------|
-%! ## ci1  - normal                         |  109.4 |  246.8 |  137.4 |  1.21 |
-%! ## ci2  - percentile                     |   97.8 |  235.6 |  137.8 |  0.87 |
-%! ## ci3  - basic                          |  107.4 |  245.3 |  137.9 |  1.15 |
-%! ## ci4  - BCa                            |  116.9 |  264.0 |  147.1 |  1.69 |
-%! ## ci4a - BCa                            |  116.2 |  264.0 |  147.8 |  1.67 |
-%! ## ci5  - bootstrap-t                    |  111.8 |  291.2 |  179.4 |  2.01 |
-%! ## ci5a - bootstrap-t                    |  112.7 |  292.6 |  179.9 |  2.06 |
+%! ## ci1  - normal                         |  109.6 |  246.7 |  137.1 |  1.21 |
+%! ## ci2  - percentile                     |   97.9 |  234.8 |  136.9 |  0.86 |
+%! ## ci3  - basic                          |  108.3 |  245.1 |  136.8 |  1.16 |
+%! ## ci4  - BCa                            |  116.0 |  260.7 |  144.7 |  1.60 |
+%! ## ci4a - BCa                            |  115.8 |  260.6 |  147.8 |  1.59 |
+%! ## ci5  - bootstrap-t                    |  112.0 |  291.8 |  179.8 |  2.02 |
+%! ## ci5a - bootstrap-t                    |  116.1 |  290.9 |  174.7 |  2.16 |
 %! ## --------------------------------------|--------|--------|--------|-------|
 %! ## parametric - exact                    |  118.4 |  305.2 |  186.8 |  2.52 |
 %! ##
@@ -1230,7 +1230,7 @@ end
 %! ##
 %! ## method                             | original |    bias | bias-corrected |
 %! ## -----------------------------------|----------|---------|----------------|
-%! ## single bootstrap                   |   171.53 |   -6.62 |         178.16 |
+%! ## single bootstrap                   |   171.53 |   -6.58 |         178.11 |
 %! ## -----------------------------------|----------|---------|----------------|
 %! ## parametric - exact                 |   171.53 |   -6.86 |         178.40 |
 %!
@@ -1238,34 +1238,34 @@ end
 %! ##
 %! ## A = [48 36 20 29 42 42 20 42 22 41 45 14 6 ...
 %! ##      0 33 28 34 4 32 24 47 41 24 26 30 41].';
-%! ## boot (1,1,false,1); ci2 = bootknife (A, 20000, {@var,1}, 0.1);
-%! ## boot (1,1,false,1); ci4 = bootknife (A, 20000, {@var,1}, [0.05,0.95]);
-%! ## boot (1,1,false,1); ci6a = bootknife (A, [20000,500], {@var,1}, 0.1);
-%! ## boot (1,1,false,1); ci6b = bootknife (A, [20000,500], {@var,1}, [0.05,0.95]);
+%! ## boot (1,1,false,1); ci2 = bootknife (A, 19999, {@var,1}, 0.1);
+%! ## boot (1,1,false,1); ci4 = bootknife (A, 19999, {@var,1}, [0.05,0.95]);
+%! ## boot (1,1,false,1); ci6a = bootknife (A, [19999,499], {@var,1}, 0.1);
+%! ## boot (1,1,false,1); ci6b = bootknife (A, [19999,499], {@var,1}, [0.05,0.95]);
 %! ##
 %! ## Confidence intervals from 'statistics-bootstrap' package for Octave/Matlab
 %! ##
 %! ## method                                |   0.05 |   0.95 | length | shape |
 %! ## --------------------------------------|--------|--------|--------|-------|
-%! ## ci2  - percentile (equal-tailed)      |   96.6 |  236.7 |  140.1 |  0.87 |
-%! ## ci4  - BCa                            |  115.7 |  266.1 |  150.4 |  1.69 |
-%! ## ci6a - calibrated (equal-tailed)      |   82.3 |  256.4 |  174.1 |  0.95 |
-%! ## ci6b - calibrated                     |  113.4 |  297.0 |  183.6 |  2.16 |
+%! ## ci2  - percentile (equal-tailed)      |   96.1 |  237.0 |  140.9 |  0.87 |
+%! ## ci4  - BCa                            |  115.9 |  264.6 |  148.7 |  1.68 |
+%! ## ci6a - calibrated (equal-tailed)      |   82.6 |  254.4 |  171.8 |  0.93 |
+%! ## ci6b - calibrated                     |  113.4 |  284.9 |  171.5 |  1.95 |
 %! ## --------------------------------------|--------|--------|--------|-------|
 %! ## parametric - exact                    |  118.4 |  305.2 |  186.8 |  2.52 |
 %! ##
 %! ## Simulation results for constructing 90% confidence intervals for the
 %! ## variance of a population N(0,1) from 1000 random samples of size 26
 %! ## (analagous to the situation above). Simulation performed using the
-%! ## bootsim script with nboot of 2000 (for single bootstrap) or [2000,200]
+%! ## bootsim script with nboot of 1999 (for single bootstrap) or [1999,499]
 %! ## (for double bootstrap).
 %! ##
 %! ## method                     | coverage |  lower |  upper | length | shape |
 %! ## ---------------------------|----------|--------|--------|--------|-------|
-%! ## percentile (equal-tailed)  |    81.8% |   1.3% |  16.9% |   0.80 |  0.92 |
-%! ## BCa                        |    87.3% |   4.2% |   8.5% |   0.86 |  1.85 |
-%! ## calibrated (equal-tailed)  |    90.5% |   0.5% |   9.0% |   1.06 |  1.06 |
-%! ## calibrated                 |    90.7% |   5.1% |   4.2% |   1.13 |  2.73 |
+%! ## percentile (equal-tailed)  |    81.9% |   1.3% |  16.8% |   0.78 |  0.91 |
+%! ## BCa                        |    85.6% |   5.2% |   9.2% |   0.87 |  1.84 |
+%! ## calibrated (equal-tailed)  |    90.0% |   0.1% |   9.9% |   1.01 |  1.04 |
+%! ## calibrated                 |    90.3% |   4.5% |   5.2% |   0.99 |  2.21 |
 %! ## ---------------------------|----------|--------|--------|--------|-------|
 %! ## parametric - exact         |    90.8% |   3.7% |   5.5% |   0.99 |  2.52 |
 %!
@@ -1274,7 +1274,7 @@ end
 %! ## method                             | original |    bias | bias-corrected |
 %! ## -----------------------------------|----------|---------|----------------|
 %! ## single bootstrap                   |   171.53 |   -6.70 |         178.24 |
-%! ## double bootstrap                   |   171.53 |   -6.83 |         178.36 |
+%! ## double bootstrap                   |   171.53 |   -7.12 |         178.65 |
 %! ## -----------------------------------|----------|---------|----------------|
 %! ## parametric - exact                 |   171.53 |   -6.86 |         178.40 |
 %!
@@ -1282,10 +1282,10 @@ end
 %! ## and 'bootstrap' packages (in R) and the statistics-bootstrap package (in
 %! ## Octave/Matlab) produce intervals with very similar end points, length and
 %! ## shape. However, all intervals calculated using the 'statistics-bootstrap'
-%! ## package are slightly longer than the intervals calculated in R because
-%! ## the 'statistics-bootstrap' package uses bootknife resampling. The scale of
-%! ## the sampling distribution for small samples is approximated better by
-%! ## bootknife (rather than bootstrap) resampling. 
+%! ## package are slightly longer than the equivalent intervals calculated in
+%! ## R because the 'statistics-bootstrap' package uses bootknife resampling.
+%! ## The scale of the sampling distribution for small samples is approximated
+%! ## better by bootknife (rather than bootstrap) resampling. 
 
 %!test
 %! ## Test for errors when using different functionalities of bootknife
@@ -1294,49 +1294,49 @@ end
 %! try
 %!   y = randn (20,1); 
 %!   strata = [1;1;1;1;1;1;1;1;1;1;2;2;2;2;2;3;3;3;3;3];
-%!   stats = bootknife (y, 2000, @mean);
-%!   stats = bootknife (y, 2000, 'mean');
-%!   stats = bootknife (y, 2000, {@var,1});
-%!   stats = bootknife (y, 2000, {'var',1});
-%!   stats = bootknife (y, 2000, @mean, [], strata);
-%!   stats = bootknife (y, 2000, {'var',1}, [], strata);
-%!   stats = bootknife (y, 2000, {@var,1}, [], strata, 2);
-%!   stats = bootknife (y, 2000, @mean, .1, strata, 2);
-%!   stats = bootknife (y, 2000, @mean, [.05,.95], strata, 2);
-%!   stats = bootknife (y, [2000,200], @mean, .1, strata, 2);
-%!   stats = bootknife (y, [2000,200], @mean, [.05,.95], strata, 2);
-%!   stats = bootknife (y(1:5), 2000, @mean, .1);
-%!   stats = bootknife (y(1:5), 2000, @mean, [.05,.95]);
-%!   stats = bootknife (y(1:5), [2000,200], @mean, .1);
-%!   stats = bootknife (y(1:5), [2000,200], @mean, [.05,.95]);
+%!   stats = bootknife (y, 1999, @mean);
+%!   stats = bootknife (y, 1999, 'mean');
+%!   stats = bootknife (y, 1999, {@var,1});
+%!   stats = bootknife (y, 1999, {'var',1});
+%!   stats = bootknife (y, 1999, @mean, [], strata);
+%!   stats = bootknife (y, 1999, {'var',1}, [], strata);
+%!   stats = bootknife (y, 1999, {@var,1}, [], strata, 2);
+%!   stats = bootknife (y, 1999, @mean, .1, strata, 2);
+%!   stats = bootknife (y, 1999, @mean, [.05,.95], strata, 2);
+%!   stats = bootknife (y, [1999,199], @mean, .1, strata, 2);
+%!   stats = bootknife (y, [1999,199], @mean, [.05,.95], strata, 2);
+%!   stats = bootknife (y(1:5), 1999, @mean, .1);
+%!   stats = bootknife (y(1:5), 1999, @mean, [.05,.95]);
+%!   stats = bootknife (y(1:5), [1999,199], @mean, .1);
+%!   stats = bootknife (y(1:5), [1999,199], @mean, [.05,.95]);
 %!   Y = randn (20); 
 %!   strata = [1;1;1;1;1;1;1;1;1;1;2;2;2;2;2;3;3;3;3;3];
-%!   stats = bootknife (Y, 2000, @mean);
-%!   stats = bootknife (Y, 2000, 'mean');
-%!   stats = bootknife (Y, 2000, {@var, 1});
-%!   stats = bootknife (Y, 2000, {'var',1});
-%!   stats = bootknife (Y, 2000, @mean, [], strata);
-%!   stats = bootknife (Y, 2000, {'var',1}, [], strata);
-%!   stats = bootknife (Y, 2000, {@var,1}, [], strata, 2);
-%!   stats = bootknife (Y, 2000, @mean, .1, strata, 2);
-%!   stats = bootknife (Y, 2000, @mean, [.05,.95], strata, 2);
-%!   stats = bootknife (Y, [2000,200], @mean, .1, strata, 2);
-%!   stats = bootknife (Y, [2000,200], @mean, [.05,.95], strata, 2);
-%!   stats = bootknife (Y(1:5,:), 2000, @mean, .1);
-%!   stats = bootknife (Y(1:5,:), 2000, @mean, [.05,.95]);
-%!   stats = bootknife (Y(1:5,:), [2000,200], @mean, .1);
-%!   stats = bootknife (Y(1:5,:), [2000,200], @mean, [.05,.95]);
-%!   stats = bootknife (Y, 2000, @(Y) mean(Y(:),1)); % Cluster/block resampling
+%!   stats = bootknife (Y, 1999, @mean);
+%!   stats = bootknife (Y, 1999, 'mean');
+%!   stats = bootknife (Y, 1999, {@var, 1});
+%!   stats = bootknife (Y, 1999, {'var',1});
+%!   stats = bootknife (Y, 1999, @mean, [], strata);
+%!   stats = bootknife (Y, 1999, {'var',1}, [], strata);
+%!   stats = bootknife (Y, 1999, {@var,1}, [], strata, 2);
+%!   stats = bootknife (Y, 1999, @mean, .1, strata, 2);
+%!   stats = bootknife (Y, 1999, @mean, [.05,.95], strata, 2);
+%!   stats = bootknife (Y, [1999,199], @mean, .1, strata, 2);
+%!   stats = bootknife (Y, [1999,199], @mean, [.05,.95], strata, 2);
+%!   stats = bootknife (Y(1:5,:), 1999, @mean, .1);
+%!   stats = bootknife (Y(1:5,:), 1999, @mean, [.05,.95]);
+%!   stats = bootknife (Y(1:5,:), [1999,199], @mean, .1);
+%!   stats = bootknife (Y(1:5,:), [1999,199], @mean, [.05,.95]);
+%!   stats = bootknife (Y, 1999, @(Y) mean(Y(:),1)); % Cluster/block resampling
 %!   % Y(1,end) = NaN; % Unequal cluster size
-%!   %stats = bootknife (Y, 2000, @(Y) mean(Y(:),1,'omitnan'));
+%!   %stats = bootknife (Y, 1999, @(Y) mean(Y(:),1,'omitnan'));
 %!   y = randn (20,1); x = randn (20,1); X = [ones(20,1), x];
-%!   stats = bootknife ({x,y}, 2000, @cor);
-%!   stats = bootknife ({x,y}, 2000, @cor, [], strata);
-%!   stats = bootknife ({y,x}, 2000, @(y,x) pinv(x)*y); % Could also use @regress
-%!   stats = bootknife ({y,X}, 2000, @(y,X) pinv(X)*y);
-%!   stats = bootknife ({y,X}, 2000, @(y,X) pinv(X)*y, [], strata);
-%!   stats = bootknife ({y,X}, 2000, @(y,X) pinv(X)*y, [], strata, 2);
-%!   stats = bootknife ({y,X}, 2000, @(y,X) pinv(X)*y, [.05,.95], strata);
+%!   stats = bootknife ({x,y}, 1999, @cor);
+%!   stats = bootknife ({x,y}, 1999, @cor, [], strata);
+%!   stats = bootknife ({y,x}, 1999, @(y,x) pinv(x)*y); % Could also use @regress
+%!   stats = bootknife ({y,X}, 1999, @(y,X) pinv(X)*y);
+%!   stats = bootknife ({y,X}, 1999, @(y,X) pinv(X)*y, [], strata);
+%!   stats = bootknife ({y,X}, 1999, @(y,X) pinv(X)*y, [], strata, 2);
+%!   stats = bootknife ({y,X}, 1999, @(y,X) pinv(X)*y, [.05,.95], strata);
 %! catch
 %!   warning ('on', 'bootknife:parallel')
 %!   rethrow (lasterror)
@@ -1349,20 +1349,20 @@ end
 %! ## University Press)
 %! x = [3, 5, 7, 18, 43, 85, 91, 98, 100, 130, 230, 487]';
 %!
-%! ## Nonparametric 95% expanded percentile confidence intervals (equal-tailed )
+%! ## Nonparametric 95% expanded percentile confidence intervals (equal-tailed)
 %! ## Example 5.4 percentile intervals are 43.9 - 192.1
 %! ## Note that the intervals calculated below are wider because the narrowness
 %! ## bias was removed by expanding the probabilities of the percentiles using
 %! ## Student's t-distribution
 %! boot (1, 1, false, 1); # Set random seed
-%! stats = bootknife(x,2000,@mean,0.05);
+%! stats = bootknife(x,1999,@mean,0.05);
 %! if (isempty (regexp (which ('boot'), 'mex$')))
 %!   ## test boot m-file result
 %!   assert (stats.original, 108.0833333333333, 1e-08);
-%!   assert (stats.bias, -1.4210854715202e-14, 1e-08);
-%!   assert (stats.std_error, 38.25414068983568, 1e-08);
-%!   assert (stats.CI_lower, 37.62313309335625, 1e-08);
-%!   assert (stats.CI_upper, 201.0264463378847, 1e-08);
+%!   assert (stats.bias, -2.842170943040401e-14, 1e-08);
+%!   assert (stats.std_error, 38.21311346451331, 1e-08);
+%!   assert (stats.CI_lower, 37.63178001821489, 1e-08);
+%!   assert (stats.CI_upper, 200.846030428085, 1e-08);
 %! end
 %!
 %! ## Nonparametric 95% expanded BCa confidence intervals
@@ -1371,14 +1371,14 @@ end
 %! ## bias was removed by expanding the probabilities of the percentiles using
 %! ## Student's t-distribution
 %! boot (1, 1, false, 1); # Set random seed
-%! stats = bootknife(x,2000,@mean,[0.025,0.975]);
+%! stats = bootknife(x,1999,@mean,[0.025,0.975]);
 %! if (isempty (regexp (which ('boot'), 'mex$')))
 %!   ## test boot m-file result
 %!   assert (stats.original, 108.0833333333333, 1e-08);
-%!   assert (stats.bias, -1.4210854715202e-14, 1e-08);
-%!   assert (stats.std_error, 38.25414068983568, 1e-08);
-%!   assert (stats.CI_lower, 49.70873146256465, 1e-08);
-%!   assert (stats.CI_upper, 232.3618260843778, 1e-08);
+%!   assert (stats.bias, -2.842170943040401e-14, 1e-08);
+%!   assert (stats.std_error, 38.21311346451331, 1e-08);
+%!   assert (stats.CI_lower, 49.68734232019933, 1e-08);
+%!   assert (stats.CI_upper, 232.2854912518225, 1e-08);
 %! end
 %!
 %! ## Exact intervals based on an exponential model are 65.9 - 209.2
@@ -1394,51 +1394,51 @@ end
 %! ## Nonparametric 90% equal-tailed percentile confidence intervals
 %! ## Table 14.2 percentile intervals are 100.8 - 233.9
 %! boot (1, 1, false, 1); # Set random seed
-%! stats = bootknife(A,2000,{@var,1},0.1);
+%! stats = bootknife(A,1999,{@var,1},0.1);
 %! if (isempty (regexp (which ('boot'), 'mex$')))
 %!   ## test boot m-file result
 %!   assert (stats.original, 171.534023668639, 1e-08);
-%!   assert (stats.bias, -7.323387573964482, 1e-08);
-%!   assert (stats.std_error, 43.30079972388541, 1e-08);
-%!   assert (stats.CI_lower, 95.24158837039771, 1e-08);
-%!   assert (stats.CI_upper, 237.7156378257705, 1e-08);
+%!   assert (stats.bias, -7.305657266503118, 1e-08);
+%!   assert (stats.std_error, 43.17157379039285, 1e-08);
+%!   assert (stats.CI_lower, 95.33589724383222, 1e-08);
+%!   assert (stats.CI_upper, 237.1866652820803, 1e-08);
 %! end
 %!
 %! ## Nonparametric 90% BCa confidence intervals
 %! ## Table 14.2 BCa intervals are 115.8 - 259.6
 %! boot (1, 1, false, 1); # Set random seed
-%! stats = bootknife(A,2000,{@var,1},[0.05 0.95]);
+%! stats = bootknife(A,1999,{@var,1},[0.05 0.95]);
 %! if (isempty (regexp (which ('boot'), 'mex$')))
 %!   ## test boot m-file result
 %!   assert (stats.original, 171.534023668639, 1e-08);
-%!   assert (stats.bias, -7.323387573964482, 1e-08);
-%!   assert (stats.std_error, 43.30079972388541, 1e-08);
-%!   assert (stats.CI_lower, 113.2388308884533, 1e-08);
-%!   assert (stats.CI_upper, 264.9901439787903, 1e-08);
+%!   assert (stats.bias, -7.305657266503118, 1e-08);
+%!   assert (stats.std_error, 43.17157379039285, 1e-08);
+%!   assert (stats.CI_lower, 113.2858617321027, 1e-08);
+%!   assert (stats.CI_upper, 264.0328613673329, 1e-08);
 %! end
 %!
 %! ## Nonparametric 90% calibrated equal-tailed percentile confidence intervals
 %! boot (1, 1, false, 1); # Set random seed
-%! stats = bootknife(A,[2000,200],{@var,1},0.1);
+%! stats = bootknife(A,[1999,199],{@var,1},0.1);
 %! if (isempty (regexp (which ('boot'), 'mex$')))
 %!   ## test boot m-file result
 %!   assert (stats.original, 171.534023668639, 1e-08);
-%!   assert (stats.bias, -8.088193809171344, 1e-08);
-%!   assert (stats.std_error, 46.53418481731099, 1e-08);
-%!   assert (stats.CI_lower, 79.46067430166357, 1e-08);
-%!   assert (stats.CI_upper, 260.9171292390822, 1e-08);
+%!   assert (stats.bias, -8.09559197397769, 1e-08);
+%!   assert (stats.std_error, 46.23192443207778, 1e-08);
+%!   assert (stats.CI_lower, 81.57496114752357, 1e-08);
+%!   assert (stats.CI_upper, 255.5966823363611, 1e-08);
 %! end
 %!
 %! ## Nonparametric 90% calibrated percentile confidence intervals
 %! boot (1, 1, false, 1); # Set random seed
-%! stats = bootknife(A,[2000,200],{@var,1},[0.05,0.95]);
+%! stats = bootknife(A,[1999,199],{@var,1},[0.05,0.95]);
 %! if (isempty (regexp (which ('boot'), 'mex$')))
 %!   ## test boot m-file result
 %!   assert (stats.original, 171.534023668639, 1e-08);
-%!   assert (stats.bias, -8.088193809171344, 1e-08);
-%!   assert (stats.std_error, 46.53418481731099, 1e-08);
-%!   assert (stats.CI_lower, 110.6138073406352, 1e-08);
-%!   assert (stats.CI_upper, 305.1908284023669, 1e-08);
+%!   assert (stats.bias, -8.09559197397769, 1e-08);
+%!   assert (stats.std_error, 46.23192443207778, 1e-08);
+%!   assert (stats.CI_lower, 109.7569412835685, 1e-08);
+%!   assert (stats.CI_upper, 277.4147390170027, 1e-08);
 %! end
 %!
 %! ## Exact intervals based on normal theory are 118.4 - 305.2 (Table 14.2)
@@ -1456,50 +1456,50 @@ end
 %! ## Nonparametric 90% equal-tailed percentile confidence intervals
 %! ## Percentile intervals on page 266 are 0.524 - 0.928
 %! boot (1, 1, false, 1); # Set random seed
-%! stats = bootknife({LSAT,GPA},2000,@cor,0.1);
+%! stats = bootknife({LSAT,GPA},1999,@cor,0.1);
 %! if (isempty (regexp (which ('boot'), 'mex$')))
 %!   ## test boot m-file result
 %!   assert (stats.original, 0.7763744912894071, 1e-08);
-%!   assert (stats.bias, -0.008259337758776963, 1e-08);
-%!   assert (stats.std_error, 0.1420949476115542, 1e-08);
-%!   assert (stats.CI_lower, 0.5056363801008388, 1e-08);
-%!   assert (stats.CI_upper, 0.9586254199016858, 1e-08);
+%!   assert (stats.bias, -0.008329526543031429, 1e-08);
+%!   assert (stats.std_error, 0.1422804068655692, 1e-08);
+%!   assert (stats.CI_lower, 0.5046604076771914, 1e-08);
+%!   assert (stats.CI_upper, 0.9586661175519952, 1e-08);
 %! end
 %!
 %! ## Nonparametric 90% BCa confidence intervals
 %! ## BCa intervals on page 266 are 0.410 - 0.923
 %! boot (1, 1, false, 1); # Set random seed
-%! stats = bootknife({LSAT,GPA},2000,@cor,[0.05 0.95]);
+%! stats = bootknife({LSAT,GPA},1999,@cor,[0.05 0.95]);
 %! if (isempty (regexp (which ('boot'), 'mex$')))
 %!   ## test boot m-file result
 %!   assert (stats.original, 0.7763744912894071, 1e-08);
-%!   assert (stats.bias, -0.008259337758776963, 1e-08);
-%!   assert (stats.std_error, 0.1420949476115542, 1e-08);
-%!   assert (stats.CI_lower, 0.4119228032301614, 1e-08);
-%!   assert (stats.CI_upper, 0.9300646701004258, 1e-08);
+%!   assert (stats.bias, -0.008329526543031429, 1e-08);
+%!   assert (stats.std_error, 0.1422804068655692, 1e-08);
+%!   assert (stats.CI_lower, 0.4094344122396682, 1e-08);
+%!   assert (stats.CI_upper, 0.9301552819706758, 1e-08);
 %! end
 %!
 %! ## Nonparametric 90% calibrated equal-tailed percentile confidence intervals
 %! boot (1, 1, false, 1); # Set random seed
-%! stats = bootknife({LSAT,GPA},[2000,500],@cor,0.1);
+%! stats = bootknife({LSAT,GPA},[1999,499],@cor,0.1);
 %! if (isempty (regexp (which ('boot'), 'mex$')))
 %!   ## test boot m-file result
 %!   assert (stats.original, 0.7763744912894071, 1e-08);
-%!   assert (stats.bias, -0.00942010836534779, 1e-08);
-%!   assert (stats.std_error, 0.1438249935781226, 1e-08);
-%!   assert (stats.CI_lower, 0.3706033532632082, 1e-08);
-%!   assert (stats.CI_upper, 0.978329929008979, 1e-08);
+%!   assert (stats.bias, -0.009735795559474125, 1e-08);
+%!   assert (stats.std_error, 0.1446016217318865, 1e-08);
+%!   assert (stats.CI_lower, 0.3694847333563375, 1e-08);
+%!   assert (stats.CI_upper, 0.9783138564265896, 1e-08);
 %! end
 %!
 %! ## Nonparametric 90% calibrated percentile confidence intervals
 %! boot (1, 1, false, 1); # Set random seed
-%! stats = bootknife({LSAT,GPA},[2000,500],@cor,[0.05,0.95]);
+%! stats = bootknife({LSAT,GPA},[1999,499],@cor,[0.05,0.95]);
 %! if (isempty (regexp (which ('boot'), 'mex$')))
 %!   ## test boot m-file result
 %!   assert (stats.original, 0.7763744912894071, 1e-08);
-%!   assert (stats.bias, -0.00942010836534779, 1e-08);
-%!   assert (stats.std_error, 0.1438249935781226, 1e-08);
-%!   assert (stats.CI_lower, 0.2307337185192847, 1e-08);
-%!   assert (stats.CI_upper, 0.9444347128107354, 1e-08);
+%!   assert (stats.bias, -0.009735795559474125, 1e-08);
+%!   assert (stats.std_error, 0.1446016217318865, 1e-08);
+%!   assert (stats.CI_lower, 0.2078720903008157, 1e-08);
+%!   assert (stats.CI_upper, 0.9419996961228243, 1e-08);
 %! end
 %! ## Exact intervals based on normal theory are 0.51 - 0.91
