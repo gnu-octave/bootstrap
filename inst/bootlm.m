@@ -722,7 +722,7 @@ function [STATS, BOOTSTAT, X, L] = bootlm (Y, GROUP, varargin)
       U = unique (gid(:,DIM), 'rows', 'stable');
       n_dim = cellfun (@(u) sum (all (gid(:,DIM) == u, 2)), num2cell (U, 2));
 
-      % Compute number of independent sampling units for each level along dimenion DIM
+      % Compute number of independent sampling units at each level of dimension DIM
       if (isempty (DEP))
         N_dim = n_dim;
       else
@@ -784,7 +784,7 @@ function [STATS, BOOTSTAT, X, L] = bootlm (Y, GROUP, varargin)
             if (~ ismember (POSTHOC, {'pairwise', 'trt_vs_ctrl'}))
               error ('bootlm: available options for POSTHOC are ''pairwise'' and ''trt_vs_ctrl''')
             end
-            [L pairs] = feval (POSTHOC, L);
+            [L, pairs] = feval (POSTHOC, L);
           end
           switch (lower (METHOD))
             case 'wild'
@@ -803,7 +803,7 @@ function [STATS, BOOTSTAT, X, L] = bootlm (Y, GROUP, varargin)
           end
 
           % Add sample sizes to the output structure
-          STATS.n = sum (n_dim(pairs), 2);
+          STATS.n = sum (N_dim(pairs')', 2);
 
           % Create names of posthoc comparisons and assign to the output structure
           STATS.name = arrayfun (@(i) sprintf ('%s - %s', NAMES{pairs(i,:)}), ...
