@@ -1,8 +1,22 @@
 % -- statistics: bootlm (Y, GROUP)
-% -- statistics: bootlm (Y, GROUP, NAME, VALUE)
+% -- statistics: bootlm (Y, GROUP, ..., NAME, VALUE)
+% -- statistics: bootlm (Y, GROUP, ..., 'dim', DIM)
+% -- statistics: bootlm (Y, GROUP, ..., 'continuous', CONTINUOUS)
+% -- statistics: bootlm (Y, GROUP, ..., 'model', MODELTYPE)
+% -- statistics: bootlm (Y, GROUP, ..., 'varnames', VARNAMES)
+% -- statistics: bootlm (Y, GROUP, ..., 'method', METHOD)
+% -- statistics: bootlm (Y, GROUP, ..., 'alpha', ALPHA)
+% -- statistics: bootlm (Y, GROUP, ..., 'display', DISPOPT)
+% -- statistics: bootlm (Y, GROUP, ..., 'contrasts', CONTRASTS)
+% -- statistics: bootlm (Y, GROUP, ..., 'nboot', NBOOT)
+% -- statistics: bootlm (Y, GROUP, ..., 'clustid', CLUSTID)
+% -- statistics: bootlm (Y, GROUP, ..., 'blocksz', BLOCKSZ)
+% -- statistics: bootlm (Y, GROUP, ..., 'posthoc', POSTHOC)
+% -- statistics: bootlm (Y, GROUP, ..., 'seed', SEED)
 % -- statistics: STATS = bootlm (...)
-% -- statistics: [STATS, X] = bootlm (...)
-% -- statistics: [STATS, X, L] = bootlm (...)
+% -- statistics: [STATS, BOOTSTAT] = bootlm (...)
+% -- statistics: [STATS, BOOTSTAT, X] = bootlm (...)
+% -- statistics: [STATS, BOOTSTAT, X, L] = bootlm (...)
 %
 %        Fits a linear model with categorical and/or continuous predictors (i.e.
 %     independent variables) on a continuous outcome (i.e. dependent variable)
@@ -87,12 +101,25 @@
 %
 %        • METHOD can be specified as one of the following:
 %
-%             • 'wild' (default): Wild bootstrap-t, using the 'bootwild' function.
+%             • 'wild' (default): Wild bootstrap-t, using the 'bootwild'
+%                function. The wild bootstrap-t resampling here uses Webb's
+%                6-point distribution of the residuals. Please see the help
+%                documentation for the function 'bootwild' for more information
+%                about this method.
 %
 %             • 'bayesian' : Bayesian bootstrap, using the 'bootbayes' function.
+%                For regression coefficients, the prior is a uniform (or flat)
+%                symmetric Dirichlet distribution over all points in its support.
+%                For computing the posterior of estimated marginal means or
+%                mean differences in posthoc comparisons, the prior incorporates
+%                what effectively introduces Bessel's correction a priori in
+%                order for the variance of the posteriors to be an unbiased
+%                estimator of the sampling variance. Please see the help
+%                documentation for the function 'bootbayes' for more information
+%                about the prior in non-parametric Bayesian bootstrap.
 %
 %             Note that p-values are a frequentist concept and are only computed
-%             and returned from this function when the METHOD is 'wild'.
+%             and returned from bootlm when the METHOD is 'wild'.
 %
 %     '[...] = bootlm (Y, GROUP, ..., 'alpha', ALPHA)'
 %
@@ -271,14 +298,17 @@
 %
 %     'STATS = bootlm (...)' returns a structure summarising the statistics.
 %
-%     '[STATS, X] = bootlm (...)' also returns the design matrix for the linear 
-%     model.
+%     '[STATS, BOOTSTAT] = bootlm (...)' also returns a p x nboot matrix of
+%     bootstrap statistics for each of the estimated parameters.
 %
-%     '[STATS, X, L] = bootlm (...)' also returns the hypothesis matrix used to
-%     compute the estimated marginal means or posthoc tests from the regression
-%     coefficients.
+%     '[STATS, BOOTSTAT, X] = bootlm (...)' also returns the design matrix for
+%     the linear  model.
 %
-%  bootlm (version 2023.07.04)
+%     '[STATS, BOOTSTAT, X, L] = bootlm (...)' also returns the hypothesis
+%     matrix used to compute the estimated marginal means or posthoc tests
+%     from the regression coefficients.
+%
+%  bootlm (version 2023.07.12)
 %  Author: Andrew Charles Penn
 %  https://www.researchgate.net/profile/Andrew_Penn/
 %
@@ -293,13 +323,13 @@
 %  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 %  GNU General Public License for more details.
 
-function [STATS, X, L] = bootlm (Y, GROUP, varargin)
+function [STATS, BOOTSTAT, X, L] = bootlm (Y, GROUP, varargin)
 
     if (nargin < 2)
       error (strcat (['bootlm usage: ''bootlm (Y, GROUP)''; '], ...
                       [' atleast 2 input arguments required']));
     end
-    if (nargout > 3)
+    if (nargout > 4)
       error ('bootlm: Too many output arguments')
     end
 
@@ -638,9 +668,9 @@ function [STATS, X, L] = bootlm (Y, GROUP, varargin)
       % Model coefficients
       switch (lower (METHOD))
         case 'wild'
-          STATS = bootwild (Y, X, DEP, NBOOT, ALPHA, SEED);
+          [STATS, BOOTSTAT] = bootwild (Y, X, DEP, NBOOT, ALPHA, SEED);
         case {'bayes', 'bayesian'}
-          STATS = bootbayes (Y, X, DEP, NBOOT, fliplr (1 - ALPHA), 1, SEED);
+          [STATS, BOOTSTAT] = bootbayes (Y, X, DEP, NBOOT, fliplr (1 - ALPHA), 1, SEED);
           STATS.pval = nan (size (b));
         otherwise
           error ('bootlm: unrecignised bootstrap method. Use ''wild'' or bayesian''.');
@@ -674,12 +704,12 @@ function [STATS, X, L] = bootlm (Y, GROUP, varargin)
 
       % Create names for estimated marginal means
       idx = cellfun (@(l) find (all (bsxfun (@eq, H, l), 2), 1), num2cell (L', 2));
-      Ne = size (L, 2);
-      Np = numel (DIM);
-      NAMES = cell (Ne, 1);
-      for i = 1 : Ne
+      Np = size (L, 2);
+      Nd = numel (DIM);
+      NAMES = cell (Np, 1);
+      for i = 1 : Np
         str = '';
-        for j = 1 : Np
+        for j = 1 : Nd
           str = sprintf('%s%s=%s, ', str, ...
                     num2str (VARNAMES{DIM(j)}), ...
                     num2str (grpnames{DIM(j)}{gid(idx(i),DIM(j))}));
@@ -692,18 +722,45 @@ function [STATS, X, L] = bootlm (Y, GROUP, varargin)
       U = unique (gid(:,DIM), 'rows', 'stable');
       n_dim = cellfun (@(u) sum (all (gid(:,DIM) == u, 2)), num2cell (U, 2));
 
+      % Compute number of independent sampling units for each level along dimenion DIM
+      if (isempty (DEP))
+        N_dim = n_dim;
+      else
+        if (isscalar (DEP))
+          % Blocks
+          blocksz = DEP;
+          G = fix (n / blocksz);
+          IC = (G + 1) * ones (n, 1);
+          IC(1 : blocksz * G, :) = reshape (ones (blocksz, 1) * [1 : G], [], 1);
+          N = IC(end);
+        else
+          % Clusters
+          [jnk, jnk, IC] = unique (DEP);
+          if ( any (size (IC) ~= [n, 1]) )
+            error ('bootlm: CLUSTID must be a column vector with the same number of rows as Y')
+          end
+        end
+        UC = unique (cat (2, gid(:,DIM), IC), 'rows', 'stable');
+        N_dim = cellfun (@(u) sum (all (UC(:,1:Nd) == u, 2)), num2cell (U, 2));
+      end
+      if (any (N_dim < 5))
+        warning ('bootlm: the number of independent sampling units is < 5 along the dimension DIM')
+      end
+
       switch (lower (POSTHOC))
         case 'none'
 
           % Model estimated marginal means
           switch (lower (METHOD))
             case 'wild'
-              STATS = bootwild (Y, X, DEP, NBOOT, ALPHA, SEED, L);
+              [STATS, BOOTSTAT] = bootwild (Y, X, DEP, NBOOT, ALPHA, SEED, L);
             case {'bayes', 'bayesian'}
-              prior = 1 - 2 ./ n_dim;
-              STATS = flatten_struct (cell2mat (arrayfun (@ (i) bootbayes ...
+              prior = 1 - 2 ./ N_dim;
+              [STATS, BOOTSTAT] = arrayfun (@ (i) bootbayes ...
                         (Y, X, DEP, NBOOT, fliplr (1 - ALPHA), prior(i), SEED, ...
-                        L(:, i)), (1:Ne), 'UniformOutput', false)));
+                        L(:, i)), (1:Np)', 'UniformOutput', false);
+              STATS = flatten_struct (cell2mat (STATS));
+              BOOTSTAT = cell2mat (BOOTSTAT);
             otherwise
               error ('bootlm: unrecignised bootstrap method. Use ''wild'' or bayesian''.');
           end
@@ -731,14 +788,16 @@ function [STATS, X, L] = bootlm (Y, GROUP, varargin)
           end
           switch (lower (METHOD))
             case 'wild'
-              STATS = bootwild (Y, X, DEP, NBOOT, ALPHA, SEED, L);
+              [STATS, BOOTSTAT] = bootwild (Y, X, DEP, NBOOT, ALPHA, SEED, L);
             case {'bayes', 'bayesian'}
-              wgt = bsxfun (@rdivide, n_dim(pairs')', sum (n_dim(pairs')', 2));
-              prior = sum ((1 - wgt) .* (1 - 2 ./ n_dim(pairs')'), 2);
-              STATS = flatten_struct (cell2mat (arrayfun (@ (i) bootbayes ...
+              wgt = bsxfun (@rdivide, N_dim(pairs')', sum (N_dim(pairs')', 2));
+              prior = sum ((1 - wgt) .* (1 - 2 ./ N_dim(pairs')'), 2);
+              [STATS, BOOTSTAT] = arrayfun (@ (i) bootbayes ...
                         (Y, X, DEP, NBOOT, fliplr (1 - ALPHA), prior(i), SEED, ...
-                        L(:, i)), (1:size (L, 2)), 'UniformOutput', false)))
+                        L(:, i)), (1:size (L, 2))', 'UniformOutput', false);
+              STATS = flatten_struct (cell2mat (STATS));
               STATS.pval = nan (size (pairs, 1), 1);
+              BOOTSTAT = cell2mat (BOOTSTAT);
             otherwise
               error ('bootlm: unrecignised bootstrap method. Use ''wild'' or bayesian''.');
           end
