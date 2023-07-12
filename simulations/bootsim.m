@@ -19,8 +19,8 @@ bootfun = @mean; nvar = 1; rnd = @(n) random ('norm', 0, 1, [n, 1]); theta = 0;
 % 2) Mean of a folded normal distribution (high skewness, low excess kurtosis)
 %bootfun = @mean; nvar = 1; rnd = @(n) abs (random ('norm', 0, 1, [n, 1])); theta = sqrt (2/pi);
 
-% 3) Mean of an exponential distribution (no skewness, high excess kurtosis)
-%bootfun = @mean; nvar = 1; rnd = @(n) random ('exp', 1, [n, 1]); theta = 1;   
+% 3) Mean of an double exponential (Laplace) distribution (no skewness, high excess kurtosis)
+%bootfun = @mean; nvar = 1; rnd = @(n) log (rand (n, 1) ./ rand (n, 1)); theta = 0;   
 
 % 4) Mean of a log-normal distribution (high skewness, high kurtosis)
 %bootfun = @mean; nvar = 1; rnd = @(n) random ('logn', 0, 1, [n, 1]); theta = exp (0.5); 
@@ -36,7 +36,7 @@ bootfun = @mean; nvar = 1; rnd = @(n) random ('norm', 0, 1, [n, 1]); theta = 0;
 %--------------------------------------------------------------
 
 % Define sample size
-n = 7;
+n = 12;
 
 % Define number of simulations
 sim = 1000;
@@ -48,8 +48,8 @@ above = 0;
 below = 0;
 
 % Bootstrap resampling
-nboot = [2000,200];
-type = 'per';
+nboot = [1999,199];
+type = 'bca';
 
 % Print settings
 fprintf ('----- BOOTSTRAP CONFIDENCE INTERVAL (CI) SIMULATION -----\n')
