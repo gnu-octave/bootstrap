@@ -134,9 +134,9 @@
 %                  For block or cluster bootstrap, N corresponds to the number
 %                  of blocks or clusters (i.e. the number of independent
 %                  sampling units).
-%                       The 'auto' setting is (only) available for Bayesian
-%                  bootstrap of the estimated marginal means and for the
-%                  posthoc tests (not the regression coefficients).
+%                       The 'auto' setting is recommended but is only available
+%                  for Bayesian bootstrap of the estimated marginal means and
+%                  for the posthoc tests (not the regression coefficients).
 %
 %               The default value of PRIOR is the scalar: 1, which corresponds
 %               to Bayes rule: a uniform (or flat) Dirichlet distribution
@@ -318,8 +318,8 @@
 %
 %     'STATS = bootlm (...)' returns a structure summarising the statistics.
 %      Note that the p-values returned in STATS.pval are truncated at the
-%      resolution limit determined by the number of bootstrap replicates (at
-%      ~ 1 / NBOOT).
+%      resolution limit determined by the number of bootstrap replicates (in
+%      order of 1 / NBOOT).
 %
 %     '[STATS, BOOTSTAT] = bootlm (...)' also returns a p x nboot matrix of
 %     bootstrap statistics for each of the estimated parameters.
