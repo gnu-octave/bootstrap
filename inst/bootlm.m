@@ -5,6 +5,7 @@
 % -- statistics: bootlm (Y, GROUP, ..., 'model', MODELTYPE)
 % -- statistics: bootlm (Y, GROUP, ..., 'varnames', VARNAMES)
 % -- statistics: bootlm (Y, GROUP, ..., 'method', METHOD)
+% -- statistics: bootlm (Y, GROUP, ..., 'method', 'bayesian', 'prior', PRIOR)
 % -- statistics: bootlm (Y, GROUP, ..., 'alpha', ALPHA)
 % -- statistics: bootlm (Y, GROUP, ..., 'display', DISPOPT)
 % -- statistics: bootlm (Y, GROUP, ..., 'contrasts', CONTRASTS)
@@ -26,12 +27,10 @@
 %          - CI_lower: lower bound(s) of the 95% confidence interval (CI)
 %          - CI_upper: upper bound(s) of the 95% confidence interval (CI)
 %          - p-val: two-tailed p-value(s) for the parameter(s) being equal to 0
-%        Confidence intervals and Null Hypothesis Significance Tests (NHSTs) for
-%     the regression coefficients (H0 = 0) are calculated by wild bootstrap-t
-%     and so are robust when normality and homoscedasticity cannot be assumed.
-%     Note that the p-values are NOT adjusted for multiple comparisons and will
-%     be truncated at the resolution limit determined by the number of bootstrap
-%     replicates (specifically 1/NBOOT, see NAME-VALUE pairs below).
+%        By default, confidence intervals and Null Hypothesis Significance Tests
+%     (NHSTs) for the regression coefficients (H0 = 0) are calculated by wild
+%     bootstrap-t and so are robust when normality and homoscedasticity cannot
+%     be assumed.
 %
 %        Usage of this function is very similar to that of 'anovan'. Data (Y)
 %     is a single vector y with groups specified by a corresponding matrix or
@@ -102,24 +101,46 @@
 %        • METHOD can be specified as one of the following:
 %
 %             • 'wild' (default): Wild bootstrap-t, using the 'bootwild'
-%                function. The wild bootstrap-t resampling here uses Webb's
-%                6-point distribution of the residuals. Please see the help
-%                documentation for the function 'bootwild' for more information
-%                about this method.
+%                function. Please see the help documentation for the function
+%                'bootwild' for more information about this method.
 %
-%             • 'bayesian' : Bayesian bootstrap, using the 'bootbayes' function.
-%                For regression coefficients, the prior is a uniform (or flat)
-%                symmetric Dirichlet distribution over all points in its support.
-%                For computing the posterior of estimated marginal means or
-%                mean differences in posthoc comparisons, the prior incorporates
-%                what effectively introduces Bessel's correction a priori in
-%                order for the variance of the posteriors to be an unbiased
-%                estimator of the sampling variance. Please see the help
-%                documentation for the function 'bootbayes' for more information
-%                about the prior in non-parametric Bayesian bootstrap.
+%             • 'bayesian': Bayesian bootstrap, using the 'bootbayes' function.
+%                Please see the help documentation below in the function
+%               'bootbayes' for more information about this method.
 %
 %             Note that p-values are a frequentist concept and are only computed
 %             and returned from bootlm when the METHOD is 'wild'.
+%
+%     '[...] = bootlm (Y, GROUP, ..., 'method', 'bayesian', 'prior', PRIOR)'
+%
+%        • Sets the prior for Bayesian bootstrap. Possible values are:
+%
+%             • scalar: A positive real numeric scalar to parametrize
+%                  the form of the symmetric Dirichlet distribution. The
+%                  Dirichlet distribution is the conjugate PRIOR used to
+%                  randomly generate weights for linear least squares fitting
+%                  of the observed data and subsequently to estimate the
+%                  posterior for the regression coefficients by nonparametric
+%                  Bayesian bootstrap.
+%
+%             • 'auto': Sets a value for PRIOR that effectively incorporates
+%                  Bessel's correction a priori such that the variance of the
+%                  posterior (i.e. of the rows of BOOTSTAT) becomes an unbiased
+%                  estimator of the sampling variance. The calculation used for
+%                  'auto' is as follows:
+% 
+%                     PRIOR = 1 - 2 / N
+% 
+%                  For block or cluster bootstrap, N corresponds to the number
+%                  of blocks or clusters (i.e. the number of independent
+%                  sampling units).
+%                       The 'auto' setting is (only) available for Bayesian
+%                  bootstrap of the estimated marginal means and for the
+%                  posthoc tests (not the regression coefficients).
+%
+%               The default value of PRIOR is the scalar: 1, which corresponds
+%               to Bayes rule: a uniform (or flat) Dirichlet distribution
+%               (over all points in its support).
 %
 %     '[...] = bootlm (Y, GROUP, ..., 'alpha', ALPHA)'
 %
@@ -132,6 +153,7 @@
 %                  symmetric bootstrap-t confidence intervals. If METHOD is
 %                  'bayes', then the intervals are shortest probability credible
 %                  intervals.
+%
 %             • vector: A pair of probabilities defining the (nominal) lower
 %                  and upper bounds of the interval(s) as 100*(ALPHA(1))% and 
 %                  100*(ALPHA(2))% respectively. For example, [.025, .975] for
@@ -155,7 +177,7 @@
 %             • A string corresponding to one of the built-in contrasts
 %               listed below:
 %
-%                  • 'simple' or 'anova' (default): Simple (ANOVA) contrast
+%                  • 'anova' or 'simple' (default): Simple (ANOVA) contrast
 %                    coding. The intercept represents the grand mean. Each 
 %                    slope coefficient represents the difference between one
 %                    level of a predictor (or interaction between predictors) to
@@ -269,8 +291,8 @@
 %
 %     '[...] = bootlm (Y, GROUP, ..., 'posthoc', POSTHOC)'
 %
-%        • When DIM is specified, POSTHOC comparisons along DIM can be specified
-%          as one of the following:
+%        • When DIM is specified, POSTHOC comparisons along DIM can be one of
+%          the following:
 %
 %             • 'none' (default): No posthoc comparisons are performed. The
 %               statistics returned are for the estimated marginal means.
@@ -285,10 +307,8 @@
 %                performed. The control is group number k as returned when
 %                POSTHOC is set to 'none'.
 %
-%          Note that the p-values are NOT modified to control the type 1 error
-%          across multiple comparisons and thus are akin to Fisher's least
-%          significant difference (LSD). A separate function would be required
-%          to correct the p-values returned in STATS for multiple comparisons.
+%          All of the posthoc comparisons use the Holm-Sidak procedure to
+%          control the type I error rate.
 %
 %     '[...] = bootlm (Y, GROUP, ..., 'seed', SEED)' initialises the Mersenne
 %     Twister random number generator using an integer SEED value so that
@@ -297,6 +317,9 @@
 %     'bootlm' can return up to one output arguments:
 %
 %     'STATS = bootlm (...)' returns a structure summarising the statistics.
+%      Note that the p-values returned in STATS.pval are truncated at the
+%      resolution limit determined by the number of bootstrap replicates (at
+%      ~ 1 / NBOOT).
 %
 %     '[STATS, BOOTSTAT] = bootlm (...)' also returns a p x nboot matrix of
 %     bootstrap statistics for each of the estimated parameters.
@@ -308,7 +331,7 @@
 %     matrix used to compute the estimated marginal means or posthoc tests
 %     from the regression coefficients.
 %
-%  bootlm (version 2023.07.12)
+%  bootlm (version 2023.07.14)
 %  Author: Andrew Charles Penn
 %  https://www.researchgate.net/profile/Andrew_Penn/
 %
@@ -353,6 +376,7 @@ function [STATS, BOOTSTAT, X, L] = bootlm (Y, GROUP, varargin)
     DEP = [];
     POSTHOC = 'none';
     METHOD = 'wild';
+    PRIOR = 1;
     L = [];
     for idx = 3:2:nargin
       name = varargin{idx-2};
@@ -387,6 +411,8 @@ function [STATS, BOOTSTAT, X, L] = bootlm (Y, GROUP, varargin)
           NBOOT = value;
         case 'method'
           METHOD = value;
+        case 'prior'
+          PRIOR = value;
         case 'seed'
           SEED = value;
         otherwise
@@ -630,7 +656,9 @@ function [STATS, BOOTSTAT, X, L] = bootlm (Y, GROUP, varargin)
     end
 
     % If applicable, create hypothesis matrix, names and compute sample sizes
-    if (~ isempty (DIM))
+    if (isempty (DIM))
+      L = 1;
+    else
       if (any (DIM < 1))
         error ('bootlm: DIM must contain positive integers');
       end
@@ -662,6 +690,25 @@ function [STATS, BOOTSTAT, X, L] = bootlm (Y, GROUP, varargin)
       formula = sprintf ('%s + %s', formula, str(1:end-1));
     end
 
+    % Evaluate the dependence structure
+    if (isempty(DEP))
+      IC = (1 : n)';
+    else
+      if (isscalar (DEP))
+        % Blocks
+        blocksz = DEP;
+        G = fix (n / blocksz);
+        IC = (G + 1) * ones (n, 1);
+        IC(1 : blocksz * G, :) = reshape (ones (blocksz, 1) * [1 : G], [], 1);
+      else
+        % Clusters
+        [jnk, jnk, IC] = unique (DEP);
+        if ( any (size (IC) ~= [n, 1]) )
+          error ('bootlm: CLUSTID must be a column vector with the same number of rows as Y')
+        end
+      end
+    end
+
     % Use bootstrap methods to calculate statistics
     if isempty (DIM)
 
@@ -670,7 +717,7 @@ function [STATS, BOOTSTAT, X, L] = bootlm (Y, GROUP, varargin)
         case 'wild'
           [STATS, BOOTSTAT] = bootwild (Y, X, DEP, NBOOT, ALPHA, SEED);
         case {'bayes', 'bayesian'}
-          [STATS, BOOTSTAT] = bootbayes (Y, X, DEP, NBOOT, fliplr (1 - ALPHA), 1, SEED);
+          [STATS, BOOTSTAT] = bootbayes (Y, X, DEP, NBOOT, fliplr (1 - ALPHA), PRIOR, SEED);
           STATS.pval = nan (size (b));
         otherwise
           error ('bootlm: unrecignised bootstrap method. Use ''wild'' or bayesian''.');
@@ -696,7 +743,7 @@ function [STATS, BOOTSTAT, X, L] = bootlm (Y, GROUP, varargin)
       % Check that the columns of CONTRASTS sum to 0
       for j = 1:N
         if (isnumeric (CONTRASTS{j}))
-          if (any (abs (sum (CONTRASTS{j})) > eps("single")))
+          if (any (abs (sum (CONTRASTS{j})) > eps('single')))
             error (msg);
           end
         end
@@ -726,20 +773,6 @@ function [STATS, BOOTSTAT, X, L] = bootlm (Y, GROUP, varargin)
       if (isempty (DEP))
         N_dim = n_dim;
       else
-        if (isscalar (DEP))
-          % Blocks
-          blocksz = DEP;
-          G = fix (n / blocksz);
-          IC = (G + 1) * ones (n, 1);
-          IC(1 : blocksz * G, :) = reshape (ones (blocksz, 1) * [1 : G], [], 1);
-          N = IC(end);
-        else
-          % Clusters
-          [jnk, jnk, IC] = unique (DEP);
-          if ( any (size (IC) ~= [n, 1]) )
-            error ('bootlm: CLUSTID must be a column vector with the same number of rows as Y')
-          end
-        end
         UC = unique (cat (2, gid(:,DIM), IC), 'rows', 'stable');
         N_dim = cellfun (@(u) sum (all (UC(:,1:Nd) == u, 2)), num2cell (U, 2));
       end
@@ -755,12 +788,18 @@ function [STATS, BOOTSTAT, X, L] = bootlm (Y, GROUP, varargin)
             case 'wild'
               [STATS, BOOTSTAT] = bootwild (Y, X, DEP, NBOOT, ALPHA, SEED, L);
             case {'bayes', 'bayesian'}
-              prior = 1 - 2 ./ N_dim;
-              [STATS, BOOTSTAT] = arrayfun (@ (i) bootbayes ...
-                        (Y, X, DEP, NBOOT, fliplr (1 - ALPHA), prior(i), SEED, ...
-                        L(:, i)), (1:Np)', 'UniformOutput', false);
-              STATS = flatten_struct (cell2mat (STATS));
-              BOOTSTAT = cell2mat (BOOTSTAT);
+              switch (lower (PRIOR))
+                case 'auto'
+                  PRIOR = 1 - 2 ./ N_dim;
+                  [STATS, BOOTSTAT] = arrayfun (@ (i) bootbayes ...
+                            (Y, X, DEP, NBOOT, fliplr (1 - ALPHA), PRIOR(i), ...
+                            SEED, L(:, i)), (1:Np)', 'UniformOutput', false);
+                  STATS = flatten_struct (cell2mat (STATS));
+                  BOOTSTAT = cell2mat (BOOTSTAT);
+                otherwise
+                  [STATS, BOOTSTAT] = bootbayes (Y, X, DEP, NBOOT, ...
+                                         fliplr (1 - ALPHA), PRIOR, SEED, L);
+              end
             otherwise
               error ('bootlm: unrecignised bootstrap method. Use ''wild'' or bayesian''.');
           end
@@ -789,15 +828,22 @@ function [STATS, BOOTSTAT, X, L] = bootlm (Y, GROUP, varargin)
           switch (lower (METHOD))
             case 'wild'
               [STATS, BOOTSTAT] = bootwild (Y, X, DEP, NBOOT, ALPHA, SEED, L);
+              STATS.pval = holm (STATS.pval); % Multiple comparison correction
             case {'bayes', 'bayesian'}
-              wgt = bsxfun (@rdivide, N_dim(pairs')', sum (N_dim(pairs')', 2));
-              prior = sum ((1 - wgt) .* (1 - 2 ./ N_dim(pairs')'), 2);
-              [STATS, BOOTSTAT] = arrayfun (@ (i) bootbayes ...
-                        (Y, X, DEP, NBOOT, fliplr (1 - ALPHA), prior(i), SEED, ...
-                        L(:, i)), (1:size (L, 2))', 'UniformOutput', false);
-              STATS = flatten_struct (cell2mat (STATS));
+              switch (lower (PRIOR))
+                case 'auto'
+                  wgt = bsxfun (@rdivide, N_dim(pairs')', sum (N_dim(pairs')', 2));
+                  PRIOR = sum ((1 - wgt) .* (1 - 2 ./ N_dim(pairs')'), 2);
+                  [STATS, BOOTSTAT] = arrayfun (@ (i) bootbayes ...
+                            (Y, X, DEP, NBOOT, fliplr (1 - ALPHA), PRIOR(i), SEED, ...
+                            L(:, i)), (1:size (L, 2))', 'UniformOutput', false);
+                  STATS = flatten_struct (cell2mat (STATS));
+                  BOOTSTAT = cell2mat (BOOTSTAT);
+                otherwise
+                  [STATS, BOOTSTAT] = bootbayes (Y, X, DEP, NBOOT, ...
+                            fliplr (1 - ALPHA), PRIOR, SEED, L);
+              end
               STATS.pval = nan (size (pairs, 1), 1);
-              BOOTSTAT = cell2mat (BOOTSTAT);
             otherwise
               error ('bootlm: unrecignised bootstrap method. Use ''wild'' or bayesian''.');
           end
@@ -836,7 +882,7 @@ function [STATS, BOOTSTAT, X, L] = bootlm (Y, GROUP, varargin)
               fprintf('--------------------------------------------------------------------------------\n');
             case {'pairwise', 'trt_vs_ctrl'}
               fprintf('\nMODEL POSTHOC COMPARISONS\n\n');
-              fprintf('name                                   mean        CI_lower    CI_upper    p-val\n');
+              fprintf('name                                   mean        CI_lower    CI_upper    p-adj\n');
               fprintf('--------------------------------------------------------------------------------\n');
           end
         end
@@ -851,7 +897,7 @@ function [STATS, BOOTSTAT, X, L] = bootlm (Y, GROUP, varargin)
             elseif (isnan (STATS.pval(j)))
               fprintf ('       \n');
             else
-              fprintf ('   1.000\n');
+              fprintf ('  1.000\n');
             end
           else
             fprintf ('%-37s  %#-+10.4g  %#-+10.4g  %#-+10.4g  %5u\n', ...
@@ -861,7 +907,8 @@ function [STATS, BOOTSTAT, X, L] = bootlm (Y, GROUP, varargin)
         fprintf('\n');
 
         % Make figure of diagnostic plots
-        figure ('Name', 'Diagnostic Plots: Model Residuals');
+        fhandle = figure (1);
+        set (fhandle, 'Name', 'Diagnostic Plots: Model Residuals');
         h = diag (hat);                          % Leverage values
         mse = sse / dfe;                         % Mean squared error
         t = resid ./ (sqrt (mse * (1 - h)));     % Studentized residuals
@@ -924,7 +971,7 @@ function [STATS, BOOTSTAT, X, L] = bootlm (Y, GROUP, varargin)
         hold on; plot (ax3_xlim, zeros (1, 2), 'k-'); hold off;
         arrayfun (@(i) text (h(DI(i)), t(DI(i)), ...
                              sprintf ('  %u', DI(i))), [1:min(nk,n)]);
-        set (gca, "ygrid", "on");
+        set (gca, 'ygrid', 'on');
         xlim (ax3_xlim); ylim (ax3_ylim);
 
         % Cook's distance stem plot
@@ -1285,6 +1332,31 @@ end
 
 %--------------------------------------------------------------------------
 
+% FUNCTION TO CONTROL TYPE 1 ERROR ACROSS MULTIPLE POSTHOC COMPARISONS
+
+function padj = holm (p)
+
+  % Holm-Sidak procedure
+
+  % Order raw p-values
+  [ps, idx] = sort (p, 'ascend');
+  k = numel (ps);
+
+  % Implement Holm's step-doen Sidak procedure
+  padj = nan (k,1);
+  padj(1) = 1 - (1 - ps(1))^k;
+  for j = 2:k
+    padj(j) = max (padj(j - 1), 1 - (1 - ps(j))^(k - j + 1));
+  end
+
+  % Reorder the adjusted p-values to match the order of the original p-values
+  [jnk, original_order] = sort (idx, 'ascend');
+  padj = padj(original_order);
+
+end
+
+%--------------------------------------------------------------------------
+
 % FUNCTION TO FLATTEN A STRUCTURE ARRAY
 
 function F = flatten_struct (S)
@@ -1309,7 +1381,16 @@ end
 %! gender = {'male' 'male' 'male' 'male' 'male' 'female' 'female' 'female' ...
 %!           'female' 'female' 'female'}';
 %!
-%! STATS = bootlm (score, gender, 'display', 'on', 'varnames', 'gender');
+%! % 95% confidence intervals and p-values for the difference in mean score
+%! % between males and females (computed by wild bootstrap)
+%! STATS = bootlm (score, gender, 'display', 'on', 'varnames', 'gender', ...
+%!                 'dim', 1, 'posthoc','trt_vs_ctrl');
+%!
+%! % 95% credible intervals for the estimated marginal means of the scores by
+%! % males and females (computed by Bayesian bootstrap)
+%! STATS = bootlm (score, gender, 'display', 'on', 'varnames', 'gender', ...
+%!                 'dim', 1, 'method', 'bayesian', 'prior', 'auto');
+
 
 %!demo
 %!
@@ -1321,9 +1402,19 @@ end
 %!              'before' 'after'; 'before' 'after'}';
 %! subject = {'GS' 'GS'; 'JM' 'JM'; 'HM' 'HM'; 'JW' 'JW'; 'PS' 'PS'}';
 %!
+%! % 95% confidence intervals and p-values for the difference in mean score
+%! % before and after treatment (computed by wild bootstrap)
 %! STATS = bootlm (score(:), {treatment(:), subject(:)}, ...
 %!                            'model', 'linear', 'display', 'on', ...
-%!                            'varnames', {'treatment', 'subject'});
+%!                            'varnames', {'treatment', 'subject'}, ...
+%!                            'dim', 1, 'posthoc','trt_vs_ctrl');
+%!
+%! % 95% credible intervals for the estimated marginal means of the scores
+%! % before and after treatment (computed by Bayesian bootstrap)
+%! STATS = bootlm (score(:), {treatment(:), subject(:)}, ...
+%!                            'model', 'linear', 'display', 'on', ...
+%!                            'varnames', {'treatment', 'subject'}, ...
+%!                            'dim', 1, 'method','bayesian', 'prior', 'auto');
 
 %!demo
 %!
@@ -1336,7 +1427,15 @@ end
 %!          'al1','al1','al1','al1','al1','al1', ...
 %!          'al2','al2','al2','al2','al2','al2'}';
 %!
-%! STATS = bootlm (strength, alloy, 'display', 'on', 'varnames', 'alloy');
+%! % 95% confidence intervals and p-values for the differences in mean strength
+%! % of three alloys (computed by wild bootstrap)
+%! STATS = bootlm (strength, alloy, 'display', 'on', 'varnames', 'alloy',...
+%!                 'dim', 1, 'posthoc','pairwise');
+%!
+%! % 95% credible intervals for the estimated marginal means of the strengths
+%! % of each of the alloys (computed by Bayesian bootstrap)
+%! STATS = bootlm (strength, alloy, 'display', 'on', 'varnames', 'alloy',...
+%!                 'dim', 1, 'method','bayesian', 'prior', 'auto');
 
 %!demo
 %!
@@ -1351,15 +1450,25 @@ end
 %! subject = [ 1  1  1;  2  2  2;  3  3  3;  4  4  4;  5  5  5; ...
 %!             6  6  6;  7  7  7;  8  8  8;  9  9  9; 10 10 10];
 %!
+%! % 95% confidence intervals and p-values for the differences in mean number of
+%! % words recalled for the different times (using wild bootstrap).
 %! STATS = bootlm (words(:), {seconds(:), subject(:)}, ...
 %!                            'model', 'linear', 'display', 'on', ...
-%!                            'varnames', {'seconds', 'subject'});
+%!                            'varnames', {'seconds', 'subject'}, ...
+%!                            'dim', 1, 'posthoc', 'pairwise');
+%!
+%! % 95% credible intervals for the estimated marginal means of the number of
+%! % words recalled for each time (computed using Bayesian bootstrap).
+%! STATS = bootlm (words(:), {seconds(:), subject(:)}, ...
+%!                            'model', 'linear', 'display', 'on', ...
+%!                            'varnames', {'seconds', 'subject'}, ...
+%!                            'dim', 1, 'method', 'bayesian', 'prior', 'auto');
 
 %!demo
 %!
-%! # Balanced two-way design with interaction. The data is from a study of
-%! # popcorn brands and popper types, in Hogg and Ledolter (1987) Engineering
-%! # Statistics. NY: MacMillan
+%! # Balanced two-way design. The data is yield of cups of popped popcorn from
+%! # different popcorn brands and popper types, in Hogg and Ledolter (1987)
+%! # Engineering Statistics. NY: MacMillan
 %!
 %! popcorn = [5.5, 4.5, 3.5; 5.5, 4.5, 4.0; 6.0, 4.0, 3.0; ...
 %!            6.5, 5.0, 4.0; 7.0, 5.5, 5.0; 7.0, 5.0, 4.5];
@@ -1372,14 +1481,45 @@ end
 %! popper = {'oil', 'oil', 'oil'; 'oil', 'oil', 'oil'; 'oil', 'oil', 'oil'; ...
 %!           'air', 'air', 'air'; 'air', 'air', 'air'; 'air', 'air', 'air'};
 %!
+%! % Check regression coefficients corresponding to brand x popper interaction
+%! % using 'anova' contrast coding
 %! STATS = bootlm (popcorn(:), {brands(:), popper(:)}, ...
 %!                            'display', 'on', 'model', 'full', ...
 %!                            'varnames', {'brands', 'popper'});
+%!
+%! % 95% confidence intervals and p-values for the differences in mean yield of
+%! % different popcorn brands (computed by wild bootstrap).
+%! STATS = bootlm (popcorn(:), {brands(:), popper(:)}, ...
+%!                            'display', 'on', 'model', 'full', ...
+%!                            'varnames', {'brands', 'popper'}, ...
+%!                            'dim', 1, 'posthoc', 'pairwise');
+%!
+%! % 95% credible intervals for the estimated marginal means of the yield for
+%! % each popcorn brand (computed by Bayesian bootstrap).
+%! STATS = bootlm (popcorn(:), {brands(:), popper(:)}, ...
+%!                            'display', 'on', 'model', 'full', ...
+%!                            'varnames', {'brands', 'popper'}, ...
+%!                            'dim', 1, 'method', 'bayesian', 'prior', 'auto');
+%!
+%! % 95% confidence intervals and p-values for the differences in mean yield
+%! % for different popper types (computed by wild bootstrap).
+%! STATS = bootlm (popcorn(:), {brands(:), popper(:)}, ...
+%!                            'display', 'on', 'model', 'full', ...
+%!                            'varnames', {'brands', 'popper'}, ...
+%!                            'dim', 2, 'posthoc', 'pairwise');
+%!
+%! % 95% credible intervals for the estimated marginal means of the yield for
+%! % each popper type (computed by Bayesian bootstrap).
+%! STATS = bootlm (popcorn(:), {brands(:), popper(:)}, ...
+%!                            'display', 'on', 'model', 'full', ...
+%!                            'varnames', {'brands', 'popper'}, ...
+%!                            'dim', 2, 'method', 'bayesian', 'prior', 'auto');
+
 
 %!demo
 %!
 %! # Unbalanced two-way design (2x2). The data is from a study on the effects
-%! # of gender and having a college degree on salaries of company employees,
+%! # of gender and a college degree on starting salaries of company employees,
 %! # in Maxwell, Delaney and Kelly (2018): Chapter 7, Table 15
 %!
 %! salary = [24 26 25 24 27 24 27 23 15 17 20 16, ...
@@ -1388,33 +1528,45 @@ end
 %!           'm' 'm' 'm' 'm' 'm' 'm' 'm' 'm' 'm' 'm'}';
 %! degree = [1 1 1 1 1 1 1 1 0 0 0 0 1 1 1 0 0 0 0 0 0 0]';
 %!
+%! % Check regression coefficient corresponding to gender x degree interaction
+%! % using 'anova' contrast coding
+%! STATS = bootlm (salary, {gender, degree}, 'model', 'full', ...
+%!                             'display', 'on', 'varnames', ...
+%!                             {'gender', 'degree'});
+%!
+%! % 95% confidence intervals and p-values for the differences in mean salary
+%! % between males and females (computed by wild bootstrap).
 %! STATS = bootlm (salary, {gender, degree}, 'model', 'full', ...
 %!                            'display', 'on', 'varnames', ...
-%!                            {'gender', 'degree'});
-
-%!demo
+%!                            {'gender', 'degree'}, 'dim', 1, ...
+%!                            'posthoc', 'trt_vs_ctrl');
 %!
-%! # Unbalanced two-way design (3x2). The data is from a study of the effect of
-%! # adding sugar and/or milk on the tendency of coffee to make people babble,
-%! # in from Navarro (2019): 16.10
+%! % 95% credible intervals for the estimated marginal means for salaries of
+%! % females and males (computed by Bayesian bootstrap).
+%! STATS = bootlm (salary, {gender, degree}, 'model', 'full', ...
+%!                            'display', 'on', 'varnames', ...
+%!                            {'gender', 'degree'}, 'dim', 1, ...
+%!                            'method', 'bayesian', 'prior', 'auto');
 %!
-%! sugar = {'real' 'fake' 'fake' 'real' 'real' 'real' 'none' 'none' 'none' ...
-%!          'fake' 'fake' 'fake' 'real' 'real' 'real' 'none' 'none' 'fake'}';
-%! milk = {'yes' 'no' 'no' 'yes' 'yes' 'no' 'yes' 'yes' 'yes' ...
-%!         'no' 'no' 'yes' 'no' 'no' 'no' 'no' 'no' 'yes'}';
-%! babble = [4.6 4.4 3.9 5.6 5.1 5.5 3.9 3.5 3.7...
-%!           5.6 4.7 5.9 6.0 5.4 6.6 5.8 5.3 5.7]';
+%! % 95% confidence intervals and p-values for the differences in mean salary
+%! % between employees with or without a degree (computed by wild bootstrap).
+%! STATS = bootlm (salary, {gender, degree}, 'model', 'full', ...
+%!                            'display', 'on', 'varnames', ...
+%!                            {'gender', 'degree'}, 'dim', 2, ...
+%!                            'posthoc', 'trt_vs_ctrl');
 %!
-%! STATS = bootlm (babble, {sugar, milk}, 'model', 'full', 'display', 'on', ...
-%!                                        'varnames', {'sugar', 'milk'});
+%! % 95% credible intervals for the estimated marginal means for salaries of
+%! % employees with or without a degree (computed by Bayesian bootstrap).
+%! STATS = bootlm (salary, {gender, degree}, 'model', 'full', ...
+%!                            'display', 'on', 'varnames', ...
+%!                            {'gender', 'degree'}, 'dim', 2, ...
+%!                            'method', 'bayesian','prior', 'auto');
 
 %!demo
 %!
 %! # Unbalanced three-way design (3x2x2). The data is from a study of the
 %! # effects of three different drugs, biofeedback and diet on patient blood
 %! # pressure, adapted* from Maxwell, Delaney and Kelly (2018): Ch 8, Table 12
-%! # * Missing values introduced to make the sample sizes unequal to test the
-%! #   calculation of different types of sums-of-squares
 %!
 %! drug = {'X' 'X' 'X' 'X' 'X' 'X' 'X' 'X' 'X' 'X' 'X' 'X' ...
 %!         'X' 'X' 'X' 'X' 'X' 'X' 'X' 'X' 'X' 'X' 'X' 'X';
@@ -1431,33 +1583,60 @@ end
 %! BP = [170 175 165 180 160 158 161 173 157 152 181 190 ...
 %!       173 194 197 190 176 198 164 190 169 164 176 175;
 %!       186 194 201 215 219 209 164 166 159 182 187 174 ...
-%!       189 194 217 206 199 195 171 173 196 199 180 NaN;
+%!       189 194 217 206 199 195 171 173 196 199 180 203;
 %!       180 187 199 170 204 194 162 184 183 156 180 173 ...
-%!       202 228 190 206 224 204 205 199 170 160 NaN NaN];
+%!       202 228 190 206 224 204 205 199 170 160 179 179];
 %!
+%! % Check regression coefficient corresponding to drug x feedback x diet
+%! % interaction using 'anova' contrast coding
 %! STATS = bootlm (BP(:), {drug(:), feedback(:), diet(:)}, ...
 %!                                    'model', 'full', ...
 %!                                    'display', 'on', ...
 %!                                    'varnames', {'drug', 'feedback', 'diet'});
+%!
+%! % 95% confidence intervals and p-values for the differences in mean salary
+%! % between males and females (computed by wild bootstrap).
+%! STATS = bootlm (BP(:), {drug(:), feedback(:), diet(:)}, 'model', 'full', ...
+%!                                    'display', 'on', 'dim', [1,2,3], ...
+%!                                    'posthoc', 'trt_vs_ctrl', ...
+%!                                    'varnames', {'drug', 'feedback', 'diet'});
+%!
+%! % 95% credible intervals for the estimated marginal means of salaries of
+%! % females and males (computed by Bayesian bootstrap).
+%! STATS = bootlm (BP(:), {drug(:), feedback(:), diet(:)}, 'model', 'full', ...
+%!                                    'display', 'on', 'dim', [1,2,3], ...
+%!                                    'method', 'bayesian', 'prior', 'auto', ...
+%!                                    'varnames', {'drug', 'feedback', 'diet'});
 
 %!demo
 %!
-%! # Balanced three-way design (2x2x2) with one of the predictors being a
-%! # blocking factor. The data is from a randomized block design study on the
-%! # effects of antioxidant treatment on glutathione-S-transferase (GST) levels
-%! # in different mouse strains, from Festing (2014), ILAR Journal 55(3):427-476.
+%! # Balanced three-way design (2x2x2). The data is from a randomized block
+%! # design study on the effects of antioxidant treatment on glutathione-S-
+%! # transferase (GST) levels in different mouse strains, from Festing (2014),
+%! # ILAR Journal 55(3):427-476.
 %!
 %! measurement = [444 614 423 625 408  856 447 719 ...
 %!                764 831 586 782 609 1002 606 766]';
+%! treatment={'C' 'T' 'C' 'T' 'C' 'T' 'C' 'T' 'C' 'T' 'C' 'T' 'C' 'T' 'C' 'T'}';
 %! strain= {'NIH','NIH','BALB/C','BALB/C','A/J','A/J','129/Ola','129/Ola', ...
 %!          'NIH','NIH','BALB/C','BALB/C','A/J','A/J','129/Ola','129/Ola'}';
-%! treatment={'C' 'T' 'C' 'T' 'C' 'T' 'C' 'T' 'C' 'T' 'C' 'T' 'C' 'T' 'C' 'T'}';
 %! block = [1 1 1 1 1 1 1 1 2 2 2 2 2 2 2 2]';
 %!
-%! STATS = bootlm (measurement/10, {strain, treatment, block}, ...
-%!                            'model', [1 0 0; 0 1 0; 0 0 1; 1 1 0], ...
+%! % 95% confidence intervals and p-values for the differences in the mean of
+%! % the treatment and control conditions (computed by wild bootstrap).
+%! STATS = bootlm (measurement/10, {treatment, strain, block}, ...
+%!                            'model', [1 0 0; 0 1 0; 0 0 1], ...
 %!                            'varnames', {'strain', 'treatment', 'block'}, ...
-%!                            'display', 'on');
+%!                            'display', 'on', 'dim', 1, ...
+%!                            'posthoc', 'trt_vs_ctrl');
+%!
+%! % 95% credible intervals for the estimated marginal means for the
+%! % treatment and control conditions (computed by Bayesian bootstrap).
+%! STATS = bootlm (measurement/10, {treatment, strain, block}, ...
+%!                            'model', [1 0 0; 0 1 0; 0 0 1], ...
+%!                            'varnames', {'strain', 'treatment', 'block'}, ...
+%!                            'display', 'on', 'dim', 1, ...
+%!                            'method', 'bayesian', 'prior', 'auto');
 
 %!demo
 %!
@@ -1475,9 +1654,24 @@ end
 %!            'ex' 'ex' 'ex' 'niv' 'niv' 'niv' 'niv' 'niv' 'niv' 'niv' ...
 %!            'niv' 'niv' 'niv' 'niv' 'niv' 'niv' 'niv' 'niv' 'niv' 'niv'};
 %!
+%! % Estimate regression coefficients using 'anova' contrast coding 
 %! STATS = bootlm (pulse, {species, temp}, 'model', 'linear', ...
 %!                           'continuous', 2, 'display', 'on', ...
 %!                           'varnames', {'species', 'temp'});
+%!
+%! % 95% confidence intervals and p-values for the differences in the mean of
+%! % chirpy pulses of ex ad niv species (computed by wild bootstrap).
+%! STATS = bootlm (pulse, {species, temp}, 'model', 'linear', ...
+%!                           'continuous', 2, 'display', 'on', ...
+%!                           'varnames', {'species', 'temp'}, 'dim', 1, ...
+%!                           'posthoc', 'trt_vs_ctrl');
+%!
+%! % 95% credible intervals for the estimated marginal means of chirpy pulses
+%! % of ex and niv species (computed by Bayesian bootstrap).
+%! STATS = bootlm (pulse, {species, temp}, 'model', 'linear', ...
+%!                           'continuous', 2, 'display', 'on', ...
+%!                           'varnames', {'species', 'temp'}, 'dim', 1, ...
+%!                           'method', 'bayesian', 'prior', 'auto');
 
 %!demo
 %!
@@ -1507,10 +1701,30 @@ end
 %!        58 56 57 59 59 60 55 53 55 58 68 62 61 54 59 63 60 67 60 67 ...
 %!        75 54 57 62 65 60 58 61 65 57 56 58 58 58 52 53 60 62 61 61]';
 %!
+%! % Estimate regression coefficients using 'anova' contrast coding 
 %! STATS = bootlm (score, {treatment, exercise, age}, ...
 %!                            'model', [1 0 0; 0 1 0; 0 0 1; 1 1 0], ...
 %!                            'continuous', 3, 'display', 'on', ...
 %!                            'varnames', {'treatment', 'exercise', 'age'});
+%!
+%! % 95% confidence intervals and p-values for the differences in mean score
+%! % across different treatments and amounts of exercise after adjusting for
+%  % age (computed by wild bootstrap).
+%! STATS = bootlm (score, {treatment, exercise, age}, ...
+%!                            'model', [1 0 0; 0 1 0; 0 0 1; 1 1 0], ...
+%!                            'continuous', 3, 'display', 'on', ...
+%!                            'varnames', {'treatment', 'exercise', 'age'},...
+%!                            'dim', [1, 2], 'posthoc', 'trt_vs_ctrl');
+%!
+%! % 95% credible intervals for the estimated marginal means of scores across
+%! % different treatments and amounts of exercise after adjusting for age
+%! % (computed by Bayesian bootstrap).
+%! STATS = bootlm (score, {treatment, exercise, age}, ...
+%!                            'model', [1 0 0; 0 1 0; 0 0 1; 1 1 0], ...
+%!                            'continuous', 3, 'display', 'on', 'dim', [1, 2], ...
+%!                            'varnames', {'treatment', 'exercise', 'age'},...
+%!                            'method', 'bayesian', 'prior', 'auto');
+
 
 %!demo
 %!
@@ -1531,24 +1745,15 @@ end
 %!      -0.6002401  0.0000000  0.0  0.5
 %!      -0.6002401  0.0000000  0.0 -0.5];
 %!
+%! % 95% confidence intervals and p-values for linear contrasts 
 %! STATS = bootlm (dv, g, 'contrasts', C, 'varnames', 'score', ...
 %!                          'alpha', 0.05, 'display', true);
 %!
+%! % 95% credible intervals for estimated marginal means 
 %! STATS = bootlm (dv, g, 'contrasts', C, 'varnames', 'score', ...
-%!                          'alpha', 0.05, 'display', true, 'dim', 1);
+%!                          'alpha', 0.05, 'display', true, 'dim', 1, ...
+%!                          'method', 'Bayesian', 'prior', 'auto');
 
-%!demo
-%!
-%! # One-way design.
-%!
-%! g = [1, 1, 1, 1, 1, 1, 1, 1, ...
-%!      2, 2, 2, 2, 2, 2, 2, 2, ...
-%!      3, 3, 3, 3, 3, 3, 3, 3]';
-%! y = [13, 16, 16,  7, 11,  5,  1,  9, ...
-%!      10, 25, 66, 43, 47, 56,  6, 39, ...
-%!      11, 39, 26, 35, 25, 14, 24, 17]';
-%!
-%! stats = bootlm (y, g, 'display', 'on', 'dim', 1, 'posthoc', 'pairwise');
 
 %!test
 %!
