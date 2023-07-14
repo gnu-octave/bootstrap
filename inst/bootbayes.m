@@ -265,7 +265,8 @@ function [stats, bootstat] = bootbayes (Y, X, dep, nboot, prob, prior, seed, L)
       if (intercept_only)
         prior = 1 - 2 / N;
       else
-        prior = 1
+        warning ('bootbayes: PRIOR value ''auto'' not available for this model. PRIOR reverting to 1.')
+        prior = 1;
       end
     else
       error ('bootbayes: PRIOR must be numeric');
