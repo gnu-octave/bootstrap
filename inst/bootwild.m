@@ -195,6 +195,9 @@ function [stats, bootstat] = bootwild (y, X, dep, nboot, alpha, seed, L)
     if (nboot ~= abs (fix (nboot)))
       error ('bootwild: NBOOT must be a positive integer');
     end
+    if (nboot < 999)
+      error ('bootwild: NBOOT must be > 999');
+    end
   end
   % Compute resolution limit of the p-values as determined by resampling
   % with nboot resamples
