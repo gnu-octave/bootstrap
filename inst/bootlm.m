@@ -125,7 +125,7 @@
 %
 %             • 'auto': Sets a value for PRIOR that effectively incorporates
 %                  Bessel's correction a priori such that the variance of the
-%                  posterior (i.e. of the rows of BOOTSTAT) becomes an unbiased
+%                  posterior (i.e. the rows of BOOTSTAT) becomes an unbiased
 %                  estimator of the sampling variance. The calculation used for
 %                  'auto' is as follows:
 % 
@@ -148,18 +148,19 @@
 %          confidence or credible interval(s). The value(s) of ALPHA must be
 %          between 0 and 1. ALPHA can either be:
 %
-%             • scalar: To set the (nominal) central mass of the intervals to
-%                  100*(1-ALPHA)%. If METHOD is 'wild', then the intervals are
-%                  symmetric bootstrap-t confidence intervals. If METHOD is
-%                  'bayes', then the intervals are shortest probability credible
-%                  intervals.
+%             • scalar: To set the central mass of the intervals to 100*(1-ALPHA)%.
+%                  For example, 0.05 for a 95% interval. If METHOD is 'wild',
+%                  then the intervals are symmetric bootstrap-t confidence
+%                  intervals. If METHOD is 'bayesian', then the intervals are
+%                  shortest probability credible intervals.
 %
-%             • vector: A pair of probabilities defining the (nominal) lower
+%             • vector: A pair of probabilities defining the lower and upper
 %                  and upper bounds of the interval(s) as 100*(ALPHA(1))% and 
 %                  100*(ALPHA(2))% respectively. For example, [.025, .975] for
 %                  a 95% interval. If METHOD is 'wild', then the intervals are
 %                  assymmetric bootstrap-t confidence intervals. If METHOD is
-%                  'bayes', then the intervals are credible intervals.
+%                  'bayesian', then the intervals are simple percentile credible
+%                  intervals.
 %
 %               The default value of ALPHA is the scalar: 0.05.
 %
@@ -308,21 +309,32 @@
 %                POSTHOC is set to 'none'.
 %
 %          All of the posthoc comparisons use the Holm-Sidak procedure to
-%          control the type I error rate.
+%          control the type I error rate. Confidence intervals are not adjusted
+%          for multiple comparisons.
 %
 %     '[...] = bootlm (Y, GROUP, ..., 'seed', SEED)' initialises the Mersenne
 %     Twister random number generator using an integer SEED value so that
 %     'bootlm' results are reproducible.
 %
-%     'bootlm' can return up to one output arguments:
+%     'bootlm' can return up to four output arguments:
 %
-%     'STATS = bootlm (...)' returns a structure summarising the statistics.
-%      Note that the p-values returned in STATS.pval are truncated at the
-%      resolution limit determined by the number of bootstrap replicates (in
-%      order of 1 / NBOOT).
+%     'STATS = bootlm (...)' returns a structure with the following fields:
+%        • 'method': The bootstrap method
+%        • 'name': The names of each of the estimates
+%        • 'estimate': The value of the estimates
+%        • 'CI_lower': The lower bound(s) of the confidence/credible interval(s)
+%        • 'CI_upper': The upper bound(s) of the confidence/credible interval(s)
+%        • 'pval': The p-value(s) for the hypothesis that the estimate(s) = 0
+%        • 'fpr': The false positive risk 
+%        • 'n': The sample size(s)
+%        • 'prior': The prior used for Bayesian bootstrap
+%      Note that the p-values returned are truncated at the resolution limit
+%      determined by the number of bootstrap replicates (in the order of
+%      1 / NBOOT).
 %
-%     '[STATS, BOOTSTAT] = bootlm (...)' also returns a p x nboot matrix of
-%     bootstrap statistics for each of the estimated parameters.
+%     '[STATS, BOOTSTAT] = bootlm (...)' also returns a P x NBOOT matrix of
+%     bootstrap statistics for the estimated parameters, where P is the number
+%     of parameters estimated in the model.
 %
 %     '[STATS, BOOTSTAT, X] = bootlm (...)' also returns the design matrix for
 %     the linear  model.
@@ -716,9 +728,17 @@ function [STATS, BOOTSTAT, X, L] = bootlm (Y, GROUP, varargin)
       switch (lower (METHOD))
         case 'wild'
           [STATS, BOOTSTAT] = bootwild (Y, X, DEP, NBOOT, ALPHA, SEED);
+          % Clean-up
+          STATS = rmfield (STATS, {'std_err', 'tstat'});
+          STATS.n = n;
+          STATS.prior = [];
         case {'bayes', 'bayesian'}
           [STATS, BOOTSTAT] = bootbayes (Y, X, DEP, NBOOT, fliplr (1 - ALPHA), PRIOR, SEED);
-          STATS.pval = nan (size (b));
+          % Clean-up
+          STATS = rmfield (STATS, {'median', 'bias', 'stdev'});
+          STATS.pval = [];
+          STATS.fpr = [];
+          STATS.n = n;
         otherwise
           error ('bootlm: unrecignised bootstrap method. Use ''wild'' or bayesian''.');
       end
@@ -787,6 +807,9 @@ function [STATS, BOOTSTAT, X, L] = bootlm (Y, GROUP, varargin)
           switch (lower (METHOD))
             case 'wild'
               [STATS, BOOTSTAT] = bootwild (Y, X, DEP, NBOOT, ALPHA, SEED, L);
+              % Clean-up
+              STATS = rmfield (STATS, {'std_err', 'tstat'});
+              STATS.prior = [];
             case {'bayes', 'bayesian'}
               switch (lower (PRIOR))
                 case 'auto'
@@ -800,6 +823,10 @@ function [STATS, BOOTSTAT, X, L] = bootlm (Y, GROUP, varargin)
                   [STATS, BOOTSTAT] = bootbayes (Y, X, DEP, NBOOT, ...
                                          fliplr (1 - ALPHA), PRIOR, SEED, L);
               end
+              % Clean-up
+              STATS = rmfield (STATS, {'median', 'bias', 'stdev'});
+              STATS.pval = [];
+              STATS.fpr = [];
             otherwise
               error ('bootlm: unrecignised bootstrap method. Use ''wild'' or bayesian''.');
           end
@@ -828,7 +855,11 @@ function [STATS, BOOTSTAT, X, L] = bootlm (Y, GROUP, varargin)
           switch (lower (METHOD))
             case 'wild'
               [STATS, BOOTSTAT] = bootwild (Y, X, DEP, NBOOT, ALPHA, SEED, L);
-              STATS.pval = holm (STATS.pval); % Multiple comparison correction
+              % Control the type 1 error rate across multiple posthoc comparisons
+              STATS.pval = holmsidak (STATS.pval);
+              % Clean-up
+              STATS = rmfield (STATS, {'std_err', 'tstat'});
+              STATS.prior = [];
             case {'bayes', 'bayesian'}
               switch (lower (PRIOR))
                 case 'auto'
@@ -843,7 +874,10 @@ function [STATS, BOOTSTAT, X, L] = bootlm (Y, GROUP, varargin)
                   [STATS, BOOTSTAT] = bootbayes (Y, X, DEP, NBOOT, ...
                             fliplr (1 - ALPHA), PRIOR, SEED, L);
               end
-              STATS.pval = nan (size (pairs, 1), 1);
+              % Clean-up
+              STATS = rmfield (STATS, {'median', 'bias', 'stdev'});
+              STATS.pval = [];
+              STATS.fpr = [];
             otherwise
               error ('bootlm: unrecignised bootstrap method. Use ''wild'' or bayesian''.');
           end
@@ -859,6 +893,18 @@ function [STATS, BOOTSTAT, X, L] = bootlm (Y, GROUP, varargin)
       end
 
     end
+
+    % Reorder fields in the STATS structure
+    STATS.estimate = STATS.original;
+    STATS = rmfield (STATS, 'original');
+    switch (lower (METHOD))
+      case 'wild'
+        STATS.method = 'Wild bootstrap-t';
+      case {'bayes','bayesian'}
+        STATS.method = 'Bayesian bootstrap';
+    end
+    STATS = orderfields (STATS, {'method','name', 'estimate', 'CI_lower', ...
+                                 'CI_upper', 'pval', 'fpr', 'n', 'prior'});
 
     % Print table of model coefficients and make figure of diagnostic plots
     switch (lower (DISPLAY))
@@ -889,19 +935,21 @@ function [STATS, BOOTSTAT, X, L] = bootlm (Y, GROUP, varargin)
         for j = 1:size (NAMES, 1)
           if ( (isempty (DIM)) || (ismember (lower (POSTHOC), {'pairwise', 'trt_vs_ctrl'})) )
             fprintf ('%-37s  %#-+10.4g  %#-+10.4g  %#-+10.4g', ...
-                     NAMES{j}(1:min(end,37)), STATS.original(j), STATS.CI_lower(j), STATS.CI_upper(j));
-            if (STATS.pval(j) <= 0.001)
+                     NAMES{j}(1:min(end,37)), STATS.estimate(j), STATS.CI_lower(j), STATS.CI_upper(j));
+            if (isempty (STATS.pval))
+              fprintf ('       \n');
+            elseif (STATS.pval(j) <= 0.001)
               fprintf ('  <.001\n');
             elseif (STATS.pval(j) < 0.9995)
               fprintf ('   .%03u\n', round (STATS.pval(j) * 1e+03));
             elseif (isnan (STATS.pval(j)))
-              fprintf ('       \n');
+              fprintf ('    NaN\n');
             else
               fprintf ('  1.000\n');
             end
           else
             fprintf ('%-37s  %#-+10.4g  %#-+10.4g  %#-+10.4g  %5u\n', ...
-                     NAMES{j}(1:min(end,37)), STATS.original(j), STATS.CI_lower(j), STATS.CI_upper(j), STATS.n(j));
+                     NAMES{j}(1:min(end,37)), STATS.estimate(j), STATS.CI_lower(j), STATS.CI_upper(j), STATS.n(j));
           end
         end
         fprintf('\n');
@@ -1334,7 +1382,7 @@ end
 
 % FUNCTION TO CONTROL TYPE 1 ERROR ACROSS MULTIPLE POSTHOC COMPARISONS
 
-function padj = holm (p)
+function padj = holmsidak (p)
 
   % Holm-Sidak procedure
 
@@ -2044,12 +2092,12 @@ end
 %!                            'varnames', {'treatment', 'exercise', 'age'},...
 %!                            'dim', [1, 2]);
 %!
-%! assert (stats.original(1), 86.9787857062843,1e-09)
-%! assert (stats.original(2), 86.9962428587431,1e-09)
-%! assert (stats.original(3), 73.2754755236922,1e-09)
-%! assert (stats.original(4), 88.5073652962921 ,1e-09)
-%! assert (stats.original(5), 88.6798510137784,1e-09)
-%! assert (stats.original(6), 83.02227960120982,1e-09)
+%! assert (stats.estimate(1), 86.9787857062843,1e-09)
+%! assert (stats.estimate(2), 86.9962428587431,1e-09)
+%! assert (stats.estimate(3), 73.2754755236922,1e-09)
+%! assert (stats.estimate(4), 88.5073652962921 ,1e-09)
+%! assert (stats.estimate(5), 88.6798510137784,1e-09)
+%! assert (stats.estimate(6), 83.02227960120982,1e-09)
 %!
 %! stats = bootlm (score, {treatment, exercise, age}, 'seed', 1, ...
 %!                            'model', [1 0 0; 0 1 0; 0 0 1; 1 1 0], ...
@@ -2057,11 +2105,11 @@ end
 %!                            'varnames', {'treatment', 'exercise', 'age'},...
 %!                            'dim', [1, 2], 'posthoc', 'trt_vs_ctrl');
 %!
-%! assert (stats.original(1), -0.0174571524588316,1e-09)
-%! assert (stats.original(2), 13.7033101825921,1e-09)
-%! assert (stats.original(3), -1.52857959000781,1e-09)
-%! assert (stats.original(4), -1.70106530749405,1e-09)
-%! assert (stats.original(5), 3.9565061050745,1e-09)
+%! assert (stats.estimate(1), -0.0174571524588316,1e-09)
+%! assert (stats.estimate(2), 13.7033101825921,1e-09)
+%! assert (stats.estimate(3), -1.52857959000781,1e-09)
+%! assert (stats.estimate(4), -1.70106530749405,1e-09)
+%! assert (stats.estimate(5), 3.9565061050745,1e-09)
 
 %!test
 %!
@@ -2120,8 +2168,8 @@ end
 %! stats = bootlm (y, g, 'display', false, 'dim', 1, 'posthoc', 'pairwise', ...
 %!                       'seed', 1);
 %!
-%! assert (stats.pval(1), 0.0112861415053888, 1e-09);
-%! assert (stats.pval(2), 0.003038933790842374, 1e-09);
+%! assert (stats.pval(1), 0.02244490602069782, 1e-09);
+%! assert (stats.pval(2), 0.009089124081685829, 1e-09);
 %! assert (stats.pval(3), 0.1550614031528714, 1e-09);
 %! assert (stats.fpr(1), 0.120933032759112, 1e-09);
 %! assert (stats.fpr(2), 0.04569311618185678, 1e-09);
