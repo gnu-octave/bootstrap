@@ -140,7 +140,9 @@
 %
 %               The default value of PRIOR is the scalar: 1, which corresponds
 %               to Bayes rule: a uniform (or flat) Dirichlet distribution
-%               (over all points in its support).
+%               (over all points in its support). Please see the help
+%               documentation for the function 'bootbayes' for more information
+%               about the prior.
 %
 %     '[...] = bootlm (Y, GROUP, ..., 'alpha', ALPHA)'
 %
@@ -309,8 +311,8 @@
 %                POSTHOC is set to 'none'.
 %
 %          All of the posthoc comparisons use the Holm-Sidak procedure to
-%          control the type I error rate. Confidence intervals are not adjusted
-%          for multiple comparisons.
+%          control the type I error rate. The onfidence intervals are not
+%          adjusted for multiple comparisons.
 %
 %     '[...] = bootlm (Y, GROUP, ..., 'seed', SEED)' initialises the Mersenne
 %     Twister random number generator using an integer SEED value so that
@@ -328,9 +330,10 @@
 %        • 'fpr': The false positive risk 
 %        • 'n': The sample size(s)
 %        • 'prior': The prior used for Bayesian bootstrap
-%      Note that the p-values returned are truncated at the resolution limit
-%      determined by the number of bootstrap replicates (in the order of
-%      1 / NBOOT).
+%
+%        Note that the p-values returned are truncated at the resolution limit
+%        determined by the number of bootstrap replicates (in the order of
+%        1 / NBOOT).
 %
 %     '[STATS, BOOTSTAT] = bootlm (...)' also returns a P x NBOOT matrix of
 %     bootstrap statistics for the estimated parameters, where P is the number

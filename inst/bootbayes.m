@@ -78,8 +78,8 @@
 %     Bessel's correction a priori. Thus, for a sample size of N and PRIOR set
 %     to 'auto', the variance of the posterior (i.e. BOOTSTAT) becomes an
 %     unbiased estimator of the sampling variance. For example, when the PRIOR
-%     is 1, the prior is flat over the range of the data Y approximated by the
-%     interval +/- 2 * std (Y, 1), which is 4 * std (Y, 1) wide, according to
+%     is 1, the prior is flat over the range of the data Y, approximated by the
+%     interval +/- 2 * std (Y, 1), which is 4 * std (Y, 1) wide according to
 %     the range rule of thumb for a normal distribution. Therefore, a PRIOR
 %     set to 'auto' is flat over the approximate interval +/- 2 * std (Y, 0).
 %     The calculation used for 'auto' is as follows:
@@ -88,9 +88,9 @@
 %
 %        For block or cluster bootstrap, N corresponds to the number of blocks
 %     or clusters (i.e. the number of independent sampling units). When N = 2,
-%     the PRIOR is equal to 0, which is the Haldane prior; in which case:
+%     the PRIOR is equal to 0, which is the Haldane prior, in which case:
 %
-%         std (BOOTSTAT, 1, 2) ~ std (Y, 1) == std (Y, 0) / sqrt (N)
+%         std (BOOTSTAT, 1, 2) ~ std (Y, 1) == std (Y, 0) / sqrt (N) 
 %
 %     'bootbayes (Y, X, ..., NBOOT, PROB, PRIOR, SEED)' initialises the
 %     Mersenne Twister random number generator using an integer SEED value so

@@ -6,11 +6,12 @@
 %
 %     'BOOTSAM = boot (N, NBOOT)' generates NBOOT bootstrap samples of length N.
 %     The samples generated are composed of indices within the range 1:N, which
-%     are chosen by random resampling with replacement [1]. The efficiency of
-%     the bootstrap simulation is ensured by sampling each of the indices
-%     exactly NBOOT times, for first-order balance [2-3]. N and NBOOT must be
+%     are chosen by random resampling with replacement [1]. N and NBOOT must be
 %     positive integers. The returned value, BOOTSAM, is a matrix of indices,
-%     with N rows and NBOOT columns. 
+%     with N rows and NBOOT columns. The efficiency of the bootstrap simulation
+%     is ensured by sampling each of the indices exactly NBOOT times, for first-
+%     order balance [2-3]. As such, when NBOOT is only 1, the resampling is
+%     method becomes resampling without replacement (a.k.a. permutation).
 %
 %     'BOOTSAM = boot (X, NBOOT)' generates NBOOT bootstrap samples, each the
 %     same length as X (N). The samples generated contains values of X, which

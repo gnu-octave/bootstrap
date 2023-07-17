@@ -34,7 +34,9 @@
 // correction into the resampling procedure. The sample index for omission in
 // each bootknife resample is selected systematically. When the remaining number
 // of bootknife resamples is not divisible by the sample size (N), then the
-// sample index omitted is selected randomly. 
+// sample index omitted is selected randomly. Since balanced resampling is
+// guarenteed, the method becomes resampling without replacement (a.k.a.
+// permutation) when NBOOT is only 1.
 // SEED is an optional scalar input argument used to initialize the random
 // number generator to make resampling reproducible between calls to boot.
 // WEIGHTS is an optional input argument. If WEIGHTS is empty or not provided,
