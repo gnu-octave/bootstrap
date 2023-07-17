@@ -4,6 +4,7 @@ clear
 % bootbayes settings
 nboot = 10000;
 prob = 0.95;
+prior = 1; 
 
 % Simulation settings
 n = 4;
@@ -27,7 +28,7 @@ else
 end
 
 % Compute credible interval
-stats = bootbayes (y, [], [], nboot, prob, 1);
+stats = bootbayes (y, [], [], nboot, prob, prior);
 CI = [stats.CI_lower stats.CI_upper];
 mu_within_range_of_CI = (CI(1) <= mu) & (mu <= CI(2));  % Frequentist inference
 
@@ -36,7 +37,7 @@ LogicalStr = {'false', 'true'};
 fprintf ('----- BAYESIAN BOOTSTRAP CREDIBLE INTERVAL (CI) SIMULATION -----\n')
 fprintf ('Sample size: %u\n', n);
 fprintf ('nboot: %u\n', nboot);
-fprintf ('Prior: %.2f\n', 1.0);
+fprintf ('Prior: %s\n', num2str (prior));
 if (numel(prob) > 1)
   fprintf ('Credible interval (CI) type: Percentile interval\n');
   mass =  100 * abs (prob(2) - prob(1));
