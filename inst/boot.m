@@ -10,7 +10,7 @@
 %     positive integers. The returned value, BOOTSAM, is a matrix of indices,
 %     with N rows and NBOOT columns. The efficiency of the bootstrap simulation
 %     is ensured by sampling each of the indices exactly NBOOT times, for first-
-%     order balance [2-3]. As such, when NBOOT is only 1, the resampling is
+%     order balance [2-3]. As such, when NBOOT is only 1, the resampling
 %     method becomes resampling without replacement (a.k.a. permutation).
 %
 %     'BOOTSAM = boot (X, NBOOT)' generates NBOOT bootstrap samples, each the

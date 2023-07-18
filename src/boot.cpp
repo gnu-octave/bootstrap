@@ -35,7 +35,7 @@
 // each bootknife resample is selected systematically. When the remaining number
 // of bootknife resamples is not divisible by the sample size (N), then the
 // sample index omitted is selected randomly. Since balanced resampling is
-// guarenteed, the method becomes resampling without replacement (a.k.a.
+// guaranteed, the method becomes resampling without replacement (a.k.a.
 // permutation) when NBOOT is only 1.
 // SEED is an optional scalar input argument used to initialize the random
 // number generator to make resampling reproducible between calls to boot.
