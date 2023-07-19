@@ -310,8 +310,8 @@
 %                performed. The control is group number k as returned when
 %                POSTHOC is set to 'none'.
 %
-%          All of the posthoc comparisons use the Holm-Sidak procedure to
-%          control the type I error rate. The onfidence intervals are not
+%          All of the posthoc comparisons use the Holm-Bonferroni procedure to
+%          control the type I error rate. The confidence intervals are not
 %          adjusted for multiple comparisons.
 %
 %     '[...] = bootlm (Y, GROUP, ..., 'seed', SEED)' initialises the Mersenne
@@ -859,7 +859,7 @@ function [STATS, BOOTSTAT, X, L] = bootlm (Y, GROUP, varargin)
             case 'wild'
               [STATS, BOOTSTAT] = bootwild (Y, X, DEP, NBOOT, ALPHA, SEED, L);
               % Control the type 1 error rate across multiple posthoc comparisons
-              STATS.pval = holmsidak (STATS.pval);
+              STATS.pval = holm (STATS.pval);
               % Clean-up
               STATS = rmfield (STATS, {'std_err', 'tstat'});
               STATS.prior = [];
@@ -1385,24 +1385,27 @@ end
 
 % FUNCTION TO CONTROL TYPE 1 ERROR ACROSS MULTIPLE POSTHOC COMPARISONS
 
-function padj = holmsidak (p)
+function padj = holm (p)
 
-  % Holm-Sidak procedure
+  % Holm-Bonferroni procedure
 
   % Order raw p-values
   [ps, idx] = sort (p, 'ascend');
   k = numel (ps);
 
-  % Implement Holm's step-doen Sidak procedure
+  % Implement Holm's step-down Bonferroni procedure
   padj = nan (k,1);
-  padj(1) = 1 - (1 - ps(1))^k;
+  padj(1) = k * ps(1);
   for j = 2:k
-    padj(j) = max (padj(j - 1), 1 - (1 - ps(j))^(k - j + 1));
+    padj(j) = max (padj(j - 1), (k - j + 1) * ps(j));
   end
 
   % Reorder the adjusted p-values to match the order of the original p-values
   [jnk, original_order] = sort (idx, 'ascend');
   padj = padj(original_order);
+
+  ## Truncate adjusted p-values to 1.0
+  padj(padj>1) = 1;
 
 end
 
@@ -2171,8 +2174,8 @@ end
 %! stats = bootlm (y, g, 'display', false, 'dim', 1, 'posthoc', 'pairwise', ...
 %!                       'seed', 1);
 %!
-%! assert (stats.pval(1), 0.02244490602069782, 1e-09);
-%! assert (stats.pval(2), 0.009089124081685829, 1e-09);
+%! assert (stats.pval(1), 0.02257228301077761, 1e-09);
+%! assert (stats.pval(2), 0.009116801372527121, 1e-09);
 %! assert (stats.pval(3), 0.1550614031528714, 1e-09);
 %! assert (stats.fpr(1), 0.120933032759112, 1e-09);
 %! assert (stats.fpr(2), 0.04569311618185678, 1e-09);
