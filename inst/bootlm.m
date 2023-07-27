@@ -364,8 +364,8 @@
 function [STATS, BOOTSTAT, X, L] = bootlm (Y, GROUP, varargin)
 
     if (nargin < 2)
-      error (strcat (['bootlm usage: ''bootlm (Y, GROUP)''; '], ...
-                      [' atleast 2 input arguments required']));
+      error (cat (2, 'bootlm usage: ''bootlm (Y, GROUP)''; ', ...
+                     ' atleast 2 input arguments required'));
     end
     if (nargout > 4)
       error ('bootlm: Too many output arguments')
@@ -404,8 +404,8 @@ function [STATS, BOOTSTAT, X, L] = bootlm (Y, GROUP, varargin)
         case 'random'
           % RANDOM input argument is ignored
         case 'nested'
-          error (strcat (['bootlm: NESTED not supported. Please use ''CLUSTID'''], ...
-                         [' or ''BLOCKSZ'' input arguments instead.']));
+          error (cat (2, 'bootlm: NESTED not supported. Please use ''CLUSTID''', ...
+                         ' or ''BLOCKSZ'' input arguments instead.'));
         case 'sstype'
           % SSTYPE input argument is ignored
         case 'varnames'
@@ -444,12 +444,12 @@ function [STATS, BOOTSTAT, X, L] = bootlm (Y, GROUP, varargin)
     % Evaluate continuous input argument
     if (isnumeric (CONTINUOUS))
       if (any (CONTINUOUS ~= abs (fix (CONTINUOUS))))
-        error (strcat (['bootlm: the value provided for the CONTINUOUS'], ...
-                       [' parameter must be a positive integer']));
+        error (cat (2, 'bootlm: the value provided for the CONTINUOUS', ...
+                       ' parameter must be a positive integer'));
       end
     else
-      error (strcat (['bootlm: the value provided for the CONTINUOUS'], ...
-                     [' parameter must be numeric']));
+      error (cat (2, 'bootlm: the value provided for the CONTINUOUS', ...
+                     ' parameter must be numeric'));
     end
 
     % Accomodate for different formats for GROUP
@@ -461,12 +461,12 @@ function [STATS, BOOTSTAT, X, L] = bootlm (Y, GROUP, varargin)
       error ('bootlm: for ''bootlm (Y, GROUP)'', Y must be a vector');
     end
     if (numel (unique (CONTINUOUS)) > N)
-      error (strcat (['bootlm: the number of predictors assigned as continuous'], ...
-                 [' cannot exceed the number of predictors in GROUP']));
+      error (cat (2, 'bootlm: the number of predictors assigned as continuous', ...
+                     ' cannot exceed the number of predictors in GROUP'));
     end
     if (any ((CONTINUOUS > N) | any (CONTINUOUS <= 0)))
-      error (strcat (['bootlm: one or more indices provided in the value'], ...
-                 [' for the continuous parameter are out of range']));
+      error (cat (2, 'bootlm: one or more indices provided in the value', ...
+                     ' for the continuous parameter are out of range'));
     end
     cont_vec = false (1, N);
     cont_vec(CONTINUOUS) = true;
@@ -500,8 +500,8 @@ function [STATS, BOOTSTAT, X, L] = bootlm (Y, GROUP, varargin)
         if (all (cellfun (@ischar, VARNAMES)))
           nvarnames = numel(VARNAMES);
         else
-          error (strcat (['bootlm: all variable names must be character'], ...
-                         [' or character arrays']));
+          error (cat (2, 'bootlm: all variable names must be character', ...
+                         ' or character arrays'));
         end
       elseif (ischar (VARNAMES))
         nvarnames = 1;
@@ -510,16 +510,16 @@ function [STATS, BOOTSTAT, X, L] = bootlm (Y, GROUP, varargin)
         nvarnames = 1;
         VARNAMES = {char(VARNAMES)};
       else
-        error (strcat (['bootlm: varnames is not of a valid type. Must be a cell'], ...
-               [' array of character arrays, character array or string']));
+        error (cat (2, 'bootlm: varnames is not of a valid type. Must be a cell', ...
+               ' array of character arrays, character array or string'));
       end
     else
       nvarnames = N;
       VARNAMES = arrayfun(@(x) ['X',num2str(x)], 1:N, 'UniformOutput', 0);
     end
     if (nvarnames ~= N)
-      error (strcat (['bootlm: number of variable names is not equal'], ...
-                     [' to the number of grouping variables']));
+      error (cat (2, 'bootlm: number of variable names is not equal', ...
+                     ' to the number of grouping variables'));
     end
 
     % Evaluate contrasts (if applicable)
@@ -554,9 +554,9 @@ function [STATS, BOOTSTAT, X, L] = bootlm (Y, GROUP, varargin)
             if (~ ismember (lower (CONTRASTS{i}), ...
                             {'simple','anova','poly','helmert','effect',...
                               'sdif','sdiff','treatment'}))
-              error (strcat(['bootlm: valid built-in contrasts are:'], ...
-                            [' ''simple'', ''poly'', ''helmert'','],...
-                            ['''effect'', ''sdif'' or ''treatment''']));
+              error (cat (2, 'bootlm: valid built-in contrasts are:', ...
+                            ' ''simple'', ''poly'', ''helmert'',',...
+                            '''effect'', ''sdif'' or ''treatment'''));
             end
           end
         end
@@ -582,8 +582,8 @@ function [STATS, BOOTSTAT, X, L] = bootlm (Y, GROUP, varargin)
     n = numel (Y);     % Recalculate total number of observations
 
     % Evaluate model type input argument and create terms matrix if not provided
-    msg = strcat (['bootlm: the number of columns in the term definitions'], ...
-                  [' cannot exceed the number of columns of GROUP']);
+    msg = cat (2, 'bootlm: the number of columns in the term definitions', ...
+                  ' cannot exceed the number of columns of GROUP');
     if (ischar (MODELTYPE))
       switch (lower (MODELTYPE))
         case 'linear'
@@ -641,24 +641,24 @@ function [STATS, BOOTSTAT, X, L] = bootlm (Y, GROUP, varargin)
         error (msg);
       end
       if (~ all (ismember (MODELTYPE(:), [0,1])))
-        error (strcat (['bootlm: elements of the model terms matrix'], ...
-                       [' must be either 0 or 1']));
+        error (cat (2, 'bootlm: elements of the model terms matrix', ...
+                       ' must be either 0 or 1'));
       end
       TERMS = logical (MODELTYPE);
     end
     % Evaluate terms matrix
     Ng = sum (TERMS, 2);
     if (any (diff (Ng) < 0))
-      error (strcat (['bootlm: the model terms matrix must list main'], ...
-                     [' effects above/before interactions']));
+      error (cat (2, 'bootlm: the model terms matrix must list main', ...
+                     ' effects above/before interactions'));
     end
     % Evaluate terms
     Nm = sum (Ng == 1);
     Nx = sum (Ng > 1);
     Nt = Nm + Nx;
     if (any (any (TERMS(1:Nm,:), 1) ~= any (TERMS, 1)))
-      error (strcat (['bootlm: all predictors involved in interactions'], ...
-                     [' must have a main effect']));
+      error (cat (2, 'bootlm: all predictors involved in interactions', ...
+                     ' must have a main effect'));
     end
 
     % Create design matrix
@@ -755,8 +755,8 @@ function [STATS, BOOTSTAT, X, L] = bootlm (Y, GROUP, varargin)
       % Error checking
       % Check what type of factor is requested in DIM
       if (any (nlevels(DIM) < 2))
-          error (strcat (['bootlm: DIM must specify only categorical'], ...
-                         [' factors with 2 or more degrees of freedom.']));
+          error (cat (2, 'bootlm: DIM must specify only categorical', ...
+                         ' factors with 2 or more degrees of freedom.'));
       end
       % Check that all continuous variables were centered
       msg = 'bootlm: model must be refit with a sum-to-zero contrast coding';
@@ -982,7 +982,7 @@ function [STATS, BOOTSTAT, X, L] = bootlm (Y, GROUP, varargin)
         ylabel ('Studentized Residuals');
         title ('Normal Q-Q Plot');
         arrayfun (@(i) text (q(I == DI(i)), t(DI(i)), ...
-                             sprintf ('  %u', DI(i))), [1:min(nk,n)])
+                             sprintf ('  %u', DI(i))), 1:min(nk,n))
         iqr = [0.25; 0.75]; 
         [ts, F] = bootcdf (t, true, 1);
         yl = interp1 (F, ts, iqr, 'linear', min (ts));
@@ -1138,17 +1138,17 @@ function [X, levels, nlevels, df, termcols, coeffnames, vmeans, gid, CONTRASTS, 
         % EVALUATE CUSTOM CONTRAST MATRIX
         % Check that the contrast matrix provided is the correct size
         if (~ all (size (CONTRASTS{j},1) == nlevels(j)))
-          error (strcat (['bootlm: the number of rows in the contrast'], ...
-                       [' matrices should equal the number of predictor levels']));
+          error (cat (2, 'bootlm: the number of rows in the contrast', ...
+                         ' matrices should equal the number of predictor levels'));
         end
         if (~ all (size (CONTRASTS{j},2) == df(j)))
-          error (strcat (['bootlm: the number of columns in each contrast'], ...
-                  [' matrix should equal the degrees of freedom (i.e.'], ...
-                  [' number of levels minus 1) for that predictor']));
+          error (cat (2, 'bootlm: the number of columns in each contrast', ...
+                         ' matrix should equal the degrees of freedom (i.e.', ...
+                         ' number of levels minus 1) for that predictor'));
         end
         if (~ all (any (CONTRASTS{j})))
-          error (strcat (['bootlm: a contrast must be coded in each'], ...
-                         [' column of the contrast matrices']));
+          error (cat (2, 'bootlm: a contrast must be coded in each', ...
+                         ' column of the contrast matrices'));
         end
       else
         switch (lower (CONTRASTS{j}))
@@ -1404,7 +1404,7 @@ function padj = holm (p)
   [jnk, original_order] = sort (idx, 'ascend');
   padj = padj(original_order);
 
-  ## Truncate adjusted p-values to 1.0
+  % Truncate adjusted p-values to 1.0
   padj(padj>1) = 1;
 
 end
