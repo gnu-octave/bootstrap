@@ -242,7 +242,7 @@ function [pval, stat, STATS] = randtest2 (x, y, paired, nreps, seed)
       Y = [Y{:}]';
 
       % Check if we can vectorize function evaluations
-      VECTORIZED = and (~ any (diff (accumarray (gx, 1))), 
+      VECTORIZED = and (~ any (diff (accumarray (gx, 1))), ...
                         ~ any (diff (accumarray (gy, 1))));
 
   end
