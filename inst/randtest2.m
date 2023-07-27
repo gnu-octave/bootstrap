@@ -231,12 +231,10 @@ function [pval, stat, STATS] = randtest2 (x, y, paired, nreps, seed)
 
       % Create permutations or perform randomization
       if (2^nx < nreps)
-        % Exact permutation test
-        I = (dec2bin (0 : 2^nx - 1).' - '0') + 1;
+        I = (dec2bin (0 : 2^nx - 1).' - '0') + 1; % For exact permutation test
         nreps = 2^nx;
       else 
-        % Randomization (approximate)
-        I = (rand (nx, nreps) > 0.5) + 1;
+        I = (rand (nx, nreps) > 0.5) + 1; % For approximate randomization test
       end
       X = arrayfun (@(i) z(I(i, :), i), 1 : nx, 'UniformOutput', false);
       X = [X{:}]';
