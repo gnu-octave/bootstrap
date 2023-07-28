@@ -49,7 +49,7 @@
 %        the probabilities of the percentiles using Student's t-distribution
 %        [7]. By default, BOOTFUN is @mean.
 %
-%     'bootknife ({D1, D2,...}, NBOOT, BOOTFUN)' resamples from the rows of D1,
+%     'bootknife ({D1, D2, ...}, NBOOT, BOOTFUN)' resamples from the rows of D1,
 %     D2 etc and the resamples are passed to BOOTFUN as multiple data input
 %     arguments. All data vectors and matrices (D1, D2 etc) must have the same
 %     number of rows.
@@ -249,7 +249,8 @@ function [stats, bootstat, bootsam] = bootknife (x, nboot, bootfun, alpha, ...
     else
       nalpha = numel (alpha);
       if (~ isa (alpha, 'numeric') || (nalpha > 2))
-        error ('bootknife: ALPHA must be a scalar (two-tailed probability) or a vector (pair of probabilities)');
+        error (cat (2, 'bootknife: ALPHA must be a scalar (two-tailed', ...
+                       'probability) or a vector (pair of probabilities)'))
       end
       if (size (alpha, 1) > 1)
         alpha = alpha.';
@@ -261,7 +262,8 @@ function [stats, bootstat, bootsam] = bootknife (x, nboot, bootfun, alpha, ...
         % alpha is a pair of probabilities
         % Make sure probabilities are in the correct order
         if (alpha(1) > alpha(2) )
-          error ('bootknife: The pair of probabilities must be in ascending numeric order');
+          error (cat (2, 'bootknife: The pair of probabilities must be', ...
+                         ' in ascending numeric order'))
         end
       end
     end
@@ -269,7 +271,8 @@ function [stats, bootstat, bootsam] = bootknife (x, nboot, bootfun, alpha, ...
       strata = [];
     else  
       if (size (strata, 1) ~= size (x, 1))
-        error ('bootknife: STRATA should be a column vector or cell array with the same number of rows as the DATA');
+        error (cat (2, 'bootknife: STRATA should be a column vector or', ...
+                       ' cell array with the same number of rows as the DATA'))
       end
     end
     if ((nargin < 6) || isempty (ncpus)) 
@@ -383,12 +386,14 @@ function [stats, bootstat, bootsam] = bootknife (x, nboot, bootfun, alpha, ...
             % Start parallel pool with ncpus workers
             parpool (ncpus);
           else
-            % Parallel pool is not running and ncpus is 1 so run function evaluations in serial
+            % Parallel pool is not running and ncpus is 1 so run function
+            % evaluations in serial
             ncpus = 1;
           end
         else
           if (pool.NumWorkers ~= ncpus)
-            % Check if number of workers matches ncpus and correct it accordingly if not
+            % Check if number of workers matches ncpus and correct it
+            % accordingly if not
             delete (pool);
             if (ncpus > 1)
               parpool (ncpus);
@@ -398,7 +403,8 @@ function [stats, bootstat, bootsam] = bootknife (x, nboot, bootfun, alpha, ...
       catch
         % MATLAB Parallel Computing Toolbox is not installed
         warning ('bootknife:parallel', ...
-           'Parallel Computing Toolbox not installed or operational. Falling back to serial processing.');
+                 cat (2, 'Parallel Computing Toolbox not installed or', ...
+                         ' operational. Falling back to serial processing.'))
         ncpus = 1;
       end
     end
@@ -407,11 +413,13 @@ function [stats, bootstat, bootsam] = bootknife (x, nboot, bootfun, alpha, ...
       if (ISOCTAVE)
         % OCTAVE Parallel Computing Package is not installed or loaded
         warning ('bootknife:parallel', ...
-          'Parallel Computing Package not installed and/or loaded. Falling back to serial processing.');
+                 cat (2, 'Parallel Computing Package not installed and/or', ...
+                         ' loaded. Falling back to serial processing.'))
       else
         % MATLAB Parallel Computing Toolbox is not installed or loaded
         warning ('bootknife:parallel', ...
-          'Parallel Computing Toolbox not installed and/or loaded. Falling back to serial processing.');
+                 cat (2, 'Parallel Computing Toolbox not installed and/or', ...
+                         ' loaded. Falling back to serial processing.'))
       end
       ncpus = 0;
     end
@@ -440,7 +448,8 @@ function [stats, bootstat, bootsam] = bootknife (x, nboot, bootfun, alpha, ...
     gid = unique (strata);  % strata ID
     K = numel (gid);        % number of strata
     % Create strata matrix
-    g = cell2mat (cellfun (@(k) strata == gid(k), num2cell (1:K), 'UniformOutput', false));
+    g = cell2mat (cellfun (@(k) strata == gid(k), num2cell (1:K), ...
+                           'UniformOutput', false));
     nk = sum (g);           % strata sample sizes
   else 
     g = ones (n, 1);
@@ -462,7 +471,8 @@ function [stats, bootstat, bootsam] = bootknife (x, nboot, bootfun, alpha, ...
           end
         end
       else
-        % For more efficiency, if we don't need bootsam, we can directly resample values of x
+        % For more efficiency, if we don't need bootsam, we can directly
+        % resample values of x
         bootsam = [];
         X = zeros (n, B);
         for k = 1:K
@@ -479,7 +489,8 @@ function [stats, bootstat, bootsam] = bootknife (x, nboot, bootfun, alpha, ...
         bootsam = zeros (n, B, 'int32');
         bootsam(:, :) = boot (n, B, unbiased);
       else
-        % For more efficiency, if we don't need bootsam, we can directly resample values of x
+        % For more efficiency, if we don't need bootsam, we can directly
+        % resample values of x
         bootsam = [];
         X = boot (x, B, unbiased);
       end
@@ -502,7 +513,8 @@ function [stats, bootstat, bootsam] = bootknife (x, nboot, bootfun, alpha, ...
         % Evaluate bootfun on each bootstrap resample in PARALLEL
         if (ISOCTAVE)
           % OCTAVE
-          bootstat = parcellfun (ncpus, bootfun, num2cell (X, 1), 'UniformOutput', false);
+          bootstat = parcellfun (ncpus, bootfun, num2cell (X, 1), ...
+                                 'UniformOutput', false);
         else
           % MATLAB
           bootstat = cell (1, B);
@@ -534,7 +546,8 @@ function [stats, bootstat, bootsam] = bootknife (x, nboot, bootfun, alpha, ...
         % Evaluate bootfun on each bootstrap resample in PARALLEL
         if (ISOCTAVE)
           % OCTAVE
-          bootstat = parcellfun (ncpus, cellfunc, num2cell (bootsam, 1), 'UniformOutput', false);
+          bootstat = parcellfun (ncpus, cellfunc, num2cell (bootsam, 1), ...
+                                 'UniformOutput', false);
         else
           % MATLAB
           bootstat = cell (1, B);
@@ -542,7 +555,8 @@ function [stats, bootstat, bootsam] = bootknife (x, nboot, bootfun, alpha, ...
         end
       else
         % Evaluate bootfun on each bootstrap resample in SERIAL
-        bootstat = cellfun (cellfunc, num2cell (bootsam, 1), 'UniformOutput', false);
+        bootstat = cellfun (cellfunc, num2cell (bootsam, 1), ...
+                            'UniformOutput', false);
       end
     end
   end
@@ -570,17 +584,22 @@ function [stats, bootstat, bootsam] = bootknife (x, nboot, bootfun, alpha, ...
 
     %%%%%%%%%%%%%%%%%%%%%%%%%%% DOUBLE BOOTSTRAP %%%%%%%%%%%%%%%%%%%%%%%%%%%
     if (ncpus > 1)
-      % PARALLEL execution of inner layer resampling for double (i.e. iterated) bootstrap
+      % PARALLEL execution of inner layer resampling for double (i.e. iterated)
+      % bootstrap
       if (ISOCTAVE)
         % OCTAVE
         % Set unique random seed for each parallel thread
         pararrayfun (ncpus, @boot, 1, 1, false, 1:ncpus);
         if (vectorized && isempty (bootsam))
-          cellfunc = @(x) bootknife (x, C, bootfun, NaN, strata, 0, [], T0, ISOCTAVE, false);
-          bootout = parcellfun (ncpus, cellfunc, num2cell (X, 1), 'UniformOutput', false);
+          cellfunc = @(x) bootknife (x, C, bootfun, ...
+                                     NaN, strata, 0, [], T0, ISOCTAVE, false);
+          bootout = parcellfun (ncpus, cellfunc, ...
+                                num2cell (X, 1), 'UniformOutput', false);
         else
-          cellfunc = @(bootsam) bootknife (x(bootsam, :), C, bootfun, NaN, strata, 0, [], T0, ISOCTAVE, false);
-          bootout = parcellfun (ncpus, cellfunc, num2cell (bootsam, 1), 'UniformOutput', false);
+          cellfunc = @(bootsam) bootknife (x(bootsam, :), C, bootfun, ...
+                                     NaN, strata, 0, [], T0, ISOCTAVE, false);
+          bootout = parcellfun (ncpus, cellfunc, ...
+                                num2cell (bootsam, 1), 'UniformOutput', false);
         end
       else
         % MATLAB
@@ -590,21 +609,26 @@ function [stats, bootstat, bootsam] = bootknife (x, nboot, bootfun, alpha, ...
         % Preallocate structure array
         bootout = cell (1, B);
         if (vectorized && isempty (bootsam))
-          cellfunc = @(x) bootknife (x, C, bootfun, NaN, strata, 0, [], T0, ISOCTAVE, false);
+          cellfunc = @(x) bootknife (x, C, bootfun, ...
+                                     NaN, strata, 0, [], T0, ISOCTAVE, false);
           parfor b = 1:B; bootout{b} = cellfunc (X(:, b)); end
         else
-          cellfunc = @(bootsam) bootknife (x(bootsam, :), C, bootfun, NaN, strata, 0, [], T0, ISOCTAVE, false);
+          cellfunc = @(bootsam) bootknife (x(bootsam, :), C, bootfun, ...
+                                     NaN, strata, 0, [], T0, ISOCTAVE, false);
           parfor b = 1:B; bootout{b} = cellfunc (bootsam(:, b)); end
         end
       end
     else
       % SERIAL execution of inner layer resampling for double bootstrap
       if (vectorized && isempty (bootsam))
-        cellfunc = @(x) bootknife (x, C, bootfun, NaN, strata, 0, [], T0, ISOCTAVE, false);
+        cellfunc = @(x) bootknife (x, C, bootfun, ...
+                                   NaN, strata, 0, [], T0, ISOCTAVE, false);
         bootout = cellfun (cellfunc, num2cell (X, 1), 'UniformOutput', false);
       else
-        cellfunc = @(bootsam) bootknife (x(bootsam, :), C, bootfun, NaN, strata, 0, [], T0, ISOCTAVE, false);
-        bootout = cellfun (cellfunc, num2cell (bootsam, 1), 'UniformOutput', false);
+        cellfunc = @(bootsam) bootknife (x(bootsam, :), C, bootfun, NaN, ...
+                                         strata, 0, [], T0, ISOCTAVE, false);
+        bootout = cellfun (cellfunc, num2cell (bootsam, 1), ...
+                           'UniformOutput', false);
       end
     end
     % Double bootstrap bias estimation
@@ -614,7 +638,8 @@ function [stats, bootstat, bootsam] = bootknife (x, nboot, bootfun, alpha, ...
     c = mean (mu, 2) - 2 * mean (bootstat, 2) + T0;
     bias = b - c;
     % Double bootstrap multiplicative correction of the standard error
-    V = cell2mat (cellfun (@(S) S.std_error.^2, bootout, 'UniformOutput', false));
+    V = cell2mat (cellfun (@(S) S.std_error.^2, bootout, ...
+                           'UniformOutput', false));
     se = sqrt (var (bootstat, 0, 2).^2 ./ mean (V, 2));
     % Double bootstrap confidence intervals
     if (~ isnan (alpha))
@@ -626,14 +651,15 @@ function [stats, bootstat, bootsam] = bootknife (x, nboot, bootfun, alpha, ...
         switch nalpha
           case 1
             % alpha is a two-tailed probability (scalar)
-            % Calibrate central coverage and construct equal-tailed intervals (2-sided)
+            % Calibrate central coverage and construct equal-tailed intervals
+            % (2-sided)
             [v, cdf] = bootcdf (abs (2 * U(j, :) - 1), true, 1);
             vk = interp1 (cdf, v, 1 - alpha, 'linear', max (v));
             l(j, :) = arrayfun (@(sign) 0.5 * (1 + sign * vk), [-1, 1]);
           case 2
             % alpha is a pair of probabilities (vector)
             % Calibrate coverage but construct endpoints separately (1-sided)
-            % This is equivalent to algorithm 18.1 in Efron, and Tibshirani (1993)
+            % This is equivalent to algorithm 18.1 in Efron & Tibshirani (1993)
             [u, cdf] = bootcdf (U(j, :), true, 1);
             l(j, 1) = interp1 (cdf, u, alpha(1), 'linear', min (u));
             l(j, 2) = interp1 (cdf, u, alpha(2), 'linear', max (u));
@@ -658,7 +684,8 @@ function [stats, bootstat, bootsam] = bootknife (x, nboot, bootfun, alpha, ...
       % If bootfun is the arithmetic meam, expand the probability of the 
       % percentiles using Student's t-distribution
       if (strcmpi (bootfun_str, 'mean'))
-        expan_alpha = (3 - nalpha) * localfunc.ExpandProbs (alpha / (3 - nalpha), n - K);
+        expan_alpha = (3 - nalpha) * ...
+                      localfunc.ExpandProbs (alpha / (3 - nalpha), n - K);
       else
         expan_alpha = alpha;
       end
@@ -676,7 +703,7 @@ function [stats, bootstat, bootsam] = bootknife (x, nboot, bootfun, alpha, ...
           % Create equal-tailed probabilities for the percentiles
           l = repmat ([expan_alpha / 2, 1 - expan_alpha / 2], m, 1);
         case 2
-          % Attempt to form bias-corrected and accelerated (BCa) bootstrap confidence intervals. 
+          % Attempt to form bias-corrected and accelerated (BCa) bootstrap CIs
           % Use the Jackknife to calculate the acceleration constant (a)
           try
             jackfun = @(i) bootfun (x(1:n ~= i, :));
@@ -684,7 +711,8 @@ function [stats, bootstat, bootsam] = bootknife (x, nboot, bootfun, alpha, ...
               % PARALLEL evaluation of bootfun on each jackknife resample 
               if (ISOCTAVE)
                 % OCTAVE
-                T = cell2mat (pararrayfun (ncpus, jackfun, 1:n, 'UniformOutput', false));
+                T = cell2mat (pararrayfun (ncpus, jackfun, 1:n, ...
+                                           'UniformOutput', false));
               else
                 % MATLAB
                 T = zeros (m, n);
@@ -704,8 +732,8 @@ function [stats, bootstat, bootsam] = bootknife (x, nboot, bootfun, alpha, ...
             a = sum (U.^3, 2) ./ (6 * sum (U.^2, 2) .^ 1.5);
           catch
             % Revert to bias-corrected (BC) bootstrap confidence intervals
-            warning ('bootknife:jackfail', ...
-              'BOOTFUN failed during jackknife calculations; acceleration constant set to 0.\n');
+            warning ('bootknife:jackfail', cat (2, 'BOOTFUN failed during', ... 
+                  ' jackknife calculations; acceleration constant set to 0.\n'))
             a = zeros (m, 1);
           end
           % Calculate the bias correction constant (z0)
@@ -714,7 +742,8 @@ function [stats, bootstat, bootsam] = bootknife (x, nboot, bootfun, alpha, ...
           if (~ all (isfinite (z0)))
             % Revert to percentile bootstrap confidence intervals
             warning ('bootknife:biasfail', ...
-              'Unable to calculate the bias correction constant; reverting to percentile intervals.\n');
+                     cat (2, 'Unable to calculate the bias correction', ...
+                             ' constant; reverting to percentile intervals.\n'))
             z0 = zeros (m, 1);
             a = zeros (m, 1); 
             l = repmat (expan_alpha, m, 1);
@@ -722,8 +751,10 @@ function [stats, bootstat, bootsam] = bootknife (x, nboot, bootfun, alpha, ...
           if (isempty (l))
             % Calculate BCa or BC percentiles
             z = stdnorminv (expan_alpha);
-            l = cat (2, stdnormcdf (z0 + ((z0 + z(1)) ./ (1 - bsxfun (@times, a , z0 + z(1))))),... 
-                        stdnormcdf (z0 + ((z0 + z(2)) ./ (1 - bsxfun (@times, a , z0 + z(2))))));
+            l = cat (2, stdnormcdf (z0 + ((z0 + z(1)) ./ ...
+                                    (1 - bsxfun (@times, a , z0 + z(1))))), ... 
+                        stdnormcdf (z0 + ((z0 + z(2)) ./ ...
+                                    (1 - bsxfun (@times, a , z0 + z(2))))));
           end
       end
       % Intervals constructed from kernel density estimate of the bootstrap
@@ -731,10 +762,12 @@ function [stats, bootstat, bootsam] = bootknife (x, nboot, bootfun, alpha, ...
       ci = zeros (m, 2);
       for j = 1:m
         try
-          ci(j, :) = localfunc.kdeinv (l(j, :), bootstat(j, :), se(j) * sqrt (1 / (n - K)), 1 - 1 / (n - K));
+          ci(j, :) = localfunc.kdeinv (l(j, :), bootstat(j, :), ...
+                                   se(j) * sqrt (1 / (n - K)), 1 - 1 / (n - K));
         catch
           % Linear interpolation (legacy)
-          fprintf ('Note: Falling back to linear interpolation to calculate percentiles for interval pair %u\n', j);
+          fprintf (cat (2, 'Note: Falling back to linear interpolation to', ...
+                           ' calculate percentiles for interval pair %u\n', j));
           [t1, cdf] = bootcdf (bootstat(j, :), true, 1);
           ci(j, 1) = interp1 (cdf, t1, l(j, 1), 'linear', min (t1));
           ci(j, 2) = interp1 (cdf, t1, l(j, 2), 'linear', max (t1));
@@ -762,7 +795,7 @@ function [stats, bootstat, bootsam] = bootknife (x, nboot, bootfun, alpha, ...
     I = bsxfun (@le, bootstat, REF);
     pr = sum (I, 2);
     t = cell2mat (arrayfun (@(j) ...
-         [max([min(bootstat(j, :)), max(bootstat(j, I(j, :)))]),...
+         [max([min(bootstat(j, :)), max(bootstat(j, I(j, :)))]), ...
           min([max(bootstat(j, :)), min(bootstat(j, ~ I(j, :)))])], (1:m)', ...
           'UniformOutput', false));
     dt = t(:, 2) - t(:, 1);
@@ -795,21 +828,26 @@ end
 
 function print_output (stats, nboot, alpha, l, m, bootfun_str, strata)
 
-    fprintf (['\nSummary of nonparametric bootstrap estimates of bias and precision\n',...
-              '******************************************************************************\n\n']);
+    fprintf (cat (2, '\nSummary of nonparametric bootstrap estimates of', ...
+                     ' bias and precision\n', ...
+                     '*************************************************', ...
+                     '*****************************\n\n'));
     fprintf ('Bootstrap settings: \n');
     fprintf (' Function: %s\n', bootfun_str);
     if (nboot(2) > 0)
       if (isempty (strata))
-        fprintf (' Resampling method: Iterated, balanced, bootknife resampling \n');
+        fprintf (cat (2, ' Resampling method: Iterated, balanced,', ...
+                         ' bootknife resampling \n'));
       else
-        fprintf (' Resampling method: Iterated, stratified, balanced, bootknife resampling \n');
+        fprintf (cat (2, ' Resampling method: Iterated, stratified,', ...
+                         ' balanced, bootknife resampling \n'));
       end
     else
       if (isempty (strata))
         fprintf (' Resampling method: Balanced, bootknife resampling \n');
       else
-        fprintf (' Resampling method: Stratified, balanced, bootknife resampling \n');
+        fprintf (cat (2, ' Resampling method: Stratified, balanced,', ...
+                         ' bootknife resampling \n'));
       end
     end
     fprintf (' Number of resamples (outer): %u \n', nboot(1));
@@ -820,7 +858,8 @@ function print_output (stats, nboot, alpha, l, m, bootfun_str, strata)
         if (nalpha > 1)
           fprintf (' Confidence interval (CI) type: Calibrated percentile\n');
         else
-          fprintf (' Confidence interval (CI) type: Calibrated percentile (equal-tailed)\n');
+          fprintf (cat (2, ' Confidence interval (CI) type: Calibrated', ...
+                           ' percentile (equal-tailed)\n'));
         end
       else
         if (nalpha > 1)
@@ -828,28 +867,35 @@ function print_output (stats, nboot, alpha, l, m, bootfun_str, strata)
           switch warnID
             case 'bootknife:biasfail'
               if (strcmpi (bootfun_str, 'mean'))
-                fprintf (' Confidence interval (CI) type: Expanded percentile\n');
+                fprintf (cat (2, ' Confidence interval (CI) type:', ...
+                                 ' Expanded percentile\n'));
               else
                 fprintf (' Confidence interval (CI) type: Percentile\n');
               end
             case 'bootknife:jackfail'
               if (strcmpi (bootfun_str, 'mean'))
-                fprintf (' Confidence interval (CI) type: Expanded bias-corrected (BC) \n');
+                fprintf (cat (2, ' Confidence interval (CI) type:', ...
+                                 ' Expanded bias-corrected (BC) \n'));
               else
-                fprintf (' Confidence interval (CI) type: Bias-corrected (BC) \n');
+                fprintf (cat (2, ' Confidence interval (CI) type:', ...
+                                 ' Bias-corrected (BC) \n'));
               end
             otherwise
               if (strcmpi (bootfun_str, 'mean'))
-                fprintf (' Confidence interval (CI) type: Expanded bias-corrected and accelerated (BCa) \n');
+                fprintf (cat (2, ' Confidence interval (CI) type: Expanded', ...
+                                 ' bias-corrected and accelerated (BCa) \n'));
               else
-                fprintf (' Confidence interval (CI) type: Bias-corrected and accelerated (BCa) \n');
+                fprintf (cat (2, ' Confidence interval (CI) type: Bias-', ...
+                                 'corrected and accelerated (BCa) \n'));
               end
           end
         else
           if (strcmpi (bootfun_str, 'mean'))
-            fprintf (' Confidence interval (CI) type: Expanded percentile (equal-tailed)\n');
+            fprintf (cat (2, ' Confidence interval (CI) type: Expanded', ...
+                             ' percentile (equal-tailed)\n'));
           else
-            fprintf (' Confidence interval (CI) type: Percentile (equal-tailed)\n');
+            fprintf (cat (2, ' Confidence interval (CI) type: Percentile', ...
+                             ' (equal-tailed)\n'));
           end
         end
       end
@@ -861,16 +907,19 @@ function print_output (stats, nboot, alpha, l, m, bootfun_str, strata)
         coverage = 100 * (1 - alpha);
       end
       if (all (bsxfun (@eq, l, l(1, :))))
-        fprintf (' Nominal coverage (and the percentiles used): %.3g%% (%.1f%%, %.1f%%)\n\n', coverage, 100 * l(1, :));
+        fprintf (cat (2, ' Nominal coverage (and the percentiles used):', ...
+                      ' %.3g%% (%.1f%%, %.1f%%)\n\n'), coverage, 100 * l(1, :));
       else
         fprintf (' Nominal coverage: %.3g%%\n\n', coverage);
       end
     end
     fprintf ('Bootstrap Statistics: \n');
-    fprintf (' original     bias         std_error    CI_lower     CI_upper  \n');
+    fprintf (cat (2, ' original     bias         std_error    CI_lower', ...
+                     '     CI_upper  \n'));
     for i = 1:m
-      fprintf (' %#-+10.4g   %#-+10.4g   %#-+10.4g   %#-+10.4g   %#-+10.4g \n',... 
-               [stats.original(i), stats.bias(i), stats.std_error(i), stats.CI_lower(i), stats.CI_upper(i)]);
+      fprintf (cat (2, ' %#-+10.4g   %#-+10.4g   %#-+10.4g   %#-+10.4g', ...
+                     '   %#-+10.4g \n'), [stats.original(i), stats.bias(i), ...
+                     stats.std_error(i), stats.CI_lower(i), stats.CI_upper(i)]);
     end
     fprintf ('\n');
     lastwarn ('', '');  % reset last warning
@@ -939,10 +988,11 @@ end
 
 function PX = ExpandProbs (P, DF)
 
-  % Modify ALPHA to adjust tail probabilities assuming that the kurtosis of the
-  % sampling distribution scales with degrees of freedom like the t-distribution.
-  % This is related in concept to ExpandProbs in the resample R package:
-  % https://www.rdocumentation.org/packages/resample/versions/0.6/topics/ExpandProbs
+  % Modify ALPHA to adjust tail probabilities assuming that the kurtosis
+  % of the sampling distribution scales with degrees of freedom like the
+  % t-distribution. This is related in concept to ExpandProbs in the
+  % R package 'resample':
+  % www.rdocumentation.org/packages/resample/versions/0.6/topics/ExpandProbs
 
   % Get size of P
   sz = size (P);
@@ -952,13 +1002,13 @@ function PX = ExpandProbs (P, DF)
   stdnorminv = @(P) sqrt (2) * erfinv (2 * P - 1);
   if (exist ('betaincinv', 'file'))
     studinv = @(P, DF) sign (P - 0.5) * ...
-                       sqrt ( DF ./ betaincinv (2 * min (P, 1 - P), DF / 2, 0.5) - DF);
+                sqrt ( DF ./ betaincinv (2 * min (P, 1 - P), DF / 2, 0.5) - DF);
   else
     % Earlier versions of Matlab do not have betaincinv
     % Instead, use betainv from the Statistics and Machine Learning Toolbox
     try 
       studinv = @(P, DF) sign (P - 0.5) * ...
-                         sqrt ( DF ./ betainv (2 * min (P, 1 - P), DF / 2, 0.5) - DF);
+                  sqrt ( DF ./ betainv (2 * min (P, 1 - P), DF / 2, 0.5) - DF);
     catch
       % Use the Normal distribution (i.e. do not expand probabilities) if
       % either betaincinv or betainv are not available
@@ -1013,7 +1063,8 @@ end
 %! data = [48 36 20 29 42 42 20 42 22 41 45 14 6 ...
 %!         0 33 28 34 4 32 24 47 41 24 26 30 41].';
 %!
-%! ## 90% equal-tailed percentile bootstrap confidence intervals for the variance
+%! ## 90% equal-tailed percentile bootstrap confidence intervals for
+%! ## the variance
 %! bootknife (data, 1999, {@var, 1}, 0.1);
 
 %!demo
@@ -1061,7 +1112,8 @@ end
 %!
 %! ## Input bivariate dataset
 %! x = [576 635 558 578 666 580 555 661 651 605 653 575 545 572 594].';
-%! y = [3.39 3.3 2.81 3.03 3.44 3.07 3 3.43 3.36 3.13 3.12 2.74 2.76 2.88 2.96].'; 
+%! y = [3.39 3.3 2.81 3.03 3.44 3.07 3 3.43 ...
+%!      3.36 3.13 3.12 2.74 2.76 2.88 2.96].'; 
 %!
 %! ## 95% BCa bootstrap confidence intervals for the correlation coefficient
 %! bootknife ({x, y}, 1999, @cor);
@@ -1083,8 +1135,10 @@ end
 %! ## x <- c(3, 5, 7, 18, 43, 85, 91, 98, 100, 130, 230, 487);
 %! ##
 %! ## library (bootstrap)  # Functions from Efron and Tibshirani (1993)
-%! ## set.seed(1); ci1 <- boott (x, mean, nboott=19999, nbootsd=499, perc=c(.025,.975))
-%! ## set.seed(1); ci2a <- bcanon (x, 19999, mean, alpha = c(0.025,0.975))
+%! ## set.seed(1);
+%! ## ci1 <- boott (x, mean, nboott=19999, nbootsd=499, perc=c(.025,.975))
+%! ## set.seed(1); 
+%! ## ci2a <- bcanon (x, 19999, mean, alpha = c(0.025,0.975))
 %! ##
 %! ## library (resample)  # Functions from Hesterberg, Tim (2014)
 %! ## bootout <- bootstrap (x, mean, R=19999, seed=1)
@@ -1186,20 +1240,21 @@ end
 %! ## Calculations using the 'boot' and 'bootstrap' packages in R
 %! ## 
 %! ## library (boot)       # Functions from Davison and Hinkley (1997)
-%! ## A <- c(48,36,20,29,42,42,20,42,22,41,45,14,6,0,33,28,34,4,32,24,47,41,24,26,30,41);
+%! ## A <- c(48,36,20,29,42,42,20,42,22,41,45,14,6, ...
+%! ##        0,33,28,34,4,32,24,47,41,24,26,30,41);
 %! ## n <- length(A)
 %! ## var.fun <- function (d, i) { 
-%! ##               # Function to compute the population variance
-%! ##               n <- length (d); 
-%! ##               return (var (d[i]) * (n - 1) / n) };
+%! ##        # Function to compute the population variance
+%! ##        n <- length (d); 
+%! ##        return (var (d[i]) * (n - 1) / n) };
 %! ## boot.fun <- function (d, i) {
-%! ##               # Compute the estimate
-%! ##               t <- var.fun (d, i);
-%! ##               # Compute sampling variance of the estimate using Tukey's jackknife
-%! ##               n <- length (d);
-%! ##               U <- empinf (data=d[i], statistic=var.fun, type="jack", stype="i");
-%! ##               var.t <- sum (U^2 / (n * (n - 1)));
-%! ##               return ( c(t, var.t) ) };
+%! ##        # Compute the estimate
+%! ##        t <- var.fun (d, i);
+%! ##        # Compute sampling variance of the estimate using Tukey's jackknife
+%! ##        n <- length (d);
+%! ##        U <- empinf (data=d[i], statistic=var.fun, type="jack", stype="i");
+%! ##        var.t <- sum (U^2 / (n * (n - 1)));
+%! ##        return ( c(t, var.t) ) };
 %! ## set.seed(1)
 %! ## var.boot <- boot (data=A, statistic=boot.fun, R=19999, sim='balanced')
 %! ## ci1 <- boot.ci (var.boot, conf=0.90, type="norm")
@@ -1209,8 +1264,10 @@ end
 %! ## ci5 <- boot.ci (var.boot, conf=0.90, type="stud")
 %! ##
 %! ## library (bootstrap)  # Functions from Efron and Tibshirani (1993)
-%! ## set.seed(1); ci4a <- bcanon (A, 19999, var.fun, alpha=c(0.05,0.95))
-%! ## set.seed(1); ci5a <- boott (A, var.fun, nboott=19999, nbootsd=499, perc=c(.05,.95))
+%! ## set.seed(1);
+%! ## ci4a <- bcanon (A, 19999, var.fun, alpha=c(0.05,0.95))
+%! ## set.seed(1); 
+%! ## ci5a <- boott (A, var.fun, nboott=19999, nbootsd=499, perc=c(.05,.95))
 %! ##
 %! ## Confidence intervals from 'boot' and 'bootstrap' packages in R
 %! ##
@@ -1238,10 +1295,10 @@ end
 %! ##
 %! ## A = [48 36 20 29 42 42 20 42 22 41 45 14 6 ...
 %! ##      0 33 28 34 4 32 24 47 41 24 26 30 41].';
-%! ## boot (1,1,false,1); ci2 = bootknife (A, 19999, {@var,1}, 0.1);
-%! ## boot (1,1,false,1); ci4 = bootknife (A, 19999, {@var,1}, [0.05,0.95]);
-%! ## boot (1,1,false,1); ci6a = bootknife (A, [19999,499], {@var,1}, 0.1);
-%! ## boot (1,1,false,1); ci6b = bootknife (A, [19999,499], {@var,1}, [0.05,0.95]);
+%! ## boot (1,1,false,1); ci2 = bootknife (A,19999,{@var,1},0.1);
+%! ## boot (1,1,false,1); ci4 = bootknife (A,19999,{@var,1},[0.05,0.95]);
+%! ## boot (1,1,false,1); ci6a = bootknife (A,[19999,499],{@var,1},0.1);
+%! ## boot (1,1,false,1); ci6b = bootknife (A,[19999,499],{@var,1},[0.05,0.95]);
 %! ##
 %! ## Confidence intervals from 'statistics-bootstrap' package for Octave/Matlab
 %! ##
@@ -1289,7 +1346,7 @@ end
 
 %!test
 %! ## Test for errors when using different functionalities of bootknife
-%! ## 'bootknife:parallel' warning turned off in case parallel package is not loaded
+%! ## 'bootknife:parallel' warning off in case parallel package is not loaded
 %! warning ('off', 'bootknife:parallel')
 %! try
 %!   y = randn (20,1); 
@@ -1332,7 +1389,7 @@ end
 %!   y = randn (20,1); x = randn (20,1); X = [ones(20,1), x];
 %!   stats = bootknife ({x,y}, 1999, @cor);
 %!   stats = bootknife ({x,y}, 1999, @cor, [], strata);
-%!   stats = bootknife ({y,x}, 1999, @(y,x) pinv(x)*y); % Could also use @regress
+%!   stats = bootknife ({y,x}, 1999, @(y,x) pinv(x)*y); % Could use @regress
 %!   stats = bootknife ({y,X}, 1999, @(y,X) pinv(X)*y);
 %!   stats = bootknife ({y,X}, 1999, @(y,X) pinv(X)*y, [], strata);
 %!   stats = bootknife ({y,X}, 1999, @(y,X) pinv(X)*y, [], strata, 2);
@@ -1451,7 +1508,8 @@ end
 %! ## An Introduction to the Bootstrap in Monographs on Statistics and Applied 
 %! ## Probability 57 (Springer)
 %! LSAT = [576 635 558 578 666 580 555 661 651 605 653 575 545 572 594]';
-%! GPA = [3.39 3.3 2.81 3.03 3.44 3.07 3 3.43 3.36 3.13 3.12 2.74 2.76 2.88 2.96]';
+%! GPA = [3.39 3.3 2.81 3.03 3.44 3.07 3 3.43 ...
+%!        3.36 3.13 3.12 2.74 2.76 2.88 2.96]';
 %!
 %! ## Nonparametric 90% equal-tailed percentile confidence intervals
 %! ## Percentile intervals on page 266 are 0.524 - 0.928

@@ -70,7 +70,8 @@ function [bootstat, bootsam] = bootstrp (argin1, argin2, varargin)
 
   % Evaluate the number of function arguments
   if (nargin < 2)
-    error ('bootstrp usage: ''bootstrp (nboot, {bootfun, data}, varargin)''; atleast 2 input arguments required');
+    error (cat (2, 'bootstrp usage: ''bootstrp (nboot, {bootfun, data},', ...
+                   ' varargin)''; atleast 2 input arguments required'))
   end
 
   % Check if using MATLAB or Octave
@@ -243,12 +244,14 @@ function [bootstat, bootsam] = bootstrp (argin1, argin2, varargin)
             % Start parallel pool with ncpus workers
             parpool (ncpus);
           else
-            % Parallel pool is not running and ncpus is 1 so run function evaluations in serial
+            % Parallel pool is not running and ncpus is 1 so run function
+            % evaluations in serial
             ncpus = 1;
           end
         else
           if (pool.NumWorkers ~= ncpus)
-            % Check if number of workers matches ncpus and correct it accordingly if not
+            % Check if number of workers matches ncpus and correct it
+            % accordingly if not
             delete (pool);
             if (ncpus > 1)
               parpool (ncpus);
@@ -258,7 +261,8 @@ function [bootstat, bootsam] = bootstrp (argin1, argin2, varargin)
       catch
         % MATLAB Parallel Computing Toolbox is not installed
         warning ('bootstrp:parallel', ...
-           'Parallel Computing Toolbox not installed or operational. Falling back to serial processing.');
+                 cat (2, 'Parallel Computing Toolbox not installed or', ...
+                         ' operational. Falling back to serial processing.'))
         ncpus = 1;
       end
     end
@@ -267,11 +271,13 @@ function [bootstat, bootsam] = bootstrp (argin1, argin2, varargin)
       if (ISOCTAVE)
         % OCTAVE Parallel Computing Package is not installed or loaded
         warning ('bootstrp:parallel', ...
-          'Parallel Computing Package not installed and/or loaded. Falling back to serial processing.');
+                 cat (2, 'Parallel Computing Package not installed and/or', ...
+                         ' loaded. Falling back to serial processing.'))
       else
         % MATLAB Parallel Computing Toolbox is not installed or loaded
         warning ('bootstrp:parallel', ...
-          'Parallel Computing Toolbox not installed and/or loaded. Falling back to serial processing.');
+                 cat (2, 'Parallel Computing Toolbox not installed and/or', ...
+                         ' loaded. Falling back to serial processing.'))
       end
       ncpus = 0;
     end
@@ -296,7 +302,8 @@ function [bootstat, bootsam] = bootstrp (argin1, argin2, varargin)
     bootsam = zeros (n, nboot, 'int32');
     bootsam(:, :) = boot (n, nboot, unbiased);
   else
-    % For more efficiency, if we don't need bootsam, we can directly resample values of x
+    % For more efficiency, if we don't need bootsam, we can directly resample
+    % values of x
     bootsam = [];
     X = boot (x, nboot, unbiased);
   end
@@ -311,7 +318,8 @@ function [bootstat, bootsam] = bootstrp (argin1, argin2, varargin)
         % Evaluate bootfun on each bootstrap resample in PARALLEL
         if (ISOCTAVE)
           % OCTAVE
-          bootstat = parcellfun (ncpus, bootfun, num2cell (X, 1), 'UniformOutput', false);
+          bootstat = parcellfun (ncpus, bootfun, num2cell (X, 1), ...
+                                 'UniformOutput', false);
         else
           % MATLAB
           bootstat = cell (1, nboot);
@@ -343,7 +351,8 @@ function [bootstat, bootsam] = bootstrp (argin1, argin2, varargin)
         % Evaluate bootfun on each bootstrap resample in PARALLEL
         if (ISOCTAVE)
           % OCTAVE
-          bootstat = parcellfun (ncpus, cellfunc, num2cell (bootsam, 1), 'UniformOutput', false);
+          bootstat = parcellfun (ncpus, cellfunc, num2cell (bootsam, 1), ...
+                                 'UniformOutput', false);
         else
           % MATLAB
           bootstat = cell (1, nboot);
@@ -351,7 +360,8 @@ function [bootstat, bootsam] = bootstrp (argin1, argin2, varargin)
         end
       else
         % Evaluate bootfun on each bootstrap resample in SERIAL
-        bootstat = cellfun (cellfunc, num2cell (bootsam, 1), 'UniformOutput', false);
+        bootstat = cellfun (cellfunc, num2cell (bootsam, 1), ...
+                            'UniformOutput', false);
       end
     end
   end
@@ -371,7 +381,8 @@ end
 %! data = [48 36 20 29 42 42 20 42 22 41 45 14 6 ...
 %!         0 33 28 34 4 32 24 47 41 24 26 30 41]';
 %!
-%! # Compute 50 bootstrap statistics for the mean and calculate the bootstrap standard arror
+%! # Compute 50 bootstrap statistics for the mean and calculate the bootstrap
+%! # standard arror
 %! bootstat = bootstrp (50, @mean, data)
 %! std (bootstat)
 
@@ -381,5 +392,6 @@ end
 %! data = [48 36 20 29 42 42 20 42 22 41 45 14 6 ...
 %!         0 33 28 34 4 32 24 47 41 24 26 30 41]';
 %!
-%! # Compute 50 bootstrap statistics for the mean and calculate the bootstrap standard arror
+%! # Compute 50 bootstrap statistics for the mean and calculate the bootstrap
+%! # standard arror
 %! bootstat = bootstrp (50, @mean, data);

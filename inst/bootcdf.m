@@ -46,7 +46,7 @@ function [x, F, P] = bootcdf (y, trim, m)
 
   % Computes empirical cumulative distribution function and p-value distribution
   % in the presence of ties
-  % https://brainder.org/2012/11/28/competition-ranking-and-empirical-distributions/
+  % brainder.org/2012/11/28/competition-ranking-and-empirical-distributions/
 
   % Check input arguments
   if (nargin > 3)
@@ -69,8 +69,8 @@ function [x, F, P] = bootcdf (y, trim, m)
   end
   if (nargin < 3)
     % Denominator in calculation of F is (N + m)
-    % When m is 1, quantiles formed from x and F are akin to qtype (definition) 6
-    % https://www.rdocumentation.org/packages/stats/versions/3.6.2/topics/quantile
+    % When m is 1, quantiles formed from x and F are akin to qtype 6
+    % www.rdocumentation.org/packages/stats/versions/3.6.2/topics/quantile
     % Hyndman and Fan (1996) Am Stat. 50(4):361-365
     m = 0;
   end

@@ -136,7 +136,8 @@ function [ci, bootstat, bootsam] = bootci (argin1, argin2, varargin)
 
   % Evaluate the number of function arguments
   if (nargin < 2)
-    error ('bootci usage: ''bootci (NBOOT, {BOOTFUN, DATA}, varargin)''; atleast 2 input arguments required');
+    error (cat (2, 'bootci usage: ''bootci (NBOOT, {BOOTFUN, DATA},', ...
+                   ' varargin)''; atleast 2 input arguments required'))
   end
 
   % Check if using MATLAB or Octave
@@ -266,7 +267,8 @@ function [ci, bootstat, bootsam] = bootci (argin1, argin2, varargin)
       if (ncpus == 0)
         % OCTAVE Parallel Computing Package is not installed or loaded
         warning ('bootci:parallel', ...
-          'Parallel Computing Package is installed and/or loaded. Falling back to serial processing.');
+                 cat (2, 'Parallel Computing Package is installed and/or', ...
+                         ' loaded. Falling back to serial processing.'))
       end
     else
       info = ver; 
@@ -276,7 +278,8 @@ function [ci, bootstat, bootsam] = bootci (argin1, argin2, varargin)
       if (ncpus == 0)
         % MATLAB Parallel Computing Toolbox is not installed or loaded
         warning ('bootci:parallel', ...
-          'Parallel Computing Toolbox is installed and/or loaded. Falling back to serial processing.');
+                 cat (2, 'Parallel Computing Toolbox is installed and/or', ...
+                         ' loaded. Falling back to serial processing.'))
       end
     end
   end
@@ -296,14 +299,15 @@ function [ci, bootstat, bootsam] = bootci (argin1, argin2, varargin)
       error ('bootci: Interval TYPE not supported')
   end
 
-  % Parse input arguments to the bootknife function to calculate confidence intervals
+  % Parse input arguments to bootknife to calculate confidence intervals
   ci = [];
   switch (lower (type))
  
     case {'norm', 'normal'}
       % Intervals constructed based on bootstrap estimates of bias and standard
       % error assumming that the sampling distribution is Normal
-      [stats, bootstat, bootsam] = bootknife (data, nboot, bootfun, NaN, [], ncpus);
+      [stats, bootstat, bootsam] = bootknife (data, nboot, ...
+                                              bootfun, NaN, [], ncpus);
       stdnorminv = @(p) sqrt (2) * erfinv (2 * p-1);
       z = stdnorminv (alpha / 2);
       ci = cat (2, stats.original - stats.bias + stats.std_error * z, ...
@@ -312,14 +316,16 @@ function [ci, bootstat, bootsam] = bootci (argin1, argin2, varargin)
     case 'basic'
       % The basic bootstrap method.
       % Center bootstrap statistics
-      [stats, bootstat, bootsam] = bootknife (data, nboot, bootfun, alpha, [], ncpus);
+      [stats, bootstat, bootsam] = bootknife (data, nboot, ...
+                                              bootfun, alpha, [], ncpus);
       ci = cat (2, 2 * stats.original - stats.CI_upper, ...
                    2 * stats.original - stats.CI_lower).';
 
     case {'stud', 'student'}
       % Use bootstrap-t method with variance stabilization for small samples
       % Polansky (2000) Can J Stat. 28(3):501-516
-      [stats, bootstat, bootsam] = bootknife (data, nboot, bootfun, NaN, [], ncpus);
+      [stats, bootstat, bootsam] = bootknife (data, nboot, ...
+                                              bootfun, NaN, [], ncpus);
       % Automatically estimate standard errors of the bootstrap statistics
       % Using bootknife resampling
       if (iscell (data))
@@ -328,16 +334,20 @@ function [ci, bootstat, bootsam] = bootci (argin1, argin2, varargin)
         % estimate of the standard error using bootknife resampling
         szx = cellfun (@(x) size (x, 2), data);
         data = [data{:}];
-        cellfunc = @(bootsam) bootknife (mat2cell (data (bootsam,:), n, szx), nbootstd, bootfun, NaN,  [], 0, [], [], ISOCTAVE);
+        cellfunc = @(bootsam) bootknife ( ...
+                            mat2cell (data (bootsam,:), n, szx), ...
+                            nbootstd, bootfun, NaN,  [], 0, [], [], ISOCTAVE);
       else
-        cellfunc = @(bootsam) bootknife (data (bootsam,:), nbootstd, bootfun, NaN, [], 0, [], [], ISOCTAVE);
+        cellfunc = @(bootsam) bootknife (data (bootsam,:), nbootstd, ...
+                                         bootfun, NaN, [], 0, [], [], ISOCTAVE);
       end
       if (ncpus > 1)
         if (ISOCTAVE)
           % Octave
           % Set unique random seed for each parallel thread
           pararrayfun (ncpus, @boot, 1, 1, false, 1:ncpus);
-          bootout = parcellfun (ncpus, cellfunc, num2cell (bootsam, 1), 'UniformOutput', false);
+          bootout = parcellfun (ncpus, cellfunc, num2cell (bootsam, 1), ...
+                                'UniformOutput', false);
         else
           % MATLAB
           % Set unique random seed for each parallel thread
@@ -347,20 +357,25 @@ function [ci, bootstat, bootsam] = bootci (argin1, argin2, varargin)
           parfor b = 1:nboot(1); bootout{b} = cellfunc (bootsam(:,b)); end
         end
       else
-        bootout = cellfun (cellfunc, num2cell (bootsam, 1), 'UniformOutput', false);
+        bootout = cellfun (cellfunc, num2cell (bootsam, 1), ...
+                           'UniformOutput', false);
       end
-      se = cell2mat (cellfun (@(S) S.std_error, bootout, 'UniformOutput', false));
+      se = cell2mat (cellfun (@(S) S.std_error, bootout, ...
+                              'UniformOutput', false));
       % Compute additive constant to stabilize the variance
       a = n^(-3/2) * stats.std_error;
       % Calculate Studentized bootstrap statistics
       T = bsxfun (@minus, bootstat, stats.original) ./ bsxfun (@plus, se, a);
-      % Calculate intervals from empirical distribution of the Studentized bootstrap statistics
+      % Calculate intervals from empirical distribution of the Studentized
+      % bootstrap statistics
       m = size (bootstat, 1);
       ci = zeros (m, 2);
       for j = 1:m
         [t, cdf] = bootcdf (T(j,:), true, 1);
-        ci(j,1) = stats.original(j) - stats.std_error(j) * interp1 (cdf, t, alpha(2), 'linear', max (t));
-        ci(j,2) = stats.original(j) - stats.std_error(j) * interp1 (cdf, t, alpha(1), 'linear', min (t));
+        ci(j,1) = stats.original(j) - stats.std_error(j) * ...
+                                interp1 (cdf, t, alpha(2), 'linear', max (t));
+        ci(j,2) = stats.original(j) - stats.std_error(j) * ...
+                                interp1 (cdf, t, alpha(1), 'linear', min (t));
       end
       ci = ci.';
 
@@ -438,7 +453,8 @@ end
 %!         0 33 28 34 4 32 24 47 41 24 26 30 41]';
 %!
 %! ## 90% Studentized bootstrap confidence intervals for the variance
-%! ci = bootci (1999, {{@var,1}, data}, 'type', 'stud', 'nbootstd', 50, 'alpha', 0.1)
+%! ci = bootci (1999, {{@var,1}, data}, 'type', 'stud', ...
+%!                                              'nbootstd', 50, 'alpha', 0.1)
 %!
 %! ## Please be patient, the calculations will be completed soon...
 
@@ -449,7 +465,8 @@ end
 %!         0 33 28 34 4 32 24 47 41 24 26 30 41].';
 %!
 %! ## 90% calibrated percentile bootstrap confidence intervals for the variance
-%! ci = bootci (1999, {{@var,1}, data}, 'type', 'cal', 'nbootcal', 199, 'alpha', 0.1)
+%! ci = bootci (1999, {{@var,1}, data}, 'type', 'cal', 'nbootcal', ...
+%!              199, 'alpha', 0.1)
 %!
 %! ## Please be patient, the calculations will be completed soon...
 
@@ -472,10 +489,13 @@ end
 %! ## An Introduction to the Bootstrap in Monographs on Statistics and Applied 
 %! ## Probability 57 (Springer)
 %!
-%! ## AIM: to construct 90% nonparametric bootstrap confidence intervals for var(A,1)
-%! ## var(A,1) = 171.5, and exact intervals based on Normal theory are [118.4, 305.2].
+%! ## AIM:
+%! ## To construct 90% nonparametric bootstrap confidence intervals for var(A,1)
+%! ## var(A,1) = 171.5
+%! ## Exact intervals based on Normal theory are [118.4, 305.2].
 %!
-%! ## Calculations using Matlab's 'Statistics and Machine Learning toolbox' (R2020b)
+%! ## Calculations using Matlab's 'Statistics and Machine Learning toolbox'
+%! ## (R2020b)
 %! ##
 %! ## A = [48 36 20 29 42 42 20 42 22 41 45 14 6 ...
 %! ##      0 33 28 34 4 32 24 47 41 24 26 30 41].';
@@ -486,7 +506,8 @@ end
 %! ## rng('default'); ci4 = bootci (19999,{varfun,A},'alpha',0.1,'type','bca');
 %! ## rng('default'); ci5 = bootci (19999,{varfun,A},'alpha',0.1,'type','stud');
 %! ##
-%! ## Summary of results from Matlab's 'Statistics and Machine Learning toolbox' (R2020b)
+%! ## Summary of results from Matlab's 'Statistics and Machine Learning toolbox'
+%! ## (R2020b)
 %! ##
 %! ## method             |   0.05 |   0.95 | length | shape |  
 %! ## -------------------|--------|--------|--------|-------|
@@ -503,20 +524,21 @@ end
 %! ## Calculations using the 'boot' and 'bootstrap' packages in R
 %! ## 
 %! ## library (boot)       # Functions from Davison and Hinkley (1997)
-%! ## A <- c(48,36,20,29,42,42,20,42,22,41,45,14,6,0,33,28,34,4,32,24,47,41,24,26,30,41);
+%! ## A <- c(48,36,20,29,42,42,20,42,22,41,45,14,6, ...
+%! ##         0,33,28,34,4,32,24,47,41,24,26,30,41);
 %! ## n <- length(A)
 %! ##  var.fun <- function (d, i) { 
-%! ##                # Function to compute the population variance
-%! ##                n <- length (d); 
-%! ##                return (var (d[i]) * (n - 1) / n) };
+%! ##        # Function to compute the population variance
+%! ##        n <- length (d); 
+%! ##        return (var (d[i]) * (n - 1) / n) };
 %! ##  boot.fun <- function (d, i) {
-%! ##                # Compute the estimate
-%! ##                t <- var.fun (d, i);
-%! ##                # Compute sampling variance of the estimate using Tukey's jackknife
-%! ##                n <- length (d);
-%! ##                U <- empinf (data=d[i], statistic=var.fun, type="jack", stype="i");
-%! ##                var.t <- sum (U^2 / (n * (n - 1)));
-%! ##                return ( c(t, var.t) ) };
+%! ##        # Compute the estimate
+%! ##        t <- var.fun (d, i);
+%! ##        # Compute sampling variance of the estimate using Tukey's jackknife
+%! ##        n <- length (d);
+%! ##        U <- empinf (data=d[i], statistic=var.fun, type="jack", stype="i");
+%! ##        var.t <- sum (U^2 / (n * (n - 1)));
+%! ##        return ( c(t, var.t) ) };
 %! ## set.seed(1)
 %! ## var.boot <- boot (data=A, statistic=boot.fun, R=19999, sim='balanced')
 %! ## ci1 <- boot.ci (var.boot, conf=0.90, type="norm")
@@ -526,8 +548,10 @@ end
 %! ## ci5 <- boot.ci (var.boot, conf=0.90, type="stud")
 %! ##
 %! ## library (bootstrap)  # Functions from Efron and Tibshirani (1993)
-%! ## set.seed(1); ci4a <- bcanon (A, 19999, var.fun, alpha=c(0.05,0.95))
-%! ## set.seed(1); ci5a <- boott (A, var.fun, nboott=19999, nbootsd=499, perc=c(.05,.95))
+%! ## set.seed(1); 
+%! ## ci4a <- bcanon (A, 19999, var.fun, alpha=c(0.05,0.95))
+%! ## set.seed(1); 
+%! ## ci5a <- boott (A, var.fun, nboott=19999, nbootsd=499, perc=c(.05,.95))
 %! ##
 %! ## Summary of results from 'boot' and 'bootstrap' packages in R
 %! ##
@@ -551,8 +575,10 @@ end
 %! ## ci2 = bootci (19999,{{@var,1},A},'alpha',0.1,'type','per','seed',1);
 %! ## ci3 = bootci (19999,{{@var,1},A},'alpha',0.1,'type','basic','seed',1);
 %! ## ci4 = bootci (19999,{{@var,1},A},'alpha',0.1,'type','bca','seed',1);
-%! ## ci5 = bootci (19999,{{@var,1},A},'alpha',0.1,'type','stud','nbootstd',100,'seed',1);
-%! ## ci6 = bootci (19999,{{@var,1},A},'alpha',0.1,'type','cal','nbootcal',499,'seed',1);
+%! ## ci5 = bootci (19999,{{@var,1},A},'alpha',0.1,'type','stud',...
+%! ##                                              'nbootstd',100,'seed',1);
+%! ## ci6 = bootci (19999,{{@var,1},A},'alpha',0.1,'type','cal', ...
+%! ##                                              'nbootcal',499,'seed',1);
 %! ##
 %! ## Summary of results from 'statistics-bootstrap' package for Octave/Matlab
 %! ##
@@ -668,15 +694,18 @@ end
 %! end
 %!
 %! ## Nonparametric 90% bootstrap-t confidence intervals (double bootstrap)
-%! ci = bootci(1999,{{@var,1},A},'alpha',0.1,'type','stud','nbootstd',100,'seed',1);
+%! ci = bootci(1999,{{@var,1},A},'alpha',0.1,'type','stud', ...
+%!                                                  'nbootstd',100,'seed',1);
 %! if (isempty (regexp (which ('boot'), 'mex$')))
 %!   ## test boot m-file result
 %!   assert (ci(1), 109.3905360300909, 1e-07);
 %!   assert (ci(2), 303.9831191834784, 1e-07);
 %! end
 %!
-%! ## Nonparametric 90% calibrated percentile confidence intervals (double bootstrap)
-%! ci = bootci(1999,{{@var,1},A},'alpha',0.1,'type','cal','nbootcal',199,'seed',1);
+%! ## Nonparametric 90% calibrated percentile confidence intervals
+%! ## (double bootstrap)
+%! ci = bootci(1999,{{@var,1},A},'alpha',0.1,'type','cal',...
+%!                                                  'nbootcal',199,'seed',1);
 %! if (isempty (regexp (which ('boot'), 'mex$')))
 %!   ## test boot m-file result
 %!   assert (ci(1), 109.7569412835685, 1e-07);
@@ -693,7 +722,8 @@ end
 %! ## An Introduction to the Bootstrap in Monographs on Statistics and Applied 
 %! ## Probability 57 (Springer)
 %! LSAT = [576 635 558 578 666 580 555 661 651 605 653 575 545 572 594].';
-%! GPA = [3.39 3.3 2.81 3.03 3.44 3.07 3 3.43 3.36 3.13 3.12 2.74 2.76 2.88 2.96].'; 
+%! GPA = [3.39 3.3 2.81 3.03 3.44 3.07 3 3.43 ...
+%!        3.36 3.13 3.12 2.74 2.76 2.88 2.96].'; 
 %!
 %! ## Nonparametric 90% percentile confidence intervals (single bootstrap)
 %! ## Percentile intervals on page 266 are 0.524 - 0.928
@@ -713,8 +743,10 @@ end
 %!   assert (ci(2), 0.9301552819706758, 1e-07);
 %! end
 %!
-%! ## Nonparametric 90% calibrated percentile confidence intervals (double bootstrap)
-%! ci = bootci(1999,{@cor,LSAT,GPA},'alpha',0.1,'type','cal','nbootcal',499,'seed',1);
+%! ## Nonparametric 90% calibrated percentile confidence intervals
+%! ## (double bootstrap)
+%! ci = bootci(1999,{@cor,LSAT,GPA},'alpha',0.1,'type','cal', ...
+%!                                                     'nbootcal',499,'seed',1);
 %! if (isempty (regexp (which ('boot'), 'mex$')))
 %!   ## test boot m-file result
 %!   assert (ci(1), 0.2078720903008157, 1e-07);

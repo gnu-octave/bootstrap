@@ -87,28 +87,34 @@ function bootsam = boot (x, nboot, u, s, w)
     sz = size (x);
     isvec = true;
     if (all (sz > 1))
-      error('boot: The first input argument must be either a scalar (N) or vector (X).');
+      error (cat (2, 'boot: The first input argument must be either a', ...
+                     ' scalar (N) or vector (X).'))
     end
   else
     n = x;
     isvec = false;
     if ((n <= 0) || (n ~= fix (n)) || isinf (n) || isnan (n))
-      error ('boot: The first input argument must be a finite positive integer.')
+      error (cat (2, 'boot: The first input argument must be a finite', ...
+                     ' positive integer.'))
     end
   end
-  if ((nboot <= 0) || (nboot ~= fix (nboot)) || isinf (nboot) || isnan (nboot) || (max (size (nboot)) > 1))
-    error ('boot: The second input argument (NBOOT) must be a finite positive integer')
+  if ((nboot <= 0) || (nboot ~= fix (nboot)) || isinf (nboot) || ...
+       isnan (nboot) || (max (size (nboot)) > 1))
+    error (cat (2, 'boot: The second input argument (NBOOT) must be a', ...
+                   ' finite positive integer'))
   end
   if ((nargin > 2) && ~ isempty (u))
     if (~ islogical (u))
-      error ('boot: The third input argument (UNBIASED) must be a logical scalar value')
+      error (cat (2, 'boot: The third input argument (UNBIASED) must be', ...
+                     ' a logical scalar value'))
     end
   else
     u = false;
   end
   if ((nargin > 3) && ~ isempty (s))
     if (isinf (s) || isnan (s) || (max (size (s)) > 1))
-      error ('boot: The fourth input argument (SEED) must be a finite scalar value')
+      error (cat (2, 'boot: The fourth input argument (SEED) must be a', ...
+                     ' finite scalar value'))
     end
     rand ('twister', s);
   end
@@ -121,7 +127,8 @@ function bootsam = boot (x, nboot, u, s, w)
     % Assign user defined weights (counts)
     % Error checking
     if (numel (w) ~= n)
-      error ('boot: WEIGHTS must be a vector of length N or be the same length as X.');
+      error (cat (2, 'boot: WEIGHTS must be a vector of length N or be', ...
+                     ' the same length as X.'))
     end
     if (sum (w) ~= n * nboot)
       error ('boot: The elements of WEIGHTS must sum to N * NBOOT.')
@@ -186,6 +193,13 @@ function bootsam = boot (x, nboot, u, s, w)
 %! x = [23; 44; 36];
 %! boot(x, 10, false, 1)            % equal weighting
 %! boot(x, 10, false, 1, [20;0;10]) % unequal weighting, no x(2) in BOOTSAM 
+
+%!demo
+%! 
+%! % N as input; resampling without replacement; 3 trials
+%! boot(6, 1, false, 1) % Sample 1; Set random seed for first sample only
+%! boot(6, 1, false)    % Sample 2
+%! boot(6, 1, false)    % Sample 3
 
 %!test
 %! ## Test that random samples vary between calls to boot.

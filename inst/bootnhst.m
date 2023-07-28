@@ -135,7 +135,8 @@ function [pval, c, stats] = bootnhst (data, group, varargin)
 
   % Evaluate the number of function arguments
   if (nargin < 2)
-    error ('bootnhst usage: ''bootnhst (DATA, GROUP, varargin)''; atleast 2 input arguments required');
+    error (cat (2, 'bootnhst usage: ''bootnhst (DATA, GROUP, varargin)'';', ...
+                   ' atleast 2 input arguments required'))
   end
 
   % Store local functions in a stucture for parallel processes
@@ -244,14 +245,17 @@ function [pval, c, stats] = bootnhst (data, group, varargin)
     error ('bootnhst: The minimum allowable value of NBOOT(1) is 999')
   end 
   if (nboot(2) == 0) && (nvar > 1)
-    error ('bootnhst: Jackknife currently only available for analysis of univariate data.')
+    error (cat (2, 'bootnhst: Jackknife currently only available for', ...
+                   ' analysis of univariate data.'))
   end
   if ((nboot(2) == 0) && (~ strcmp (func2str (bootfun), 'mean')))
     if (~ exist ('jackknife','file'))
       if (ISOCTAVE); 
-        warning ('bootnhst:jackfail','''jackknife'' function from statistics package not found. nboot(2) set to 100.')
+        warning ('bootnhst:jackfail', cat (2, '''jackknife'' function from', ...
+                 ' statistics package not found. nboot(2) set to 100.'))
       else
-        warning ('bootnhst:jackfail','''jackknife'' function from statistics toolbox not found. nboot(2) set to 100.')
+        warning ('bootnhst:jackfail',cat (2, '''jackknife'' function from', ...
+                 ' statistics toolbox not found. nboot(2) set to 99.'))
       end
       nboot(2) = 99;
     end
@@ -337,12 +341,14 @@ function [pval, c, stats] = bootnhst (data, group, varargin)
               % Start parallel pool with nproc workers
               parpool (paropt.nproc);
             else
-              % Parallel pool is not running and nproc is 1 so run function evaluations in serial
+              % Parallel pool is not running and nproc is 1 so run function
+              % evaluations in serial
               paropt.UseParallel = false;
             end
           else
             if (pool.NumWorkers ~= paropt.nproc)
-              % Check if number of workers matches nproc and correct it accordingly if not
+              % Check if number of workers matches nproc and correct it
+              % accordingly if not
               delete (pool);
               if (paropt.nproc > 1)
                 parpool (paropt.nproc);
@@ -351,8 +357,8 @@ function [pval, c, stats] = bootnhst (data, group, varargin)
           end
         catch
           % MATLAB Parallel Computing Toolbox is not installed
-          warning ('bootnhst:parallel', ...
-              'Parallel Computing Toolbox is not installed. Falling back to serial processing.')
+          warning ('bootnhst:parallel', cat (2, 'Parallel Computing', ...
+               ' Toolbox is not installed. Falling back to serial processing.'))
           paropt.UseParallel = false;
           paropt.nproc = 1;
         end
@@ -361,10 +367,12 @@ function [pval, c, stats] = bootnhst (data, group, varargin)
         try 
           pool = gcp ('nocreate'); 
           if (isempty (pool))
-            % Parallel pool not running, start parallel pool using all available workers
+            % Parallel pool not running, start parallel pool using all
+            % available workers
             parpool;
           else
-            % Parallel pool is already running, set nproc to the number of workers
+            % Parallel pool is already running, set nproc to the
+            % number of workers
             paropt.nproc = pool.NumWorkers;
           end
         catch
@@ -377,12 +385,12 @@ function [pval, c, stats] = bootnhst (data, group, varargin)
     if (paropt.UseParallel && (paropt.nproc > 1) && ~PARALLEL)
       if (ISOCTAVE)
         % OCTAVE Parallel Computing Package is not installed or loaded
-        warning ('bootnhst:parallel', ...
-            'Parallel Computing Package is not installed and/or loaded. Falling back to serial processing.')
+        warning ('bootnhst:parallel', cat (2, 'Parallel Computing Package', ...
+         ' is not installed and/or loaded. Falling back to serial processing.'))
       else
         % MATLAB Parallel Computing Toolbox is not installed or loaded
-        warning ('bootnhst:parallel', ...
-            'Parallel Computing Toolbox is not installed and/or loaded. Falling back to serial processing.')
+        warning ('bootnhst:parallel', cat (2, 'Parallel Computing Toolbox', ...
+         ' is not installed and/or loaded. Falling back to serial processing.'))
       end
       paropt.UseParallel = false;
       paropt.nproc = 0;
@@ -392,16 +400,20 @@ function [pval, c, stats] = bootnhst (data, group, varargin)
   % Create maxstat anonymous function for bootstrap
   func = @(data) localfunc.maxstat (data, g, nboot(2), bootfun, ref, ISOCTAVE);
 
-  % Perform resampling and calculate bootstrap statistics to estimate sampling distribution under the null hypothesis
-  boot (1, 1, false, 1); % set random seed to make bootstrap resampling deterministic  
-  % Use newer, faster and balanced (less biased) resampling functions (boot and bootknife)
+  % Perform resampling and calculate bootstrap statistics to estimate sampling
+  % distribution under the null hypothesis
+  boot (1, 1, false, 1); % set random seed to make resampling deterministic
+  % Use newer, faster and balanced (less biased) resampling
+  % functions (boot and bootknife)
   if (paropt.UseParallel)
-    [null, Q] = bootknife (data, nboot(1), func, NaN, [], paropt.nproc, [], [], ISOCTAVE);
+    [null, Q] = bootknife (data, nboot(1), func, ...
+                           NaN, [], paropt.nproc, [], [], ISOCTAVE);
   else
     [null, Q] = bootknife (data, nboot(1), func, NaN, [], 0, [], [], ISOCTAVE);
   end
   
-  % Compute the estimate (theta) and it's pooled (weighted mean) sampling variance 
+  % Compute the estimate (theta) and it's pooled (weighted mean) sampling
+  % variance 
   theta = zeros (k, 1);
   SE = zeros (k, 1);
   Var = zeros (k, 1);
@@ -416,17 +428,21 @@ function [pval, c, stats] = bootnhst (data, group, varargin)
         if (j == 1); se_method = 'Calculated without resampling'; end;
       else
         theta(j) = bootfun (data(g == gk(j), :));
-        % If requested, compute unbiased estimates of the standard error using jackknife resampling
+        % If requested, compute unbiased estimates of the standard error using
+        % jackknife resampling
         jackstat = jackknife (bootfun, data(g == gk(j), :));
-        SE(j) = sqrt ((nk(j) - 1) / nk(j) * sum(((mean (jackstat) - jackstat)).^2));
+        SE(j) = sqrt ((nk(j) - 1) / nk(j) * ...
+                sum(((mean (jackstat) - jackstat)).^2));
         if (j == 1); se_method = 'Leave-one-out jackknife'; end;
       end
     else
-      % Compute unbiased estimate of the standard error by balanced bootknife resampling
-      % Bootknife resampling involves less computation than Jackknife when sample sizes get larger
+      % Compute unbiased estimate of the standard error by balanced bootknife
+      % resampling. Bootknife resampling involves less computation than
+      % Jackknife when sample sizes get larger
       theta(j) = bootfun (data(g == gk(j), :));
       nk(j) = sum (g == gk(j));
-      bootout = bootknife (data(g == gk(j), :), [nboot(2), 0], bootfun, NaN, [], 0, [], [], ISOCTAVE, false);
+      bootout = bootknife (data(g == gk(j), :), [nboot(2), 0], bootfun, ...
+                           NaN, [], 0, [], [], ISOCTAVE, false);
       SE(j) = bootout.std_error;
       if (j==1); se_method = 'Balanced, bootknife resampling'; end;
     end
@@ -436,26 +452,30 @@ function [pval, c, stats] = bootnhst (data, group, varargin)
     error ('bootnhst: Samples must have non-zero standard error')
   end
   if (any (isnan (SE)))
-    error ('bootnhst: Evaluating bootfun on the bootknife resamples created NaN values for the standard error')
+    error (cat (2, 'bootnhst: Evaluating bootfun on the bootknife', ...
+                   ' resamples created NaN values for the standard error'))
   end
-  nk_bar = sum (nk.^2) ./ sum (nk);  % weighted mean sample size
-  Var = sum (Var .* nk / nk_bar);    % pooled sampling variance weighted by sample size
-  df = sum (nk) - k;                 % degrees of freedom (only relevant if bootfun is the mean)
+  nk_bar = sum (nk.^2) ./ sum (nk); % weighted mean sample size
+  Var = sum (Var .* nk / nk_bar);   % weighted pooled sampling variance
+  df = sum (nk) - k;                % degrees of freedom (if bootfun is @mean)
 
   % Calculate weights to correct for unequal sample size  
   % when calculating standard error of the difference
   w = nk_bar ./ nk;
 
-  % Prepare to make symmetrical bootstrap-t confidence intervals and 2-tailed p-values
-  % Create empirical distribution function
+  % Prepare to make symmetrical bootstrap-t confidence intervals and
+  % 2-tailed p-values, Create empirical distribution function
   [Q, F, P] = bootcdf (Q, true, 1);
 
-  % Compute resolution limit of the p-values as determined by resampling with nboot(1) resamples
+  % Compute resolution limit of the p-values as determined by resampling
+  % with nboot(1) resamples
   res_lim = 1 / (nboot(1) + 1);
 
-  % Calculate p-values for comparisons adjusted to simultaneously control the FWER
+  % Calculate p-values for comparisons adjusted to simultaneously
+  % control the Family-Wise Error Rate (FWER)
   if (isempty (ref))
-    % Single-step maxT procedure for pairwise comparisons is a resampling version of Tukey-Kramer HSD test
+    % Single-step maxT procedure for pairwise comparisons is a resampling
+    % version of Tukey-Kramer Honest Significant Difference (HSD) test
     A = ones (k, 1) * gk';
     B = tril (gk * ones (1, k), -1);
     M = [A(:) B(:)];
@@ -479,7 +499,8 @@ function [pval, c, stats] = bootnhst (data, group, varargin)
       c(i,9) = c(i,5) + SED * interp1 (F, Q, 1 - alpha, 'linear', max (Q));
     end
   else
-    % Single-step maxT procedure for treatment vs control comparisons is a resampling version of Dunnett's test
+    % Single-step maxT procedure for treatment vs control comparisons is
+    % a resampling version of Dunnett's test
     c = zeros (k, 9);
     c(:,1) = ref;
     c(:,3) = theta (ref);
@@ -500,7 +521,8 @@ function [pval, c, stats] = bootnhst (data, group, varargin)
     c(ref,:) = [];
   end
 
-  % Calculate (maximum) test statistic and (minimum) p-value for the omnibus test
+  % Calculate the (maximum) test statistic and (minimum) p-value for the
+  % omnibus test
   maxT = max (c(:,6));
   pval = min (c(:,7));
 
@@ -514,8 +536,10 @@ function [pval, c, stats] = bootnhst (data, group, varargin)
   stats.groups(:,2) = theta;
   stats.groups(:,3) = nk;
   stats.groups(:,4) = SE;
-  stats.groups(:,5) = theta - sqrt ((0.5 * (w + 1)) .* Var / 2) * interp1 (F, Q, 1 - alpha, 'linear', max (Q));
-  stats.groups(:,6) = theta + sqrt ((0.5 * (w + 1)) .* Var / 2) * interp1 (F, Q, 1 - alpha, 'linear', max (Q));
+  stats.groups(:,5) = theta - sqrt ((0.5 * (w + 1)) .* Var / 2) * ...
+                              interp1 (F, Q, 1 - alpha, 'linear', max (Q));
+  stats.groups(:,6) = theta + sqrt ((0.5 * (w + 1)) .* Var / 2) * ...
+                              interp1 (F, Q, 1 - alpha, 'linear', max (Q));
   stats.Var = Var;
   stats.maxT = maxT;
   if (any (strcmp (func2str (bootfun), {'mean','smoothmedian'})))
@@ -527,36 +551,44 @@ function [pval, c, stats] = bootnhst (data, group, varargin)
   stats.alpha = alpha;
   stats.bootstat = Q;
 
-  % Print output and plot graph with confidence intervals if no output arguments are requested
+  % Print output and plot graph with confidence intervals if no output
+  % arguments are requested
   cols = [1,2,5,6,7]; % columns in c that we want to print data for
   if ((nargout == 0) || (DisplayOpt == true))
     if (~ iscellstr (gnames))
       gnames = cellstr (num2str (gnames));
     end
-    fprintf (['\n', ...
-                    'Summary of bootstrap null hypothesis (H0) significance test(s)\n', ...
-                    '******************************************************************************\n']);
+    fprintf (cat (2, '\nSummary of bootstrap null hypothesis (H0)', ...
+                     ' significance test(s)\n', ...
+                     '*******************************************', ...
+                     '***********************************\n'));
     fprintf ('Bootstrap settings: \n');
     fprintf (' Function: %s\n', bootfun_str);
     fprintf (' Bootstrap resampling method: Balanced, bootknife resampling\n')
     fprintf (' Number of bootstrap resamples: %u \n', nboot(1));
     fprintf (' Method for estimating standard errors: %s\n', se_method)
     if (nboot(2) > 0)
-      fprintf (' Number of bootknife resamples used to estimate standard errors: %u \n', nboot(2));
+      fprintf (cat (2, ' Number of bootknife resamples used to estimate', ...
+                       ' standard errors: %u \n'), nboot(2));
     end
     if (isempty (ref))
-      fprintf (' Multiple comparison method: %s \n', 'Single-step maxT procedure based on Tukey-Kramer');
+      fprintf (' Multiple comparison method:%s \n', 
+                       ' Single-step maxT procedure based on Tukey-Kramer');
     else
-      fprintf (' Multiple comparison method: %s \n', 'Single-step maxT procedure based on Dunnett');
+      fprintf ( ' Multiple comparison method:%s \n', ...
+                ' Single-step maxT procedure based on Dunnett');
       fprintf (' Reference group used for comparisons: %s \n', gnames{ref});
     end
-    fprintf ('------------------------------------------------------------------------------\n\n');
+    fprintf (cat (2, '------------------------------------------------', ...
+                     '------------------------------\n\n'));
     if (isempty (ref))
-      fprintf (['Overall hypothesis test from single-step maxT procedure\n', ...
-               'H0: Groups of data are all sampled from the same population\n\n']);
+      fprintf (cat (2, 'Overall hypothesis test from single-step maxT', ...
+                       ' procedure\nH0: Groups of data are all sampled', ... 
+                       ' from the same population\n\n'));
     else
-      fprintf (['Overall hypothesis test from single-step maxT procedure\n', ...
-               'H0: Groups of data are all sampled from the same population as data in REF\n\n']);
+      fprintf (cat (2, 'Overall hypothesis test from single-step maxT', ... 
+                       ' procedure\nH0: Groups of data are all sampled', ...
+                       ' from the same population as data in REF\n\n'));
     end
     if (any (strcmp (func2str (bootfun), {'mean','smoothmedian'})))
       dfstr = sprintf ('Degrees of freedom = %u\n', df);
@@ -564,32 +596,42 @@ function [pval, c, stats] = bootnhst (data, group, varargin)
       dfstr = '';
     end
     if (pval <= 0.001)
-      fprintf (['Maximum t = %.2f, p = <.001 \n', dfstr, ...
-                '------------------------------------------------------------------------------\n'], maxT);
+      fprintf (cat (2, 'Maximum t = %.2f, p = <.001 \n', dfstr, ...
+                '-----------------------------------------------', ...
+                '-------------------------------\n'), maxT);
     elseif (pval > 0.999)
-      fprintf (['Maximum t = %.2f, p = 1.000 \n', dfstr, ...
-          '------------------------------------------------------------------------------\n'], maxT);
+      fprintf (cat (2, 'Maximum t = %.2f, p = 1.000 \n', dfstr, ...
+                '-----------------------------------------------', ...
+                '-------------------------------\n'), maxT);
     else
-      fprintf (['Maximum t = %.2f, p = .%03u \n', dfstr, ...
-                '------------------------------------------------------------------------------\n'], maxT, round (pval*1000));
+      fprintf (cat (2, 'Maximum t = %.2f, p = .%03u \n', dfstr, ...
+                '-----------------------------------------------', ...
+                '-------------------------------\n'), maxT, round (pval*1000));
     end
     if (size (c,1) >= 1)
-      fprintf (['POST HOC TESTS with control of the FWER by the single-step maxT procedure\n', ...
-                '------------------------------------------------------------------------------\n', ...
-                '| Comparison |  Reference # |       Test # |  Difference |       t |       p |\n', ...
-                '|------------|--------------|--------------|-------------|---------|---------|\n'], df);
+      fprintf (cat (2, 'POST HOC TESTS with control of the FWER by the', ...
+                       ' single-step maxT procedure\n', ...
+                       '----------------------------------------------', ...
+                       '--------------------------------\n', ...
+                       '| Comparison |  Reference # |       Test # |', ...
+                       '  Difference |       t |       p |\n', ...
+                       '|------------|--------------|--------------|', ...
+                       '-------------|---------|---------|\n'), df);
       if (isempty (ref))
         for i = 1:n
           tmp = num2cell (c(i, cols));
           tmp{end} = round (tmp{end} * 1000);
           if (c(i,7) <= 0.001)
             tmp(end) = [];
-            fprintf ('| %10u | %12u | %12u | %+11.2e | %7.2f |   <.001 |***\n', i, tmp{:});
+            fprintf (cat (2, '| %10u | %12u | %12u | %+11.2e | %7.2f |', ...
+                             '   <.001 |***\n'), i, tmp{:});
           elseif (c(i,7) > 0.999)
             tmp(end) = [];
-            fprintf ('| %10u | %12u | %12u | %+11.2e | %7.2f |   1.000 |\n', i, tmp{:});
+            fprintf (cat (2, '| %10u | %12u | %12u | %+11.2e | %7.2f |', ...
+                             '   1.000 |\n'), i, tmp{:});
           else
-            fprintf ('| %10u | %12u | %12u | %+11.2e | %7.2f |    .%03u |', i, tmp{:});
+            fprintf (cat (2, '| %10u | %12u | %12u | %+11.2e | %7.2f |', ...
+                             '    .%03u |'), i, tmp{:});
             if (c(i,7) < 0.01)
               fprintf ('**\n')
             elseif (c(i,7) < 0.05)
@@ -605,12 +647,15 @@ function [pval, c, stats] = bootnhst (data, group, varargin)
           tmp{end} = round (tmp{end} * 1000);
           if (c(j,7) <= 0.001)
             tmp(end) = [];
-            fprintf ('| %10u | %12u | %12u | %+11.2e | %7.2f |   <.001 |***\n', j, tmp{:});
+            fprintf (cat (2, '| %10u | %12u | %12u | %+11.2e | %7.2f |', ...
+                             '   <.001 |***\n'), j, tmp{:});
           elseif (c(j,7) > 0.999)
             tmp(end) = [];
-            fprintf ('| %10u | %12u | %12u | %+11.2e | %7.2f |   1.000 |\n', j, tmp{:});
+            fprintf (cat (2, '| %10u | %12u | %12u | %+11.2e | %7.2f |', ...
+                             '   1.000 |\n'), j, tmp{:});
           else
-            fprintf ('| %10u | %12u | %12u | %+11.2e | %7.2f |    .%03u |', j, tmp{:});
+            fprintf (cat (2, '| %10u | %12u | %12u | %+11.2e | %7.2f |', ...
+                             '    .%03u |'), j, tmp{:});
             if (c(j,7) < 0.01)
               fprintf ('**\n')
             elseif (c(j,7) < 0.05)
@@ -621,34 +666,42 @@ function [pval, c, stats] = bootnhst (data, group, varargin)
           end
         end
       end
-      fprintf (['\n', ...
-                '------------------------------------------------------------------------------\n', ...
-                '|    GROUP # |                                                   GROUP label |\n', ...
-                '|------------|---------------------------------------------------------------|\n']);
+      fprintf (cat (2, '\n-----------------------------------------------', ...
+                      '-------------------------------\n', ...
+                      '|    GROUP # |                                   ', ...
+                      '                GROUP label |\n', ...
+                      '|------------|-----------------------------------', ...
+                      '----------------------------|\n'));
       for j = 1:k
         fprintf ('| %10u | %61s |\n', gk(j), gnames{j});
       end
       fprintf ('\n')
     end
 
-    % Plot graph of the difference in bootfun for each comparison with 100*(1-alpha)% confidence intervals
+    % Plot graph of the difference in bootfun for each comparison with
+    % 100*(1-alpha)% confidence intervals
     figure;
-    nc = size(c,1);                               % Calculate number of comparisons to plot
-    plot ([0; 0], [0; nc + 1]', 'k:');            % Plot vertical dashed line at 0 effect
-    set (gca, 'Ydir', 'reverse')                  % Flip y-axis direction
-    ylim ([0.5, nc + 0.5]);                       % Set y-axis limits
-    hold on                                       % Enable plotting new data on the same axis
+    nc = size(c,1);                    % Calculate number of comparisons to plot
+    plot ([0; 0], [0; nc + 1]', 'k:'); % Plot vertical dashed line at 0 effect
+    set (gca, 'Ydir', 'reverse')       % Flip y-axis direction
+    ylim ([0.5, nc + 0.5]);            % Set y-axis limits
+    hold on
     for i = 1 : nc
       if (c(i,7) < 0.05)
-        plot (c(i, 5), i, 'or', 'MarkerFaceColor', 'r');  % Plot marker for the difference in bootfun 
-        plot ([c(i, 8), c(i, 9)], i * ones (2, 1), 'r-'); % Plot line for each confidence interval 
+        % Plot marker for the difference estimate
+        plot (c(i, 5), i, 'or', 'MarkerFaceColor', 'r');
+        % Plot line for each confidence interval
+        plot ([c(i, 8), c(i, 9)], i * ones (2, 1), 'r-');
       else
-        plot (c(i,5), i, 'ob', 'MarkerFaceColor', 'b');   % Plot marker for the difference in bootfun 
-        plot ([c(i,8), c(i,9)], i * ones (2, 1), 'b-');   % Plot line for each confidence interval 
+        % Plot marker for the difference estimate
+        plot (c(i,5), i, 'ob', 'MarkerFaceColor', 'b');
+        % Plot line for each confidence interval 
+        plot ([c(i,8), c(i,9)], i * ones (2, 1), 'b-');   
       end
     end
     hold off
-    xlabel (sprintf ('%g%% bootstrap-t confidence interval for the difference', 100 * (1 - alpha)));
+    xlabel (sprintf (cat (2, '%g%% bootstrap-t confidence interval for the', ...
+                             ' difference'), 100 * (1 - alpha)));
     ylabel ('Comparison number (Test - Reference)');   
 
   end
@@ -670,7 +723,8 @@ function maxT = maxstat (Y, g, nboot, bootfun, ref, ISOCTAVE)
   gk = unique (g);
   k = numel (gk);
 
-  % Compute the estimate (theta) and it's pooled (weighted mean) sampling variance 
+  % Compute the estimate (theta) and it's pooled (weighted mean) sampling
+  % variance 
   theta = zeros (k, 1);
   SE = zeros (k, 1);
   Var = zeros (k, 1);
@@ -684,25 +738,30 @@ function maxT = maxstat (Y, g, nboot, bootfun, ref, ISOCTAVE)
         SE(j) = std (Y(g == gk(j), :), 0) / sqrt (nk(j));
       else
         theta(j) = bootfun (Y(g == gk(j), :));
-        % If requested, compute unbiased estimates of the standard error using jackknife resampling
+        % If requested, compute unbiased estimates of the standard error
+        % using jackknife resampling
         jackstat = jackknife (bootfun, Y(g == gk(j), :));
-        SE(j) = sqrt ((nk(j) - 1) / nk(j) * sum (((mean (jackstat) - jackstat)).^2));
+        SE(j) = sqrt ((nk(j) - 1) / nk(j) ...
+                * sum (((mean (jackstat) - jackstat)).^2));
       end
     else
-      % Compute unbiased estimate of the standard error by balanced bootknife resampling
-      % Bootknife resampling involves less computation than Jackknife when sample sizes get larger
+      % Compute unbiased estimate of the standard error by balanced bootknife
+      % resampling. Bootknife resampling involves less computation than
+      % Jackknife when sample sizes get larger
       theta(j) = bootfun (Y(g == gk(j), :));
       nk(j) = sum (g == gk(j));
-      bootout = bootknife (Y(g == gk(j), :), [nboot, 0], bootfun, NaN, [], 0, [], [], ISOCTAVE, false);
+      bootout = bootknife (Y(g == gk(j), :), [nboot, 0], bootfun, ...
+                           NaN, [], 0, [], [], ISOCTAVE, false);
       SE(j) = bootout.std_error;
     end
     Var(j) = ((nk(j) - 1) / (N - k)) * SE(j)^2;
   end
   if (any (isnan (SE)))
-    error ('bootnhst:maxstat: Evaluating bootfun on the bootknife resamples created NaN values for the standard error')
+    error (cat (2, 'bootnhst:maxstat: Evaluating bootfun on the bootknife', ...
+                   ' resamples created NaN values for the standard error'))
   end
   nk_bar = sum (nk.^2) ./ sum (nk);  % weighted mean sample size
-  Var = sum (Var .* nk / nk_bar);     % pooled sampling variance weighted by sample size
+  Var = sum (Var .* nk / nk_bar);    % weighted pooled sampling variance
 
   % Calculate weights to correct for unequal sample size  
   % when calculating standard error of the difference
@@ -713,13 +772,15 @@ function maxT = maxstat (Y, g, nboot, bootfun, ref, ISOCTAVE)
     % Calculate Tukey-Kramer test statistic (without sqrt(2) factor)
     %
     % Bibliography:
-    %  [1] https://en.wikipedia.org/wiki/Tukey%27s_range_test
-    %  [2] https://cdn.graphpad.com/faq/1688/file/MulitpleComparisonAlgorithmsPrism8.pdf
-    %  [3] www.graphpad.com/guides/prism/latest/statistics/stat_the_methods_of_tukey_and_dunne.htm
+    %  [1] en.wikipedia.org/wiki/Tukey%27s_range_test
+    %  [2] cdn.graphpad.com/faq/1688/file/MulitpleComparisonAlgorithmsPrism8.pdf
+    %  [3] www.graphpad.com/guides/prism/
+    %          latest/statistics/stat_the_methods_of_tukey_and_dunne.htm
     idx = logical (triu (ones (k, k), 1));
     i = (1 : k)' * ones (1, k);
     j = ones (k, 1) * (1 : k);
-    t = abs (theta(i(idx)) - theta(j(idx))) ./ sqrt (Var * (w(i(idx)) + w(j(idx))));
+    t = abs (theta(i(idx)) - theta(j(idx))) ./ ...
+        sqrt (Var * (w(i(idx)) + w(j(idx))));
   else
     % Calculate Dunnett's test statistic 
     t = abs ((theta - theta(ref))) ./ sqrt (Var * (w + w(ref)));
@@ -792,7 +853,7 @@ end
 %!demo
 %!
 %! ## EXAMPLE 2B:
-%! ## ONE-WAY ANOVA WITH UNEQUAL SAMPLE SIZES: pairwise comparisons (the 'ref' default)
+%! ## ONE-WAY ANOVA WITH UNEQUAL SAMPLE SIZES: pairwise comparisons
 %!
 %! y = [54  87  45
 %!      23  98  39
@@ -814,7 +875,7 @@ end
 %!demo
 %!
 %! ## EXAMPLE 2C:
-%! ## COMPARE STANDARD DEVIATIONS BETWEEN 3 GROUPS: pairwise comparisons (the 'ref' default)
+%! ## COMPARE STANDARD DEVIATIONS BETWEEN 3 GROUPS: pairwise comparisons
 %!
 %! y = [54  87  45
 %!      23  98  39
@@ -847,7 +908,8 @@ end
 %! ## COMPARE SLOPES FROM LINEAR REGRESSION ON 2 DATA SETS
 %! y = randn (20, 1); x = randn (20, 1); X = [ones(20, 1), x];
 %! g = [zeros(10, 1); ones(10, 1)];
-%! func = @(M) subsref (M(:,2:end) \ M(:,1), struct ('type', '()', 'subs', {{2}}));
+%! func = @(M) subsref (M(:,2:end) \ M(:,1), ...
+%!                      struct ('type', '()', 'subs', {{2}}));
 %!
 %! bootnhst ([y, X], g, 'bootfun', func);
 %!
@@ -949,5 +1011,6 @@ end
 %! % Compare slopes from linear regression
 %! y = randn (20, 1); x = randn (20, 1); X = [ones(20, 1), x];
 %! g = [zeros(10, 1); ones(10, 1)];
-%! func = @(M) subsref (M(:,2:end) \ M(:,1), struct ('type', '()', 'subs', {{2}}));
+%! func = @(M) subsref (M(:,2:end) \ M(:,1), ...
+%!                      struct ('type', '()', 'subs', {{2}}));
 %! p = bootnhst ([y, X], g, 'bootfun', func, 'DisplayOpt', false);

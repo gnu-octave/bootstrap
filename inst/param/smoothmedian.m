@@ -163,7 +163,8 @@ function M = smoothmedian (x, dim, Tol)
     % Compute derivatives
     temp = ones (l, 1) * p;
     D = (xi - temp).^2 + (xj - temp).^2;
-    D (D == 0) = 1; % Ensures that no NaN values occur when the objective function is not differentiable
+    D (D == 0) = 1; % Ensures that no NaN values occur when the
+                    % objective function is not differentiable
     R = sqrt(D); 
     % Objective function (S)
     %S = sum(R);

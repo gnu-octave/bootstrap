@@ -57,7 +57,8 @@ function PMAD = smoothmad (x, group, constant)
     group = ones(m,1);
   else
     if size (group, 1) ~= size (x, 1)
-      error ('smoothmad: GROUP must be a column vector with the same number of rows as the data')
+      error (cat (2, 'smoothmad: GROUP must be a column vector with the', ...
+                     ' same number of rows as the data'))
     end
   end
 
@@ -86,7 +87,8 @@ function PMAD = smoothmad (x, group, constant)
     M(k,:) = smoothmedian (x(I,:));
 
     % Calculate the smoothed median absolute deviation of the data group
-    MAD(k,:) = smoothmedian (abs (x(I, :) - ones (nk(k), 1) * M(k, :))) * constant;
+    MAD(k,:) = smoothmedian (abs (x(I, :) - ones (nk(k), 1) * ...
+                                                  M(k, :))) * constant;
 
     % Begin pooling the smoothed median absolute deviations
     PMAD = PMAD + (nk(k) - 1) * MAD(k, :).^2;
