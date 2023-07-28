@@ -87,8 +87,8 @@
 %        regression analysis (with discussions). Ann Stat.. 14: 1261–1350. 
 %  [2] Cameron, Gelbach and Miller (2008) Bootstrap-based Improvements for
 %        Inference with Clustered Errors. Rev Econ Stat. 90(3), 414-427
-%  [3] Webb (2023) Reworking wild bootstrap-based inference for clustered errors.
-%        Can J Econ. https://doi.org/10.1111/caje.12661
+%  [3] Webb (2023) Reworking wild bootstrap-based inference for clustered
+%        errors. Can J Econ. https://doi.org/10.1111/caje.12661
 %  [4] Cameron and Miller (2015) A Practitioner’s Guide to Cluster-Robust
 %        Inference. J Hum Resour. 50(2):317-372
 %  [5] Hall and Wilson (1991) Two Guidelines for Bootstrap Hypothesis Testing.
@@ -121,7 +121,7 @@ function [stats, bootstat] = bootwild (y, X, dep, nboot, alpha, seed, L)
 
   % Check the number of function arguments
   if (nargin < 1)
-    error ('bootwild: y must be provided');
+    error ('bootwild: y must be provided')
   end
   if (nargin > 7)
     error ('bootwild: Too many input arguments')
@@ -136,11 +136,11 @@ function [stats, bootstat] = bootwild (y, X, dep, nboot, alpha, seed, L)
 
   % Calculate the length of y
   if (nargin < 1)
-    error ('bootwild: DATA must be provided');
+    error ('bootwild: DATA must be provided')
   end
   sz = size (y);
   if ( (sz(1) < 2) || (sz (2) > 1) )
-    error ('bootwild: y must be a column vector');
+    error ('bootwild: y must be a column vector')
   end
   n = numel (y);
 
@@ -187,16 +187,16 @@ function [stats, bootstat] = bootwild (y, X, dep, nboot, alpha, seed, L)
     nboot = 1999;
   else
     if (~ isa (nboot, 'numeric'))
-      error ('bootwild: NBOOT must be numeric');
+      error ('bootwild: NBOOT must be numeric')
     end
     if (numel (nboot) > 1)
-      error ('bootwild: NBOOT must be scalar');
+      error ('bootwild: NBOOT must be scalar')
     end
     if (nboot ~= abs (fix (nboot)))
-      error ('bootwild: NBOOT must be a positive integer');
+      error ('bootwild: NBOOT must be a positive integer')
     end
     if (nboot < 999)
-      error ('bootwild: NBOOT must be > 999');
+      error ('bootwild: NBOOT must be > 999')
     end
   end
   % Compute resolution limit of the p-values as determined by resampling
@@ -210,19 +210,21 @@ function [stats, bootstat] = bootwild (y, X, dep, nboot, alpha, seed, L)
   else
     nalpha = numel (alpha);
     if (~ isa (alpha, 'numeric') || (nalpha > 2))
-      error ('bootwild: ALPHA must be a scalar (two-tailed probability) or a vector (pair of probabilities)');
+      error (cat (2, 'bootwild: ALPHA must be a scalar (two-tailed', ...
+                     ' probability) or a vector (pair of probabilities)'))
     end
     if (size (alpha, 1) > 1)
       alpha = alpha.';
     end
     if (any ((alpha < 0) | (alpha > 1)))
-      error ('bootwild: Value(s) in ALPHA must be between 0 and 1');
+      error ('bootwild: Value(s) in ALPHA must be between 0 and 1')
     end
     if (nalpha > 1)
       % alpha is a pair of probabilities
       % Make sure probabilities are in the correct order
       if (alpha(1) > alpha(2) )
-        error ('bootwild: The pair of probabilities must be in ascending numeric order');
+        error (cat (2, 'bootwild: The pair of probabilities must be in', ...
+                       ' ascending numeric order'))
       end
     end
   end
@@ -265,7 +267,8 @@ function [stats, bootstat] = bootwild (y, X, dep, nboot, alpha, seed, L)
   Y = bsxfun (@plus, yf, rs);
 
   % Compute bootstap statistics
-  bootout = cell2mat (cellfun (bootfun, num2cell (Y, 1), 'UniformOutput', false));
+  bootout = cell2mat (cellfun (bootfun, num2cell (Y, 1), ...
+                              'UniformOutput', false));
   bootstat = [bootout.b];
   bootse = [bootout.se];
 
@@ -288,12 +291,16 @@ function [stats, bootstat] = bootwild (y, X, dep, nboot, alpha, seed, L)
       end
       switch nalpha
         case 1
-          ci(j,1) = original(j) - std_err(j) * interp1 (F, x, 1 - alpha, 'linear', max (x));
-          ci(j,2) = original(j) + std_err(j) * interp1 (F, x, 1 - alpha, 'linear', max (x));
+          ci(j,1) = original(j) - std_err(j) * ...
+                                  interp1 (F, x, 1 - alpha, 'linear', max (x));
+          ci(j,2) = original(j) + std_err(j) * ...
+                                  interp1 (F, x, 1 - alpha, 'linear', max (x));
         case 2
           [x, F] = bootcdf (T(j,:), true, 1);
-          ci(j,1) = original(j) - std_err(j) * interp1 (F, x, alpha(2), 'linear', max (x));
-          ci(j,2) = original(j) - std_err(j) * interp1 (F, x, alpha(1), 'linear', min (x));
+          ci(j,1) = original(j) - std_err(j) * ...
+                                  interp1 (F, x, alpha(2), 'linear', max (x));
+          ci(j,2) = original(j) - std_err(j) * ...
+                                  interp1 (F, x, alpha(1), 'linear', min (x));
       end
     end
   end
@@ -401,8 +408,10 @@ end
 
 function print_output (stats, nboot, alpha, p, L, method)
 
-    fprintf (['\nSummary of wild bootstrap null hypothesis significance tests for linear models\n',...
-              '*******************************************************************************\n\n']);
+    fprintf (cat (2, '\nSummary of wild bootstrap null hypothesis', ...
+                     ' significance tests for linear models\n', ...
+                     '*******************************************', ...
+                     '************************************\n\n'));
     fprintf ('Bootstrap settings: \n');
     if ( (numel(L) > 1) || (L ~= 1) )
       fprintf (' Function: L'' * X \\ y\n');
@@ -420,21 +429,27 @@ function print_output (stats, nboot, alpha, p, L, method)
     nalpha = numel (alpha);
     if (nalpha > 1)
       % prob is a vector of probabilities
-      fprintf (' Confidence interval (CI) type: Asymmetric bootstrap-t interval\n');
+      fprintf (cat (2, ' Confidence interval (CI) type: Asymmetric', ...
+                       ' bootstrap-t interval\n'));
       coverage = 100 * abs (alpha(2) - alpha(1));
-      fprintf (' Nominal coverage (and the percentiles used): %.3g%% (%.1f%%, %.1f%%)\n', coverage, 100 * alpha(:));
+      fprintf (cat (2, ' Nominal coverage (and the percentiles used):', ...
+                       ' %.3g%% (%.1f%%, %.1f%%)\n', coverage, 100 * alpha(:)));
     else
       % prob is a two-tailed probability
-      fprintf (' Confidence interval (CI) type: Symmetric bootstrap-t interval\n');
+      fprintf (cat (2, ' Confidence interval (CI) type: Symmetric', ...
+                       ' bootstrap-t interval\n'));
       coverage = 100 * (1 - alpha);
       fprintf (' Nominal central coverage: %.3g%%\n', coverage);
     end
     fprintf (' Null value (H0) used for hypothesis testing (p-values): 0 \n')
     fprintf ('\nTest Statistics: \n');
-    fprintf (' original     std_err      CI_lower     CI_upper     t-stat      p-val     FPR\n');
+    fprintf (cat (2, ' original     std_err      CI_lower     CI_upper', ...
+                     '    t-stat      p-val     FPR\n'));
     for j = 1:p
-      fprintf (' %#-+10.4g   %#-+10.4g   %#-+10.4g   %#-+10.4g   %#-+9.3g', ...
-               [stats.original(j), stats.std_err(j), stats.CI_lower(j), stats.CI_upper(j), stats.tstat(j)])
+      fprintf (cat (2, ' %#-+10.4g   %#-+10.4g   %#-+10.4g', ...
+                       '   %#-+10.4g   %#-+9.3g'), ...
+                       [stats.original(j), stats.std_err(j), ...
+                        stats.CI_lower(j), stats.CI_upper(j), stats.tstat(j)]);
       if (stats.pval(j) <= 0.001)
         fprintf ('   <.001');
       elseif (stats.pval(j) < 0.9995)
