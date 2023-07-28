@@ -483,6 +483,24 @@ try
   STATS = bootlm (dv, g, 'contrasts', C, 'varnames', 'score', ...
                            'alpha', 0.05, 'display', false, 'dim', 1);
 
+  % randtest2:test:1
+  X = randn (3,1);
+  Y = randn (3,1);
+  pval1 = randtest2 (X, Y);
+  pval2 = randtest2 (X, Y, false);
+  pval3 = randtest2 (X, Y, []);
+  assert (pval1, pval2, 1e-08);
+  assert (pval1, pval3, 1e-08);
+  randtest2 (X, Y, true);
+  randtest2 (X, Y, [], 500);
+  randtest2 (X, Y, [], []);
+  X = randn (9,1);
+  Y = randn (9,1);
+  pval5 = randtest2 (X, Y, false, [], 1);
+  pval6 = randtest2 (X, Y, false, [], 1);
+  assert (pval5, pval6, 1e-08);
+  pval6 = randtest2 (X, Y, false, [], []);
+ 
   fprintf('Tests completed successfully.\n')
 
 catch
