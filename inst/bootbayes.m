@@ -198,7 +198,7 @@ function [stats, bootstat] = bootbayes (Y, X, dep, nboot, prob, prior, seed, L)
       blocksz = dep;
       N = fix (n / blocksz);
       IC = (N + 1) * ones (n, 1);
-      IC(1 : blocksz * N, :) = reshape (ones (blocksz, 1) * [1 : N], [], 1);
+      IC(1 : blocksz * N, :) = reshape (ones (blocksz, 1) * (1 : N), [], 1);
       N = IC(end);
       method = 'block ';
     else
@@ -208,7 +208,7 @@ function [stats, bootstat] = bootbayes (Y, X, dep, nboot, prob, prior, seed, L)
         error (cat (2, 'bootbayes: CLUSTID must be a column vector with', ...
                        ' the same number of rows as Y'))
       end
-      [C, IA, IC] = unique (clustid);
+      [C, jnk, IC] = unique (clustid);
       N = numel (C); % Number of clusters
       method = 'cluster ';
     end
@@ -312,7 +312,7 @@ function [stats, bootstat] = bootbayes (Y, X, dep, nboot, prob, prior, seed, L)
   else
     % Haldane prior
     r = zeros (N, nboot);
-    idx = fix (rand (1, nboot) * N + [1 : N : nboot * N]);
+    idx = fix (rand (1, nboot) * N + (1 : N : nboot * N));
     r(idx)=1;
   end
   if (~ isempty (IC))
@@ -449,7 +449,7 @@ function print_output (stats, nboot, prob, prior, p, L, method, intercept_only)
       end
     end
     fprintf ('\nPosterior Statistics: \n');
-    fprintf (cat (2, ' original     bias         median       stdev', 
+    fprintf (cat (2, ' original     bias         median       stdev', ... 
                      '       CI_lower      CI_upper\n'));
     for j = 1:p
       fprintf (cat (2, ' %#-+10.4g   %#-+10.4g   %#-+10.4g   %#-10.4g', ...
