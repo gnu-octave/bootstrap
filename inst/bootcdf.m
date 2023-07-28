@@ -96,7 +96,6 @@ function [x, F, P] = bootcdf (y, trim, m)
   % Create empirical CDF accounting for ties by competition ranking
   x = sort (y);
   [jnk, IA, IC] = unique (x);
-  N = numel (x);
   R = cat (1, IA(2:end) - 1, N);
   F = arrayfun (@(i) R(IC(i)), (1 : N)') / (N + m);
 
