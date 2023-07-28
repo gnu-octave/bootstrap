@@ -150,7 +150,7 @@
 %          confidence or credible interval(s). The value(s) of ALPHA must be
 %          between 0 and 1. ALPHA can either be:
 %
-%             • scalar: To set the central mass of the intervals to 100*(1-ALPHA)%.
+%             • scalar: Set the central mass of the intervals to 100*(1-ALPHA)%.
 %                  For example, 0.05 for a 95% interval. If METHOD is 'wild',
 %                  then the intervals are symmetric bootstrap-t confidence
 %                  intervals. If METHOD is 'bayesian', then the intervals are
@@ -365,7 +365,7 @@ function [STATS, BOOTSTAT, X, L] = bootlm (Y, GROUP, varargin)
 
     if (nargin < 2)
       error (cat (2, 'bootlm usage: ''bootlm (Y, GROUP)''; ', ...
-                     ' atleast 2 input arguments required'));
+                     ' atleast 2 input arguments required'))
     end
     if (nargout > 4)
       error ('bootlm: Too many output arguments')
@@ -404,8 +404,8 @@ function [STATS, BOOTSTAT, X, L] = bootlm (Y, GROUP, varargin)
         case 'random'
           % RANDOM input argument is ignored
         case 'nested'
-          error (cat (2, 'bootlm: NESTED not supported. Please use ''CLUSTID''', ...
-                         ' or ''BLOCKSZ'' input arguments instead.'));
+          error (cat (2, 'bootlm: NESTED not supported. Please use', ...
+                         ' ''CLUSTID'' or ''BLOCKSZ'' input arguments.'))
         case 'sstype'
           % SSTYPE input argument is ignored
         case 'varnames'
@@ -431,7 +431,7 @@ function [STATS, BOOTSTAT, X, L] = bootlm (Y, GROUP, varargin)
         case 'seed'
           SEED = value;
         otherwise
-          error (sprintf ('bootlm: parameter %s is not supported', name));
+          error (sprintf ('bootlm: parameter %s is not supported', name))
       end
     end
 
@@ -445,11 +445,11 @@ function [STATS, BOOTSTAT, X, L] = bootlm (Y, GROUP, varargin)
     if (isnumeric (CONTINUOUS))
       if (any (CONTINUOUS ~= abs (fix (CONTINUOUS))))
         error (cat (2, 'bootlm: the value provided for the CONTINUOUS', ...
-                       ' parameter must be a positive integer'));
+                       ' parameter must be a positive integer'))
       end
     else
       error (cat (2, 'bootlm: the value provided for the CONTINUOUS', ...
-                     ' parameter must be numeric'));
+                     ' parameter must be numeric'))
     end
 
     % Accomodate for different formats for GROUP
@@ -458,15 +458,16 @@ function [STATS, BOOTSTAT, X, L] = bootlm (Y, GROUP, varargin)
     N = size (GROUP, 2); % number of predictors
     n = numel (Y);       % total number of observations
     if (prod (size (Y)) ~= n)
-      error ('bootlm: for ''bootlm (Y, GROUP)'', Y must be a vector');
+      error ('bootlm: for ''bootlm (Y, GROUP)'', Y must be a vector')
     end
     if (numel (unique (CONTINUOUS)) > N)
-      error (cat (2, 'bootlm: the number of predictors assigned as continuous', ...
-                     ' cannot exceed the number of predictors in GROUP'));
+      error (cat (2, 'bootlm: the number of predictors assigned as', ...
+                     ' continuous cannot exceed the number of', ...
+                     ' predictors in GROUP'))
     end
     if (any ((CONTINUOUS > N) | any (CONTINUOUS <= 0)))
       error (cat (2, 'bootlm: one or more indices provided in the value', ...
-                     ' for the continuous parameter are out of range'));
+                     ' for the continuous parameter are out of range'))
     end
     cont_vec = false (1, N);
     cont_vec(CONTINUOUS) = true;
@@ -482,7 +483,7 @@ function [STATS, BOOTSTAT, X, L] = bootlm (Y, GROUP, varargin)
             end
           else
             if (ismember (j, CONTINUOUS))
-              error ('bootlm: continuous predictors must be a numeric datatype');
+              error ('bootlm: continuous predictors must be a numeric datatype')
             end
             tmp(:,j) = GROUP{j};
           end
@@ -492,7 +493,8 @@ function [STATS, BOOTSTAT, X, L] = bootlm (Y, GROUP, varargin)
     end
     if (~ isempty (GROUP))
       if (size (GROUP,1) ~= n)
-        error ('bootlm: GROUP must be a matrix with the same number of rows as Y');
+        error (cat (2, 'bootlm: GROUP must be a matrix with the same', ...
+                       ' number of rows as Y'))
       end
     end
     if (~ isempty (VARNAMES))
@@ -501,7 +503,7 @@ function [STATS, BOOTSTAT, X, L] = bootlm (Y, GROUP, varargin)
           nvarnames = numel(VARNAMES);
         else
           error (cat (2, 'bootlm: all variable names must be character', ...
-                         ' or character arrays'));
+                         ' or character arrays'))
         end
       elseif (ischar (VARNAMES))
         nvarnames = 1;
@@ -510,8 +512,8 @@ function [STATS, BOOTSTAT, X, L] = bootlm (Y, GROUP, varargin)
         nvarnames = 1;
         VARNAMES = {char(VARNAMES)};
       else
-        error (cat (2, 'bootlm: varnames is not of a valid type. Must be a cell', ...
-               ' array of character arrays, character array or string'));
+        error (cat (2, 'bootlm: varnames is not of a valid type. Must be', ...
+               ' a cell array of character arrays, character array or string'))
       end
     else
       nvarnames = N;
@@ -519,7 +521,7 @@ function [STATS, BOOTSTAT, X, L] = bootlm (Y, GROUP, varargin)
     end
     if (nvarnames ~= N)
       error (cat (2, 'bootlm: number of variable names is not equal', ...
-                     ' to the number of grouping variables'));
+                     ' to the number of grouping variables'))
     end
 
     % Evaluate contrasts (if applicable)
@@ -541,22 +543,22 @@ function [STATS, BOOTSTAT, X, L] = bootlm (Y, GROUP, varargin)
             % Check whether all the columns sum to 0
             if (any (abs (sum (CONTRASTS{i})) > eps ('single')))
               warning (sprintf ( ...
-              'Note that the CONTRASTS for predictor %u do not sum to zero', i));
+              'Note that the CONTRASTS for predictor %u do not sum to zero', i))
             end
             % Check whether contrasts are orthogonal
             if (any (abs (reshape (corr (CONTRASTS{i}) - ...
-                                          eye (size (CONTRASTS{i}, 2)), [], 1))...
-                                        > eps ('single')))
+                                     eye (size (CONTRASTS{i}, 2)), [], 1)) ...
+                                     > eps ('single')))
               warning (sprintf ( ...
-              'Note that the CONTRASTS for predictor %u are not orthogonal', i));
+              'Note that the CONTRASTS for predictor %u are not orthogonal', i))
             end
           else
             if (~ ismember (lower (CONTRASTS{i}), ...
-                            {'simple','anova','poly','helmert','effect',...
+                            {'simple','anova','poly','helmert','effect', ...
                               'sdif','sdiff','treatment'}))
               error (cat (2, 'bootlm: valid built-in contrasts are:', ...
-                            ' ''simple'', ''poly'', ''helmert'',',...
-                            '''effect'', ''sdif'' or ''treatment'''));
+                            ' ''simple'', ''poly'', ''helmert'',', ...
+                            '''effect'', ''sdif'' or ''treatment'''))
             end
           end
         end
@@ -593,7 +595,7 @@ function [STATS, BOOTSTAT, X, L] = bootlm (Y, GROUP, varargin)
         case 'full'
           MODELTYPE = N;
         otherwise
-          error ('bootlm: model type not recognised');
+          error ('bootlm: model type not recognised')
       end
     end
     if (isscalar (MODELTYPE))
@@ -642,7 +644,7 @@ function [STATS, BOOTSTAT, X, L] = bootlm (Y, GROUP, varargin)
       end
       if (~ all (ismember (MODELTYPE(:), [0,1])))
         error (cat (2, 'bootlm: elements of the model terms matrix', ...
-                       ' must be either 0 or 1'));
+                       ' must be either 0 or 1'))
       end
       TERMS = logical (MODELTYPE);
     end
@@ -650,7 +652,7 @@ function [STATS, BOOTSTAT, X, L] = bootlm (Y, GROUP, varargin)
     Ng = sum (TERMS, 2);
     if (any (diff (Ng) < 0))
       error (cat (2, 'bootlm: the model terms matrix must list main', ...
-                     ' effects above/before interactions'));
+                     ' effects above/before interactions'))
     end
     % Evaluate terms
     Nm = sum (Ng == 1);
@@ -658,16 +660,18 @@ function [STATS, BOOTSTAT, X, L] = bootlm (Y, GROUP, varargin)
     Nt = Nm + Nx;
     if (any (any (TERMS(1:Nm,:), 1) ~= any (TERMS, 1)))
       error (cat (2, 'bootlm: all predictors involved in interactions', ...
-                     ' must have a main effect'));
+                     ' must have a main effect'))
     end
 
     % Create design matrix
-    [X, grpnames, nlevels, df, termcols, coeffnames, vmeans, gid, CONTRASTS, center_continuous] = ...
-      mDesignMatrix (GROUP, TERMS, CONTINUOUS, CONTRASTS, VARNAMES, n, Nm, Nx, Ng, cont_vec);
+    [X, grpnames, nlevels, df, termcols, coeffnames, vmeans, gid, ...
+     CONTRASTS, center_continuous] = mDesignMatrix (GROUP, TERMS, ...
+     CONTINUOUS, CONTRASTS, VARNAMES, n, Nm, Nx, Ng, cont_vec);
     dft = n - 1;
     dfe = dft - sum (df);
     if (dfe < 1)
-      error ('bootlm: there are no error degrees of freedom in the specified model')
+      error (cat (2, 'bootlm: there are no error degrees of freedom in', ...
+                     ' the specified model'))
     end
 
     % If applicable, create hypothesis matrix, names and compute sample sizes
@@ -675,10 +679,10 @@ function [STATS, BOOTSTAT, X, L] = bootlm (Y, GROUP, varargin)
       L = 1;
     else
       if (any (DIM < 1))
-        error ('bootlm: DIM must contain positive integers');
+        error ('bootlm: DIM must contain positive integers')
       end
       if (~ all (ismember (DIM, (1:Nm))))
-        error ('bootlm: values in DIM cannot exceed the number of predictors');
+        error ('bootlm: values in DIM cannot exceed the number of predictors')
       end
       H = X;
       ridx = ~ ismember ((1 : Nm), DIM);
@@ -719,7 +723,8 @@ function [STATS, BOOTSTAT, X, L] = bootlm (Y, GROUP, varargin)
         % Clusters
         [jnk, jnk, IC] = unique (DEP);
         if ( any (size (IC) ~= [n, 1]) )
-          error ('bootlm: CLUSTID must be a column vector with the same number of rows as Y')
+          error (cat (2, 'bootlm: CLUSTID must be a column vector with the', ... 
+                         ' same number of rows as Y'))
         end
       end
     end
@@ -736,14 +741,16 @@ function [STATS, BOOTSTAT, X, L] = bootlm (Y, GROUP, varargin)
           STATS.n = n;
           STATS.prior = [];
         case {'bayes', 'bayesian'}
-          [STATS, BOOTSTAT] = bootbayes (Y, X, DEP, NBOOT, fliplr (1 - ALPHA), PRIOR, SEED);
+          [STATS, BOOTSTAT] = bootbayes (Y, X, DEP, NBOOT, ...
+                                         fliplr (1 - ALPHA), PRIOR, SEED);
           % Clean-up
           STATS = rmfield (STATS, {'median', 'bias', 'stdev'});
           STATS.pval = [];
           STATS.fpr = [];
           STATS.n = n;
         otherwise
-          error ('bootlm: unrecignised bootstrap method. Use ''wild'' or bayesian''.');
+          error (cat (2, 'bootlm: unrecignised bootstrap method. Use', ...
+                         ' ''wild'' or bayesian''.'))
       end
 
       % Assign names for model coefficients
@@ -756,7 +763,7 @@ function [STATS, BOOTSTAT, X, L] = bootlm (Y, GROUP, varargin)
       % Check what type of factor is requested in DIM
       if (any (nlevels(DIM) < 2))
           error (cat (2, 'bootlm: DIM must specify only categorical', ...
-                         ' factors with 2 or more degrees of freedom.'));
+                         ' factors with 2 or more degrees of freedom.'))
       end
       % Check that all continuous variables were centered
       msg = 'bootlm: model must be refit with a sum-to-zero contrast coding';
@@ -767,13 +774,14 @@ function [STATS, BOOTSTAT, X, L] = bootlm (Y, GROUP, varargin)
       for j = 1:N
         if (isnumeric (CONTRASTS{j}))
           if (any (abs (sum (CONTRASTS{j})) > eps('single')))
-            error (msg);
+            error (msg)
           end
         end
       end
 
       % Create names for estimated marginal means
-      idx = cellfun (@(l) find (all (bsxfun (@eq, H, l), 2), 1), num2cell (L', 2));
+      idx = cellfun (@(l) find (all (bsxfun (@eq, H, l), 2), 1), ...
+                     num2cell (L', 2));
       Np = size (L, 2);
       Nd = numel (DIM);
       NAMES = cell (Np, 1);
@@ -792,7 +800,7 @@ function [STATS, BOOTSTAT, X, L] = bootlm (Y, GROUP, varargin)
       U = unique (gid(:,DIM), 'rows', 'stable');
       n_dim = cellfun (@(u) sum (all (gid(:,DIM) == u, 2)), num2cell (U, 2));
 
-      % Compute number of independent sampling units at each level of dimension DIM
+      % Compute number of independent sampling units at each level of DIM
       if (isempty (DEP))
         N_dim = n_dim;
       else
@@ -800,7 +808,8 @@ function [STATS, BOOTSTAT, X, L] = bootlm (Y, GROUP, varargin)
         N_dim = cellfun (@(u) sum (all (UC(:,1:Nd) == u, 2)), num2cell (U, 2));
       end
       if (any (N_dim < 5))
-        warning ('bootlm: the number of independent sampling units is < 5 along the dimension DIM')
+        warning (cat (2, 'bootlm: the number of independent sampling', ...
+                         ' units is < 5 along the dimension DIM'))
       end
 
       switch (lower (POSTHOC))
@@ -831,7 +840,8 @@ function [STATS, BOOTSTAT, X, L] = bootlm (Y, GROUP, varargin)
               STATS.pval = [];
               STATS.fpr = [];
             otherwise
-              error ('bootlm: unrecignised bootstrap method. Use ''wild'' or bayesian''.');
+              error (cat (2, 'bootlm: unrecignised bootstrap method. Use', ...
+                             ' ''wild'' or bayesian''.'))
           end
 
           % Add sample sizes to the output structure
@@ -845,20 +855,22 @@ function [STATS, BOOTSTAT, X, L] = bootlm (Y, GROUP, varargin)
           % Model posthoc comparisons
           if (iscell (POSTHOC))
             if (~ strcmpi (POSTHOC{1}, 'trt_vs_ctrl'))
-              error ('bootlm: REF can only be used to specify a control group for ''trt_vs_ctrl''')
+              error (cat (2, 'bootlm: REF can only be used to specify a', ...\
+                             ' control group for ''trt_vs_ctrl'''))
             end
             [L, pairs] = feval (POSTHOC{1}, L, POSTHOC{2:end});
             POSTHOC = POSTHOC{1};
           else
             if (~ ismember (POSTHOC, {'pairwise', 'trt_vs_ctrl'}))
-              error ('bootlm: available options for POSTHOC are ''pairwise'' and ''trt_vs_ctrl''')
+              error (cat (2, 'bootlm: available options for POSTHOC are', ...
+                             ' ''pairwise'' and ''trt_vs_ctrl'''))
             end
             [L, pairs] = feval (POSTHOC, L);
           end
           switch (lower (METHOD))
             case 'wild'
               [STATS, BOOTSTAT] = bootwild (Y, X, DEP, NBOOT, ALPHA, SEED, L);
-              % Control the type 1 error rate across multiple posthoc comparisons
+              % Control the type 1 error rate across multiple comparisons
               STATS.pval = holm (STATS.pval);
               % Clean-up
               STATS = rmfield (STATS, {'std_err', 'tstat'});
@@ -866,11 +878,12 @@ function [STATS, BOOTSTAT, X, L] = bootlm (Y, GROUP, varargin)
             case {'bayes', 'bayesian'}
               switch (lower (PRIOR))
                 case 'auto'
-                  wgt = bsxfun (@rdivide, N_dim(pairs')', sum (N_dim(pairs')', 2));
+                  wgt = bsxfun (@rdivide, N_dim(pairs')', ...
+                                sum (N_dim(pairs')', 2));
                   PRIOR = sum ((1 - wgt) .* (1 - 2 ./ N_dim(pairs')'), 2);
                   [STATS, BOOTSTAT] = arrayfun (@ (i) bootbayes ...
-                            (Y, X, DEP, NBOOT, fliplr (1 - ALPHA), PRIOR(i), SEED, ...
-                            L(:, i)), (1:size (L, 2))', 'UniformOutput', false);
+                      (Y, X, DEP, NBOOT, fliplr (1 - ALPHA), PRIOR(i), SEED, ...
+                      L(:, i)), (1:size (L, 2))', 'UniformOutput', false);
                   STATS = flatten_struct (cell2mat (STATS));
                   BOOTSTAT = cell2mat (BOOTSTAT);
                 otherwise
@@ -882,13 +895,14 @@ function [STATS, BOOTSTAT, X, L] = bootlm (Y, GROUP, varargin)
               STATS.pval = [];
               STATS.fpr = [];
             otherwise
-              error ('bootlm: unrecignised bootstrap method. Use ''wild'' or bayesian''.');
+              error (cat (2, 'bootlm: unrecignised bootstrap method.', ...
+                             ' Use ''wild'' or bayesian''.'))
           end
 
           % Add sample sizes to the output structure
           STATS.n = sum (N_dim(pairs')', 2);
 
-          % Create names of posthoc comparisons and assign to the output structure
+          % Create names of posthoc comparisons and assign to the output
           STATS.name = arrayfun (@(i) sprintf ('%s - %s', NAMES{pairs(i,:)}), ...
                                 (1 : size (pairs,1))', 'UniformOutput', false);
           NAMES = STATS.name;
@@ -915,30 +929,39 @@ function [STATS, BOOTSTAT, X, L] = bootlm (Y, GROUP, varargin)
       case {'on', true}
 
         % Print model formula
-        fprintf('\nMODEL FORMULA (based on Wilkinson''s notation):\n\n%s\n', formula);
+        fprintf('\nMODEL FORMULA (based on Wilkinson''s notation):\n\n%s\n', ...
+                formula);
 
-        % If applicable, print parameter estimates (a.k.a contrasts) for fixed effects
-        % Parameter estimates correspond to the contrasts we set.
+        % If applicable, print parameter estimates (a.k.a contrasts) for fixed
+        % effects. Parameter estimates correspond to the contrasts we set.
         if (isempty (DIM))
-          fprintf('\nMODEL COEFFICIENTS\n\n');
-          fprintf('name                                   coeff       CI_lower    CI_upper    p-val\n');
-          fprintf('--------------------------------------------------------------------------------\n');
+          fprintf ('\nMODEL COEFFICIENTS\n\n');
+          fprintf (cat (2, 'name                                   coeff', ...
+                           '       CI_lower    CI_upper    p-val\n'));
+          fprintf (cat (2, '--------------------------------------------', ...
+                           '------------------------------------\n'));
         else
           switch (lower (POSTHOC))
             case 'none'
-              fprintf('\nMODEL ESTIMATED MARGINAL MEANS\n\n');
-              fprintf('name                                   mean        CI_lower    CI_upper        n\n');
-              fprintf('--------------------------------------------------------------------------------\n');
+              fprintf ('\nMODEL ESTIMATED MARGINAL MEANS\n\n');
+              fprintf (cat (2, 'name                                   ', ...
+                               'mean        CI_lower    CI_upper        n\n'));
+              fprintf (cat (2, '---------------------------------------', ...
+                               '-----------------------------------------\n'));
             case {'pairwise', 'trt_vs_ctrl'}
-              fprintf('\nMODEL POSTHOC COMPARISONS\n\n');
-              fprintf('name                                   mean        CI_lower    CI_upper    p-adj\n');
-              fprintf('--------------------------------------------------------------------------------\n');
+              fprintf ('\nMODEL POSTHOC COMPARISONS\n\n');
+              fprintf (cat (2, 'name                                   ', ...
+                               'mean        CI_lower    CI_upper    p-adj\n'));
+              fprintf (cat (2, '---------------------------------------', ...
+                               '-----------------------------------------\n'));
           end
         end
         for j = 1:size (NAMES, 1)
-          if ( (isempty (DIM)) || (ismember (lower (POSTHOC), {'pairwise', 'trt_vs_ctrl'})) )
+          if ( (isempty (DIM)) || (ismember (lower (POSTHOC), ...
+                                             {'pairwise', 'trt_vs_ctrl'})) )
             fprintf ('%-37s  %#-+10.4g  %#-+10.4g  %#-+10.4g', ...
-                     NAMES{j}(1:min(end,37)), STATS.estimate(j), STATS.CI_lower(j), STATS.CI_upper(j));
+                     NAMES{j}(1:min(end,37)), STATS.estimate(j), ...
+                     STATS.CI_lower(j), STATS.CI_upper(j));
             if (isempty (STATS.pval))
               fprintf ('       \n');
             elseif (STATS.pval(j) <= 0.001)
@@ -952,7 +975,8 @@ function [STATS, BOOTSTAT, X, L] = bootlm (Y, GROUP, varargin)
             end
           else
             fprintf ('%-37s  %#-+10.4g  %#-+10.4g  %#-+10.4g  %5u\n', ...
-                     NAMES{j}(1:min(end,37)), STATS.estimate(j), STATS.CI_lower(j), STATS.CI_upper(j), STATS.n(j));
+                     NAMES{j}(1:min(end,37)), STATS.estimate(j), ...
+                     STATS.CI_lower(j), STATS.CI_upper(j), STATS.n(j));
           end
         end
         fprintf('\n');
@@ -967,7 +991,8 @@ function [STATS, BOOTSTAT, X, L] = bootlm (Y, GROUP, varargin)
         fit = X * b;                             % Fitted values
         D = (1 / p) * t.^2 .* (h ./ (1 - h));    % Cook's distances
         [jnk, DI] = sort (D, 'descend');         % Sorted Cook's distances
-        nk = 4;                                  % Number of most influential data points to label
+        nk = 4;                                  % Number of most influential
+                                                 % data points to label
 
         % Normal quantile-quantile plot
         subplot (2, 2, 1);
@@ -1052,7 +1077,7 @@ function [STATS, BOOTSTAT, X, L] = bootlm (Y, GROUP, varargin)
 
       otherwise
 
-        error ('bootlm: wrong value for ''display'' parameter.');
+        error ('bootlm: wrong value for ''display'' parameter.')
 
   end
 
@@ -1060,8 +1085,9 @@ end
 
 %--------------------------------------------------------------------------
 
-function [X, levels, nlevels, df, termcols, coeffnames, vmeans, gid, CONTRASTS, center_continuous] = ...
-         mDesignMatrix (GROUP, TERMS, CONTINUOUS, CONTRASTS, VARNAMES, n, Nm, Nx, Ng, cont_vec)
+function [X, levels, nlevels, df, termcols, coeffnames, vmeans, gid, ...
+         CONTRASTS, center_continuous] = mDesignMatrix (GROUP, TERMS, ...
+         CONTINUOUS, CONTRASTS, VARNAMES, n, Nm, Nx, Ng, cont_vec)
 
   % EVALUATE PREDICTOR LEVELS
   levels = cell (Nm, 1);
@@ -1139,16 +1165,17 @@ function [X, levels, nlevels, df, termcols, coeffnames, vmeans, gid, CONTRASTS, 
         % Check that the contrast matrix provided is the correct size
         if (~ all (size (CONTRASTS{j},1) == nlevels(j)))
           error (cat (2, 'bootlm: the number of rows in the contrast', ...
-                         ' matrices should equal the number of predictor levels'));
+                         ' matrices should equal the number of', ...
+                         ' predictor levels'))
         end
         if (~ all (size (CONTRASTS{j},2) == df(j)))
           error (cat (2, 'bootlm: the number of columns in each contrast', ...
-                         ' matrix should equal the degrees of freedom (i.e.', ...
-                         ' number of levels minus 1) for that predictor'));
+                         ' matrix should equal the degrees of freedom', ...
+                         ' (i.e. number of levels minus 1) for that predictor'))
         end
         if (~ all (any (CONTRASTS{j})))
           error (cat (2, 'bootlm: a contrast must be coded in each', ...
-                         ' column of the contrast matrices'));
+                         ' column of the contrast matrices'))
         end
       else
         switch (lower (CONTRASTS{j}))
@@ -1176,7 +1203,8 @@ function [X, levels, nlevels, df, termcols, coeffnames, vmeans, gid, CONTRASTS, 
       end
       C = CONTRASTS{j};
       func = @(x) x(gid(:,j));
-      X{1+j} = cell2mat (cellfun (func, num2cell (C, 1), 'UniformOutput', false));
+      X{1+j} = cell2mat (cellfun (func, num2cell (C, 1), ...
+                                  'UniformOutput', false));
       % Create names of the coefficients relating to continuous main effects
       coeffnames{1+j} = cell (df(j), 1);
       for v = 1:df(j)
@@ -1357,7 +1385,7 @@ function [L, pairs] = trt_vs_ctrl (L_EMM, REF)
   % to generate estimated marginal means
   Ng = size (unique (L_EMM','rows'), 1);
   if (REF > Ng)
-    error ('trt_vs_ctrl: REF exceeds number of groups (i.e. rows in L_EMM)');
+    error ('trt_vs_ctrl: REF exceeds number of groups (i.e. rows in L_EMM)')
   end
 
   % Create pairs matrix for pairwise comparisons
@@ -1483,12 +1511,12 @@ end
 %!
 %! % 95% confidence intervals and p-values for the differences in mean strength
 %! % of three alloys (computed by wild bootstrap)
-%! STATS = bootlm (strength, alloy, 'display', 'on', 'varnames', 'alloy',...
+%! STATS = bootlm (strength, alloy, 'display', 'on', 'varnames', 'alloy', ...
 %!                 'dim', 1, 'posthoc','pairwise');
 %!
 %! % 95% credible intervals for the estimated marginal means of the strengths
 %! % of each of the alloys (computed by Bayesian bootstrap)
-%! STATS = bootlm (strength, alloy, 'display', 'on', 'varnames', 'alloy',...
+%! STATS = bootlm (strength, alloy, 'display', 'on', 'varnames', 'alloy', ...
 %!                 'dim', 1, 'method','bayesian', 'prior', 'auto');
 
 %!demo
@@ -1767,16 +1795,16 @@ end
 %! STATS = bootlm (score, {treatment, exercise, age}, ...
 %!                            'model', [1 0 0; 0 1 0; 0 0 1; 1 1 0], ...
 %!                            'continuous', 3, 'display', 'on', ...
-%!                            'varnames', {'treatment', 'exercise', 'age'},...
+%!                            'varnames', {'treatment', 'exercise', 'age'}, ...
 %!                            'dim', [1, 2], 'posthoc', 'trt_vs_ctrl');
 %!
 %! % 95% credible intervals for the estimated marginal means of scores across
 %! % different treatments and amounts of exercise after adjusting for age
 %! % (computed by Bayesian bootstrap).
-%! STATS = bootlm (score, {treatment, exercise, age}, ...
+%! STATS = bootlm (score, {treatment, exercise, age}, 'dim', [1, 2], ...
 %!                            'model', [1 0 0; 0 1 0; 0 0 1; 1 1 0], ...
-%!                            'continuous', 3, 'display', 'on', 'dim', [1, 2], ...
-%!                            'varnames', {'treatment', 'exercise', 'age'},...
+%!                            'continuous', 3, 'display', 'on', ...
+%!                            'varnames', {'treatment', 'exercise', 'age'}, ...
 %!                            'method', 'bayesian', 'prior', 'auto');
 
 
@@ -2095,7 +2123,7 @@ end
 %! stats = bootlm (score, {treatment, exercise, age}, 'seed', 1, ...
 %!                            'model', [1 0 0; 0 1 0; 0 0 1; 1 1 0], ...
 %!                            'continuous', 3, 'display', 'off', ...
-%!                            'varnames', {'treatment', 'exercise', 'age'},...
+%!                            'varnames', {'treatment', 'exercise', 'age'}, ...
 %!                            'dim', [1, 2]);
 %!
 %! assert (stats.estimate(1), 86.9787857062843,1e-09)
@@ -2108,7 +2136,7 @@ end
 %! stats = bootlm (score, {treatment, exercise, age}, 'seed', 1, ...
 %!                            'model', [1 0 0; 0 1 0; 0 0 1; 1 1 0], ...
 %!                            'continuous', 3, 'display', 'off', ...
-%!                            'varnames', {'treatment', 'exercise', 'age'},...
+%!                            'varnames', {'treatment', 'exercise', 'age'}, ...
 %!                            'dim', [1, 2], 'posthoc', 'trt_vs_ctrl');
 %!
 %! assert (stats.estimate(1), -0.0174571524588316,1e-09)

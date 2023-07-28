@@ -22,9 +22,9 @@
 %        • stdev: the standard deviation of the posterior distribution(s)
 %        • CI_lower: lower bound(s) of the 95% credible interval
 %        • CI_upper: upper bound(s) of the 95% credible interval
-%          By default, the credible intervals are shortest probability intervals,
-%          which represent a more computationally stable version of the highest
-%          posterior density interval [3].
+%          By default, the credible intervals are shortest probability
+%          intervals, which represent a more computationally stable version
+%          of the highest posterior density interval [3].
 %
 %     'bootbayes (Y, X)' also specifies the design matrix (X) for least squares
 %     regression of Y on X. X should be a column vector or matrix the same
@@ -139,7 +139,7 @@ function [stats, bootstat] = bootbayes (Y, X, dep, nboot, prob, prior, seed, L)
 
   % Check the number of function arguments
   if (nargin < 1)
-    error ('bootbayes: Y must be provided');
+    error ('bootbayes: Y must be provided')
   end
   if (nargin > 8)
     error ('bootbayes: Too many input arguments')
@@ -154,7 +154,7 @@ function [stats, bootstat] = bootbayes (Y, X, dep, nboot, prob, prior, seed, L)
 
   % Calculate the size of Y
   if (nargin < 1)
-    error ('bootbayes: DATA must be provided');
+    error ('bootbayes: DATA must be provided')
   end
   sz = size (Y);
   n = sz(1);
@@ -173,7 +173,8 @@ function [stats, bootstat] = bootbayes (Y, X, dep, nboot, prob, prior, seed, L)
   else
     intercept_only = false;
     if (sz(2) > 1) 
-      error ('bootbayes: Y must be a column vector if X does not define an intercept-only model');
+      error (cat (2, 'bootbayes: Y must be a column vector if X does not', ... 
+                     ' define an intercept-only model'))
     end
     % Evaluate hypothesis matrix (L)
     if ( (nargin < 8) || isempty (L) )
@@ -184,7 +185,8 @@ function [stats, bootstat] = bootbayes (Y, X, dep, nboot, prob, prior, seed, L)
       % Calculate number of parameters
       [m, p] = size (L);
       if (m ~= k)
-        error ('bootbayes: the number rows in L must be the same as the number of columns in X')
+        error (cat (2, 'bootbayes: the number rows in L must be the same', ...
+                       ' as the number of columns in X'))
       end
     end
   end
@@ -203,7 +205,8 @@ function [stats, bootstat] = bootbayes (Y, X, dep, nboot, prob, prior, seed, L)
       % Prepare for cluster Bayesian bootstrap
       clustid = dep;
       if ( any (size (clustid) ~= [n, 1]) )
-        error ('bootbayes: CLUSTID must be a column vector with the same number of rows as Y')
+        error (cat (2, 'bootbayes: CLUSTID must be a column vector with', ...
+                       ' the same number of rows as Y'))
       end
       [C, IA, IC] = unique (clustid);
       N = numel (C); % Number of clusters
@@ -215,7 +218,7 @@ function [stats, bootstat] = bootbayes (Y, X, dep, nboot, prob, prior, seed, L)
     method = '';
   end
   if (N < 2)
-    error ('bootbayes: Y must contain more than one independent sampling unit');
+    error ('bootbayes: Y must contain more than one independent sampling unit')
   end
 
   % Evaluate number of bootstrap resamples
@@ -223,13 +226,13 @@ function [stats, bootstat] = bootbayes (Y, X, dep, nboot, prob, prior, seed, L)
     nboot = 1999;
   else
     if (~ isa (nboot, 'numeric'))
-      error ('bootbayes: NBOOT must be numeric');
+      error ('bootbayes: NBOOT must be numeric')
     end
     if (numel (nboot) > 1)
-      error ('bootbayes: NBOOT must be scalar');
+      error ('bootbayes: NBOOT must be scalar')
     end
     if (nboot ~= abs (fix (nboot)))
-      error ('bootbayes: NBOOT must be a positive integer');
+      error ('bootbayes: NBOOT must be a positive integer')
     end
   end
 
@@ -240,19 +243,20 @@ function [stats, bootstat] = bootbayes (Y, X, dep, nboot, prob, prior, seed, L)
   else
     nprob = numel (prob);
     if (~ isa (prob, 'numeric') || (nprob > 2))
-      error ('bootbayes: PROB must be a scalar or a vector of length 2');
+      error ('bootbayes: PROB must be a scalar or a vector of length 2')
     end
     if (size (prob, 1) > 1)
       prob = prob.';
     end
     if (any ((prob < 0) | (prob > 1)))
-      error ('bootbayes: Value(s) in PROB must be between 0 and 1');
+      error ('bootbayes: Value(s) in PROB must be between 0 and 1')
     end
     if (nprob > 1)
       % PROB is a pair of probabilities
       % Make sure probabilities are in the correct order
       if (prob(1) > prob(2) )
-        error ('bootbayes: The pair of probabilities must be in ascending numeric order');
+        error (cat (2, 'bootbayes: The pair of probabilities must be in', ...
+                       ' ascending numeric order'))
       end
     end
   end
@@ -272,7 +276,8 @@ function [stats, bootstat] = bootbayes (Y, X, dep, nboot, prob, prior, seed, L)
       if (intercept_only)
         prior = 1 - 2 / N;
       else
-        warning ('bootbayes: PRIOR value ''auto'' not available for this model. PRIOR reverting to 1.')
+        warning (cat (2, 'bootbayes: PRIOR value ''auto'' not available', ...
+                         ' for this model. PRIOR reverting to 1.'))
         prior = 1;
       end
     else
@@ -319,11 +324,13 @@ function [stats, bootstat] = bootbayes (Y, X, dep, nboot, prob, prior, seed, L)
   if (intercept_only)
     bootfun = @(Y) sum (bsxfun (@times, Y, W));  % Faster!
     original = mean (Y, 1)';
-    bootstat = cell2mat (cellfun (bootfun, num2cell (Y, 1)', 'UniformOutput', false));
+    bootstat = cell2mat (cellfun (bootfun, num2cell (Y, 1)', ...
+                                 'UniformOutput', false));
   else
     bootfun = @(w) lmfit (X, Y, diag (w), L);
     original = bootfun (ones (n, 1) / n);
-    bootstat = cell2mat (cellfun (bootfun, num2cell (W, 1), 'UniformOutput', false));
+    bootstat = cell2mat (cellfun (bootfun, num2cell (W, 1), ...
+                                  'UniformOutput', false));
   end
 
   % Bootstrap bias estimation
@@ -408,8 +415,10 @@ end
 
 function print_output (stats, nboot, prob, prior, p, L, method, intercept_only)
 
-    fprintf (['\nSummary of Bayesian bootstrap estimates of bias and precision for linear models\n',...
-              '*******************************************************************************\n\n']);
+    fprintf (cat (2, '\nSummary of Bayesian bootstrap estimates of bias', ...
+                     ' and precision for linear models\n', ...
+                     '*************************************************', ...
+                     '******************************\n\n'));
     fprintf ('Bootstrap settings: \n');
     if (intercept_only)
         fprintf (' Function: sum (w .* Y)\n');
@@ -421,7 +430,7 @@ function print_output (stats, nboot, prob, prior, p, L, method, intercept_only)
       end
     end
     fprintf (' Resampling method: Bayesian %sbootstrap\n', method)
-    fprintf (' Prior: Symmetric Dirichlet distribution of weights (a = %.3g)\n', prior)
+    fprintf (' Prior: Symmetric Dirichlet distribution (a = %.3g)\n', prior)
     fprintf (' Number of resamples: %u \n', nboot)
     if (~ isempty (prob) && ~ all (isnan (prob)))
       nprob = numel (prob);
@@ -429,19 +438,24 @@ function print_output (stats, nboot, prob, prior, p, L, method, intercept_only)
         % prob is a vector of probabilities
         fprintf (' Credible interval (CI) type: Percentile interval\n');
         mass = 100 * abs (prob(2) - prob(1));
-        fprintf (' Credible interval: %.3g%% (%.1f%%, %.1f%%)\n', mass, 100 * prob);
+        fprintf (' Credible interval: %.3g%% (%.1f%%, %.1f%%)\n', ...
+                 mass, 100 * prob);
       else
         % prob is a two-tailed probability
-        fprintf (' Credible interval (CI) type: Shortest probability interval\n');
+        fprintf (cat (2, ' Credible interval (CI) type: Shortest', ...
+                         ' probability interval\n'));
         mass = 100 * prob;
         fprintf (' Credible interval: %.3g%%\n', mass);
       end
     end
     fprintf ('\nPosterior Statistics: \n');
-    fprintf (' original     bias         median       stdev       CI_lower      CI_upper\n');
+    fprintf (cat (2, ' original     bias         median       stdev', 
+                     '       CI_lower      CI_upper\n'));
     for j = 1:p
-      fprintf (' %#-+10.4g   %#-+10.4g   %#-+10.4g   %#-10.4g  %#-+10.4g    %#-+10.4g\n',... 
-               [stats.original(j), stats.bias(j), stats.median(j), stats.stdev(j), stats.CI_lower(j), stats.CI_upper(j)]);
+      fprintf (cat (2, ' %#-+10.4g   %#-+10.4g   %#-+10.4g   %#-10.4g', ...
+                       '  %#-+10.4g    %#-+10.4g\n'), ... 
+               [stats.original(j), stats.bias(j), stats.median(j), ...
+                stats.stdev(j), stats.CI_lower(j), stats.CI_upper(j)]);
     end
     fprintf ('\n');
 
