@@ -572,11 +572,11 @@ function [pval, c, stats] = bootnhst (data, group, varargin)
                        ' standard errors: %u \n'), nboot(2));
     end
     if (isempty (ref))
-      fprintf (' Multiple comparison method:%s \n', 
-                       ' Single-step maxT procedure based on Tukey-Kramer');
+      fprintf (' Multiple comparison method:%s \n', ... 
+               ' Single-step maxT procedure based on Tukey-Kramer');
     else
-      fprintf ( ' Multiple comparison method:%s \n', ...
-                ' Single-step maxT procedure based on Dunnett');
+      fprintf (' Multiple comparison method:%s \n', ...
+               ' Single-step maxT procedure based on Dunnett');
       fprintf (' Reference group used for comparisons: %s \n', gnames{ref});
     end
     fprintf (cat (2, '------------------------------------------------', ...
