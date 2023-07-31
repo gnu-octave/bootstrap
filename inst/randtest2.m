@@ -217,6 +217,7 @@ function [pval, stat, STATS] = randtest2 (x, y, paired, nreps, seed)
         error (cat (2, 'randtest2: X and Y must have the same number of', ...
                        ' sampling units for PAIRED = true'))
       end
+      nz = nx;
       if (any (ux ~= uy))
         error (cat (2, 'randtest2: GX and GY must use the same IDs for', ...
                        ' sampling units when PAIRED = true'))
@@ -230,15 +231,15 @@ function [pval, stat, STATS] = randtest2 (x, y, paired, nreps, seed)
                   mat2cell (y(:, 1), accumarray (gy, 1))');
 
       % Create permutations or perform randomization
-      if (2^nx < nreps)
-        I = (dec2bin (0 : 2^nx - 1).' - '0') + 1; % For exact permutation test
-        nreps = 2^nx;
+      if (2^nz < nreps)
+        I = (dec2bin (0 : 2^nz - 1).' - '0') + 1; % For exact permutation test
+        nreps = 2^nz;
       else 
-        I = (rand (nx, nreps) > 0.5) + 1; % For approximate randomization test
+        I = (rand (nz, nreps) > 0.5) + 1; % For approximate randomization test
       end
-      X = arrayfun (@(i) z(I(i, :), i), 1 : nx, 'UniformOutput', false);
+      X = arrayfun (@(i) z(I(i, :), i), 1 : nz, 'UniformOutput', false);
       X = [X{:}]';
-      Y = arrayfun (@(i) z(3 - (I(i, :)), i), 1 : nx, 'UniformOutput', false);
+      Y = arrayfun (@(i) z(3 - (I(i, :)), i), 1 : nz, 'UniformOutput', false);
       Y = [Y{:}]';
 
       % Check if we can vectorize function evaluations

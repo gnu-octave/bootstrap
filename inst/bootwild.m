@@ -8,6 +8,7 @@
 % -- Function File: bootwild (y, X, ..., NBOOT, ALPHA, SEED, L)
 % -- Function File: STATS = bootwild (y, ...)
 % -- Function File: [STATS, BOOTSTAT] = bootwild (y, ...)
+% -- Function File: [STATS, BOOTSTAT, BOOTSSE] = bootwild (y, ...)
 %
 %     'bootwild (y)' performs a null hypothesis significance test for the
 %     mean of y being equal to 0. This function implements wild bootstrap-t
@@ -76,11 +77,16 @@
 %     it will assume the default value of 1 (i.e. no change to the design). 
 %
 %     'STATS = bootwild (...) returns a structure with the following fields:
-%     original, std_err, CI_lower, CI_upper, tstat, pval & fpr. 
+%     original, std_err, CI_lower, CI_upper, tstat, pval, fpr and the sum-of-
+%     squared error (sse).
 %
-%     '[STATS, BOOTSTAT] = bootwild (...)  also returns the a vector (or
-%     matrix) of bootstrap statistics (BOOTSTAT) calculated over the bootstrap
-%     resamples (before studentization).
+%     '[STATS, BOOTSTAT] = bootwild (...)  also returns a vector (or matrix) of
+%     bootstrap statistics (BOOTSTAT) calculated over the bootstrap resamples
+%     (before studentization).
+%
+%     '[STATS, BOOTSTAT, BOOTSSE] = bootwild (...)  also returns a vector
+%     containing the sum-of-squared error for the fit on each bootstrap 
+%     resample.
 %
 %  Bibliography:
 %  [1] Wu (1986). Jackknife, bootstrap and other resampling methods in
@@ -117,7 +123,8 @@
 %  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-function [stats, bootstat] = bootwild (y, X, dep, nboot, alpha, seed, L)
+function [stats, bootstat, bootsse] = bootwild (y, X, ...
+                                                     dep, nboot, alpha, seed, L)
 
   % Check the number of function arguments
   if (nargin < 1)
@@ -126,7 +133,7 @@ function [stats, bootstat] = bootwild (y, X, dep, nboot, alpha, seed, L)
   if (nargin > 7)
     error ('bootwild: Too many input arguments')
   end
-  if (nargout > 2)
+  if (nargout > 3)
     error ('bootwild: Too many output arguments')
   end
 
@@ -231,12 +238,7 @@ function [stats, bootstat] = bootwild (y, X, dep, nboot, alpha, seed, L)
 
   % Set random seed
   if ( (nargin > 5) && (~ isempty (seed)) )
-    if (ISOCTAVE)
-      rand ('seed', seed);
-      randn ('seed', seed);
-    else
-      rng (seed, 'twister');
-    end
+    rand ('seed', seed);
   end
 
   % Set Hypothesis matrix (L)
@@ -254,10 +256,12 @@ function [stats, bootstat] = bootwild (y, X, dep, nboot, alpha, seed, L)
   S = bootfun (y);
   original = S.b;
   std_err = S.se;
+  sse = S.sse;
   t = original ./ std_err;
 
   % Wild bootstrap resampling (Webb's 6-point distribution)
-  s = sign (randn (G, nboot)) .* sqrt (0.5 * (fix (rand (G, nboot) * 3) + 1));
+  s = sign (rand (G, nboot) - 0.5) .* ...
+      sqrt (0.5 * (fix (rand (G, nboot) * 3) + 1));
   if (~ isempty (IC))
     s = s(IC, :);  % Enforce clustering/blocking
   end
@@ -271,6 +275,7 @@ function [stats, bootstat] = bootwild (y, X, dep, nboot, alpha, seed, L)
                               'UniformOutput', false));
   bootstat = [bootout.b];
   bootse = [bootout.se];
+  bootsse = [bootout.sse];
 
   % Studentize the bootstrap statistics and compute two-tailed confidence
   % intervals and p-values following both guidelines described in Hall and
@@ -317,6 +322,7 @@ function [stats, bootstat] = bootwild (y, X, dep, nboot, alpha, seed, L)
   stats.tstat = t;
   stats.pval = pval;
   stats.fpr = fpr;
+  stats.sse = sse;
 
   % Print output if no output arguments are requested
   if (nargout == 0) 
@@ -335,7 +341,7 @@ function S = lmfit (X, y, clusters, L, ISOCTAVE)
 
   % Solve linear equation to minimize least squares and compute the
   % regression coefficients (b) 
-  b = X \ y;                    % Instead of inv (X' * X) * (X' * y);
+  b = X \ y;                 % Instead of inv (X' * X) * (X' * y);
 
   % Calculate heteroscedasticity-consistent (HC) or cluster robust (CR) standard 
   % errors (CR) for the regression coefficients. When the number of observations
@@ -369,6 +375,7 @@ function S = lmfit (X, y, clusters, L, ISOCTAVE)
     S.b = L' * b;
     S.se = sqrt (diag (L' * vcov * L));
   end
+  S.sse = sum (u.^2);
 
 
 end
@@ -526,36 +533,36 @@ end
 %! stats = bootwild(heights-H0,[],[],[],0.05,1);
 %! assert (stats.original, 3.0, 1e-06);
 %! assert (stats.std_err, 1.242980289465605, 1e-06);
-%! assert (stats.CI_lower, 0.192974029740606, 1e-06);
-%! assert (stats.CI_upper, 5.807025970259393, 1e-06);
+%! assert (stats.CI_lower, 0.1338910532454438, 1e-06);
+%! assert (stats.CI_upper, 5.866108946754555, 1e-06);
 %! assert (stats.tstat, 2.413553960127389, 1e-06);
-%! assert (stats.pval, 0.03930865600075086, 1e-06);
-%! assert (stats.fpr, 0.2569510022708824, 1e-06);
+%! assert (stats.pval, 0.04363142391272781, 1e-06);
+%! assert (stats.fpr, 0.2708502563156392, 1e-06);
 %! # ttest gives a p-value of 0.0478
 %! stats = bootwild(heights-H0,[],[],[],[0.025,0.975],1);
 %! assert (stats.original, 3.0, 1e-06);
 %! assert (stats.std_err, 1.242980289465605, 1e-06);
-%! assert (stats.CI_lower, 0.1941186116173519, 1e-06);
-%! assert (stats.CI_upper, 5.838265571832242, 1e-06);
+%! assert (stats.CI_lower, 0.01340070207731392, 1e-06);
+%! assert (stats.CI_upper, 5.801890495593613, 1e-06);
 %! assert (stats.tstat, 2.413553960127389, 1e-06);
-%! assert (stats.pval, 0.03930865600075086, 1e-06);
-%! assert (stats.fpr, 0.2569510022708824, 1e-06);
+%! assert (stats.pval, 0.04363142391272781, 1e-06);
+%! assert (stats.fpr, 0.2708502563156392, 1e-06);
 %! stats = bootwild(heights-H0,[],2,[],0.05,1);
 %! assert (stats.original, 3.0, 1e-06);
 %! assert (stats.std_err, 1.240967364599086, 1e-06);
-%! assert (stats.CI_lower, -2.862072249982984, 1e-06);
-%! assert (stats.CI_upper, 8.862072249982983, 1e-06);
+%! assert (stats.CI_lower, -2.826975743769153, 1e-06);
+%! assert (stats.CI_upper, 8.826975743769152, 1e-06);
 %! assert (stats.tstat, 2.41746889207614, 1e-06);
-%! assert (stats.pval, 0.1231944614456351, 1e-06);
-%! assert (stats.fpr, 0.4121900184840715, 1e-06);
+%! assert (stats.pval, 0.1297336562664251, 1e-06);
+%! assert (stats.fpr, 0.4186764774953166, 1e-06);
 %! stats = bootwild(heights-H0,[],[1;1;2;2;3;3;4;4;5;5],[],0.05,1);
 %! assert (stats.original, 3.0, 1e-06);
 %! assert (stats.std_err, 1.240967364599086, 1e-06);
-%! assert (stats.CI_lower, -2.862072249982984, 1e-06);
-%! assert (stats.CI_upper, 8.862072249982983, 1e-06);
+%! assert (stats.CI_lower, -2.826975743769153, 1e-06);
+%! assert (stats.CI_upper, 8.826975743769152, 1e-06);
 %! assert (stats.tstat, 2.41746889207614, 1e-06);
-%! assert (stats.pval, 0.1231944614456351, 1e-06);
-%! assert (stats.fpr, 0.4121900184840715, 1e-06);
+%! assert (stats.pval, 0.1297336562664251, 1e-06);
+%! assert (stats.fpr, 0.4186764774953166, 1e-06);
 
 %!test
 %! ## Test if the regression coefficients equal 0
@@ -585,25 +592,25 @@ end
 %! stats = bootwild(y,X,[],[],0.05,1);
 %! assert (stats.original(2), 0.1904211996616223, 1e-06);
 %! assert (stats.std_err(2), 0.08261019852213342, 1e-06);
-%! assert (stats.CI_lower(2), -0.005756584267003151, 1e-06);
-%! assert (stats.CI_upper(2), 0.3865989835902477, 1e-06);
+%! assert (stats.CI_lower(2), -0.0008180267754335224, 1e-06);
+%! assert (stats.CI_upper(2), 0.3816604260986781, 1e-06);
 %! assert (stats.tstat(2), 2.305056797685863, 1e-06);
-%! assert (stats.pval(2), 0.05428537255683808, 1e-06);
-%! assert (stats.fpr(2), 0.3006624755702829, 1e-06);
+%! assert (stats.pval(2), 0.05133180571394391, 1e-06);
+%! assert (stats.fpr(2), 0.2929561493533854, 1e-06);
 %! # fitlm gives a CI of [0.0333, 0.34753] and a p-value of 0.018743
 %! stats = bootwild(y,X,[],[],[0.025,0.975],1);
 %! assert (stats.original(2), 0.1904211996616223, 1e-06);
 %! assert (stats.std_err(2), 0.08261019852213342, 1e-06);
-%! assert (stats.CI_lower(2), -0.01012856677977617, 1e-06);
-%! assert (stats.CI_upper(2), 0.3840597512351299, 1e-06);
+%! assert (stats.CI_lower(2), -0.0008180267754335224, 1e-06);
+%! assert (stats.CI_upper(2), 0.3831445183919875, 1e-06);
 %! assert (stats.tstat(2), 2.305056797685863, 1e-06);
-%! assert (stats.pval(2), 0.05428537255683808, 1e-06);
-%! assert (stats.fpr(2), 0.3006624755702829, 1e-06);
+%! assert (stats.pval(2), 0.05133180571394391, 1e-06);
+%! assert (stats.fpr(2), 0.2929561493533854, 1e-06);
 %! stats = bootwild(y,X,3,[],0.05,1);
 %! assert (stats.original(2), 0.1904211996616223, 1e-06);
 %! assert (stats.std_err(2), 0.07170701459665534, 1e-06);
-%! assert (stats.CI_lower(2), -0.02153328646880504, 1e-06);
-%! assert (stats.CI_upper(2), 0.4023756857920496, 1e-06);
+%! assert (stats.CI_lower(2), -0.0242385109696315, 1e-06);
+%! assert (stats.CI_upper(2), 0.4050809102928761, 1e-06);
 %! assert (stats.tstat(2), 2.655544938423697, 1e-06);
-%! assert (stats.pval(2), 0.06949187300471388, 1e-06);
-%! assert (stats.fpr(2), 0.3349765740645297, 1e-06);
+%! assert (stats.pval(2), 0.07716525989964551, 1e-06);
+%! assert (stats.fpr(2), 0.3495327983695262, 1e-06);

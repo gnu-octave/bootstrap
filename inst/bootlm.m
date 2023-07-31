@@ -387,7 +387,7 @@ function [STATS, BOOTSTAT, X, L] = bootlm (Y, GROUP, varargin)
     ALPHA = 0.05;
     DIM = [];
     NBOOT = 9999;
-    SEED = [];
+    SEED = rand ('seed');
     DEP = [];
     POSTHOC = 'none';
     METHOD = 'wild';
@@ -695,7 +695,7 @@ function [STATS, BOOTSTAT, X, L] = bootlm (Y, GROUP, varargin)
       L = unique (H, 'rows', 'stable').';
     end
 
-    % Fit linear model, and calculate sums-of-squares
+    % Fit linear model
     X = cell2mat (X);
     [b, sse, resid, ucov, hat] = lmfit (X, Y, ISOCTAVE);
 
@@ -737,7 +737,7 @@ function [STATS, BOOTSTAT, X, L] = bootlm (Y, GROUP, varargin)
         case 'wild'
           [STATS, BOOTSTAT] = bootwild (Y, X, DEP, NBOOT, ALPHA, SEED);
           % Clean-up
-          STATS = rmfield (STATS, {'std_err', 'tstat'});
+          STATS = rmfield (STATS, {'std_err', 'tstat', 'sse'});
           STATS.n = n;
           STATS.prior = [];
         case {'bayes', 'bayesian'}
@@ -820,13 +820,13 @@ function [STATS, BOOTSTAT, X, L] = bootlm (Y, GROUP, varargin)
             case 'wild'
               [STATS, BOOTSTAT] = bootwild (Y, X, DEP, NBOOT, ALPHA, SEED, L);
               % Clean-up
-              STATS = rmfield (STATS, {'std_err', 'tstat'});
+              STATS = rmfield (STATS, {'std_err', 'tstat', 'sse'});
               STATS.prior = [];
             case {'bayes', 'bayesian'}
               switch (lower (PRIOR))
                 case 'auto'
                   PRIOR = 1 - 2 ./ N_dim;
-                  [STATS, BOOTSTAT] = arrayfun (@ (i) bootbayes ...
+                  [STATS, BOOTSTAT] = arrayfun (@(i) bootbayes ...
                             (Y, X, DEP, NBOOT, fliplr (1 - ALPHA), PRIOR(i), ...
                             SEED, L(:, i)), (1:Np)', 'UniformOutput', false);
                   STATS = flatten_struct (cell2mat (STATS));
@@ -873,7 +873,7 @@ function [STATS, BOOTSTAT, X, L] = bootlm (Y, GROUP, varargin)
               % Control the type 1 error rate across multiple comparisons
               STATS.pval = holm (STATS.pval);
               % Clean-up
-              STATS = rmfield (STATS, {'std_err', 'tstat'});
+              STATS = rmfield (STATS, {'std_err', 'tstat', 'sse'});
               STATS.prior = [];
             case {'bayes', 'bayesian'}
               switch (lower (PRIOR))
@@ -881,7 +881,7 @@ function [STATS, BOOTSTAT, X, L] = bootlm (Y, GROUP, varargin)
                   wgt = bsxfun (@rdivide, N_dim(pairs')', ...
                                 sum (N_dim(pairs')', 2));
                   PRIOR = sum ((1 - wgt) .* (1 - 2 ./ N_dim(pairs')'), 2);
-                  [STATS, BOOTSTAT] = arrayfun (@ (i) bootbayes ...
+                  [STATS, BOOTSTAT] = arrayfun (@(i) bootbayes ...
                       (Y, X, DEP, NBOOT, fliplr (1 - ALPHA), PRIOR(i), SEED, ...
                       L(:, i)), (1:size (L, 2))', 'UniformOutput', false);
                   STATS = flatten_struct (cell2mat (STATS));
@@ -1849,8 +1849,8 @@ end
 %! stats = bootlm (score, gender, 'display', 'off', 'varnames', 'gender', ...
 %!                                'seed', 1);
 %!
-%! assert (stats.pval(2), 0.2522687089625693, 1e-09);
-%! assert (stats.fpr(2), 0.4857128637824449, 1e-09);
+%! assert (stats.pval(2), 0.2434934955512797, 1e-09);
+%! assert (stats.fpr(2), 0.4832095599189747, 1e-09);
 %! # ttest2 (with 'vartype' = 'unequal') gives a p-value of 0.2501;
 
 %!test
@@ -1867,12 +1867,12 @@ end
 %!                            'model', 'linear', 'display', 'off', ...
 %!                            'varnames', {'treatment', 'subject'});
 %!
-%! assert (stats.pval(1), 0.00100087778897761, 1e-09);
-%! assert (stats.pval(2), 0.002868126970709827, 1e-09);
-%! assert (stats.pval(3), 0.9892672977884182, 1e-09);
-%! assert (stats.pval(4), 0.06087393569557521, 1e-09);
-%! assert (stats.pval(5), 0.4389332986449987, 1e-09);
-%! assert (stats.pval(6), 0.354909344180929, 1e-09);
+%! assert (stats.pval(1), 0.0007121854921651461, 1e-09);
+%! assert (stats.pval(2), 0.002663469844077049, 1e-09);
+%! assert (stats.pval(3), 0.9871019104281634, 1e-09);
+%! assert (stats.pval(4), 0.06635496003290851, 1e-09);
+%! assert (stats.pval(5), 0.4382333666561282, 1e-09);
+%! assert (stats.pval(6), 0.3639361232818474, 1e-09);
 
 %!test
 %!
@@ -1888,10 +1888,10 @@ end
 %! stats = bootlm (strength, alloy, 'display', 'off', 'varnames', 'alloy', ...
 %!                                  'seed', 1);
 %!
-%! assert (stats.CI_lower(2), -10.20037530058417, 1e-09);
-%! assert (stats.CI_upper(2), -3.799624699415834, 1e-09);
-%! assert (stats.CI_lower(3), -7.457429359919704, 1e-09);
-%! assert (stats.CI_upper(3), -2.542570640080289, 1e-09);
+%! assert (stats.CI_lower(2), -10.17909151307657, 1e-09);
+%! assert (stats.CI_upper(2), -3.820908486923432, 1e-09);
+%! assert (stats.CI_lower(3), -7.462255988161777, 1e-09);
+%! assert (stats.CI_upper(3), -2.537744011838216, 1e-09);
 
 %!test
 %!
@@ -1910,10 +1910,10 @@ end
 %!                            'model', 'linear', 'display', 'off', ...
 %!                            'varnames', {'seconds', 'subject'});
 %!
-%! assert (stats.CI_lower(2), 1.276363559403318, 1e-09);
-%! assert (stats.CI_upper(2), 2.723636440596679, 1e-09);
-%! assert (stats.CI_lower(3), 2.544455654381935, 1e-09);
-%! assert (stats.CI_upper(3), 3.855544345618067, 1e-09);
+%! assert (stats.CI_lower(2), 1.266092224054235, 1e-09);
+%! assert (stats.CI_upper(2), 2.733907775945761, 1e-09);
+%! assert (stats.CI_lower(3), 2.554265809089302, 1e-09);
+%! assert (stats.CI_upper(3), 3.845734190910699, 1e-09);
 
 %!test
 %!
@@ -1936,15 +1936,15 @@ end
 %!                            'display', 'off', 'model', 'full', ...
 %!                            'varnames', {'brands', 'popper'});
 %!
-%! assert (stats.pval(2), 0.0001436506546788672, 1e-09);
+%! assert (stats.pval(2), 0.0001, 1e-09);
 %! assert (stats.pval(3), 0.0001, 1e-09);
-%! assert (stats.pval(4), 0.0001, 1e-09);
-%! assert (stats.pval(5), 0.3402396254368116, 1e-09);
-%! assert (stats.pval(6), 0.7263425362368797, 1e-09);
-%! assert (stats.fpr(2), 0.003443146335509678, 1e-09);
+%! assert (stats.pval(4), 0.0001338515324481833, 1e-09);
+%! assert (stats.pval(5), 0.3403340334033442, 1e-09);
+%! assert (stats.pval(6), 0.7317882724305511, 1e-09);
+%! assert (stats.fpr(2), 0.00249737757706675, 1e-09);
 %! assert (stats.fpr(3), 0.00249737757706675, 1e-09);
-%! assert (stats.fpr(4), 0.00249737757706675, 1e-09);
-%! assert (stats.fpr(5), 0.4992749657585027, 1e-09);
+%! assert (stats.fpr(4), 0.003234567489304454, 1e-09);
+%! assert (stats.fpr(5), 0.4992799823055505, 1e-09);
 %! assert (stats.fpr(6), 0.5, 1e-09);
 
 
@@ -1964,10 +1964,10 @@ end
 %!                            'display', 'off', 'varnames', ...
 %!                            {'gender', 'degree'}, 'seed', 1);
 %!
-%! assert (stats.pval(2), 0.01406818609176285, 1e-09);
+%! assert (stats.pval(2), 0.01257386294526463, 1e-09);
 %! assert (stats.pval(3), 0.0001, 1e-09);
-%! assert (stats.pval(4), 0.5809459712341916, 1e-09);
-%! assert (stats.fpr(2), 0.1401952385938415, 1e-09);
+%! assert (stats.pval(4), 0.5820694859231055, 1e-09);
+%! assert (stats.fpr(2), 0.1301119743071732, 1e-09);
 %! assert (stats.fpr(3), 0.00249737757706675, 1e-09);
 %! assert (stats.fpr(4), 0.5, 1e-09);
 
@@ -1987,10 +1987,10 @@ end
 %! stats = bootlm (babble, {sugar, milk}, 'model', 'full', 'display', 'off', ...
 %!                                'seed', 1, 'varnames', {'sugar', 'milk'});
 %!
-%! assert (stats.pval(5), 0.003917346474807314, 1e-09);
-%! assert (stats.pval(6), 0.05673065479108684, 1e-09);
-%! assert (stats.fpr(5), 0.05572840553301912, 1e-09);
-%! assert (stats.fpr(6), 0.3067572560895312, 1e-09);
+%! assert (stats.pval(5), 0.00433268463709287, 1e-09);
+%! assert (stats.pval(6), 0.05620134119970051, 1e-09);
+%! assert (stats.fpr(5), 0.06022795764518322, 1e-09);
+%! assert (stats.fpr(6), 0.305458916611921, 1e-09);
 
 %!test
 %!
@@ -2025,9 +2025,9 @@ end
 %!                                    'display', 'off', ...
 %!                                    'varnames', {'drug', 'feedback', 'diet'});
 %!
-%! assert (stats.pval(11), 0.02297857925770157, 1e-09);
-%! assert (stats.pval(12), 0.7056743770028762, 1e-09);
-%! assert (stats.fpr(11), 0.1907303868418116, 1e-09);
+%! assert (stats.pval(11), 0.02526763886213725, 1e-09);
+%! assert (stats.pval(12), 0.7018793210074815, 1e-09);
+%! assert (stats.fpr(11), 0.2016845586758846, 1e-09);
 %! assert (stats.fpr(12), 0.5, 1e-09);
 
 %!test
@@ -2052,10 +2052,10 @@ end
 %!                            'varnames', {'strain', 'treatment', 'block'}, ...
 %!                            'display', 'off', 'seed', 1);
 %!
-%! assert (stats.CI_lower(5), 14.89025282865407, 1e-09);
-%! assert (stats.CI_upper(5), 32.80974717134594, 1e-09);
-%! assert (stats.CI_lower(6), 8.655588995954275, 1e-09);
-%! assert (stats.CI_upper(6), 26.59441100404568, 1e-09);
+%! assert (stats.CI_lower(5), 14.99530281970879, 1e-09);
+%! assert (stats.CI_upper(5), 32.70469718029122, 1e-09);
+%! assert (stats.CI_lower(6), 8.532527166069837, 1e-09);
+%! assert (stats.CI_upper(6), 26.71747283393012, 1e-09);
 
 %!test
 %!
@@ -2077,10 +2077,10 @@ end
 %!                           'continuous', 2, 'display', 'off', ...
 %!                           'varnames', {'species', 'temp'}, 'seed', 1);
 %!
-%! assert (stats.CI_lower(2), -11.40245549631918, 1e-09);
-%! assert (stats.CI_upper(2), -8.72812697277881, 1e-09);
-%! assert (stats.CI_lower(3), 3.408541223207923, 1e-09);
-%! assert (stats.CI_upper(3), 3.796964526508431, 1e-09);
+%! assert (stats.CI_lower(2), -11.39708913283456, 1e-09);
+%! assert (stats.CI_upper(2), -8.733493336263431, 1e-09);
+%! assert (stats.CI_lower(3), 3.408042874444446, 1e-09);
+%! assert (stats.CI_upper(3), 3.797462875271908, 1e-09);
 
 %!test
 %!
@@ -2115,10 +2115,10 @@ end
 %!                            'continuous', 3, 'display', 'off', ...
 %!                            'varnames', {'treatment', 'exercise', 'age'});
 %!
-%! assert (stats.pval(6), 0.9618068010244014, 1e-09);
-%! assert (stats.pval(7), 0.01466220576305719, 1e-09);
+%! assert (stats.pval(6), 0.9605479032987221, 1e-09);
+%! assert (stats.pval(7), 0.01418066878652798, 1e-09);
 %! assert (stats.fpr(6), 0.5, 1e-09);
-%! assert (stats.fpr(7), 0.1440490761644554, 1e-09);
+%! assert (stats.fpr(7), 0.1409314554632885, 1e-09);
 %!
 %! stats = bootlm (score, {treatment, exercise, age}, 'seed', 1, ...
 %!                            'model', [1 0 0; 0 1 0; 0 0 1; 1 1 0], ...
@@ -2166,27 +2166,27 @@ end
 %!                          'alpha', 0.05, 'display', false);
 %!
 %! assert (stats.pval(2), 0.0001, 1e-09);
-%! assert (stats.pval(3), 0.001675546463652104, 1e-09);
-%! assert (stats.pval(4), 0.0001, 1e-09);
-%! assert (stats.pval(5), 0.0002875091745611925, 1e-09);
+%! assert (stats.pval(3), 0.00189427105584975, 1e-09);
+%! assert (stats.pval(4), 0.0001532987133628411, 1e-09);
+%! assert (stats.pval(5), 0.0001, 1e-09);
 %! assert (stats.fpr(2), 0.00249737757706675, 1e-09);
-%! assert (stats.fpr(3), 0.02828780695090297, 1e-09);
-%! assert (stats.fpr(4), 0.00249737757706675, 1e-09);
-%! assert (stats.fpr(5), 0.00633244794586181, 1e-09);
+%! assert (stats.fpr(3), 0.03127029873554629, 1e-09);
+%! assert (stats.fpr(4), 0.003646660191047087, 1e-09);
+%! assert (stats.fpr(5), 0.00249737757706675, 1e-09);
 %!
 %! stats = bootlm (dv, g, 'contrasts', C, 'varnames', 'score', 'seed', 1, ...
 %!                          'alpha', 0.05, 'display', false, 'dim', 1);
 %!
-%! assert (stats.CI_lower(1), 7.802443427449296, 1e-09);
-%! assert (stats.CI_lower(2), 14.51570579873496, 1e-09);
-%! assert (stats.CI_lower(3), 16.53324956039551, 1e-09);
-%! assert (stats.CI_lower(4), 18.55566298069364, 1e-09);
-%! assert (stats.CI_lower(5), 26.64733319414601, 1e-09);
-%! assert (stats.CI_upper(1), 12.19755657255075, 1e-09);
-%! assert (stats.CI_upper(2), 21.48429420126507, 1e-09);
-%! assert (stats.CI_upper(3), 21.46675043960451, 1e-09);
-%! assert (stats.CI_upper(4), 23.44462273359208, 1e-09);
-%! assert (stats.CI_upper(5), 31.35288902807623, 1e-09);
+%! assert (stats.CI_lower(1), 7.779565592818237, 1e-09);
+%! assert (stats.CI_lower(2), 14.425268941132, 1e-09);
+%! assert (stats.CI_lower(3), 16.41718457146695, 1e-09);
+%! assert (stats.CI_lower(4), 18.5226387867019, 1e-09);
+%! assert (stats.CI_lower(5), 26.66171082767947, 1e-09);
+%! assert (stats.CI_upper(1), 12.22043440718181, 1e-09);
+%! assert (stats.CI_upper(2), 21.57473105886803, 1e-09);
+%! assert (stats.CI_upper(3), 21.58281542853307, 1e-09);
+%! assert (stats.CI_upper(4), 23.47764692758382, 1e-09);
+%! assert (stats.CI_upper(5), 31.33851139454277, 1e-09);
 
 %!test
 %!
@@ -2202,9 +2202,9 @@ end
 %! stats = bootlm (y, g, 'display', false, 'dim', 1, 'posthoc', 'pairwise', ...
 %!                       'seed', 1);
 %!
-%! assert (stats.pval(1), 0.02257228301077761, 1e-09);
-%! assert (stats.pval(2), 0.009116801372527121, 1e-09);
-%! assert (stats.pval(3), 0.1550614031528714, 1e-09);
-%! assert (stats.fpr(1), 0.120933032759112, 1e-09);
-%! assert (stats.fpr(2), 0.04569311618185678, 1e-09);
-%! assert (stats.fpr(3), 0.4399796283617526, 1e-09);
+%! assert (stats.pval(1), 0.02381212481394462, 1e-09);
+%! assert (stats.pval(2), 0.009547350172112052, 1e-09);
+%! assert (stats.pval(3), 0.1541408530918242, 1e-09);
+%! assert (stats.fpr(1), 0.1254120362272493, 1e-09);
+%! assert (stats.fpr(2), 0.04738586302975815, 1e-09);
+%! assert (stats.fpr(3), 0.4392984660114189, 1e-09);
