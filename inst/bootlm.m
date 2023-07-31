@@ -737,7 +737,7 @@ function [STATS, BOOTSTAT, X, L] = bootlm (Y, GROUP, varargin)
         case 'wild'
           [STATS, BOOTSTAT] = bootwild (Y, X, DEP, NBOOT, ALPHA, SEED);
           % Clean-up
-          STATS = rmfield (STATS, {'std_err', 'tstat', 'sse'});
+          STATS = rmfield (STATS, {'std_err', 'tstat'});
           STATS.n = n;
           STATS.prior = [];
         case {'bayes', 'bayesian'}
@@ -820,7 +820,7 @@ function [STATS, BOOTSTAT, X, L] = bootlm (Y, GROUP, varargin)
             case 'wild'
               [STATS, BOOTSTAT] = bootwild (Y, X, DEP, NBOOT, ALPHA, SEED, L);
               % Clean-up
-              STATS = rmfield (STATS, {'std_err', 'tstat', 'sse'});
+              STATS = rmfield (STATS, {'std_err', 'tstat'});
               STATS.prior = [];
             case {'bayes', 'bayesian'}
               switch (lower (PRIOR))
@@ -873,7 +873,7 @@ function [STATS, BOOTSTAT, X, L] = bootlm (Y, GROUP, varargin)
               % Control the type 1 error rate across multiple comparisons
               STATS.pval = holm (STATS.pval);
               % Clean-up
-              STATS = rmfield (STATS, {'std_err', 'tstat', 'sse'});
+              STATS = rmfield (STATS, {'std_err', 'tstat'});
               STATS.prior = [];
             case {'bayes', 'bayesian'}
               switch (lower (PRIOR))
