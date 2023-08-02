@@ -135,13 +135,14 @@
 %  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-function [stats, bootstat] = bootbayes (Y, X, dep, nboot, prob, prior, seed, L)
+function [stats, bootstat] = bootbayes (Y, X, dep, nboot, prob, prior, seed, ...
+                                        L, ISOCTAVE)
 
   % Check the number of function arguments
   if (nargin < 1)
     error ('bootbayes: Y must be provided')
   end
-  if (nargin > 8)
+  if (nargin > 9)
     error ('bootbayes: Too many input arguments')
   end
   if (nargout > 2)
@@ -149,8 +150,14 @@ function [stats, bootstat] = bootbayes (Y, X, dep, nboot, prob, prior, seed, L)
   end
 
   % Check if running in Octave (else assume Matlab)
-  info = ver; 
-  ISOCTAVE = any (ismember ({info.Name}, 'Octave'));
+  if (nargin < 9)
+    info = ver; 
+    ISOCTAVE = any (ismember ({info.Name}, 'Octave'));
+  else
+    if (~ islogical (ISOCTAVE))
+      error ('bootbayes: ISOCTAVE must be a logical scalar.')
+    end
+  end
 
   % Calculate the size of Y
   if (nargin < 1)

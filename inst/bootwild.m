@@ -8,6 +8,7 @@
 % -- Function File: bootwild (y, X, ..., NBOOT, ALPHA, SEED, L)
 % -- Function File: STATS = bootwild (y, ...)
 % -- Function File: [STATS, BOOTSTAT] = bootwild (y, ...)
+% -- Function File: [STATS, BOOTSTAT, BOOTSSE] = bootwild (y, ...)
 %
 %     'bootwild (y)' performs a null hypothesis significance test for the
 %     mean of y being equal to 0. This function implements wild bootstrap-t
@@ -76,12 +77,16 @@
 %     it will assume the default value of 1 (i.e. no change to the design). 
 %
 %     'STATS = bootwild (...) returns a structure with the following fields:
-%     original, std_err, CI_lower, CI_upper, tstat, pval & fpr.
+%     original, std_err, CI_lower, CI_upper, tstat, pval, fpr and the sum-of-
+%     squared error (sse).
 %
 %     '[STATS, BOOTSTAT] = bootwild (...)  also returns a vector (or matrix) of
 %     bootstrap statistics (BOOTSTAT) calculated over the bootstrap resamples
 %     (before studentization).
 %
+%     '[STATS, BOOTSTAT, BOOTSSE] = bootwild (...)  also returns a vector
+%     containing the sum-of-squared error for the fit on each bootstrap 
+%     resample.
 %
 %  Bibliography:
 %  [1] Wu (1986). Jackknife, bootstrap and other resampling methods in
@@ -118,14 +123,14 @@
 %  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-function [stats, bootstat] = bootwild (y, X, ...
-                                                     dep, nboot, alpha, seed, L)
+function [stats, bootstat, bootsse] = bootwild (y, X, ...
+                                          dep, nboot, alpha, seed, L, ISOCTAVE)
 
   % Check the number of function arguments
   if (nargin < 1)
     error ('bootwild: y must be provided')
   end
-  if (nargin > 7)
+  if (nargin > 8)
     error ('bootwild: Too many input arguments')
   end
   if (nargout > 3)
@@ -133,8 +138,14 @@ function [stats, bootstat] = bootwild (y, X, ...
   end
 
   % Check if running in Octave (else assume Matlab)
-  info = ver; 
-  ISOCTAVE = any (ismember ({info.Name}, 'Octave'));
+  if (nargin < 8)
+    info = ver; 
+    ISOCTAVE = any (ismember ({info.Name}, 'Octave'));
+  else
+    if (~ islogical (ISOCTAVE))
+      error ('bootwild: ISOCTAVE must be a logical scalar.')
+    end
+  end
 
   % Calculate the length of y
   if (nargin < 1)
@@ -251,6 +262,7 @@ function [stats, bootstat] = bootwild (y, X, ...
   S = bootfun (y);
   original = S.b;
   std_err = S.se;
+  sse = S.sse;
   t = original ./ std_err;
 
   % Wild bootstrap resampling (Webb's 6-point distribution)
@@ -269,6 +281,7 @@ function [stats, bootstat] = bootwild (y, X, ...
                               'UniformOutput', false));
   bootstat = [bootout.b];
   bootse = [bootout.se];
+  bootsse = [bootout.sse];
 
   % Studentize the bootstrap statistics and compute two-tailed confidence
   % intervals and p-values following both guidelines described in Hall and
@@ -315,6 +328,7 @@ function [stats, bootstat] = bootwild (y, X, ...
   stats.tstat = t;
   stats.pval = pval;
   stats.fpr = fpr;
+  stats.sse = sse;
 
   % Print output if no output arguments are requested
   if (nargout == 0) 
@@ -367,6 +381,7 @@ function S = lmfit (X, y, clusters, L, ISOCTAVE)
     S.b = L' * b;
     S.se = sqrt (diag (L' * vcov * L));
   end
+  S.sse = sum (u.^2);
 
 
 end

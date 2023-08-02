@@ -16,8 +16,9 @@
 % -- statistics: bootlm (Y, GROUP, ..., 'seed', SEED)
 % -- statistics: STATS = bootlm (...)
 % -- statistics: [STATS, BOOTSTAT] = bootlm (...)
-% -- statistics: [STATS, BOOTSTAT, X] = bootlm (...)
-% -- statistics: [STATS, BOOTSTAT, X, L] = bootlm (...)
+% -- statistics: [STATS, BOOTSTAT, AOVSTATS] = bootlm (...)
+% -- statistics: [STATS, BOOTSTAT, AOVSTATS, X] = bootlm (...)
+% -- statistics: [STATS, BOOTSTAT, AOVSTATS, X, L] = bootlm (...)
 %
 %        Fits a linear model with categorical and/or continuous predictors (i.e.
 %     independent variables) on a continuous outcome (i.e. dependent variable)
@@ -331,20 +332,39 @@
 %        • 'n': The sample size(s)
 %        • 'prior': The prior used for Bayesian bootstrap
 %
-%        Note that the p-values returned are truncated at the resolution limit
-%        determined by the number of bootstrap replicates (in the order of
-%        1 / NBOOT).
+%        Note that the p-values returned are truncated at the resolution
+%        limit determined by the number of bootstrap replicates, specifically 
+%        1 / (NBOOT + 1).
 %
 %     '[STATS, BOOTSTAT] = bootlm (...)' also returns a P x NBOOT matrix of
 %     bootstrap statistics for the estimated parameters, where P is the number
 %     of parameters estimated in the model.
 %
-%     '[STATS, BOOTSTAT, X] = bootlm (...)' also returns the design matrix for
-%     the linear  model.
+%     '[STATS, BOOTSTAT, AOVSTATS] = bootlm (...)' also returns the ANOVA
+%     statistics in a structure with the following fields: 
+%        • 'MODEL': The formula of the linear model in Wilkinson's notation
+%        • 'SS': Sum-of-squares
+%        • 'DF': Degrees of freedom
+%        • 'MS': Mean-squares
+%        • 'F': F-Statistic
+%        • 'PVAL': p-values
+%        • 'SSE': Error sum-of-squares
+%        • 'DFE': Error degrees of freedom
+%        • 'MSE': Error mean squares
+%        • 'SST': Total sum-of-squares
+%        • 'DFT': Total degrees of freedom
+%     The ANOVA uses sequential (type I) sums-of-squares and so the results
+%     and their interpretation depend on the order of predictors in the GROUP
+%     variable. Note that ANOVA statistics are only returned for wild bootstrap
+%     and when no other statistics are requested (i.e. estimated marginal means
+%     or posthoc tests).
 %
-%     '[STATS, BOOTSTAT, X, L] = bootlm (...)' also returns the hypothesis
-%     matrix used to compute the estimated marginal means or posthoc tests
-%     from the regression coefficients.
+%     '[STATS, BOOTSTAT, AOVSTATS, X] = bootlm (...)' also returns the design
+%     matrix for the linear  model.
+%
+%     '[STATS, BOOTSTAT, AOVSTATS, X, L] = bootlm (...)' also returns the
+%     hypothesis matrix used to compute the estimated marginal means or posthoc
+%     tests from the regression coefficients.
 %
 %  bootlm (version 2023.07.14)
 %  Author: Andrew Charles Penn
@@ -361,13 +381,13 @@
 %  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 %  GNU General Public License for more details.
 
-function [STATS, BOOTSTAT, X, L] = bootlm (Y, GROUP, varargin)
+function [STATS, BOOTSTAT, AOVSTATS, X, L] = bootlm (Y, GROUP, varargin)
 
     if (nargin < 2)
       error (cat (2, 'bootlm usage: ''bootlm (Y, GROUP)''; ', ...
                      ' atleast 2 input arguments required'))
     end
-    if (nargout > 4)
+    if (nargout > 5)
       error ('bootlm: Too many output arguments')
     end
 
@@ -735,14 +755,31 @@ function [STATS, BOOTSTAT, X, L] = bootlm (Y, GROUP, varargin)
       % Model coefficients
       switch (lower (METHOD))
         case 'wild'
-          [STATS, BOOTSTAT] = bootwild (Y, X, DEP, NBOOT, ALPHA, SEED);
+          % Perform regression on full model using the specified contrasts
+          [STATS, BOOTSTAT] = bootwild (Y, X, DEP, NBOOT, ALPHA, SEED, [], ...
+                                        ISOCTAVE);
           % Clean-up
-          STATS = rmfield (STATS, {'std_err', 'tstat'});
+          STATS = rmfield (STATS, {'std_err', 'tstat', 'sse'});
           STATS.n = n;
           STATS.prior = [];
+          % Perform ANOVA
+          AOVSTATS = bootanova (Y, X, cat (1, 1, df), dfe, ...
+                                DEP, NBOOT, ALPHA, SEED, ISOCTAVE);
+          TERMNAMES = arrayfun (@(i) sprintf (':%s', ...
+                                              VARNAMES{TERMS(i,:)}), ...
+                                              1 : Nt, 'UniformOutput', false);
+          AOVSTATS.MODEL = cell (Nt, 1);
+          AOVSTATS.MODEL{1} = sprintf ('Y ~ 1 + %s', TERMNAMES{1}(2:end));
+          for i = 2:Nt
+            AOVSTATS.MODEL{i} = sprintf ('%s + %s', AOVSTATS.MODEL{i-1}, ...
+                                                    TERMNAMES{i}(2:end));
+          end
+          AOVSTATS = orderfields (AOVSTATS, {'MODEL', 'SS', 'DF', 'MS', ...
+                                   'F','PVAL','SSE','DFE','MSE','SST','DFT'});
         case {'bayes', 'bayesian'}
           [STATS, BOOTSTAT] = bootbayes (Y, X, DEP, NBOOT, ...
-                                         fliplr (1 - ALPHA), PRIOR, SEED);
+                                         fliplr (1 - ALPHA), PRIOR, SEED, ...
+                                         [], ISOCTAVE);
           % Clean-up
           STATS = rmfield (STATS, {'median', 'bias', 'stdev'});
           STATS.pval = [];
@@ -818,22 +855,24 @@ function [STATS, BOOTSTAT, X, L] = bootlm (Y, GROUP, varargin)
           % Model estimated marginal means
           switch (lower (METHOD))
             case 'wild'
-              [STATS, BOOTSTAT] = bootwild (Y, X, DEP, NBOOT, ALPHA, SEED, L);
+              [STATS, BOOTSTAT] = bootwild (Y, X, DEP, NBOOT, ALPHA, SEED, ...
+                                            L, ISOCTAVE);
               % Clean-up
-              STATS = rmfield (STATS, {'std_err', 'tstat'});
+              STATS = rmfield (STATS, {'std_err', 'tstat', 'sse'});
               STATS.prior = [];
             case {'bayes', 'bayesian'}
               switch (lower (PRIOR))
                 case 'auto'
                   PRIOR = 1 - 2 ./ N_dim;
-                  [STATS, BOOTSTAT] = arrayfun (@(i) bootbayes ...
-                            (Y, X, DEP, NBOOT, fliplr (1 - ALPHA), PRIOR(i), ...
-                            SEED, L(:, i)), (1:Np)', 'UniformOutput', false);
+                  [STATS, BOOTSTAT] = arrayfun (@(i) bootbayes (Y, X, ...
+                         DEP, NBOOT, fliplr (1 - ALPHA), PRIOR(i), SEED, ...
+                         L(:, i), ISOCTAVE), (1:Np)', 'UniformOutput', false);
                   STATS = flatten_struct (cell2mat (STATS));
                   BOOTSTAT = cell2mat (BOOTSTAT);
                 otherwise
                   [STATS, BOOTSTAT] = bootbayes (Y, X, DEP, NBOOT, ...
-                                         fliplr (1 - ALPHA), PRIOR, SEED, L);
+                                         fliplr (1 - ALPHA), PRIOR, SEED, ...
+                                         L, ISOCTAVE);
               end
               % Clean-up
               STATS = rmfield (STATS, {'median', 'bias', 'stdev'});
@@ -869,11 +908,12 @@ function [STATS, BOOTSTAT, X, L] = bootlm (Y, GROUP, varargin)
           end
           switch (lower (METHOD))
             case 'wild'
-              [STATS, BOOTSTAT] = bootwild (Y, X, DEP, NBOOT, ALPHA, SEED, L);
+              [STATS, BOOTSTAT] = bootwild (Y, X, DEP, NBOOT, ALPHA, SEED, ...
+                                            L, ISOCTAVE);
               % Control the type 1 error rate across multiple comparisons
               STATS.pval = holm (STATS.pval);
               % Clean-up
-              STATS = rmfield (STATS, {'std_err', 'tstat'});
+              STATS = rmfield (STATS, {'std_err', 'tstat', 'sse'});
               STATS.prior = [];
             case {'bayes', 'bayesian'}
               switch (lower (PRIOR))
@@ -881,14 +921,14 @@ function [STATS, BOOTSTAT, X, L] = bootlm (Y, GROUP, varargin)
                   wgt = bsxfun (@rdivide, N_dim(pairs')', ...
                                 sum (N_dim(pairs')', 2));
                   PRIOR = sum ((1 - wgt) .* (1 - 2 ./ N_dim(pairs')'), 2);
-                  [STATS, BOOTSTAT] = arrayfun (@(i) bootbayes ...
-                      (Y, X, DEP, NBOOT, fliplr (1 - ALPHA), PRIOR(i), SEED, ...
-                      L(:, i)), (1:size (L, 2))', 'UniformOutput', false);
+                  [STATS, BOOTSTAT] = arrayfun (@(i) bootbayes (Y, X, DEP, ...
+                     NBOOT, fliplr (1 - ALPHA), PRIOR(i), SEED, L(:, i), ...
+                     ISOCTAVE), (1:size (L, 2))', 'UniformOutput', false);
                   STATS = flatten_struct (cell2mat (STATS));
                   BOOTSTAT = cell2mat (BOOTSTAT);
                 otherwise
                   [STATS, BOOTSTAT] = bootbayes (Y, X, DEP, NBOOT, ...
-                            fliplr (1 - ALPHA), PRIOR, SEED, L);
+                            fliplr (1 - ALPHA), PRIOR, SEED, L, ISOCTAVE);
               end
               % Clean-up
               STATS = rmfield (STATS, {'median', 'bias', 'stdev'});
@@ -1454,6 +1494,65 @@ end
 
 %--------------------------------------------------------------------------
 
+% FUNCTION TO PERFORM ANOVA
+
+function AOVSTATS = bootanova (Y, X, DF, DFE, DEP, NBOOT, ALPHA, SEED, ISOCTAVE)
+
+  % Bootstrap ANOVA (using sequential sums-of-squares, a.k.a. Type 1)
+
+  % Compute observed statistics
+  Nt = numel (DF) - 1;
+  [jnk, SSE, RESID] = arrayfun (@(j) lmfit (X(:, 1 : sum (DF(1:j))), Y, ...
+                                ISOCTAVE), (1:Nt + 1)', 'UniformOutput', false);
+  SS = max (-diff (cell2mat (SSE)), 0);
+  MS = SS ./ DF(2:end);
+  MSE = SSE{end} / DFE;
+  F = MS / MSE;
+
+  % Obtain the F distribution under the null hypothesis by bootstrap of the
+  % residuals from the full model. See ter Braak (1992) Permutation versus
+  % bootstrap significance test in multiple regression and ANOVA. In Jockel
+  % et al (Eds.) Bootstrapping and Related Techniques. Springer-Verlag, Berlin,
+  % pg 79-86
+  [jnk, jnk, BOOTSSE] = arrayfun (@(j) bootwild (RESID{end}, ...
+                                X(:, 1 : sum (DF(1:j))), ...
+                                DEP, NBOOT, ALPHA, SEED, [], ISOCTAVE), ...
+                                (1:Nt + 1)', 'UniformOutput', false);
+  BOOTSSE = cell2mat (BOOTSSE);
+  BOOTSS = max (-diff (BOOTSSE), 0);
+  BOOTMS = bsxfun (@rdivide, BOOTSS, DF(2:end));
+  BOOTMSE = BOOTSSE(end,:) / DFE;
+  BOOTF = bsxfun (@rdivide, BOOTMS, BOOTMSE);
+
+  % Compute p-values
+  res_lim = 1 / (NBOOT + 1);
+  PVAL = nan (Nt, 1);
+  for j = 1:Nt
+    [x, jnk, P] = bootcdf (BOOTF(j,:), true, 1);
+    if (F(j) < x(1))
+      PVAL(j) = interp1 (x, P, F(j), 'linear', 1);
+    else
+      PVAL(j) = interp1 (x, P, F(j), 'linear', res_lim);
+    end
+  end
+
+  % Prepare output
+  AOVSTATS = struct;
+  AOVSTATS.SS = SS;
+  AOVSTATS.DF = DF(2:end);
+  AOVSTATS.MS = MS;
+  AOVSTATS.F = F;
+  AOVSTATS.PVAL = PVAL;
+  AOVSTATS.SSE = SSE{end};
+  AOVSTATS.DFE = DFE;
+  AOVSTATS.MSE = MSE;
+  AOVSTATS.SST = SSE{1};
+  AOVSTATS.DFT = size (X, 1) - 1;
+
+end
+
+%--------------------------------------------------------------------------
+
 %!demo
 %!
 %! # Two-sample unpaired test on independent samples (equivalent to Welch's
@@ -1960,15 +2059,32 @@ end
 %!           'm' 'm' 'm' 'm' 'm' 'm' 'm' 'm' 'm' 'm'}';
 %! degree = [1 1 1 1 1 1 1 1 0 0 0 0 1 1 1 0 0 0 0 0 0 0]';
 %!
-%! stats = bootlm (salary, {gender, degree}, 'model', 'full', ...
-%!                            'display', 'off', 'varnames', ...
+%! [stats, bootstat, aovstats] = bootlm (salary, {gender, degree}, ...
+%!                            'model', 'full', 'display', 'off', 'varnames', ...
 %!                            {'gender', 'degree'}, 'seed', 1);
 %!
+%! assert (aovstats.PVAL(1), 0.7523035992551597, 1e-09);   % Normal ANOVA: 0.747 
+%! assert (aovstats.PVAL(2), 0.0001, 1e-09);               % Normal ANOVA: <.001 
+%! assert (aovstats.PVAL(3), 0.5666177238662272, 1e-09);   % Normal ANOVA: 0.524
 %! assert (stats.pval(2), 0.01257386294526463, 1e-09);
 %! assert (stats.pval(3), 0.0001, 1e-09);
 %! assert (stats.pval(4), 0.5820694859231055, 1e-09);
 %! assert (stats.fpr(2), 0.1301119743071732, 1e-09);
 %! assert (stats.fpr(3), 0.00249737757706675, 1e-09);
+%! assert (stats.fpr(4), 0.5, 1e-09);
+%!
+%! [stats, bootstat, aovstats] = bootlm (salary, {degree, gender}, ...
+%!                            'model', 'full', 'display', 'off', 'varnames', ...
+%!                            {'degree', 'gender'}, 'seed', 1);
+%!
+%! assert (aovstats.PVAL(1), 0.0001, 1e-09);               % Normal ANOVA: <.001 
+%! assert (aovstats.PVAL(2), 0.004950446391560281, 1e-09); % Normal ANOVA: 0.004
+%! assert (aovstats.PVAL(3), 0.566617723866227, 1e-09);    % Normal ANOVA: 0.524
+%! assert (stats.pval(2), 0.0001, 1e-09);
+%! assert (stats.pval(3), 0.01257386294526464, 1e-09);
+%! assert (stats.pval(4), 0.5820694859231067, 1e-09);
+%! assert (stats.fpr(2), 0.00249737757706675, 1e-09);
+%! assert (stats.fpr(3), 0.1301119743071733, 1e-09);
 %! assert (stats.fpr(4), 0.5, 1e-09);
 
 %!test
