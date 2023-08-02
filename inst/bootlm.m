@@ -16,9 +16,9 @@
 % -- statistics: bootlm (Y, GROUP, ..., 'seed', SEED)
 % -- statistics: STATS = bootlm (...)
 % -- statistics: [STATS, BOOTSTAT] = bootlm (...)
-% -- statistics: [STATS, BOOTSTAT, AOVSTATS] = bootlm (...)
-% -- statistics: [STATS, BOOTSTAT, AOVSTATS, X] = bootlm (...)
-% -- statistics: [STATS, BOOTSTAT, AOVSTATS, X, L] = bootlm (...)
+% -- statistics: [STATS, BOOTSTAT, AOVSTAT] = bootlm (...)
+% -- statistics: [STATS, BOOTSTAT, AOVSTAT, X] = bootlm (...)
+% -- statistics: [STATS, BOOTSTAT, AOVSTAT, X, L] = bootlm (...)
 %
 %        Fits a linear model with categorical and/or continuous predictors (i.e.
 %     independent variables) on a continuous outcome (i.e. dependent variable)
@@ -340,29 +340,27 @@
 %     bootstrap statistics for the estimated parameters, where P is the number
 %     of parameters estimated in the model.
 %
-%     '[STATS, BOOTSTAT, AOVSTATS] = bootlm (...)' also returns the ANOVA
-%     statistics in a structure with the following fields: 
-%        • 'MODEL': The formula of the linear model in Wilkinson's notation
+%     '[STATS, BOOTSTAT, AOVSTAT] = bootlm (...)' also computes and returns
+%     ANOVA statistics in a structure with the following fields: 
+%        • 'MODEL': The formula of the linear model(s) in Wilkinson's notation
 %        • 'SS': Sum-of-squares
 %        • 'DF': Degrees of freedom
 %        • 'MS': Mean-squares
 %        • 'F': F-Statistic
 %        • 'PVAL': p-values
-%        • 'SSE': Error sum-of-squares
-%        • 'DFE': Error degrees of freedom
-%        • 'MSE': Error mean squares
-%        • 'SST': Total sum-of-squares
-%        • 'DFT': Total degrees of freedom
+%        • 'SSE': Sum-of-Squared Error
+%        • 'DFE': Degrees of Freedom for Error
+%        • 'MSE': Mean Squared Error
 %     The ANOVA uses sequential (type I) sums-of-squares and so the results
 %     and their interpretation depend on the order of predictors in the GROUP
-%     variable. Note that ANOVA statistics are only returned for wild bootstrap
-%     and when no other statistics are requested (i.e. estimated marginal means
-%     or posthoc tests).
+%     variable when the design is not balanced. Note that ANOVA statistics are
+%     only returned for wild bootstrap AND when no other statistics are
+%     requested (i.e. estimated marginal means or posthoc tests).
 %
-%     '[STATS, BOOTSTAT, AOVSTATS, X] = bootlm (...)' also returns the design
+%     '[STATS, BOOTSTAT, AOVSTAT, X] = bootlm (...)' also returns the design
 %     matrix for the linear  model.
 %
-%     '[STATS, BOOTSTAT, AOVSTATS, X, L] = bootlm (...)' also returns the
+%     '[STATS, BOOTSTAT, AOVSTAT, X, L] = bootlm (...)' also returns the
 %     hypothesis matrix used to compute the estimated marginal means or posthoc
 %     tests from the regression coefficients.
 %
@@ -381,7 +379,7 @@
 %  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 %  GNU General Public License for more details.
 
-function [STATS, BOOTSTAT, AOVSTATS, X, L] = bootlm (Y, GROUP, varargin)
+function [STATS, BOOTSTAT, AOVSTAT, X, L] = bootlm (Y, GROUP, varargin)
 
     if (nargin < 2)
       error (cat (2, 'bootlm usage: ''bootlm (Y, GROUP)''; ', ...
@@ -413,6 +411,7 @@ function [STATS, BOOTSTAT, AOVSTATS, X, L] = bootlm (Y, GROUP, varargin)
     METHOD = 'wild';
     PRIOR = 1;
     L = [];
+    AOVSTAT = [];
     for idx = 3:2:nargin
       name = varargin{idx-2};
       value = varargin{idx-1};
@@ -738,7 +737,7 @@ function [STATS, BOOTSTAT, AOVSTATS, X, L] = bootlm (Y, GROUP, varargin)
         blocksz = DEP;
         G = fix (n / blocksz);
         IC = (G + 1) * ones (n, 1);
-        IC(1 : blocksz * G, :) = reshape (ones (blocksz, 1) * [1 : G], [], 1);
+        IC(1 : blocksz * G, :) = reshape (ones (blocksz, 1) * (1:G), [], 1);
       else
         % Clusters
         [jnk, jnk, IC] = unique (DEP);
@@ -752,30 +751,37 @@ function [STATS, BOOTSTAT, AOVSTATS, X, L] = bootlm (Y, GROUP, varargin)
     % Use bootstrap methods to calculate statistics
     if isempty (DIM)
 
+      % Error checking
+      if ( (~ isempty (POSTHOC)) && (~ strcmpi (lower (POSTHOC), 'none')) )
+        error (cat (2, 'bootlm: for posthoc tests you must specify a', ...
+                       ' categorical predictor using the DIM input argument'))
+      end
+
       % Model coefficients
       switch (lower (METHOD))
         case 'wild'
           % Perform regression on full model using the specified contrasts
           [STATS, BOOTSTAT] = bootwild (Y, X, DEP, NBOOT, ALPHA, SEED, [], ...
                                         ISOCTAVE);
-          % Clean-up
+          % Tidy up
           STATS = rmfield (STATS, {'std_err', 'tstat', 'sse'});
           STATS.n = n;
           STATS.prior = [];
-          % Perform ANOVA
-          AOVSTATS = bootanova (Y, X, cat (1, 1, df), dfe, ...
-                                DEP, NBOOT, ALPHA, SEED, ISOCTAVE);
-          TERMNAMES = arrayfun (@(i) sprintf (':%s', ...
-                                              VARNAMES{TERMS(i,:)}), ...
-                                              1 : Nt, 'UniformOutput', false);
-          AOVSTATS.MODEL = cell (Nt, 1);
-          AOVSTATS.MODEL{1} = sprintf ('Y ~ 1 + %s', TERMNAMES{1}(2:end));
-          for i = 2:Nt
-            AOVSTATS.MODEL{i} = sprintf ('%s + %s', AOVSTATS.MODEL{i-1}, ...
-                                                    TERMNAMES{i}(2:end));
+          if (nargout > 2)
+            % Perform ANOVA
+            AOVSTAT = bootanova (Y, X, cat (1, 1, df), dfe, DEP, NBOOT, ALPHA, ...
+                                 SEED, ISOCTAVE);
+            % Add model formulae to AOVSTAT
+            TERMNAMES = arrayfun (@(i) sprintf (':%s', ...
+                                                VARNAMES{TERMS(i,:)}), ...
+                                                1 : Nt, 'UniformOutput', false);
+            AOVSTAT.MODEL = cell (Nt, 1);
+            AOVSTAT.MODEL{1} = sprintf ('Y ~ 1 + %s', TERMNAMES{1}(2:end));
+            for i = 2:Nt
+              AOVSTAT.MODEL{i} = sprintf ('%s + %s', AOVSTAT.MODEL{i-1}, ...
+                                                      TERMNAMES{i}(2:end));
+            end
           end
-          AOVSTATS = orderfields (AOVSTATS, {'MODEL', 'SS', 'DF', 'MS', ...
-                                   'F','PVAL','SSE','DFE','MSE','SST','DFT'});
         case {'bayes', 'bayesian'}
           [STATS, BOOTSTAT] = bootbayes (Y, X, DEP, NBOOT, ...
                                          fliplr (1 - ALPHA), PRIOR, SEED, ...
@@ -943,8 +949,9 @@ function [STATS, BOOTSTAT, AOVSTATS, X, L] = bootlm (Y, GROUP, varargin)
           STATS.n = sum (N_dim(pairs')', 2);
 
           % Create names of posthoc comparisons and assign to the output
-          STATS.name = arrayfun (@(i) sprintf ('%s - %s', NAMES{pairs(i,:)}), ...
-                                (1 : size (pairs,1))', 'UniformOutput', false);
+          STATS.name = arrayfun (@(i) sprintf ('%s - %s', ... 
+                                NAMES{pairs(i,:)}), (1 : size (pairs,1))', ...
+                                'UniformOutput', false);
           NAMES = STATS.name;
 
       end
@@ -1496,7 +1503,7 @@ end
 
 % FUNCTION TO PERFORM ANOVA
 
-function AOVSTATS = bootanova (Y, X, DF, DFE, DEP, NBOOT, ALPHA, SEED, ISOCTAVE)
+function AOVSTAT = bootanova (Y, X, DF, DFE, DEP, NBOOT, ALPHA, SEED, ISOCTAVE)
 
   % Bootstrap ANOVA (using sequential sums-of-squares, a.k.a. Type 1)
 
@@ -1537,17 +1544,8 @@ function AOVSTATS = bootanova (Y, X, DF, DFE, DEP, NBOOT, ALPHA, SEED, ISOCTAVE)
   end
 
   % Prepare output
-  AOVSTATS = struct;
-  AOVSTATS.SS = SS;
-  AOVSTATS.DF = DF(2:end);
-  AOVSTATS.MS = MS;
-  AOVSTATS.F = F;
-  AOVSTATS.PVAL = PVAL;
-  AOVSTATS.SSE = SSE{end};
-  AOVSTATS.DFE = DFE;
-  AOVSTATS.MSE = MSE;
-  AOVSTATS.SST = SSE{1};
-  AOVSTATS.DFT = size (X, 1) - 1;
+  AOVSTAT = struct ('MODEL', [], 'SS', SS, 'DF', DF(2:end), 'MS', MS, 'F', ...
+                     F, 'PVAL', PVAL, 'SSE', SSE{end}, 'DFE', DFE, 'MSE', MSE);
 
 end
 
