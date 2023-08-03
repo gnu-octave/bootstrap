@@ -15,13 +15,13 @@
 %     resampling of Webb's 6-point distribution of the residuals, and computes
 %     p-values after imposing the null hypothesis (H0) [1-4]. The following
 %     statistics are printed to the standard output:
-%        • original: the mean of the data vector y
-%        • std_err: heteroscedasticity-consistent standard error(s)
-%        • CI_lower: lower bound(s) of the 95% bootstrap-t confidence interval
-%        • CI_upper: upper bound(s) of the 95% bootstrap-t confidence interval
-%        • tstat: Student's t-statistic
-%        • pval: two-tailed p-value(s) for the parameter(s) being equal to 0
-%        • fpr: minimum false positive risk for the corresponding p-value
+%        - original: the mean of the data vector y
+%        - std_err: heteroscedasticity-consistent standard error(s)
+%        - CI_lower: lower bound(s) of the 95% bootstrap-t confidence interval
+%        - CI_upper: upper bound(s) of the 95% bootstrap-t confidence interval
+%        - tstat: Student's t-statistic
+%        - pval: two-tailed p-value(s) for the parameter(s) being equal to 0
+%        - fpr: minimum false positive risk for the corresponding p-value
 %          By default, the confidence intervals are symmetric, two-sided
 %          bootstrap-t confidence intervals. The p-values are computed
 %          following both of the guidelines by Hall and Wilson [5]. The minimum
@@ -58,10 +58,10 @@
 %     'bootwild (y, X, ..., NBOOT, ALPHA)' is numeric and sets the lower and
 %     upper bounds of the confidence interval(s). The value(s) of ALPHA must
 %     be between 0 and 1. ALPHA can either be:
-%        • scalar: To set the (nominal) central coverage of SYMMETRIC
+%        o scalar: To set the (nominal) central coverage of SYMMETRIC
 %                  bootstrap-t confidence interval(s) to 100*(1-ALPHA)%.
 %                  For example, 0.05 for a 95% confidence interval.
-%        • vector: A pair of probabilities defining the (nominal) lower and
+%        o vector: A pair of probabilities defining the (nominal) lower and
 %                  upper bounds of ASYMMETRIC bootstrap-t confidence interval(s)
 %                  as 100*(ALPHA(1))% and 100*(ALPHA(2))% respectively. For
 %                  example, [.025, .975] for a 95% confidence interval.
@@ -172,7 +172,7 @@ function [stats, bootstat, bootsse] = bootwild (y, X, ...
       blocksz = dep;
       G = fix (n / blocksz);
       IC = (G + 1) * ones (n, 1);
-      IC(1 : blocksz * G, :) = reshape (ones (blocksz, 1) * [1 : G], [], 1);
+      IC(1 : blocksz * G, :) = reshape (ones (blocksz, 1) * (1:G), [], 1);
       G = IC(end);
       method = 'block ';
     else
@@ -556,16 +556,16 @@ end
 %! stats = bootwild(heights-H0,[],2,[],0.05,1);
 %! assert (stats.original, 3.0, 1e-06);
 %! assert (stats.std_err, 1.240967364599086, 1e-06);
-%! assert (stats.CI_lower, -2.826975743769153, 1e-06);
-%! assert (stats.CI_upper, 8.826975743769152, 1e-06);
+%! assert (stats.CI_lower, -2.816060435625108, 1e-06);
+%! assert (stats.CI_upper, 8.816060435625108, 1e-06);
 %! assert (stats.tstat, 2.41746889207614, 1e-06);
 %! assert (stats.pval, 0.1297336562664251, 1e-06);
 %! assert (stats.fpr, 0.4186764774953166, 1e-06);
 %! stats = bootwild(heights-H0,[],[1;1;2;2;3;3;4;4;5;5],[],0.05,1);
 %! assert (stats.original, 3.0, 1e-06);
 %! assert (stats.std_err, 1.240967364599086, 1e-06);
-%! assert (stats.CI_lower, -2.826975743769153, 1e-06);
-%! assert (stats.CI_upper, 8.826975743769152, 1e-06);
+%! assert (stats.CI_lower, -2.816060435625108, 1e-06);
+%! assert (stats.CI_upper, 8.816060435625108, 1e-06);
 %! assert (stats.tstat, 2.41746889207614, 1e-06);
 %! assert (stats.pval, 0.1297336562664251, 1e-06);
 %! assert (stats.fpr, 0.4186764774953166, 1e-06);

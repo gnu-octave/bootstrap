@@ -16,17 +16,17 @@
 %     bootknife [1], to generate 1999 resamples from the rows of the DATA
 %     (column vector or matrix) and compute their means and display the
 %     following statistics:
-%        • original: the original estimate(s) calculated by BOOTFUN and the DATA
-%        • bias: bootstrap bias of the estimate(s)
-%        • std_error: bootstrap estandard error of the estimate(s)
-%        • CI_lower: lower bound(s) of the 95% bootstrap confidence interval
-%        • CI_upper: upper bound(s) of the 95% bootstrap confidence interval
+%        - original: the original estimate(s) calculated by BOOTFUN and the DATA
+%        - bias: bootstrap bias of the estimate(s)
+%        - std_error: bootstrap estandard error of the estimate(s)
+%        - CI_lower: lower bound(s) of the 95% bootstrap confidence interval
+%        - CI_upper: upper bound(s) of the 95% bootstrap confidence interval
 %
 %     'bootknife (DATA, NBOOT)' specifies the number of bootstrap resamples,
 %     where NBOOT can be either:
-%        • scalar: A positive integer specifying the number of bootstrap
+%       <> scalar: A positive integer specifying the number of bootstrap
 %                  resamples [2,3] for single bootstrap, or
-%        • vector: A pair of positive integers defining the number of outer and
+%       <> vector: A pair of positive integers defining the number of outer and
 %                  inner (nested) resamples for iterated (a.k.a. double)
 %                  bootstrap and coverage calibration [3-6].
 %        THe default value of NBOOT is the scalar: 1999.
@@ -34,9 +34,9 @@
 %     'bootknife (DATA, NBOOT, BOOTFUN)' also specifies BOOTFUN: the function
 %     calculated on the original sample and the bootstrap resamples. BOOTFUN
 %     must be either a:
-%        • function handle,
-%        • string of function name, or
-%        • a cell array where the first cell is one of the above function
+%       <> function handle,
+%       <> string of function name, or
+%       <> a cell array where the first cell is one of the above function
 %          definitions and the remaining cells are (additional) input arguments 
 %          to that function (other than the data arguments).
 %        In all cases BOOTFUN must take DATA for the initial input argument(s).
@@ -57,12 +57,12 @@
 %     'bootknife (..., NBOOT, BOOTFUN, ALPHA)', where ALPHA is numeric and
 %     sets the lower and upper bounds of the confidence interval(s). The
 %     value(s) of ALPHA must be between 0 and 1. ALPHA can either be:
-%        • scalar: To set the (nominal) central coverage of equal-tailed
+%       <> scalar: To set the (nominal) central coverage of equal-tailed
 %                  percentile confidence intervals to 100*(1-ALPHA)%. The
 %                  intervals are either simple percentiles for single
 %                  bootstrap, or percentiles with calibrated central coverage 
 %                  for double bootstrap.
-%        • vector: A pair of probabilities defining the (nominal) lower and
+%       <> vector: A pair of probabilities defining the (nominal) lower and
 %                  upper percentiles of the confidence interval(s) as
 %                  100*(ALPHA(1))% and 100*(ALPHA(2))% respectively. The
 %                  percentiles are either bias-corrected and accelerated (BCa)

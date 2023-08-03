@@ -11,15 +11,15 @@
 %     iteratively call this function, each time incrementally increasing
 %     the number of modes until the null hypothesis (H0) is accepted (i.e.
 %     H=0), where H0 corresponds to the number of modes being equal to M. 
-%        • If H = 0, H0 cannot be rejected at the 5% significance level.
-%        • If H = 1, H0 can be rejected at the 5% significance level.
+%        - If H = 0, H0 cannot be rejected at the 5% significance level.
+%        - If H = 1, H0 can be rejected at the 5% significance level.
 %
 %     'H = bootmode (X, M, NBOOT)' sets the number of bootstrap replicates
 %
 %     'H = bootmode (X, M, NBOOT, KERNEL)' sets the kernel for kernel
 %     density estimation. Possible values are:
-%        • 'Gaussian' (default)
-%        • 'Epanechnikov'
+%        o 'Gaussian' (default)
+%        o 'Epanechnikov'
 %
 %     'H = bootmode (X, M, NBOOT, KERNEL, NPROC)' sets the number of parallel
 %      processes to use to accelerate computations. This feature requires the

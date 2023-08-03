@@ -30,9 +30,9 @@
 %     'bootnhst (..., 'bootfun', BOOTFUN)' also specifies BOOTFUN: the function
 %     calculated on the original sample and the bootstrap resamples. BOOTFUN
 %     must be either a:
-%        • function handle,
-%        • string of function name, or
-%        • a cell array where the first cell is one of the above function
+%        o function handle,
+%        o string of function name, or
+%        o a cell array where the first cell is one of the above function
 %          definitions and the remaining cells are (additional) input arguments 
 %          to that function (other than the data arguments).
 %        In all cases BOOTFUN must take DATA for the initial input argument(s).
@@ -63,14 +63,14 @@
 %     and how to perform bootstrap iterations using multiple processors (if the
 %     Parallel Computing Toolbox or Octave Parallel package is available). This
 %     argument is a structure with the following recognised fields:
-%        • 'UseParallel':  If true, use parallel processes to accelerate
+%        o 'UseParallel':  If true, use parallel processes to accelerate
 %                          bootstrap computations on multicore machines,
 %                          specifically non-vectorized function evaluations,
 %                          double bootstrap resampling and jackknife function
 %                          evaluations. Default is false for serial computation.
 %                          In MATLAB, the default is true if a parallel pool
 %                          has already been started. 
-%        • 'nproc':        nproc sets the number of parallel processes
+%        o 'nproc':        nproc sets the number of parallel processes
 %
 %     'PVAL = bootnhst (DATA, GROUP, ...)' returns the p-value for the omnibus
 %     hypothesis test. Note that the p-value returned will be truncated at the
@@ -79,15 +79,15 @@
 %
 %     '[PVAL, C] = bootnhst (DATA, GROUP, ...)' also returns a 9 column matrix
 %     that summarises post hoc test results. The columns of C are:
-%       • column 1: reference GROUP number
-%       • column 2: test GROUP number
-%       • column 3: value of BOOTFUN evaluated for the reference GROUP
-%       • column 4: value of BOOTFUN evaluated for the test GROUP
-%       • column 5: the difference between the groups (columns 4 minus column 3)
-%       • column 6: t-ratio
-%       • column 7: multiplicity-adjusted p-value
-%       • column 8: LOWER bound of the 100*(1-ALPHA)% bootstrap-t CI
-%       • column 9: UPPER bound of the 100*(1-ALPHA)% bootstrap-t CI
+%       - column 1: reference GROUP number
+%       - column 2: test GROUP number
+%       - column 3: value of BOOTFUN evaluated for the reference GROUP
+%       - column 4: value of BOOTFUN evaluated for the test GROUP
+%       - column 5: the difference between the groups (columns 4 minus column 3)
+%       - column 6: t-ratio
+%       - column 7: multiplicity-adjusted p-value
+%       - column 8: LOWER bound of the 100*(1-ALPHA)% bootstrap-t CI
+%       - column 9: UPPER bound of the 100*(1-ALPHA)% bootstrap-t CI
 %
 %     '[PVAL, C, STATS] = bootnhst (DATA, GROUP, ...)' also returns a structure 
 %     containing additional statistics. The stats structure contains the 
@@ -285,8 +285,8 @@ function [pval, c, stats] = bootnhst (data, group, varargin)
   end
 
   % Assign non-zero numbers to group labels
-  [gnames,junk,g] = unique (group);
-  clear junk;
+  [gnames,jnk,g] = unique (group);
+  clear jnk;
   gk = unique (g);
   k = numel (gk);
   if (k > 1)

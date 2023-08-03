@@ -25,14 +25,14 @@
 %     if and how to perform bootstrap iterations using multiple processors (if
 %     the Parallel Computing Toolbox or Octave Parallel package is available).
 %     This argument is a structure with the following recognised fields:
-%        • 'UseParallel':  If true, use parallel processes to accelerate
+%        o 'UseParallel':  If true, use parallel processes to accelerate
 %                          bootstrap computations on multicore machines,
 %                          specifically non-vectorized function evaluations,
 %                          double bootstrap resampling and jackknife function
 %                          evaluations. Default is false for serial computation.
 %                          In MATLAB, the default is true if a parallel pool
 %                          has already been started. 
-%        • 'nproc':        nproc sets the number of parallel processes
+%        o 'nproc':        nproc sets the number of parallel processes
 %
 %     [BOOTSTAT, BOOTSAM] = bootstrp (...) also returns BOOTSAM, a matrix of
 %     indices from the bootstrap. Each column in BOOTSAM corresponds to one

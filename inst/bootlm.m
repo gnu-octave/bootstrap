@@ -47,23 +47,23 @@
 %
 %     '[...] = bootlm (Y, GROUP, ..., 'dim', DIM)'
 %
-%        • DIM is a scalar or vector specifying the dimension(s) over which
+%       <> DIM is a scalar or vector specifying the dimension(s) over which
 %          'bootlm' calculates and returns estimated marginal means instead of
 %          regression coefficients. For example, the value [1 3] computes the
 %          estimated marginal mean for each combination of the levels of the
 %          first and third predictors. The default value is empty, which makes
 %          'bootlm' return the statistics for for the model coefficients. If DIM
 %          is, or includes, a continuous predictor then 'bootlm' will return an
-%          error. The following statistics are preinted when specifying 'dim':
-%          - name: the name(s) of the estimated marginal mean(s)
-%          - mean: the estimated marginal mean(s)
-%          - CI_lower: lower bound(s) of the 95% confidence interval (CI)
-%          - CI_upper: upper bound(s) of the 95% confidence interval (CI)
-%          - n: the sample size used to estimate the mean
+%          error. The following statistics are printed when specifying 'dim':
+%             - name: the name(s) of the estimated marginal mean(s)
+%             - mean: the estimated marginal mean(s)
+%             - CI_lower: lower bound(s) of the 95% confidence interval (CI)
+%             - CI_upper: upper bound(s) of the 95% confidence interval (CI)
+%             - n: the sample size used to estimate the mean
 %
 %     '[...] = bootlm (Y, GROUP, ..., 'continuous', CONTINUOUS)'
 %
-%        • CONTINUOUS is a vector of indices indicating which of the
+%       <> CONTINUOUS is a vector of indices indicating which of the
 %          columns (i.e. predictors) in GROUP should be treated as
 %          continuous predictors rather than as categorical predictors.
 %          The relationship between continuous predictors and the outcome
@@ -71,20 +71,20 @@
 %
 %     '[...] = bootlm (Y, GROUP, ..., 'model', MODELTYPE)'
 %
-%        • MODELTYPE can specified as one of the following:
+%       <> MODELTYPE can specified as one of the following:
 %
-%             • 'linear' (default): compute N main effects with no
+%             o 'linear' (default): compute N main effects with no
 %               interactions.
 %
-%             • 'interaction': compute N effects and N*(N-1) interactions
+%             o 'interaction': compute N effects and N*(N-1) interactions
 %
-%             • 'full': compute the N main effects and interactions at
+%             o 'full': compute the N main effects and interactions at
 %               all levels
 %
-%             • a scalar integer: representing the maximum interaction
+%             o a scalar integer: representing the maximum interaction
 %               order
 %
-%             • a matrix of term definitions: each row is a term and
+%             o a matrix of term definitions: each row is a term and
 %               each column is a predictor
 %
 %               -- Example:
@@ -92,20 +92,20 @@
 %
 %     '[...] = bootlm (Y, GROUP, ..., 'varnames', VARNAMES)'
 %
-%        • VARNAMES must be a cell array of strings with each element
+%       <> VARNAMES must be a cell array of strings with each element
 %          containing a predictor name for each column of GROUP. By default
 %          (if not parsed as optional argument), VARNAMES are
 %          'X1','X2','X3', etc.
 %
 %     '[...] = bootlm (Y, GROUP, ..., 'method', METHOD)'
 %
-%        • METHOD can be specified as one of the following:
+%       <> METHOD can be specified as one of the following:
 %
-%             • 'wild' (default): Wild bootstrap-t, using the 'bootwild'
-%                function. Please see the help documentation for the function
+%             o 'wild' (default): Wild bootstrap-t, using the 'bootwild'
+%               function. Please see the help documentation for the function
 %                'bootwild' for more information about this method.
 %
-%             • 'bayesian': Bayesian bootstrap, using the 'bootbayes' function.
+%             o 'bayesian': Bayesian bootstrap, using the 'bootbayes' function.
 %                Please see the help documentation below in the function
 %               'bootbayes' for more information about this method.
 %
@@ -114,9 +114,9 @@
 %
 %     '[...] = bootlm (Y, GROUP, ..., 'method', 'bayesian', 'prior', PRIOR)'
 %
-%        • Sets the prior for Bayesian bootstrap. Possible values are:
+%       <> Sets the prior for Bayesian bootstrap. Possible values are:
 %
-%             • scalar: A positive real numeric scalar to parametrize
+%             o scalar: A positive real numeric scalar to parametrize
 %                  the form of the symmetric Dirichlet distribution. The
 %                  Dirichlet distribution is the conjugate PRIOR used to
 %                  randomly generate weights for linear least squares fitting
@@ -124,7 +124,7 @@
 %                  posterior for the regression coefficients by nonparametric
 %                  Bayesian bootstrap.
 %
-%             • 'auto': Sets a value for PRIOR that effectively incorporates
+%             o 'auto': Sets a value for PRIOR that effectively incorporates
 %                  Bessel's correction a priori such that the variance of the
 %                  posterior (i.e. the rows of BOOTSTAT) becomes an unbiased
 %                  estimator of the sampling variance. The calculation used for
@@ -147,17 +147,17 @@
 %
 %     '[...] = bootlm (Y, GROUP, ..., 'alpha', ALPHA)'
 %
-%        • ALPHA is numeric and sets the lower and upper bounds of the
+%       <> ALPHA is numeric and sets the lower and upper bounds of the
 %          confidence or credible interval(s). The value(s) of ALPHA must be
 %          between 0 and 1. ALPHA can either be:
 %
-%             • scalar: Set the central mass of the intervals to 100*(1-ALPHA)%.
+%             o scalar: Set the central mass of the intervals to 100*(1-ALPHA)%.
 %                  For example, 0.05 for a 95% interval. If METHOD is 'wild',
 %                  then the intervals are symmetric bootstrap-t confidence
 %                  intervals. If METHOD is 'bayesian', then the intervals are
 %                  shortest probability credible intervals.
 %
-%             • vector: A pair of probabilities defining the lower and upper
+%             o vector: A pair of probabilities defining the lower and upper
 %                  and upper bounds of the interval(s) as 100*(ALPHA(1))% and 
 %                  100*(ALPHA(2))% respectively. For example, [.025, .975] for
 %                  a 95% interval. If METHOD is 'wild', then the intervals are
@@ -169,19 +169,19 @@
 %
 %     '[...] = bootlm (Y, GROUP, ..., 'display', DISPOPT)'
 %
-%        • DISPOPT can be either 'on' (or true, default) or 'off' (or false)
+%       <> DISPOPT can be either 'on' (or true, default) or 'off' (or false)
 %          and controls the display of the model formula, a table of model
 %          parameter estimates and a figure of diagnostic plots. The p-values
 %          are formatted in APA-style.
 %
 %     '[...] = bootlm (Y, GROUP, ..., 'contrasts', CONTRASTS)'
 %
-%        • CONTRASTS can be specified as one of the following:
+%       <> CONTRASTS can be specified as one of the following:
 %
-%             • A string corresponding to one of the built-in contrasts
+%             o A string corresponding to one of the built-in contrasts
 %               listed below:
 %
-%                  • 'anova' or 'simple' (default): Simple (ANOVA) contrast
+%                  o 'anova' or 'simple' (default): Simple (ANOVA) contrast
 %                    coding. The intercept represents the grand mean. Each 
 %                    slope coefficient represents the difference between one
 %                    level of a predictor (or interaction between predictors) to
@@ -195,7 +195,7 @@
 %                    have an obvious reference or control group and that are
 %                    modelled together with a covariate or blocking factor.
 %
-%                  • 'poly': Polynomial contrast coding for trend analysis.
+%                  o 'poly': Polynomial contrast coding for trend analysis.
 %                    The intercept represents the grand mean. The remaining
 %                    slope coefficients returned are for linear, quadratic,
 %                    cubic etc. trends across the levels. In addition to the
@@ -207,7 +207,7 @@
 %                    particular, predictors with ordered levels that are evenly
 %                    spaced.
 %
-%                  • 'helmert': Helmert contrast coding. The intercept
+%                  o 'helmert': Helmert contrast coding. The intercept
 %                    represents the grand mean. Each slope coefficient
 %                    represents the difference between one level of a predictor
 %                    (or interaction between predictors) with the mean of the
@@ -222,7 +222,7 @@
 %                    coding reflects tests of some hypotheses of interest about
 %                    the nested grouping of the predictor levels.
 %
-%                  • 'effect': Deviation effect coding. The intercept represents
+%                  o 'effect': Deviation effect coding. The intercept represents
 %                    the grand mean. Each slope coefficient compares one level
 %                    of a predictor (or interaction between predictors) with the
 %                    grand mean. Note that a slope coefficient is omitted for
@@ -231,7 +231,7 @@
 %                    zero. This type of contrast is ideal for nominal predictor
 %                    variables when there is no obvious reference group.
 %
-%                  • 'sdif' or 'sdiff': Successive differences contrast coding.
+%                  o 'sdif' or 'sdiff': Successive differences contrast coding.
 %                    The intercept represents the grand mean. Each slope
 %                    coefficient represents the difference between one level of
 %                    a predictor (or interaction between predictors) to the
@@ -240,7 +240,7 @@
 %                    contrast coding coding scheme sum to zero. This type of
 %                    contrast is ideal for ordinal predictor variables.
 %
-%                  • 'treatment': Treatment contrast (or dummy) coding. The
+%                  o 'treatment': Treatment contrast (or dummy) coding. The
 %                    intercept represents the mean of the first level of all
 %                    the predictors. Each slope coefficient compares one
 %                    level of a predictor (or interaction between predictors)
@@ -253,7 +253,7 @@
 %                    of nominal predictor variables that have an obvious
 %                    reference or control group.
 %
-%             • A matrix containing a custom contrast coding scheme (i.e.
+%            <> A matrix containing a custom contrast coding scheme (i.e.
 %               the generalized inverse of contrast weights). Rows in
 %               the contrast matrices correspond to predictor levels in the
 %               order that they first appear in the GROUP column. The
@@ -273,12 +273,12 @@
 %
 %     '[...] = bootlm (Y, GROUP, ..., 'nboot', NBOOT)'
 %
-%        • Specifies the number of bootstrap resamples, where NBOOT must be a
+%       <> Specifies the number of bootstrap resamples, where NBOOT must be a
 %          positive integer. If empty, the default value of NBOOT is 9999.
 %
 %     '[...] = bootlm (Y, GROUP, ..., 'clustid', CLUSTID)'
 %
-%        • Specifies a vector or cell array of numbers or strings respectively
+%       <> Specifies a vector or cell array of numbers or strings respectively
 %          to be used as cluster labels or identifiers. Rows of the data with
 %          the same CLUSTID value are treated as clusters with dependent errors.
 %          If empty (default), no clustered resampling is performed and all
@@ -287,7 +287,7 @@
 %
 %     '[...] = bootlm (Y, GROUP, ..., 'blocksz', BLOCKSZ)'
 %
-%        • Specifies a scalar, which sets the block size for bootstrapping when
+%       <> Specifies a scalar, which sets the block size for bootstrapping when
 %          the errors have serial dependence. Rows of the data within the same
 %          block are treated as having dependent errors. If empty (default),
 %          no clustered resampling is performed and all errors are treated
@@ -295,19 +295,19 @@
 %
 %     '[...] = bootlm (Y, GROUP, ..., 'posthoc', POSTHOC)'
 %
-%        • When DIM is specified, POSTHOC comparisons along DIM can be one of
+%       <> When DIM is specified, POSTHOC comparisons along DIM can be one of
 %          the following:
 %
-%             • 'none' (default): No posthoc comparisons are performed. The
+%             o 'none' (default): No posthoc comparisons are performed. The
 %               statistics returned are for the estimated marginal means.
 %
-%             • 'pairwise' : Pairwise comparisons are performed.
+%             o 'pairwise' : Pairwise comparisons are performed.
 %
-%             • 'trt_vs_ctrl' : Treatment vs. Control comparisons are performed.
+%             o 'trt_vs_ctrl' : Treatment vs. Control comparisons are performed.
 %                The control is the first group number 1 as returned when 
 %                POSTHOC is set to 'none'.
 %
-%             • {'trt_vs_ctrl', k} : Treatment vs. Control comparisons are
+%             o {'trt_vs_ctrl', k} : Treatment vs. Control comparisons are
 %                performed. The control is group number k as returned when
 %                POSTHOC is set to 'none'.
 %
@@ -322,15 +322,15 @@
 %     'bootlm' can return up to four output arguments:
 %
 %     'STATS = bootlm (...)' returns a structure with the following fields:
-%        • 'method': The bootstrap method
-%        • 'name': The names of each of the estimates
-%        • 'estimate': The value of the estimates
-%        • 'CI_lower': The lower bound(s) of the confidence/credible interval(s)
-%        • 'CI_upper': The upper bound(s) of the confidence/credible interval(s)
-%        • 'pval': The p-value(s) for the hypothesis that the estimate(s) = 0
-%        • 'fpr': The false positive risk 
-%        • 'n': The sample size(s)
-%        • 'prior': The prior used for Bayesian bootstrap
+%        - 'method': The bootstrap method
+%        - 'name': The names of each of the estimates
+%        - 'estimate': The value of the estimates
+%        - 'CI_lower': The lower bound(s) of the confidence/credible interval(s)
+%        - 'CI_upper': The upper bound(s) of the confidence/credible interval(s)
+%        - 'pval': The p-value(s) for the hypothesis that the estimate(s) = 0
+%        - 'fpr': The false positive risk 
+%        - 'n': The sample size(s)
+%        - 'prior': The prior used for Bayesian bootstrap
 %
 %        Note that the p-values returned are truncated at the resolution
 %        limit determined by the number of bootstrap replicates, specifically 
@@ -341,21 +341,25 @@
 %     of parameters estimated in the model.
 %
 %     '[STATS, BOOTSTAT, AOVSTAT] = bootlm (...)' also computes and returns
-%     ANOVA statistics in a structure with the following fields: 
-%        • 'MODEL': The formula of the linear model(s) in Wilkinson's notation
-%        • 'SS': Sum-of-squares
-%        • 'DF': Degrees of freedom
-%        • 'MS': Mean-squares
-%        • 'F': F-Statistic
-%        • 'PVAL': p-values
-%        • 'SSE': Sum-of-Squared Error
-%        • 'DFE': Degrees of Freedom for Error
-%        • 'MSE': Mean Squared Error
-%     The ANOVA uses sequential (type I) sums-of-squares and so the results
-%     and their interpretation depend on the order of predictors in the GROUP
-%     variable when the design is not balanced. Note that ANOVA statistics are
-%     only returned for wild bootstrap AND when no other statistics are
-%     requested (i.e. estimated marginal means or posthoc tests).
+%     bootstrapped ANOVA statistics in a structure with the following fields: 
+%        - 'MODEL': The formula of the linear model(s) in Wilkinson's notation
+%        - 'SS': Sum-of-squares
+%        - 'DF': Degrees of freedom
+%        - 'MS': Mean-squares
+%        - 'F': F-Statistic
+%        - 'PVAL': p-values
+%        - 'SSE': Sum-of-Squared Error
+%        - 'DFE': Degrees of Freedom for Error
+%        - 'MSE': Mean Squared Error
+%     The ANOVA implemented uses sequential (type I) sums-of-squares and so the
+%     results and their interpretation depend on the order of predictors in the
+%     GROUP variable (when the design is not balanced). Thus, the null model
+%     used for comparison for each model is the model listed directly above it
+%     in AOVSTAT; for the first model, the null model is the intercept-only
+%     model. Note that ANOVA statistics are only returned for wild bootstrap
+%     AND when no other statistics are requested (i.e. estimated marginal means
+%     or posthoc tests). The bootstrap is achieved by Wild bootstrap of the
+%     residuals from the full model.
 %
 %     '[STATS, BOOTSTAT, AOVSTAT, X] = bootlm (...)' also returns the design
 %     matrix for the linear  model.
@@ -364,7 +368,7 @@
 %     hypothesis matrix used to compute the estimated marginal means or posthoc
 %     tests from the regression coefficients.
 %
-%  bootlm (version 2023.07.14)
+%  bootlm (version 2023.08.02)
 %  Author: Andrew Charles Penn
 %  https://www.researchgate.net/profile/Andrew_Penn/
 %
@@ -711,7 +715,8 @@ function [STATS, BOOTSTAT, AOVSTAT, X, L] = bootlm (Y, GROUP, varargin)
         end
       end
       H = cell2mat (H);
-      L = unique (H, 'rows', 'stable').';
+      [jnk, hidx] = unique (H, 'rows', 'first');
+      L = H(sort(hidx),:).';
     end
 
     % Fit linear model
@@ -840,14 +845,17 @@ function [STATS, BOOTSTAT, AOVSTAT, X, L] = bootlm (Y, GROUP, varargin)
       end
 
       % Compute sample sizes for each level along dimenion DIM
-      U = unique (gid(:,DIM), 'rows', 'stable');
+      [jnk, gidx] = unique (gid(:,DIM), 'rows', 'first');
+      U = gid(sort(gidx),DIM);
       n_dim = cellfun (@(u) sum (all (gid(:,DIM) == u, 2)), num2cell (U, 2));
 
       % Compute number of independent sampling units at each level of DIM
       if (isempty (DEP))
         N_dim = n_dim;
       else
-        UC = unique (cat (2, gid(:,DIM), IC), 'rows', 'stable');
+        tmp = cat (2, gid(:,DIM), IC);
+        [jnk, uidx] = unique (tmp, 'rows', 'first');
+        UC = tmp(sort(uidx),DIM);
         N_dim = cellfun (@(u) sum (all (UC(:,1:Nd) == u, 2)), num2cell (U, 2));
       end
       if (any (N_dim < 5))
@@ -1158,7 +1166,8 @@ function [X, levels, nlevels, df, termcols, coeffnames, vmeans, gid, ...
     else
 
       % CATEGORICAL PREDICTOR
-      levels{j} = unique (GROUP(:,j), 'stable');
+      [jnk, gidx] = unique (GROUP(:,j), 'first');
+      levels{j} = GROUP(sort(gidx), j);
       if isnumeric (levels{j})
         levels{j} = num2cell (levels{j});
       end
@@ -1395,7 +1404,7 @@ function [L, pairs] = pairwise (L_EMM)
 
   % Get number of group members from the hypothesis matrix used 
   % to generate estimated marginal means
-  Ng = size (unique (L_EMM','rows'), 1);
+  Ng = size (unique (L_EMM', 'rows'), 1);
 
   % Create pairs matrix for pairwise comparisons
   gid = (1 : Ng)';  % Create numeric group ID
@@ -1521,6 +1530,7 @@ function AOVSTAT = bootanova (Y, X, DF, DFE, DEP, NBOOT, ALPHA, SEED, ISOCTAVE)
   % bootstrap significance test in multiple regression and ANOVA. In Jockel
   % et al (Eds.) Bootstrapping and Related Techniques. Springer-Verlag, Berlin,
   % pg 79-86
+  % See also the R function: https://rdrr.io/cran/lmboot/src/R/ANOVA.boot.R
   [jnk, jnk, BOOTSSE] = arrayfun (@(j) bootwild (RESID{end}, ...
                                 X(:, 1 : sum (DF(1:j))), ...
                                 DEP, NBOOT, ALPHA, SEED, [], ISOCTAVE), ...
@@ -1694,7 +1704,6 @@ end
 %!                            'varnames', {'brands', 'popper'}, ...
 %!                            'dim', 2, 'method', 'bayesian', 'prior', 'auto');
 
-
 %!demo
 %!
 %! # Unbalanced two-way design (2x2). The data is from a study on the effects
@@ -1706,6 +1715,30 @@ end
 %! gender = {'f' 'f' 'f' 'f' 'f' 'f' 'f' 'f' 'f' 'f' 'f' 'f'...
 %!           'm' 'm' 'm' 'm' 'm' 'm' 'm' 'm' 'm' 'm'}';
 %! degree = [1 1 1 1 1 1 1 1 0 0 0 0 1 1 1 0 0 0 0 0 0 0]';
+%!
+%! % ANOVA (including the main effect of gender averaged over levels of degree)
+%! [STATS, BOOTSTAT, AOVSTAT] = bootlm (salary, {degree, gender}, 'model', ...
+%!                             'full', 'display', 'off', 'varnames', ...
+%!                             {'degree', 'gender'});
+%!
+%! fprintf ('ANOVA SUMMARY with gender averaged over levels of degree\n')
+%! for i = 1:numel(AOVSTAT.F)
+%!   fprintf ('F(%u,%u) = %.2f, p = %.3g for the model: %s\n', ...
+%!            AOVSTAT.DF(i), AOVSTAT.DFE, AOVSTAT.F(i), ...
+%!            AOVSTAT.PVAL(i), AOVSTAT.MODEL{i});
+%! end
+%!
+%! % ANOVA (including the main effect of degree averaged over levels of gender)
+%! [STATS, BOOTSTAT, AOVSTAT] = bootlm (salary, {gender, degree}, 'model', ...
+%!                             'full', 'display', 'off', 'varnames', ...
+%!                             {'gender', 'degree'});
+%!
+%! fprintf ('\nANOVA SUMMARY with degree averaged over levels of gender\n')
+%! for i = 1:numel(AOVSTAT.F)
+%!   fprintf ('F(%u,%u) = %.2f, p = %.3g for the model: %s\n', ...
+%!            AOVSTAT.DF(i), AOVSTAT.DFE, AOVSTAT.F(i), ...
+%!            AOVSTAT.PVAL(i), AOVSTAT.MODEL{i});
+%! end
 %!
 %! % Check regression coefficient corresponding to gender x degree interaction
 %! % using 'anova' contrast coding
@@ -1766,6 +1799,20 @@ end
 %!       180 187 199 170 204 194 162 184 183 156 180 173 ...
 %!       202 228 190 206 224 204 205 199 170 160 179 179];
 %!
+%! % Perform 3-way ANOVA (this design is balanced so order of predictors does 
+%! % not make any difference)
+%! [STATS, BOOTSTAT, AOVSTAT] = bootlm (BP(:), {drug(:), feedback(:), ...
+%!                                    diet(:)}, 'seed', 1, ...
+%!                                    'model', 'full', 'display', 'off', ...
+%!                                    'varnames', {'drug', 'feedback', 'diet'});
+%!
+%! fprintf ('ANOVA SUMMARY\n')
+%! for i = 1:numel(AOVSTAT.F)
+%!   fprintf ('F(%u,%u) = %.2f, p = %.3g for the model: %s\n', ...
+%!            AOVSTAT.DF(i), AOVSTAT.DFE, AOVSTAT.F(i), ...
+%!            AOVSTAT.PVAL(i), AOVSTAT.MODEL{i});
+%! end
+%!
 %! % Check regression coefficient corresponding to drug x feedback x diet
 %! % interaction using 'anova' contrast coding
 %! STATS = bootlm (BP(:), {drug(:), feedback(:), diet(:)}, ...
@@ -1789,36 +1836,6 @@ end
 
 %!demo
 %!
-%! # Balanced three-way design (2x2x2). The data is from a randomized block
-%! # design study on the effects of antioxidant treatment on glutathione-S-
-%! # transferase (GST) levels in different mouse strains, from Festing (2014),
-%! # ILAR Journal 55(3):427-476.
-%!
-%! measurement = [444 614 423 625 408  856 447 719 ...
-%!                764 831 586 782 609 1002 606 766]';
-%! treatment={'C' 'T' 'C' 'T' 'C' 'T' 'C' 'T' 'C' 'T' 'C' 'T' 'C' 'T' 'C' 'T'}';
-%! strain= {'NIH','NIH','BALB/C','BALB/C','A/J','A/J','129/Ola','129/Ola', ...
-%!          'NIH','NIH','BALB/C','BALB/C','A/J','A/J','129/Ola','129/Ola'}';
-%! block = [1 1 1 1 1 1 1 1 2 2 2 2 2 2 2 2]';
-%!
-%! % 95% confidence intervals and p-values for the differences in the mean of
-%! % the treatment and control conditions (computed by wild bootstrap).
-%! STATS = bootlm (measurement/10, {treatment, strain, block}, ...
-%!                            'model', [1 0 0; 0 1 0; 0 0 1], ...
-%!                            'varnames', {'strain', 'treatment', 'block'}, ...
-%!                            'display', 'on', 'dim', 1, ...
-%!                            'posthoc', 'trt_vs_ctrl');
-%!
-%! % 95% credible intervals for the estimated marginal means for the
-%! % treatment and control conditions (computed by Bayesian bootstrap).
-%! STATS = bootlm (measurement/10, {treatment, strain, block}, ...
-%!                            'model', [1 0 0; 0 1 0; 0 0 1], ...
-%!                            'varnames', {'strain', 'treatment', 'block'}, ...
-%!                            'display', 'on', 'dim', 1, ...
-%!                            'method', 'bayesian', 'prior', 'auto');
-
-%!demo
-%!
 %! # One-way design with continuous covariate. The data is from a study of the
 %! # additive effects of species and temperature on chirpy pulses of crickets,
 %! # from Stitch, The Worst Stats Text eveR
@@ -1833,23 +1850,35 @@ end
 %!            'ex' 'ex' 'ex' 'niv' 'niv' 'niv' 'niv' 'niv' 'niv' 'niv' ...
 %!            'niv' 'niv' 'niv' 'niv' 'niv' 'niv' 'niv' 'niv' 'niv' 'niv'};
 %!
+%! % Perform ANCOVA 
+%! [STATS, BOOTSTAT, AOVSTAT] = bootlm (pulse, {temp, species}, 'model', ...
+%!                           'linear', 'continuous', 1, 'display', 'off', ...
+%!                           'varnames', {'temp', 'species'});
+%!
+%! fprintf ('ANCOVA SUMMARY\n')
+%! for i = 1:numel(AOVSTAT.F)
+%!   fprintf ('F(%u,%u) = %.2f, p = %.3g for the model: %s\n', ...
+%!            AOVSTAT.DF(i), AOVSTAT.DFE, AOVSTAT.F(i), ...
+%!            AOVSTAT.PVAL(i), AOVSTAT.MODEL{i});
+%! end
+%!
 %! % Estimate regression coefficients using 'anova' contrast coding 
-%! STATS = bootlm (pulse, {species, temp}, 'model', 'linear', ...
-%!                           'continuous', 2, 'display', 'on', ...
-%!                           'varnames', {'species', 'temp'});
+%! STATS = bootlm (pulse, {temp, species}, 'model', 'linear', ...
+%!                           'continuous', 1, 'display', 'on', ...
+%!                           'varnames', {'temp', 'species'});
 %!
 %! % 95% confidence intervals and p-values for the differences in the mean of
 %! % chirpy pulses of ex ad niv species (computed by wild bootstrap).
-%! STATS = bootlm (pulse, {species, temp}, 'model', 'linear', ...
-%!                           'continuous', 2, 'display', 'on', ...
-%!                           'varnames', {'species', 'temp'}, 'dim', 1, ...
+%! STATS = bootlm (pulse, {temp, species}, 'model', 'linear', ...
+%!                           'continuous', 1, 'display', 'on', ...
+%!                           'varnames', {'temp', 'species'}, 'dim', 2, ...
 %!                           'posthoc', 'trt_vs_ctrl');
 %!
 %! % 95% credible intervals for the estimated marginal means of chirpy pulses
 %! % of ex and niv species (computed by Bayesian bootstrap).
-%! STATS = bootlm (pulse, {species, temp}, 'model', 'linear', ...
-%!                           'continuous', 2, 'display', 'on', ...
-%!                           'varnames', {'species', 'temp'}, 'dim', 1, ...
+%! STATS = bootlm (pulse, {temp, species}, 'model', 'linear', ...
+%!                           'continuous', 1, 'display', 'on', ...
+%!                           'varnames', {'temp', 'species'}, 'dim', 2, ...
 %!                           'method', 'bayesian', 'prior', 'auto');
 
 %!demo
@@ -1880,30 +1909,42 @@ end
 %!        58 56 57 59 59 60 55 53 55 58 68 62 61 54 59 63 60 67 60 67 ...
 %!        75 54 57 62 65 60 58 61 65 57 56 58 58 58 52 53 60 62 61 61]';
 %!
+%! % ANOVA/ANCOVA statistics
+%! [STATS, BOOTSTAT, AOVSTAT] = bootlm (score, {age, exercise, treatment}, ...
+%!                            'model', [1 0 0; 0 1 0; 0 0 1; 0 1 1], ...
+%!                            'continuous', 1, 'display', 'off', ...
+%!                            'varnames', {'age', 'exercise', 'treatment'});
+%!
+%! fprintf ('ANOVA / ANCOVA SUMMARY\n')
+%! for i = 1:numel(AOVSTAT.F)
+%!   fprintf ('F(%u,%u) = %.2f, p = %.3g for the model: %s\n', ...
+%!            AOVSTAT.DF(i), AOVSTAT.DFE, AOVSTAT.F(i), ...
+%!            AOVSTAT.PVAL(i), AOVSTAT.MODEL{i});
+%! end
+%!
 %! % Estimate regression coefficients using 'anova' contrast coding 
-%! STATS = bootlm (score, {treatment, exercise, age}, ...
-%!                            'model', [1 0 0; 0 1 0; 0 0 1; 1 1 0], ...
-%!                            'continuous', 3, 'display', 'on', ...
-%!                            'varnames', {'treatment', 'exercise', 'age'});
+%! STATS = bootlm (score, {age, exercise, treatment}, ...
+%!                            'model', [1 0 0; 0 1 0; 0 0 1; 0 1 1], ...
+%!                            'continuous', 1, 'display', 'on', ...
+%!                            'varnames', {'age', 'exercise', 'treatment'});
 %!
 %! % 95% confidence intervals and p-values for the differences in mean score
 %! % across different treatments and amounts of exercise after adjusting for
 %  % age (computed by wild bootstrap).
-%! STATS = bootlm (score, {treatment, exercise, age}, ...
-%!                            'model', [1 0 0; 0 1 0; 0 0 1; 1 1 0], ...
-%!                            'continuous', 3, 'display', 'on', ...
-%!                            'varnames', {'treatment', 'exercise', 'age'}, ...
-%!                            'dim', [1, 2], 'posthoc', 'trt_vs_ctrl');
+%! STATS = bootlm (score, {age, exercise, treatment}, ...
+%!                            'model', [1 0 0; 0 1 0; 0 0 1; 0 1 1], ...
+%!                            'continuous', 1, 'display', 'on', ...
+%!                            'varnames', {'age', 'exercise', 'treatment'}, ...
+%!                            'dim', [2, 3], 'posthoc', 'trt_vs_ctrl');
 %!
 %! % 95% credible intervals for the estimated marginal means of scores across
 %! % different treatments and amounts of exercise after adjusting for age
 %! % (computed by Bayesian bootstrap).
-%! STATS = bootlm (score, {treatment, exercise, age}, 'dim', [1, 2], ...
-%!                            'model', [1 0 0; 0 1 0; 0 0 1; 1 1 0], ...
-%!                            'continuous', 3, 'display', 'on', ...
-%!                            'varnames', {'treatment', 'exercise', 'age'}, ...
+%! STATS = bootlm (score, {age, exercise, treatment}, 'dim', [2, 3], ...
+%!                            'model', [1 0 0; 0 1 0; 0 0 1; 0 1 1], ...
+%!                            'continuous', 1, 'display', 'on', ...
+%!                            'varnames', {'age', 'exercise', 'treatment'}, ...
 %!                            'method', 'bayesian', 'prior', 'auto');
-
 
 %!demo
 %!
@@ -1966,7 +2007,7 @@ end
 %!
 %! assert (stats.pval(1), 0.0007121854921651461, 1e-09);
 %! assert (stats.pval(2), 0.002663469844077049, 1e-09);
-%! assert (stats.pval(3), 0.9871019104281634, 1e-09);
+%! assert (stats.pval(3), 0.9999999999999917, 1e-09);
 %! assert (stats.pval(4), 0.06635496003290851, 1e-09);
 %! assert (stats.pval(5), 0.4382333666561282, 1e-09);
 %! assert (stats.pval(6), 0.3639361232818474, 1e-09);
@@ -2108,11 +2149,9 @@ end
 
 %!test
 %!
-%! # Unbalanced three-way design (3x2x2). The data is from a study of the
+%! # Balanced three-way design (3x2x2). The data is from a study of the
 %! # effects of three different drugs, biofeedback and diet on patient blood
 %! # pressure, adapted* from Maxwell, Delaney and Kelly (2018): Ch 8, Table 12
-%! # * Missing values introduced to make the sample sizes unequal to test the
-%! #   calculation of different types of sums-of-squares
 %!
 %! drug = {'X' 'X' 'X' 'X' 'X' 'X' 'X' 'X' 'X' 'X' 'X' 'X' ...
 %!         'X' 'X' 'X' 'X' 'X' 'X' 'X' 'X' 'X' 'X' 'X' 'X';
@@ -2129,9 +2168,22 @@ end
 %! BP = [170 175 165 180 160 158 161 173 157 152 181 190 ...
 %!       173 194 197 190 176 198 164 190 169 164 176 175;
 %!       186 194 201 215 219 209 164 166 159 182 187 174 ...
-%!       189 194 217 206 199 195 171 173 196 199 180 NaN;
+%!       189 194 217 206 199 195 171 173 196 199 180 203;
 %!       180 187 199 170 204 194 162 184 183 156 180 173 ...
-%!       202 228 190 206 224 204 205 199 170 160 NaN NaN];
+%!       202 228 190 206 224 204 205 199 170 160 179 179];
+%!
+%! [stats, bootstat, aovstat] = bootlm (BP(:), {drug(:), feedback(:), ...
+%!                                    diet(:)}, 'seed', 1, ...
+%!                                    'model', 'full', 'display', 'off', ...
+%!                                    'varnames', {'drug', 'feedback', 'diet'});
+%!
+%! assert (aovstat.PVAL(1), 0.0001785474921424416, 1e-09);
+%! assert (aovstat.PVAL(2), 0.0005607720210921765, 1e-09);
+%! assert (aovstat.PVAL(3), 0.0001, 1e-09);
+%! assert (aovstat.PVAL(4), 0.4343155166545469, 1e-09);
+%! assert (aovstat.PVAL(5), 0.06277877943312708, 1e-09);
+%! assert (aovstat.PVAL(6), 0.6484269049223992, 1e-09);
+%! assert (aovstat.PVAL(7), 0.03878235882690048, 1e-09);
 %!
 %! stats = bootlm (BP(:), {drug(:), feedback(:), diet(:)}, ...
 %!                                    'seed', 1, ...
@@ -2139,37 +2191,10 @@ end
 %!                                    'display', 'off', ...
 %!                                    'varnames', {'drug', 'feedback', 'diet'});
 %!
-%! assert (stats.pval(11), 0.02526763886213725, 1e-09);
-%! assert (stats.pval(12), 0.7018793210074815, 1e-09);
-%! assert (stats.fpr(11), 0.2016845586758846, 1e-09);
+%! assert (stats.pval(11), 0.01390969497190977, 1e-09);
+%! assert (stats.pval(12), 0.7334357687702242, 1e-09);
+%! assert (stats.fpr(11), 0.1391526669998761, 1e-09);
 %! assert (stats.fpr(12), 0.5, 1e-09);
-
-%!test
-%!
-%! # Balanced three-way design (4x2x2). The data is from a randomized block
-%! # design study on the effects of antioxidant treatment on glutathione-S-
-%! # transferase (GST) levels accounting for nuissance variability in different
-%! # mouse strains and different experimental repeats, from Festing (2014),
-%! # ILAR Journal 55(3):427-476. Note that the sample sizes are two small here
-%! # to include interactions between strain and treatment for wild bootstrap.
-%! # (Each level of the interaction would only have n = 2)
-%!
-%! measurement = [444 614 423 625 408  856 447 719 ...
-%!                764 831 586 782 609 1002 606 766]';
-%! strain= {'NIH','NIH','BALB/C','BALB/C','A/J','A/J','129/Ola','129/Ola', ...
-%!          'NIH','NIH','BALB/C','BALB/C','A/J','A/J','129/Ola','129/Ola'}';
-%! treatment={'C' 'T' 'C' 'T' 'C' 'T' 'C' 'T' 'C' 'T' 'C' 'T' 'C' 'T' 'C' 'T'}';
-%! block = [1 1 1 1 1 1 1 1 2 2 2 2 2 2 2 2]';
-%!
-%! stats = bootlm (measurement/10, {strain, treatment, block}, ...
-%!                            'model', [1 0 0; 0 1 0; 0 0 1], ...
-%!                            'varnames', {'strain', 'treatment', 'block'}, ...
-%!                            'display', 'off', 'seed', 1);
-%!
-%! assert (stats.CI_lower(5), 14.99530281970879, 1e-09);
-%! assert (stats.CI_upper(5), 32.70469718029122, 1e-09);
-%! assert (stats.CI_lower(6), 8.532527166069837, 1e-09);
-%! assert (stats.CI_upper(6), 26.71747283393012, 1e-09);
 
 %!test
 %!
@@ -2187,14 +2212,14 @@ end
 %!            'ex' 'ex' 'ex' 'niv' 'niv' 'niv' 'niv' 'niv' 'niv' 'niv' ...
 %!            'niv' 'niv' 'niv' 'niv' 'niv' 'niv' 'niv' 'niv' 'niv' 'niv'};
 %!
-%! stats = bootlm (pulse, {species, temp}, 'model', 'linear', ...
-%!                           'continuous', 2, 'display', 'off', ...
-%!                           'varnames', {'species', 'temp'}, 'seed', 1);
+%! stats = bootlm (pulse, {temp, species}, 'model', 'linear', ...
+%!                           'continuous', 1, 'display', 'off', ...
+%!                           'varnames', {'temp', 'species'}, 'seed', 1);
 %!
-%! assert (stats.CI_lower(2), -11.39708913283456, 1e-09);
-%! assert (stats.CI_upper(2), -8.733493336263431, 1e-09);
-%! assert (stats.CI_lower(3), 3.408042874444446, 1e-09);
-%! assert (stats.CI_upper(3), 3.797462875271908, 1e-09);
+%! assert (stats.CI_lower(2), 3.408042874444448, 1e-09);
+%! assert (stats.CI_upper(2), 3.797462875271906, 1e-09);
+%! assert (stats.CI_lower(3), -11.39708913283446, 1e-09);
+%! assert (stats.CI_upper(3), -8.733493336263452, 1e-09);
 
 %!test
 %!
@@ -2224,21 +2249,32 @@ end
 %!        58 56 57 59 59 60 55 53 55 58 68 62 61 54 59 63 60 67 60 67 ...
 %!        75 54 57 62 65 60 58 61 65 57 56 58 58 58 52 53 60 62 61 61]';
 %!
-%! stats = bootlm (score, {treatment, exercise, age}, 'seed', 1, ...
-%!                            'model', [1 0 0; 0 1 0; 0 0 1; 1 1 0], ...
-%!                            'continuous', 3, 'display', 'off', ...
-%!                            'varnames', {'treatment', 'exercise', 'age'});
+%! % ANOVA/ANCOVA statistics
+%! [stats, bootstat, aovstat] = bootlm (score, {age, exercise, treatment}, ...
+%!                            'model', [1 0 0; 0 1 0; 0 0 1; 0 1 1], ...
+%!                            'continuous', 1, 'display', 'off', 'seed', 1, ...
+%!                            'varnames', {'age', 'exercise', 'treatment'});
+%!
+%! assert (aovstat.PVAL(1), 0.0001, 1e-09);
+%! assert (aovstat.PVAL(2), 0.0001, 1e-09);
+%! assert (aovstat.PVAL(3), 0.00209853874900942, 1e-09);
+%! assert (aovstat.PVAL(4), 0.0145576845409309, 1e-09);
+%!
+%! stats = bootlm (score, {age, exercise, treatment}, 'seed', 1, ...
+%!                            'model', [1 0 0; 0 1 0; 0 0 1; 0 1 1], ...
+%!                            'continuous', 1, 'display', 'off', ...
+%!                            'varnames', {'age', 'exercise', 'treatment'});
 %!
 %! assert (stats.pval(6), 0.9605479032987221, 1e-09);
 %! assert (stats.pval(7), 0.01418066878652798, 1e-09);
 %! assert (stats.fpr(6), 0.5, 1e-09);
 %! assert (stats.fpr(7), 0.1409314554632885, 1e-09);
 %!
-%! stats = bootlm (score, {treatment, exercise, age}, 'seed', 1, ...
-%!                            'model', [1 0 0; 0 1 0; 0 0 1; 1 1 0], ...
-%!                            'continuous', 3, 'display', 'off', ...
-%!                            'varnames', {'treatment', 'exercise', 'age'}, ...
-%!                            'dim', [1, 2]);
+%! stats = bootlm (score, {age, exercise, treatment}, 'seed', 1, ...
+%!                            'model', [1 0 0; 0 1 0; 0 0 1; 0 1 1], ...
+%!                            'continuous', 1, 'display', 'off', ...
+%!                            'varnames', {'age', 'exercise', 'treatment'}, ...
+%!                            'dim', [2, 3]);
 %!
 %! assert (stats.estimate(1), 86.9787857062843,1e-09)
 %! assert (stats.estimate(2), 86.9962428587431,1e-09)
@@ -2247,11 +2283,11 @@ end
 %! assert (stats.estimate(5), 88.6798510137784,1e-09)
 %! assert (stats.estimate(6), 83.02227960120982,1e-09)
 %!
-%! stats = bootlm (score, {treatment, exercise, age}, 'seed', 1, ...
-%!                            'model', [1 0 0; 0 1 0; 0 0 1; 1 1 0], ...
-%!                            'continuous', 3, 'display', 'off', ...
-%!                            'varnames', {'treatment', 'exercise', 'age'}, ...
-%!                            'dim', [1, 2], 'posthoc', 'trt_vs_ctrl');
+%! stats = bootlm (score, {age, exercise, treatment}, 'seed', 1, ...
+%!                            'model', [1 0 0; 0 1 0; 0 0 1; 0 1 1], ...
+%!                            'continuous', 1, 'display', 'off', ...
+%!                            'varnames', {'age', 'exercise', 'treatment'}, ...
+%!                            'dim', [2, 3], 'posthoc', 'trt_vs_ctrl');
 %!
 %! assert (stats.estimate(1), -0.0174571524588316,1e-09)
 %! assert (stats.estimate(2), 13.7033101825921,1e-09)
@@ -2292,14 +2328,14 @@ end
 %!                          'alpha', 0.05, 'display', false, 'dim', 1);
 %!
 %! assert (stats.CI_lower(1), 7.779565592818237, 1e-09);
-%! assert (stats.CI_lower(2), 14.425268941132, 1e-09);
+%! assert (stats.CI_lower(2), 14.42536726599337, 1e-09);
 %! assert (stats.CI_lower(3), 16.41718457146695, 1e-09);
-%! assert (stats.CI_lower(4), 18.5226387867019, 1e-09);
+%! assert (stats.CI_lower(4), 18.52263878670194, 1e-09);
 %! assert (stats.CI_lower(5), 26.66171082767947, 1e-09);
 %! assert (stats.CI_upper(1), 12.22043440718181, 1e-09);
-%! assert (stats.CI_upper(2), 21.57473105886803, 1e-09);
+%! assert (stats.CI_upper(2), 21.57463273400666, 1e-09);
 %! assert (stats.CI_upper(3), 21.58281542853307, 1e-09);
-%! assert (stats.CI_upper(4), 23.47764692758382, 1e-09);
+%! assert (stats.CI_upper(4), 23.47764692758378, 1e-09);
 %! assert (stats.CI_upper(5), 31.33851139454277, 1e-09);
 
 %!test

@@ -17,8 +17,8 @@
 %     'PVAL = randtest2 (X, Y, PAIRED)' specifies whether X and Y should be
 %     treated as independent (unpaired) or paired samples. PAIRED accepts a
 %     logical scalar:
-%        • false (default): As above.
-%        • true: Performs a randomization or permutation test to ascertain
+%        o false (default): As above.
+%        o true: Performs a randomization or permutation test to ascertain
 %                whether paired or matched data samples X and Y come from
 %                populations with the same distribution. The vectors X and Y
 %                must contain the same number of sampling units.

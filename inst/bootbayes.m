@@ -16,12 +16,12 @@
 %     randomly generated from a symmetric Dirichlet distribution. The resulting
 %     bootstrap (or posterior [1,2]) distribution(s) is/are summarised with the
 %     following statistics printed to the standard output:
-%        • original: the mean(s) of the data column(s) of Y
-%        • bias: bootstrap bias estimate(s)
-%        • median: the median of the posterior distribution(s)
-%        • stdev: the standard deviation of the posterior distribution(s)
-%        • CI_lower: lower bound(s) of the 95% credible interval
-%        • CI_upper: upper bound(s) of the 95% credible interval
+%        - original: the mean(s) of the data column(s) of Y
+%        - bias: bootstrap bias estimate(s)
+%        - median: the median of the posterior distribution(s)
+%        - stdev: the standard deviation of the posterior distribution(s)
+%        - CI_lower: lower bound(s) of the 95% credible interval
+%        - CI_upper: upper bound(s) of the 95% credible interval
 %          By default, the credible intervals are shortest probability
 %          intervals, which represent a more computationally stable version
 %          of the highest posterior density interval [3].
@@ -56,9 +56,9 @@
 %     'bootbayes (Y, X, ..., NBOOT, PROB)' where PROB is numeric and sets the
 %     lower and upper bounds of the credible interval(s). The value(s) of PROB
 %     must be between 0 and 1. PROB can either be:
-%        • scalar: To set the central mass of shortest probability intervals
+%       <> scalar: To set the central mass of shortest probability intervals
 %                  (SPI) to 100*(1-PROB)%
-%        • vector: A pair of probabilities defining the lower and upper
+%       <> vector: A pair of probabilities defining the lower and upper
 %                  percentiles of the credible interval(s) as 100*(PROB(1))%
 %                  and 100*(PROB(2))% respectively. 
 %          Credible intervals are not calculated when the value(s) of PROB
@@ -303,7 +303,8 @@ function [stats, bootstat] = bootbayes (Y, X, dep, nboot, prob, prior, seed, ...
     if (ISOCTAVE)
       randg ('seed', seed);
     else
-      rng (seed, 'twister');
+      rand ('seed', seed);
+      randn ('seed', seed);
     end
   end
 

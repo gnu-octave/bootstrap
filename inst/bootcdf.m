@@ -1,6 +1,7 @@
 % -- Function File: [x, F] = bootcdf (y)
 % -- Function File: [x, F] = bootcdf (y, trim)
 % -- Function File: [x, F] = bootcdf (y, trim, m)
+% -- Function File: [x, F] = bootcdf (y, trim, m, tol)
 % -- Function File: [x, F, P] = bootcdf (...)
 %
 %     '[x, F] = bootcdf (y)' computes the empirical cumulative distribution
@@ -16,6 +17,10 @@
 %     calculation of F as (N + m). Accepted values of m are 0 or 1, with the
 %     default being 0. When m is 1, quantiles formed from x and F are akin to
 %     qtype 6 in the R quantile function.
+%
+%     '[x, F] = bootcdf (y, trim, m, tol)' applies a tolerance for the absolute
+%     difference in y values that constitutes a tie. The default tolerance
+%     is 1e-12 for double precision, or 1e-6 for single precision.
 %
 %     '[x, F, P] = bootcdf (...)' also returns the distribution of P values.
 %
@@ -42,14 +47,14 @@
 %  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-function [x, F, P] = bootcdf (y, trim, m)
+function [x, F, P] = bootcdf (y, trim, m, Tol)
 
   % Computes empirical cumulative distribution function and p-value distribution
   % in the presence of ties
   % brainder.org/2012/11/28/competition-ranking-and-empirical-distributions/
 
   % Check input arguments
-  if (nargin > 3)
+  if (nargin > 4)
     error ('bootcdf: too many input arguments provided.');
   end
   if (~ isa (y, 'numeric'))
@@ -80,6 +85,19 @@ function [x, F, P] = bootcdf (y, trim, m)
   if (~ ismember (m, [0, 1]))
     error ('bootcdf: m must be either 0 or 1');
   end
+  if ( (nargin < 4) || isempty (Tol) )
+    if isa (y, 'double')
+      Tol = 1e-12;
+    elseif isa (y, 'single')
+      Tol = 1e-6;
+    else
+      Tol = 0;
+    end
+  else
+    if (~ any (isa (Tol, {'double','single'})))
+      error ('bootcdf: tol must be single or double precision.');
+    end
+  end
 
   % Check output arguments
   if (nargout > 3)
@@ -93,9 +111,15 @@ function [x, F, P] = bootcdf (y, trim, m)
   % Get size of y
   N = numel (y);
 
-  % Create empirical CDF accounting for ties by competition ranking
+  % Sort values and apply tolerance for ties
   x = sort (y);
-  [jnk, IA, IC] = unique (x);
+  belowTol = find ((x(2:end) - x(1:end-1)) < Tol); % abs() would be redundant
+  for i = 1:numel(belowTol)
+    x(belowTol(i) + 1) = x(belowTol(i));
+  end
+
+  % Create empirical CDF accounting for ties by competition ranking
+  [jnk, IA, IC] = unique (x, 'first');
   R = cat (1, IA(2:end) - 1, N);
   F = arrayfun (@(i) R(IC(i)), (1 : N)') / (N + m);
 
@@ -109,3 +133,28 @@ function [x, F, P] = bootcdf (y, trim, m)
   end
 
 end
+
+
+%!test
+%! 
+%! # Example 1 from: 
+%! # brainder.org/2012/11/28/competition-ranking-and-empirical-distributions/
+%!
+%! y = [75; 76; 79; 80; 84; 85; 86; 88; 90; 94];
+%! [x, F, P] = bootcdf (y, false, 0);
+%! F_ref = [0.1; 0.2; 0.3; 0.4; 0.5; 0.6; 0.7; 0.8; 0.9; 1];
+%! assert (max (abs (F - F_ref)), 0, 1e-10);
+%! P_ref = [1; 0.9; 0.8; 0.7; 0.6; 0.5; 0.4; 0.3; 0.2; 0.1];
+%! assert (max (abs (P - P_ref)), 0, 1e-10);
+
+%!test
+%! 
+%! # Example 2 from: 
+%! # brainder.org/2012/11/28/competition-ranking-and-empirical-distributions/
+%!
+%! y = [81; 81; 82; 83; 83; 83; 84; 85; 85; 85];
+%! [x, F, P] = bootcdf (y, false, 0);
+%! F_ref = [0.2; 0.2; 0.3; 0.6; 0.6; 0.6; 0.7; 1; 1; 1];
+%! assert (max (abs (F - F_ref)), 0, 1e-10);
+%! P_ref = [1; 1; 0.8; 0.7; 0.7; 0.7; 0.4; 0.3; 0.3; 0.3];
+%! assert (max (abs (P - P_ref)), 0, 1e-10);

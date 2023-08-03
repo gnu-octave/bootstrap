@@ -39,12 +39,12 @@
 %
 %     'CI = bootci (..., 'type', TYPE)' computes bootstrap confidence interval 
 %     CI using one of the following methods:
-%       • 'norm' or 'normal': Using bootstrap bias and standard error [5].
-%       • 'per' or 'percentile': Percentile method [1,5].
-%       • 'basic': Basic bootstrap method [1,5].
-%       • 'bca': Bias-corrected and accelerated method [6,7] (Default).
-%       • 'stud' or 'student': Studentized bootstrap (bootstrap-t) [1,5].
-%       • 'cal': Calibrated percentile method (by double bootstrap [8]).
+%      <> 'norm' or 'normal': Using bootstrap bias and standard error [5].
+%      <> 'per' or 'percentile': Percentile method [1,5].
+%      <> 'basic': Basic bootstrap method [1,5].
+%      <> 'bca': Bias-corrected and accelerated method [6,7] (Default).
+%      <> 'stud' or 'student': Studentized bootstrap (bootstrap-t) [1,5].
+%      <> 'cal': Calibrated percentile method (by double bootstrap [8]).
 %       Note that when BOOTFUN is the mean, BCa intervals are automatically
 %       expanded using Student's t-distribution in order to improve coverage
 %       for small samples [9]. The bootstrap-t method includes an additive
@@ -71,14 +71,14 @@
 %     and how to perform bootstrap iterations using multiple processors (if the
 %     Parallel Computing Toolbox or Octave Parallel package is available). This
 %     argument is a structure with the following recognised fields:
-%        • 'UseParallel':  If true, use parallel processes to accelerate
+%       <> 'UseParallel':  If true, use parallel processes to accelerate
 %                          bootstrap computations on multicore machines,
 %                          specifically non-vectorized function evaluations,
 %                          double bootstrap resampling and jackknife function
 %                          evaluations. Default is false for serial computation.
 %                          In MATLAB, the default is true if a parallel pool
 %                          has already been started. 
-%        • 'nproc':        nproc sets the number of parallel processes
+%       <> 'nproc':        nproc sets the number of parallel processes
 %
 %     '[CI, BOOTSTAT] = bootci (...)' also returns the bootstrap statistics
 %     used to calculate the confidence intervals CI.
