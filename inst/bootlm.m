@@ -1,24 +1,24 @@
-% -- statistics: bootlm (Y, GROUP)
-% -- statistics: bootlm (Y, GROUP, ..., NAME, VALUE)
-% -- statistics: bootlm (Y, GROUP, ..., 'dim', DIM)
-% -- statistics: bootlm (Y, GROUP, ..., 'continuous', CONTINUOUS)
-% -- statistics: bootlm (Y, GROUP, ..., 'model', MODELTYPE)
-% -- statistics: bootlm (Y, GROUP, ..., 'varnames', VARNAMES)
-% -- statistics: bootlm (Y, GROUP, ..., 'method', METHOD)
-% -- statistics: bootlm (Y, GROUP, ..., 'method', 'bayesian', 'prior', PRIOR)
-% -- statistics: bootlm (Y, GROUP, ..., 'alpha', ALPHA)
-% -- statistics: bootlm (Y, GROUP, ..., 'display', DISPOPT)
-% -- statistics: bootlm (Y, GROUP, ..., 'contrasts', CONTRASTS)
-% -- statistics: bootlm (Y, GROUP, ..., 'nboot', NBOOT)
-% -- statistics: bootlm (Y, GROUP, ..., 'clustid', CLUSTID)
-% -- statistics: bootlm (Y, GROUP, ..., 'blocksz', BLOCKSZ)
-% -- statistics: bootlm (Y, GROUP, ..., 'posthoc', POSTHOC)
-% -- statistics: bootlm (Y, GROUP, ..., 'seed', SEED)
-% -- statistics: STATS = bootlm (...)
-% -- statistics: [STATS, BOOTSTAT] = bootlm (...)
-% -- statistics: [STATS, BOOTSTAT, AOVSTAT] = bootlm (...)
-% -- statistics: [STATS, BOOTSTAT, AOVSTAT, X] = bootlm (...)
-% -- statistics: [STATS, BOOTSTAT, AOVSTAT, X, L] = bootlm (...)
+% -- Function File: bootlm (Y, GROUP)
+% -- Function File: bootlm (Y, GROUP, ..., NAME, VALUE)
+% -- Function File: bootlm (Y, GROUP, ..., 'dim', DIM)
+% -- Function File: bootlm (Y, GROUP, ..., 'continuous', CONTINUOUS)
+% -- Function File: bootlm (Y, GROUP, ..., 'model', MODELTYPE)
+% -- Function File: bootlm (Y, GROUP, ..., 'varnames', VARNAMES)
+% -- Function File: bootlm (Y, GROUP, ..., 'method', METHOD)
+% -- Function File: bootlm (Y, GROUP, ..., 'method', 'bayesian', 'prior', PRIOR)
+% -- Function File: bootlm (Y, GROUP, ..., 'alpha', ALPHA)
+% -- Function File: bootlm (Y, GROUP, ..., 'display', DISPOPT)
+% -- Function File: bootlm (Y, GROUP, ..., 'contrasts', CONTRASTS)
+% -- Function File: bootlm (Y, GROUP, ..., 'nboot', NBOOT)
+% -- Function File: bootlm (Y, GROUP, ..., 'clustid', CLUSTID)
+% -- Function File: bootlm (Y, GROUP, ..., 'blocksz', BLOCKSZ)
+% -- Function File: bootlm (Y, GROUP, ..., 'posthoc', POSTHOC)
+% -- Function File: bootlm (Y, GROUP, ..., 'seed', SEED)
+% -- Function File: STATS = bootlm (...)
+% -- Function File: [STATS, BOOTSTAT] = bootlm (...)
+% -- Function File: [STATS, BOOTSTAT, AOVSTAT] = bootlm (...)
+% -- Function File: [STATS, BOOTSTAT, AOVSTAT, X] = bootlm (...)
+% -- Function File: [STATS, BOOTSTAT, AOVSTAT, X, L] = bootlm (...)
 %
 %        Fits a linear model with categorical and/or continuous predictors (i.e.
 %     independent variables) on a continuous outcome (i.e. dependent variable)
@@ -103,7 +103,7 @@
 %
 %             o 'wild' (default): Wild bootstrap-t, using the 'bootwild'
 %               function. Please see the help documentation for the function
-%                'bootwild' for more information about this method.
+%               'bootwild' for more information about this method.
 %
 %             o 'bayesian': Bayesian bootstrap, using the 'bootbayes' function.
 %                Please see the help documentation below in the function
@@ -425,12 +425,15 @@ function [STATS, BOOTSTAT, AOVSTAT, X, L] = bootlm (Y, GROUP, varargin)
         case 'continuous'
           CONTINUOUS = value;
         case 'random'
-          % RANDOM input argument is ignored
+          warning (cat (2, 'bootlm: ''random'' name-value pair is not', ...
+                           ' supported and will be ignored.'))
         case 'nested'
-          error (cat (2, 'bootlm: NESTED not supported. Please use', ...
-                         ' ''CLUSTID'' or ''BLOCKSZ'' input arguments.'))
+          error (cat (2, 'bootlm: ''nested'' name-value pair is not', ...
+                         ' supported. Please use ''CLUSTID'' or', ...
+                         ' ''BLOCKSZ'' input argument.'))
         case 'sstype'
-          % SSTYPE input argument is ignored
+          warning (cat (2, 'bootlm: ''sstype'' name-value pair is not', ...
+                           ' supported and will be ignored.'))
         case 'varnames'
           VARNAMES = value;
         case 'display'
@@ -687,8 +690,8 @@ function [STATS, BOOTSTAT, AOVSTAT, X, L] = bootlm (Y, GROUP, varargin)
     end
 
     % Create design matrix
-    [X, grpnames, nlevels, df, termcols, coeffnames, vmeans, gid, ...
-     CONTRASTS, center_continuous] = mDesignMatrix (GROUP, TERMS, ...
+    [X, grpnames, nlevels, df, coeffnames, gid, CONTRASTS, ...
+     center_continuous] = mDesignMatrix (GROUP, TERMS, ...
      CONTINUOUS, CONTRASTS, VARNAMES, n, Nm, Nx, Ng, cont_vec);
     dft = n - 1;
     dfe = dft - sum (df);
@@ -715,27 +718,29 @@ function [STATS, BOOTSTAT, AOVSTAT, X, L] = bootlm (Y, GROUP, varargin)
         end
       end
       H = cell2mat (H);
-      [jnk, hidx] = unique (H, 'rows', 'first');
-      L = H(sort(hidx),:).';
+      L = unique_stable (H, 'rows')';
     end
 
     % Fit linear model
     X = cell2mat (X);
     [b, sse, resid, ucov, hat] = lmfit (X, Y, ISOCTAVE);
 
-    % Prepare model formula 
-    formula = sprintf ('Y ~ 1');  % Initialise model formula
+    % Prepare model formula
+    TERMNAMES = arrayfun (@(i) sprintf (':%s', VARNAMES{TERMS(i,:)}), ...
+                                        (1:Nt), 'UniformOutput', false);
+    formula = cell (Nt, 1);
     for i = 1:Nt
-      str = sprintf ('%s*', VARNAMES{find (TERMS(i,:))});
-      % Append model term to formula
-      str = regexprep (str, '\\*', ':');
-      % Fixed effect term
-      formula = sprintf ('%s + %s', formula, str(1:end-1));
+      if (i > 1)
+        formula{i} = sprintf ('%s + %s', formula{i-1}, TERMNAMES{i}(2:end));
+      else 
+        formula{1} = sprintf ('Y ~ 1 + %s', TERMNAMES{1}(2:end));
+      end
     end
 
     % Evaluate the dependence structure
-    if (isempty(DEP))
-      IC = (1 : n)';
+    if (isempty (DEP))
+      IC = (1:n)';
+      IA = IC;
     else
       if (isscalar (DEP))
         % Blocks
@@ -743,9 +748,10 @@ function [STATS, BOOTSTAT, AOVSTAT, X, L] = bootlm (Y, GROUP, varargin)
         G = fix (n / blocksz);
         IC = (G + 1) * ones (n, 1);
         IC(1 : blocksz * G, :) = reshape (ones (blocksz, 1) * (1:G), [], 1);
+        [jnk, IA] = unique (IC, 'first');
       else
         % Clusters
-        [jnk, jnk, IC] = unique (DEP);
+        [jnk, IA, IC] = unique_stable (DEP);
         if ( any (size (IC) ~= [n, 1]) )
           error (cat (2, 'bootlm: CLUSTID must be a column vector with the', ... 
                          ' same number of rows as Y'))
@@ -776,16 +782,7 @@ function [STATS, BOOTSTAT, AOVSTAT, X, L] = bootlm (Y, GROUP, varargin)
             % Perform ANOVA
             AOVSTAT = bootanova (Y, X, cat (1, 1, df), dfe, DEP, NBOOT, ALPHA, ...
                                  SEED, ISOCTAVE);
-            % Add model formulae to AOVSTAT
-            TERMNAMES = arrayfun (@(i) sprintf (':%s', ...
-                                                VARNAMES{TERMS(i,:)}), ...
-                                                1 : Nt, 'UniformOutput', false);
-            AOVSTAT.MODEL = cell (Nt, 1);
-            AOVSTAT.MODEL{1} = sprintf ('Y ~ 1 + %s', TERMNAMES{1}(2:end));
-            for i = 2:Nt
-              AOVSTAT.MODEL{i} = sprintf ('%s + %s', AOVSTAT.MODEL{i-1}, ...
-                                                      TERMNAMES{i}(2:end));
-            end
+            AOVSTAT.MODEL = formula;
           end
         case {'bayes', 'bayesian'}
           [STATS, BOOTSTAT] = bootbayes (Y, X, DEP, NBOOT, ...
@@ -845,22 +842,15 @@ function [STATS, BOOTSTAT, AOVSTAT, X, L] = bootlm (Y, GROUP, varargin)
       end
 
       % Compute sample sizes for each level along dimenion DIM
-      [jnk, gidx] = unique (gid(:,DIM), 'rows', 'first');
-      U = gid(sort(gidx),DIM);
+      U = unique_stable (gid(:,DIM), 'rows');
       n_dim = cellfun (@(u) sum (all (gid(:,DIM) == u, 2)), num2cell (U, 2));
 
       % Compute number of independent sampling units at each level of DIM
       if (isempty (DEP))
         N_dim = n_dim;
       else
-        tmp = cat (2, gid(:,DIM), IC);
-        [jnk, uidx] = unique (tmp, 'rows', 'first');
-        UC = tmp(sort(uidx),DIM);
+        UC = unique_stable (cat (2, gid(:,DIM), IC), 'rows');
         N_dim = cellfun (@(u) sum (all (UC(:,1:Nd) == u, 2)), num2cell (U, 2));
-      end
-      if (any (N_dim < 5))
-        warning (cat (2, 'bootlm: the number of independent sampling', ...
-                         ' units is < 5 along the dimension DIM'))
       end
 
       switch (lower (POSTHOC))
@@ -985,7 +975,7 @@ function [STATS, BOOTSTAT, AOVSTAT, X, L] = bootlm (Y, GROUP, varargin)
 
         % Print model formula
         fprintf('\nMODEL FORMULA (based on Wilkinson''s notation):\n\n%s\n', ...
-                formula);
+                formula{end});
 
         % If applicable, print parameter estimates (a.k.a contrasts) for fixed
         % effects. Parameter estimates correspond to the contrasts we set.
@@ -1140,9 +1130,9 @@ end
 
 %--------------------------------------------------------------------------
 
-function [X, levels, nlevels, df, termcols, coeffnames, vmeans, gid, ...
-         CONTRASTS, center_continuous] = mDesignMatrix (GROUP, TERMS, ...
-         CONTINUOUS, CONTRASTS, VARNAMES, n, Nm, Nx, Ng, cont_vec)
+function  [X, levels, nlevels, df, coeffnames, gid, CONTRASTS, ...
+           center_continuous] = mDesignMatrix (GROUP, TERMS, ...
+           CONTINUOUS, CONTRASTS, VARNAMES, n, Nm, Nx, Ng, cont_vec)
 
   % EVALUATE PREDICTOR LEVELS
   levels = cell (Nm, 1);
@@ -1166,8 +1156,7 @@ function [X, levels, nlevels, df, termcols, coeffnames, vmeans, gid, ...
     else
 
       % CATEGORICAL PREDICTOR
-      [jnk, gidx] = unique (GROUP(:,j), 'first');
-      levels{j} = GROUP(sort(gidx), j);
+      levels{j} = unique_stable (GROUP(:,j));
       if isnumeric (levels{j})
         levels{j} = num2cell (levels{j});
       end
@@ -1504,6 +1493,48 @@ function F = flatten_struct (S)
   F = struct;
   for i = 1:nm
     F.(fn{i}) = [S.(fn{i})]';
+  end
+
+end
+
+%--------------------------------------------------------------------------
+
+% FUNCTION THAT RETURNS UNIQUE VALUES IN THE ORDER THAT THEY FIRST APPEAR
+
+function [U, IA, IC] = unique_stable (A, varargin)
+
+  % Subfunction used for backwards compatibility
+
+  % Error checking
+  if any (ismember (varargin, {'first', 'last', 'sorted', 'stable'}))
+    error ('unique_stable: the only option available is ''rows''')
+  end
+  if (iscell (A) && ismember ('rows', varargin))
+    error ('unique_stable: ''rows'' option not supported for cell arrays')
+  end
+
+  % Flatten A to a column vector if 'rows' option not specified
+  if (~ ismember ('rows', varargin))
+    A = A(:);
+  end
+
+  % Obtain sorted unique values
+  [u, ia, ic] = unique (A, 'first', varargin{:});
+
+  % Sort index of first occurence of unique values as they first appear
+  IA = sort (ia);
+
+  % Get unique values in the order of appearace (a.k.a. 'stable')
+  U = A(IA,:);
+
+  % Create vector of numeric identifiers for unique values in A
+  n = numel (IA);
+  if iscell (A)
+    IC = sum (cell2mat (arrayfun (@(i) i * ismember (A, U(i,:)), ...
+                        (1:n), 'UniformOutput', false)), 2);
+  elseif isnumeric (A)
+    IC = sum (cell2mat (arrayfun (@(i) i * (all (bsxfun (@eq, A, U(i,:)), ...
+                        2)), (1:n), 'UniformOutput', false)), 2);
   end
 
 end
