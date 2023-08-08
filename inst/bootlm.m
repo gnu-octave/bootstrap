@@ -338,7 +338,11 @@
 %
 %     '[STATS, BOOTSTAT] = bootlm (...)' also returns a P x NBOOT matrix of
 %     bootstrap statistics for the estimated parameters, where P is the number
-%     of parameters estimated in the model.
+%     of parameters estimated in the model. Depending on the DIM and POSTHOC
+%     input arguments set by the user, the estimated parameters whose bootstrap
+%     statistics are returned will be either regression coefficients, the
+%     estimated marginal means, or the mean differences between groups of a
+%     categorical predictor for posthoc testing.
 %
 %     '[STATS, BOOTSTAT, AOVSTAT] = bootlm (...)' also computes and returns
 %     bootstrapped ANOVA statistics in a structure with the following fields: 
@@ -1041,7 +1045,7 @@ function [STATS, BOOTSTAT, AOVSTAT, X, L] = bootlm (Y, GROUP, varargin)
 
         % Normal quantile-quantile plot
         subplot (2, 2, 1);
-        x = ((1 : n)' - .5) / n;
+        x = ((1:n)' - .5) / n;
         [ts, I] = sort (t);
         stdnorminv = @(p) sqrt (2) * erfinv (2 * p - 1);
         q = stdnorminv (x);
@@ -1308,10 +1312,10 @@ function C = contr_poly (N)
   % for trend analysis of ordered categorical predictor levels
   % These contrasts are orthogonal and centered (i.e. sum to 0)
   % Ideal for ordered predictors
-  [C, jnk] = qr (bsxfun (@power, (1 : N)' - mean ((1 : N)'), [0 : N - 1]));
+  [C, jnk] = qr (bsxfun (@power, (1:N)' - mean ((1:N)'), (0:(N - 1))));
   C(:,1) = [];
   s = ones (1, N - 1);
-  s(1 : 2 : N - 1) = s(1 : 2 : N - 1) * -1;
+  s(1:2:N - 1) = s(1:2:N - 1) * -1;
   f = (sign(C(1,:)) ~= s);
   C(:,f) = C(:,f) * -1;
 
@@ -1321,8 +1325,8 @@ function C = contr_helmert (N)
 
   % Create contrast matrix (of doubles) using Helmert coding contrasts
   % These contrasts are orthogonal and centered (i.e. sum to 0)
-  C = cat (1, tril (- ones (N - 1), -1) + diag (N - 1 : -1 : 1), ...
-              -ones (1, N - 1)) ./ (N : -1 : 2);
+  C = cat (1, tril (- ones (N - 1), -1) + diag ((N - 1):-1:1), ...
+              -ones (1, N - 1)) ./ (N:-1:2);
 
 end
 
@@ -1338,7 +1342,7 @@ function C = contr_sdif (N)
 
   % Create contrast matrix (of doubles) using successive differences coding
   % These contrasts are centered (i.e. sum to 0)
-  C =  tril (ones (N, N - 1), -1) - ones (N, 1) / N * [N - 1 : -1 : 1];
+  C =  tril (ones (N, N - 1), -1) - ones (N, 1) / N * ((N - 1):-1:1);
 
 end
 
@@ -1513,7 +1517,7 @@ function [U, IA, IC] = unique_stable (A, varargin)
     error ('unique_stable: ''rows'' option not supported for cell arrays')
   end
 
-  % Flatten A to a column vector if 'rows' option not specified
+  % Flatten A to a column vector if 'rows' option is not specified
   if (~ ismember ('rows', varargin))
     A = A(:);
   end
