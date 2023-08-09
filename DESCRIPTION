@@ -11,4 +11,4 @@ Description: This package of functions can be used to estimate
  of the bootstrap are included that improve the coverage and 
  accuracy of bootstrap confidence intervals for small samples.
 License: GPLv3+
-depends: octave (≥ 4.4.0),
+depends: octave (>= 4.4.0)
