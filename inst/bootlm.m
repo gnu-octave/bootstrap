@@ -298,7 +298,7 @@
 %       <> When DIM is specified, POSTHOC comparisons along DIM can be one of
 %          the following:
 %
-%             o 'none' (default): No posthoc comparisons are performed. The
+%             o 'none' (default) : No posthoc comparisons are performed. The
 %               statistics returned are for the estimated marginal means.
 %
 %             o 'pairwise' : Pairwise comparisons are performed.
@@ -715,7 +715,7 @@ function [STATS, BOOTSTAT, AOVSTAT, X, L] = bootlm (Y, GROUP, varargin)
         error ('bootlm: values in DIM cannot exceed the number of predictors')
       end
       H = X;
-      ridx = ~ ismember ((1 : Nm), DIM);
+      ridx = ~ ismember ((1:Nm), DIM);
       for i = 1:Nt
         if ( any (and (TERMS(i,:), ridx)) )
           H{i+1}(:,:) = 0;
@@ -751,7 +751,7 @@ function [STATS, BOOTSTAT, AOVSTAT, X, L] = bootlm (Y, GROUP, varargin)
         blocksz = DEP;
         G = fix (n / blocksz);
         IC = (G + 1) * ones (n, 1);
-        IC(1 : blocksz * G, :) = reshape (ones (blocksz, 1) * (1:G), [], 1);
+        IC(1:blocksz * G, :) = reshape (ones (blocksz, 1) * (1:G), [], 1);
         [jnk, IA] = unique (IC, 'first');
       else
         % Clusters
@@ -834,9 +834,9 @@ function [STATS, BOOTSTAT, AOVSTAT, X, L] = bootlm (Y, GROUP, varargin)
       Np = size (L, 2);
       Nd = numel (DIM);
       NAMES = cell (Np, 1);
-      for i = 1 : Np
+      for i = 1:Np
         str = '';
-        for j = 1 : Nd
+        for j = 1:Nd
           str = sprintf('%s%s=%s, ', str, ...
                     num2str (VARNAMES{DIM(j)}), ...
                     num2str (grpnames{DIM(j)}{gid(idx(i),DIM(j))}));
@@ -847,7 +847,8 @@ function [STATS, BOOTSTAT, AOVSTAT, X, L] = bootlm (Y, GROUP, varargin)
 
       % Compute sample sizes for each level along dimenion DIM
       U = unique_stable (gid(:,DIM), 'rows');
-      n_dim = cellfun (@(u) sum (all (gid(:,DIM) == u, 2)), num2cell (U, 2));
+      n_dim = cellfun (@(u) sum (all (bsxfun(@eq, gid(:,DIM), u), 2)), ...
+                                                     num2cell (U, 2));
 
       % Compute number of independent sampling units at each level of DIM
       if (isempty (DEP))
@@ -944,7 +945,7 @@ function [STATS, BOOTSTAT, AOVSTAT, X, L] = bootlm (Y, GROUP, varargin)
               STATS.fpr = [];
             otherwise
               error (cat (2, 'bootlm: unrecignised bootstrap method.', ...
-                             ' Use ''wild'' or bayesian''.'))
+                             ' Use ''wild'' or ''bayesian''.'))
           end
 
           % Add sample sizes to the output structure
@@ -952,7 +953,7 @@ function [STATS, BOOTSTAT, AOVSTAT, X, L] = bootlm (Y, GROUP, varargin)
 
           % Create names of posthoc comparisons and assign to the output
           STATS.name = arrayfun (@(i) sprintf ('%s - %s', ... 
-                                NAMES{pairs(i,:)}), (1 : size (pairs,1))', ...
+                                NAMES{pairs(i,:)}), (1:size (pairs,1))', ...
                                 'UniformOutput', false);
           NAMES = STATS.name;
 
@@ -1400,7 +1401,7 @@ function [L, pairs] = pairwise (L_EMM)
   Ng = size (unique (L_EMM', 'rows'), 1);
 
   % Create pairs matrix for pairwise comparisons
-  gid = (1 : Ng)';  % Create numeric group ID
+  gid = (1:Ng)';  % Create numeric group ID
   A = ones (Ng, 1) * gid';
   B = tril (gid * ones(1, Ng),-1);
   pairs = [A(:), B(:)];
@@ -1438,10 +1439,10 @@ function [L, pairs] = trt_vs_ctrl (L_EMM, REF)
   end
 
   % Create pairs matrix for pairwise comparisons
-  gid = (1 : Ng)';  % Create numeric group ID
+  gid = (1:Ng)';  % Create numeric group ID
   pairs = zeros (Ng - 1, 2);
-  pairs(:, 1) = REF;
-  pairs(:, 2) = gid(gid ~= REF);
+  pairs(:,1) = REF;
+  pairs(:,2) = gid(gid ~= REF);
 
   % Calculate hypothesis matrix for pairwise comparisons from the
   % estimated marginal means
@@ -1553,7 +1554,7 @@ function AOVSTAT = bootanova (Y, X, DF, DFE, DEP, NBOOT, ALPHA, SEED, ISOCTAVE)
 
   % Compute observed statistics
   Nt = numel (DF) - 1;
-  [jnk, SSE, RESID] = arrayfun (@(j) lmfit (X(:, 1 : sum (DF(1:j))), Y, ...
+  [jnk, SSE, RESID] = arrayfun (@(j) lmfit (X(:,1:sum (DF(1:j))), Y, ...
                                 ISOCTAVE), (1:Nt + 1)', 'UniformOutput', false);
   SS = max (-diff (cell2mat (SSE)), 0);
   MS = SS ./ DF(2:end);
@@ -1567,7 +1568,7 @@ function AOVSTAT = bootanova (Y, X, DF, DFE, DEP, NBOOT, ALPHA, SEED, ISOCTAVE)
   % pg 79-86
   % See also the R function: https://rdrr.io/cran/lmboot/src/R/ANOVA.boot.R
   [jnk, jnk, BOOTSSE] = arrayfun (@(j) bootwild (RESID{end}, ...
-                                X(:, 1 : sum (DF(1:j))), ...
+                                X(:,1:sum (DF(1:j))), ...
                                 DEP, NBOOT, ALPHA, SEED, [], ISOCTAVE), ...
                                 (1:Nt + 1)', 'UniformOutput', false);
   BOOTSSE = cell2mat (BOOTSSE);

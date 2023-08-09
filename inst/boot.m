@@ -10,16 +10,14 @@
 %     positive integers. The returned value, BOOTSAM, is a matrix of indices,
 %     with N rows and NBOOT columns. The efficiency of the bootstrap simulation
 %     is ensured by sampling each of the indices exactly NBOOT times, for first-
-%     order balance [2-3]. As such, when NBOOT is only 1, the resampling
-%     method becomes resampling without replacement (a.k.a. permutation).
+%     order balance [2-3]. Balanced resampling only applies when NBOOT > 1.
 %
 %     'BOOTSAM = boot (X, NBOOT)' generates NBOOT bootstrap samples, each the
 %     same length as X (N). X must be a numeric vector, and NBOOT must be
 %     positive integer. BOOTSAM is a matrix of values from X, with N rows
 %     and NBOOT columns. The samples generated contains values of X, which
 %     are chosen by balanced bootstrap resampling as described above [1-3].
-%     As such, when NBOOT is only 1, the resampling method becomes resampling
-%     without replacement (a.k.a. permutation).
+%     Balanced resampling only applies when NBOOT > 1.
 %
 %     'BOOTSAM = boot (..., NBOOT, UNBIASED)' sets the resampling method. If
 %     UNBIASED is false, the resampling method used is balanced bootstrap
@@ -166,7 +164,9 @@ function bootsam = boot (x, nboot, u, s, w)
       else
         bootsam (i, b) = j;
       end
-      c(j) = c(j) - 1; 
+      if (nboot > 1)
+        c(j) = c(j) - 1;
+      end
     end
   end
 

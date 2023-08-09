@@ -350,7 +350,7 @@ function S = lmfit (X, y, clusters, L, ISOCTAVE)
   b = X \ y;                 % Instead of inv (X' * X) * (X' * y);
 
   % Calculate heteroscedasticity-consistent (HC) or cluster robust (CR) standard 
-  % errors (CR) for the regression coefficients. When the number of observations
+  % errors for the regression coefficients. When the number of observations
   % equals the number of clusters, the calculations for CR reduce to HC.
   % References: 
   %   Long and Ervin (2000) Am. Stat, 54(3), 217-224

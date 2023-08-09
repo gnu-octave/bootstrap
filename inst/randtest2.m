@@ -105,11 +105,7 @@ function [pval, stat, STATS] = randtest2 (x, y, paired, nreps, seed)
   end
   if ( (nargin > 4) && (~ isempty (seed)) )
     % Set random seed
-    if (ISOCTAVE)
-      rand ('seed', seed);
-    else
-      rng (seed, 'twister');
-    end
+    rand ('seed', seed);
   end
 
   % Remove NaN data values

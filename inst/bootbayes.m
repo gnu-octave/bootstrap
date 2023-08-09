@@ -205,7 +205,7 @@ function [stats, bootstat] = bootbayes (Y, X, dep, nboot, prob, prior, seed, ...
       blocksz = dep;
       N = fix (n / blocksz);
       IC = (N + 1) * ones (n, 1);
-      IC(1 : blocksz * N, :) = reshape (ones (blocksz, 1) * (1 : N), [], 1);
+      IC(1:blocksz * N, :) = reshape (ones (blocksz, 1) * (1:N), [], 1);
       N = IC(end);
       method = 'block ';
     else
@@ -288,7 +288,7 @@ function [stats, bootstat] = bootbayes (Y, X, dep, nboot, prob, prior, seed, ...
         prior = 1;
       end
     else
-      error ('bootbayes: PRIOR must be numeric');
+      error ('bootbayes: PRIOR must be numeric or ''auto''');
     end
   end
   if (numel (prior) > 1)
@@ -320,7 +320,7 @@ function [stats, bootstat] = bootbayes (Y, X, dep, nboot, prob, prior, seed, ...
   else
     % Haldane prior
     r = zeros (N, nboot);
-    idx = fix (rand (1, nboot) * N + (1 : N : nboot * N));
+    idx = fix (rand (1, nboot) * N + (1:N:(nboot * N)));
     r(idx)=1;
   end
   if (~ isempty (IC))
@@ -361,7 +361,7 @@ function [stats, bootstat] = bootbayes (Y, X, dep, nboot, prob, prior, seed, ...
       % This implementation ensures that if there are multiple minima, the
       % the shortest probability interval closest to the central interval is
       % chosen
-      width = bootstat(j, (gap + 1) : nboot) - bootstat(j, 1 : (nboot - gap));
+      width = bootstat(j, (gap + 1):nboot) - bootstat(j, 1:(nboot - gap));
       index = find (width == min (width))';
       best_index = index (dsearchn (index, 0.5 * (1 - prob) * (nboot + 1)));
       if (~ isnan (prob))

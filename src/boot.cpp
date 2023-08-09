@@ -34,9 +34,8 @@
 // correction into the resampling procedure. The sample index for omission in
 // each bootknife resample is selected systematically. When the remaining number
 // of bootknife resamples is not divisible by the sample size (N), then the
-// sample index omitted is selected randomly. Since balanced resampling is
-// guaranteed, the method becomes resampling without replacement (a.k.a.
-// permutation) when NBOOT is only 1.
+// sample index omitted is selected randomly. Balanced resampling only applies
+// when NBOOT > 1.
 // SEED is an optional scalar input argument used to initialize the random
 // number generator to make resampling reproducible between calls to boot.
 // WEIGHTS is an optional input argument. If WEIGHTS is empty or not provided,
@@ -59,7 +58,6 @@
 // Requirements: Compilation requires C++11
 //
 // Author: Andrew Charles Penn (2022)
-
 
 #include "mex.h"
 #include <vector>
@@ -90,13 +88,16 @@ void mexFunction (int nlhs, mxArray* plhs[],
         isvec = true;
     } else {
         isvec = false;
-        n = *(mxGetPr (prhs[0]));
-        if ( !mxIsFinite (n) ) {
-            mexErrMsgTxt ("The first input argument (N) cannot be NaN or Inf.");    
-        }
         if ( mxIsComplex (prhs[0]) ) {
             mexErrMsgTxt ("The first input argument (N) cannot contain an imaginary part.");
         }
+        if ( *x != int(*x) ) {
+            mexErrMsgTxt ("The value of the first input argument (N) must be a positive integer.");
+        }
+        if ( !mxIsFinite (*x) ) {
+            mexErrMsgTxt ("The first input argument (N) cannot be NaN or Inf.");
+        }
+        n = *x;
     }
     if ( !mxIsClass (prhs[0], "double") ) {
         mexErrMsgTxt ("The first input argument (N or X) must be of type double.");
@@ -206,7 +207,8 @@ void mexFunction (int nlhs, mxArray* plhs[],
 
     // Perform balanced sampling
     for ( int b = 0; b < nboot ; b++ ) { 
-        if (u == true) {    
+        if (u == true) {
+            // Note that the following division operations are for integers 
             if ( (b / n) == (nboot / n) ) {
                 r = distr (rng);      // random
             } else {
@@ -233,8 +235,10 @@ void mexFunction (int nlhs, mxArray* plhs[],
                     } else {
                         ptr[b * n + i] = j + 1;
                     }
-                    c[j] -= 1;
-                    N -= 1;
+                    if (nboot > 1) {
+                      c[j] -= 1;
+                      N -= 1;
+                    }
                     break;
                 } else {
                     d += c[j + 1];
