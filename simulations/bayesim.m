@@ -18,7 +18,7 @@ mu = 0;                         % Population mean
 sigma = 1;                      % Population standard deviation
 n = 4;                          % Sample size
 nsamp = 1e+05;                  % Total sample size desired from simulation
-nsim = 1e+07;                   % Size of each simulation block
+nsim = 1e+06;                   % Size of each simulation block
 eps = 5e-02 * sigma * sqrt (n); % Stringency/precision
 mu_good = [];
 
