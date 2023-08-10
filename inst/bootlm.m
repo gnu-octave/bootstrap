@@ -355,6 +355,9 @@
 %        - 'SSE': Sum-of-Squared Error
 %        - 'DFE': Degrees of Freedom for Error
 %        - 'MSE': Mean Squared Error
+%        - 'ETA_SQ' : Eta-squared
+%        - 'PARTIAL_ETA_SQ' : Partial eta-squared
+%        - 'COHENS_F' : Cohen's f
 %     The ANOVA implemented uses sequential (type I) sums-of-squares and so the
 %     results and their interpretation depend on the order of predictors in the
 %     GROUP variable (when the design is not balanced). Thus, the null model
@@ -1589,9 +1592,25 @@ function AOVSTAT = bootanova (Y, X, DF, DFE, DEP, NBOOT, ALPHA, SEED, ISOCTAVE)
     end
   end
 
+  % Compute effect sizes
+  SST = SSE{1} ;  % SSE(1) is SSE of an intercept-only model, eq. to SST
+  ETA_SQ = SS / SST ;                      % Eta-squared
+  PARTIAL_ETA_SQ = SS ./ (SS + SSE{end});  % Partial eta-squared
+  COHENS_F = sqrt (SS ./ SSE{end});        % Cohen's f
+                                           %
+                                           % Note that when a factor has only
+                                           % two predictors:
+                                           %
+                                           %   COHENS_D = COHENS_F * 2
+                                           %
+                                           % This relationship is exact when the
+                                           % two groups have equal sample size.
+
   % Prepare output
   AOVSTAT = struct ('MODEL', [], 'SS', SS, 'DF', DF(2:end), 'MS', MS, 'F', ...
-                     F, 'PVAL', PVAL, 'SSE', SSE{end}, 'DFE', DFE, 'MSE', MSE);
+                     F, 'PVAL', PVAL, 'SSE', SSE{end}, 'DFE', DFE, ...
+                    'MSE', MSE, 'ETA_SQ', ETA_SQ, 'PARTIAL_ETA_SQ', ...
+                    PARTIAL_ETA_SQ, 'COHENS_F', COHENS_F);
 
 end
 
