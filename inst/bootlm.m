@@ -1601,7 +1601,7 @@ function AOVSTAT = bootanova (Y, X, DF, DFE, DEP, NBOOT, ALPHA, SEED, ISOCTAVE)
                                            % Note that when a factor has only
                                            % two predictors:
                                            %
-                                           %   COHENS_D = COHENS_F * 2
+                                           %   COHENS_D = 2 * COHENS_F
                                            %
                                            % This relationship is exact when the
                                            % two groups have equal sample size.
