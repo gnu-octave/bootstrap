@@ -1648,17 +1648,17 @@ end
 %!
 %! % 95% confidence intervals and p-values for the difference in mean score
 %! % before and after treatment (computed by wild bootstrap)
-%! STATS = bootlm (score(:), {treatment(:), subject(:)}, ...
+%! STATS = bootlm (score(:), {subject(:), treatment(:)}, ...
 %!                            'model', 'linear', 'display', 'on', ...
-%!                            'varnames', {'treatment', 'subject'}, ...
-%!                            'dim', 1, 'posthoc','trt_vs_ctrl');
+%!                            'varnames', {'subject','treatment'}, ...
+%!                            'dim', 2, 'posthoc','trt_vs_ctrl');
 %!
 %! % 95% credible intervals for the estimated marginal means of the scores
 %! % before and after treatment (computed by Bayesian bootstrap)
-%! STATS = bootlm (score(:), {treatment(:), subject(:)}, ...
+%! STATS = bootlm (score(:), {subject(:), treatment(:)}, ...
 %!                            'model', 'linear', 'display', 'on', ...
-%!                            'varnames', {'treatment', 'subject'}, ...
-%!                            'dim', 1, 'method','bayesian', 'prior', 'auto');
+%!                            'varnames', {'subject','treatment'}, ...
+%!                            'dim', 2, 'method','bayesian', 'prior', 'auto');
 
 %!demo
 %!
@@ -1696,17 +1696,17 @@ end
 %!
 %! % 95% confidence intervals and p-values for the differences in mean number of
 %! % words recalled for the different times (using wild bootstrap).
-%! STATS = bootlm (words(:), {seconds(:), subject(:)}, ...
+%! STATS = bootlm (words(:), {subject(:), seconds(:)}, ...
 %!                            'model', 'linear', 'display', 'on', ...
-%!                            'varnames', {'seconds', 'subject'}, ...
-%!                            'dim', 1, 'posthoc', 'pairwise');
+%!                            'varnames', {'subject', 'seconds'}, ...
+%!                            'dim', 2, 'posthoc', 'pairwise');
 %!
 %! % 95% credible intervals for the estimated marginal means of the number of
 %! % words recalled for each time (computed using Bayesian bootstrap).
-%! STATS = bootlm (words(:), {seconds(:), subject(:)}, ...
+%! STATS = bootlm (words(:), {subject(:), seconds(:)}, ...
 %!                            'model', 'linear', 'display', 'on', ...
-%!                            'varnames', {'seconds', 'subject'}, ...
-%!                            'dim', 1, 'method', 'bayesian', 'prior', 'auto');
+%!                            'varnames', {'subject', 'seconds'}, ...
+%!                            'dim', 2, 'method', 'bayesian', 'prior', 'auto');
 
 %!demo
 %!
@@ -1856,10 +1856,10 @@ end
 %!
 %! % Perform 3-way ANOVA (this design is balanced so order of predictors does 
 %! % not make any difference)
-%! [STATS, BOOTSTAT, AOVSTAT] = bootlm (BP(:), {drug(:), feedback(:), ...
-%!                                    diet(:)}, 'seed', 1, ...
+%! [STATS, BOOTSTAT, AOVSTAT] = bootlm (BP(:), {diet(:), drug(:), ...
+%!                                    feedback(:)}, 'seed', 1, ...
 %!                                    'model', 'full', 'display', 'off', ...
-%!                                    'varnames', {'drug', 'feedback', 'diet'});
+%!                                    'varnames', {'diet', 'drug', 'feedback'});
 %!
 %! fprintf ('ANOVA SUMMARY\n')
 %! for i = 1:numel(AOVSTAT.F)
@@ -1870,24 +1870,24 @@ end
 %!
 %! % Check regression coefficient corresponding to drug x feedback x diet
 %! % interaction using 'anova' contrast coding
-%! STATS = bootlm (BP(:), {drug(:), feedback(:), diet(:)}, ...
+%! STATS = bootlm (BP(:), {diet(:), drug(:), feedback(:)}, ...
 %!                                    'model', 'full', ...
 %!                                    'display', 'on', ...
-%!                                    'varnames', {'drug', 'feedback', 'diet'});
+%!                                    'varnames', {'diet', 'drug', 'feedback'});
 %!
 %! % 95% confidence intervals and p-values for the differences in mean salary
 %! % between males and females (computed by wild bootstrap).
-%! STATS = bootlm (BP(:), {drug(:), feedback(:), diet(:)}, 'model', 'full', ...
+%! STATS = bootlm (BP(:), {diet(:), drug(:), feedback(:)}, 'model', 'full', ...
 %!                                    'display', 'on', 'dim', [1,2,3], ...
 %!                                    'posthoc', 'trt_vs_ctrl', ...
-%!                                    'varnames', {'drug', 'feedback', 'diet'});
+%!                                    'varnames', {'diet', 'drug', 'feedback'});
 %!
 %! % 95% credible intervals for the estimated marginal means of salaries of
 %! % females and males (computed by Bayesian bootstrap).
-%! STATS = bootlm (BP(:), {drug(:), feedback(:), diet(:)}, 'model', 'full', ...
+%! STATS = bootlm (BP(:), {diet(:), drug(:), feedback(:)}, 'model', 'full', ...
 %!                                    'display', 'on', 'dim', [1,2,3], ...
 %!                                    'method', 'bayesian', 'prior', 'auto', ...
-%!                                    'varnames', {'drug', 'feedback', 'diet'});
+%!                                    'varnames', {'diet', 'drug', 'feedback'});
 
 %!demo
 %!
@@ -2039,9 +2039,10 @@ end
 %! gender = {'male' 'male' 'male' 'male' 'male' 'female' 'female' 'female' ...
 %!           'female' 'female' 'female'}';
 %!
-%! stats = bootlm (score, gender, 'display', 'off', 'varnames', 'gender', ...
-%!                                'seed', 1);
+%! [stats, bootstat, aovstat] = bootlm (score, gender, 'display', 'off', ...
+%!                                'varnames', 'gender', 'seed', 1);
 %!
+%! assert (aovstat.PVAL(1), 0.2435635849960569, 1e-09);
 %! assert (stats.pval(2), 0.2434934955512797, 1e-09);
 %! assert (stats.fpr(2), 0.4832095599189747, 1e-09);
 %! # ttest2 (with 'vartype' = 'unequal') gives a p-value of 0.2501;
@@ -2056,16 +2057,17 @@ end
 %!              'before' 'after'; 'before' 'after'}';
 %! subject = {'GS' 'GS'; 'JM' 'JM'; 'HM' 'HM'; 'JW' 'JW'; 'PS' 'PS'}';
 %!
-%! stats = bootlm (score(:), {treatment(:), subject(:)}, 'seed', 1, ...
-%!                            'model', 'linear', 'display', 'off', ...
-%!                            'varnames', {'treatment', 'subject'});
+%! [stats, bootstat, aovstat] = bootlm (score(:), {subject(:), treatment(:)},...
+%!                            'seed', 1, 'model', 'linear', 'display', ...
+%!                            'off', 'varnames', {'subject', 'treatment'});
 %!
-%! assert (stats.pval(1), 0.0007121854921651461, 1e-09);
-%! assert (stats.pval(2), 0.002663469844077049, 1e-09);
-%! assert (stats.pval(3), 0.9999999999999917, 1e-09);
-%! assert (stats.pval(4), 0.06635496003290851, 1e-09);
-%! assert (stats.pval(5), 0.4382333666561282, 1e-09);
-%! assert (stats.pval(6), 0.3639361232818474, 1e-09);
+%! assert (aovstat.PVAL(2), 0.002663575883388276, 1e-09);
+%! assert (stats.pval(1), 0.0007121854921651428, 1e-09);
+%! assert (stats.pval(2), 0.9999999999999909, 1e-09);
+%! assert (stats.pval(3), 0.06635496003291047, 1e-09);
+%! assert (stats.pval(4), 0.4382333666561281, 1e-09);
+%! assert (stats.pval(5), 0.3639361232818495, 1e-09);
+%! assert (stats.pval(6), 0.002663469844077109, 1e-09);
 
 %!test
 %!
@@ -2078,9 +2080,10 @@ end
 %!          'al1','al1','al1','al1','al1','al1', ...
 %!          'al2','al2','al2','al2','al2','al2'}';
 %!
-%! stats = bootlm (strength, alloy, 'display', 'off', 'varnames', 'alloy', ...
-%!                                  'seed', 1);
+%! [stats, bootstat, aovstat] = bootlm (strength, alloy, 'display', 'off', ...
+%!                                  'varnames', 'alloy', 'seed', 1);
 %!
+%! assert (aovstat.PVAL, 0.000134661710930026, 1e-09);
 %! assert (stats.CI_lower(2), -10.17909151307657, 1e-09);
 %! assert (stats.CI_upper(2), -3.820908486923432, 1e-09);
 %! assert (stats.CI_lower(3), -7.462255988161777, 1e-09);
@@ -2099,14 +2102,16 @@ end
 %! subject = [ 1  1  1;  2  2  2;  3  3  3;  4  4  4;  5  5  5; ...
 %!             6  6  6;  7  7  7;  8  8  8;  9  9  9; 10 10 10];
 %!
-%! stats = bootlm (words(:), {seconds(:), subject(:)}, 'seed', 1, ...
-%!                            'model', 'linear', 'display', 'off', ...
-%!                            'varnames', {'seconds', 'subject'});
+%! [stats, bootstat, aovstat] = bootlm (words(:), {subject(:), seconds(:)}, ...
+%!                            'seed', 1, 'model', 'linear', 'display', ...
+%!                            'off', 'varnames', {'subject', 'seconds'});
 %!
-%! assert (stats.CI_lower(2), 1.266092224054235, 1e-09);
-%! assert (stats.CI_upper(2), 2.733907775945761, 1e-09);
-%! assert (stats.CI_lower(3), 2.554265809089302, 1e-09);
-%! assert (stats.CI_upper(3), 3.845734190910699, 1e-09);
+%! assert (aovstat.F(2), 42.5060240963856, 1e-09);
+%! assert (aovstat.PVAL(2), 0.0001, 1e-09);
+%! assert (stats.CI_lower(11), 1.266092224054235, 1e-09);
+%! assert (stats.CI_upper(11), 2.733907775945761, 1e-09);
+%! assert (stats.CI_lower(12), 2.554265809089302, 1e-09);
+%! assert (stats.CI_upper(12), 3.845734190910699, 1e-09);
 
 %!test
 %!
@@ -2227,29 +2232,18 @@ end
 %!       180 187 199 170 204 194 162 184 183 156 180 173 ...
 %!       202 228 190 206 224 204 205 199 170 160 179 179];
 %!
-%! [stats, bootstat, aovstat] = bootlm (BP(:), {drug(:), feedback(:), ...
-%!                                    diet(:)}, 'seed', 1, ...
+%! [stats, bootstat, aovstat] = bootlm (BP(:), {diet(:), drug(:), ...
+%!                                    feedback(:)}, 'seed', 1, ...
 %!                                    'model', 'full', 'display', 'off', ...
-%!                                    'varnames', {'drug', 'feedback', 'diet'});
+%!                                    'varnames', {'diet', 'drug', 'feedback'});
 %!
-%! assert (aovstat.PVAL(1), 0.0001785474921424416, 1e-09);
-%! assert (aovstat.PVAL(2), 0.0005607720210921765, 1e-09);
-%! assert (aovstat.PVAL(3), 0.0001, 1e-09);
-%! assert (aovstat.PVAL(4), 0.4343155166545469, 1e-09);
-%! assert (aovstat.PVAL(5), 0.06277877943312708, 1e-09);
-%! assert (aovstat.PVAL(6), 0.6484269049223992, 1e-09);
-%! assert (aovstat.PVAL(7), 0.03878235882690048, 1e-09);
-%!
-%! stats = bootlm (BP(:), {drug(:), feedback(:), diet(:)}, ...
-%!                                    'seed', 1, ...
-%!                                    'model', 'full', ...
-%!                                    'display', 'off', ...
-%!                                    'varnames', {'drug', 'feedback', 'diet'});
-%!
-%! assert (stats.pval(11), 0.01390969497190977, 1e-09);
-%! assert (stats.pval(12), 0.7334357687702242, 1e-09);
-%! assert (stats.fpr(11), 0.1391526669998761, 1e-09);
-%! assert (stats.fpr(12), 0.5, 1e-09);
+%! assert (aovstat.PVAL(1), 0.0001, 1e-09);
+%! assert (aovstat.PVAL(2), 0.000178547492142441, 1e-09);
+%! assert (aovstat.PVAL(3), 0.0005607720210921853, 1e-09);
+%! assert (aovstat.PVAL(4), 0.06277877943312592, 1e-09);
+%! assert (aovstat.PVAL(5), 0.6484269049223901, 1e-09);
+%! assert (aovstat.PVAL(6), 0.4343155166545599, 1e-09);
+%! assert (aovstat.PVAL(7), 0.0387823588268973, 1e-09);
 
 %!test
 %!
@@ -2314,12 +2308,6 @@ end
 %! assert (aovstat.PVAL(2), 0.0001, 1e-09);
 %! assert (aovstat.PVAL(3), 0.00209853874900942, 1e-09);
 %! assert (aovstat.PVAL(4), 0.0145576845409309, 1e-09);
-%!
-%! stats = bootlm (score, {age, exercise, treatment}, 'seed', 1, ...
-%!                            'model', [1 0 0; 0 1 0; 0 0 1; 0 1 1], ...
-%!                            'continuous', 1, 'display', 'off', ...
-%!                            'varnames', {'age', 'exercise', 'treatment'});
-%!
 %! assert (stats.pval(6), 0.9605479032987221, 1e-09);
 %! assert (stats.pval(7), 0.01418066878652798, 1e-09);
 %! assert (stats.fpr(6), 0.5, 1e-09);
@@ -2367,9 +2355,11 @@ end
 %!      -0.6002401  0.0000000  0.0  0.5
 %!      -0.6002401  0.0000000  0.0 -0.5];
 %!
-%! stats = bootlm (dv, g, 'contrasts', C, 'varnames', 'score', 'seed', 1, ...
-%!                          'alpha', 0.05, 'display', false);
+%! [stats, bootstat, aovstat] = bootlm (dv, g, 'contrasts', C, 'varnames', ...
+%!                         'score', 'seed', 1, 'alpha', 0.05, 'display', false);
 %!
+%! assert (aovstat.F, 47.10380954233712, 1e-09);
+%! assert (aovstat.PVAL, 0.0001, 1e-09);
 %! assert (stats.pval(2), 0.0001, 1e-09);
 %! assert (stats.pval(3), 0.00189427105584975, 1e-09);
 %! assert (stats.pval(4), 0.0001532987133628411, 1e-09);
