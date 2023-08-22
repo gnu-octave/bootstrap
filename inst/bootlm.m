@@ -59,7 +59,7 @@
 %             - mean: the estimated marginal mean(s)
 %             - CI_lower: lower bound(s) of the 95% confidence interval (CI)
 %             - CI_upper: upper bound(s) of the 95% confidence interval (CI)
-%             - n: the sample size used to estimate the mean
+%             - N: the number of independent sampling units used to compute CIs
 %
 %     '[...] = bootlm (Y, GROUP, ..., 'continuous', CONTINUOUS)'
 %
@@ -329,7 +329,7 @@
 %        - 'CI_upper': The upper bound(s) of the confidence/credible interval(s)
 %        - 'pval': The p-value(s) for the hypothesis that the estimate(s) = 0
 %        - 'fpr': The false positive risk 
-%        - 'n': The sample size(s)
+%        - 'N': The number of independnet sampling units used to compute CIs
 %        - 'prior': The prior used for Bayesian bootstrap
 %
 %        Note that the p-values returned are truncated at the resolution
@@ -355,9 +355,6 @@
 %        - 'SSE': Sum-of-Squared Error
 %        - 'DFE': Degrees of Freedom for Error
 %        - 'MSE': Mean Squared Error
-%        - 'ETA_SQ' : Eta-squared
-%        - 'PARTIAL_ETA_SQ' : Partial eta-squared
-%        - 'COHENS_F' : Cohen's f
 %     The ANOVA implemented uses sequential (type I) sums-of-squares and so the
 %     results and their interpretation depend on the order of predictors in the
 %     GROUP variable (when the design is not balanced). Thus, the null model
@@ -783,7 +780,7 @@ function [STATS, BOOTSTAT, AOVSTAT, X, L] = bootlm (Y, GROUP, varargin)
                                         ISOCTAVE);
           % Tidy up
           STATS = rmfield (STATS, {'std_err', 'tstat', 'sse'});
-          STATS.n = n;
+          STATS.N = N;
           STATS.prior = [];
           if (nargout > 2)
             % Perform ANOVA
@@ -799,7 +796,7 @@ function [STATS, BOOTSTAT, AOVSTAT, X, L] = bootlm (Y, GROUP, varargin)
           STATS = rmfield (STATS, {'median', 'bias', 'stdev'});
           STATS.pval = [];
           STATS.fpr = [];
-          STATS.n = n;
+          STATS.N = N;
         otherwise
           error (cat (2, 'bootlm: unrecignised bootstrap method. Use', ...
                          ' ''wild'' or bayesian''.'))
@@ -896,7 +893,7 @@ function [STATS, BOOTSTAT, AOVSTAT, X, L] = bootlm (Y, GROUP, varargin)
           end
 
           % Add sample sizes to the output structure
-          STATS.n = n_dim;
+          STATS.N = N_dim;
 
           % Assign NAMES of groups to output structure
           STATS.name = NAMES;
@@ -952,7 +949,7 @@ function [STATS, BOOTSTAT, AOVSTAT, X, L] = bootlm (Y, GROUP, varargin)
           end
 
           % Add sample sizes to the output structure
-          STATS.n = sum (N_dim(pairs')', 2);
+          STATS.N = sum (N_dim(pairs')', 2);
 
           % Create names of posthoc comparisons and assign to the output
           STATS.name = arrayfun (@(i) sprintf ('%s - %s', ... 
@@ -974,7 +971,7 @@ function [STATS, BOOTSTAT, AOVSTAT, X, L] = bootlm (Y, GROUP, varargin)
         STATS.method = 'Bayesian bootstrap';
     end
     STATS = orderfields (STATS, {'method','name', 'estimate', 'CI_lower', ...
-                                 'CI_upper', 'pval', 'fpr', 'n', 'prior'});
+                                 'CI_upper', 'pval', 'fpr', 'N', 'prior'});
 
     % Print table of model coefficients and make figure of diagnostic plots
     switch (lower (DISPLAY))
@@ -998,7 +995,7 @@ function [STATS, BOOTSTAT, AOVSTAT, X, L] = bootlm (Y, GROUP, varargin)
             case 'none'
               fprintf ('\nMODEL ESTIMATED MARGINAL MEANS\n\n');
               fprintf (cat (2, 'name                                   ', ...
-                               'mean        CI_lower    CI_upper        n\n'));
+                               'mean        CI_lower    CI_upper        N\n'));
               fprintf (cat (2, '---------------------------------------', ...
                                '-----------------------------------------\n'));
             case {'pairwise', 'trt_vs_ctrl'}
@@ -1029,7 +1026,7 @@ function [STATS, BOOTSTAT, AOVSTAT, X, L] = bootlm (Y, GROUP, varargin)
           else
             fprintf ('%-37s  %#-+10.4g  %#-+10.4g  %#-+10.4g  %5u\n', ...
                      NAMES{j}(1:min(end,37)), STATS.estimate(j), ...
-                     STATS.CI_lower(j), STATS.CI_upper(j), STATS.n(j));
+                     STATS.CI_lower(j), STATS.CI_upper(j), STATS.N(j));
           end
         end
         fprintf('\n');
@@ -1592,25 +1589,10 @@ function AOVSTAT = bootanova (Y, X, DF, DFE, DEP, NBOOT, ALPHA, SEED, ISOCTAVE)
     end
   end
 
-  % Compute effect sizes
-  SST = SSE{1} ;  % SSE(1) is SSE of an intercept-only model, eq. to SST
-  ETA_SQ = SS / SST ;                      % Eta-squared
-  PARTIAL_ETA_SQ = SS ./ (SS + SSE{end});  % Partial eta-squared
-  COHENS_F = sqrt (SS ./ SSE{end});        % Cohen's f
-                                           %
-                                           % Note that when a factor has only
-                                           % two predictors:
-                                           %
-                                           %   COHENS_D = 2 * COHENS_F
-                                           %
-                                           % This relationship is exact when the
-                                           % two groups have equal sample size.
-
   % Prepare output
   AOVSTAT = struct ('MODEL', [], 'SS', SS, 'DF', DF(2:end), 'MS', MS, 'F', ...
                      F, 'PVAL', PVAL, 'SSE', SSE{end}, 'DFE', DFE, ...
-                    'MSE', MSE, 'ETA_SQ', ETA_SQ, 'PARTIAL_ETA_SQ', ...
-                    PARTIAL_ETA_SQ, 'COHENS_F', COHENS_F);
+                    'MSE', MSE);
 
 end
 
