@@ -391,7 +391,7 @@ end
 
 %% FUNCTION TO FIT THE LINEAR MODEL
 
-function [param, resid] = lmfit (X, y, W, L)
+function param = lmfit (X, y, W, L)
 
   % Get model coefficients by solving the linear equation by matrix arithmetic
   % If optional arument W is provided, it should be a diagonal matrix of
@@ -409,11 +409,6 @@ function [param, resid] = lmfit (X, y, W, L)
   % Solve linear equation to minimize weighted least squares
   b = pinv (X' * W * X) * (X' * W * y);
   param = L' * b;
-
-  % Compute residuals if requested
-  if (nargout > 1)
-    resid = y - X * b;
-  end
 
 end
 

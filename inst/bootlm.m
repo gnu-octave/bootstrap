@@ -17,8 +17,7 @@
 % -- Function File: STATS = bootlm (...)
 % -- Function File: [STATS, BOOTSTAT] = bootlm (...)
 % -- Function File: [STATS, BOOTSTAT, AOVSTAT] = bootlm (...)
-% -- Function File: [STATS, BOOTSTAT, AOVSTAT, X] = bootlm (...)
-% -- Function File: [STATS, BOOTSTAT, AOVSTAT, X, L] = bootlm (...)
+% -- Function File: [STATS, BOOTSTAT, AOVSTAT, PRED_ERR] = bootlm (...)
 %
 %        Fits a linear model with categorical and/or continuous predictors (i.e.
 %     independent variables) on a continuous outcome (i.e. dependent variable)
@@ -344,8 +343,9 @@
 %     estimated marginal means, or the mean differences between groups of a
 %     categorical predictor for posthoc testing.
 %
-%     '[STATS, BOOTSTAT, AOVSTAT] = bootlm (...)' also computes and returns
-%     bootstrapped ANOVA statistics in a structure with the following fields: 
+%     '[STATS, BOOTSTAT, AOVSTAT] = bootlm (...)' also computes bootstrapped
+%     ANOVA statistics and returns them in a structure with the following
+%     fields: 
 %        - 'MODEL': The formula of the linear model(s) in Wilkinson's notation
 %        - 'SS': Sum-of-squares
 %        - 'DF': Degrees of freedom
@@ -360,19 +360,29 @@
 %     GROUP variable (when the design is not balanced). Thus, the null model
 %     used for comparison for each model is the model listed directly above it
 %     in AOVSTAT; for the first model, the null model is the intercept-only
-%     model. Note that ANOVA statistics are only returned for wild bootstrap
-%     AND when no other statistics are requested (i.e. estimated marginal means
-%     or posthoc tests). The bootstrap is achieved by Wild bootstrap of the
-%     residuals from the full model.
+%     model. Note that ANOVA statistics are only returned when the method used
+%     is wild bootstrap AND when no other statistics are requested (i.e.
+%     estimated marginal means or posthoc tests). The bootstrap is achieved by
+%     wild bootstrap of the residuals from the full model. Computations of the
+%     statistics in AOVSTAT are compatible with the 'clustid' and 'blocksz'
+%     options.
 %
-%     '[STATS, BOOTSTAT, AOVSTAT, X] = bootlm (...)' also returns the design
-%     matrix for the linear  model.
+%     '[STATS, BOOTSTAT, AOVSTAT, PRED_ERR] = bootlm (...)' also computes
+%     refined bootstrap estimates of prediction error and returns the
+%     statistics in a structure with the following fields:
+%        - 'MODEL': The formula of the linear model(s) in Wilkinson's notation
+%        - 'PE': Prediction error (computed using the refined bootstrap method)
+%        - 'RSQ': Prediction error transformed to adjusted R-squared
+%        - 'RL': Relative likelihood: comparing to the intercept-only model
+%        - 'SUCC_RL': Relative likelihood: comparing successive models
+%     The linear models used are the same as for AOVSTAT, except that the 
+%     output also includes the statistics for the intercept-only model. Note
+%     that PRED_ERR statistics are only returned when the method used is wild
+%     bootstrap AND when no other statistics are requested (i.e. estimated
+%     marginal means or posthoc tests). Computations of the statistics in
+%     PRED_ERR are compatible with the 'clustid' and 'blocksz' options.
 %
-%     '[STATS, BOOTSTAT, AOVSTAT, X, L] = bootlm (...)' also returns the
-%     hypothesis matrix used to compute the estimated marginal means or posthoc
-%     tests from the regression coefficients.
-%
-%  bootlm (version 2023.08.02)
+%  bootlm (version 2023.09.24)
 %  Author: Andrew Charles Penn
 %  https://www.researchgate.net/profile/Andrew_Penn/
 %
@@ -387,7 +397,7 @@
 %  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
 %  GNU General Public License for more details.
 
-function [STATS, BOOTSTAT, AOVSTAT, X, L] = bootlm (Y, GROUP, varargin)
+function [STATS, BOOTSTAT, AOVSTAT, PRED_ERR] = bootlm (Y, GROUP, varargin)
 
     if (nargin < 2)
       error (cat (2, 'bootlm usage: ''bootlm (Y, GROUP)''; ', ...
@@ -420,6 +430,7 @@ function [STATS, BOOTSTAT, AOVSTAT, X, L] = bootlm (Y, GROUP, varargin)
     PRIOR = 1;
     L = [];
     AOVSTAT = [];
+    PRED_ERR = [];
     for idx = 3:2:nargin
       name = varargin{idx-2};
       value = varargin{idx-1};
@@ -485,26 +496,26 @@ function [STATS, BOOTSTAT, AOVSTAT, X, L] = bootlm (Y, GROUP, varargin)
     % Accomodate for different formats for GROUP
     % GROUP can be a matrix of numeric identifiers of a cell arrays
     % of strings or numeric identifiers
-    N = size (GROUP, 2); % number of predictors
+    K = size (GROUP, 2); % number of predictors
     n = numel (Y);       % total number of observations
-    if (prod (size (Y)) ~= n)
+    if (size (Y, 1) ~= n)
       error ('bootlm: for ''bootlm (Y, GROUP)'', Y must be a vector')
     end
-    if (numel (unique (CONTINUOUS)) > N)
+    if (numel (unique (CONTINUOUS)) > K)
       error (cat (2, 'bootlm: the number of predictors assigned as', ...
                      ' continuous cannot exceed the number of', ...
                      ' predictors in GROUP'))
     end
-    if (any ((CONTINUOUS > N) | any (CONTINUOUS <= 0)))
+    if (any ((CONTINUOUS > K) | any (CONTINUOUS <= 0)))
       error (cat (2, 'bootlm: one or more indices provided in the value', ...
                      ' for the continuous parameter are out of range'))
     end
-    cont_vec = false (1, N);
+    cont_vec = false (1, K);
     cont_vec(CONTINUOUS) = true;
     if (iscell (GROUP))
       if (size (GROUP, 1) == 1)
-        tmp = cell (n, N);
-        for j = 1:N
+        tmp = cell (n, K);
+        for j = 1:K
           if (isnumeric (GROUP{j}))
             if (ismember (j, CONTINUOUS))
               tmp(:,j) = num2cell (GROUP{j});
@@ -546,28 +557,28 @@ function [STATS, BOOTSTAT, AOVSTAT, X, L] = bootlm (Y, GROUP, varargin)
                ' a cell array of character arrays, character array or string'))
       end
     else
-      nvarnames = N;
-      VARNAMES = arrayfun(@(x) ['X',num2str(x)], 1:N, 'UniformOutput', 0);
+      nvarnames = K;
+      VARNAMES = arrayfun(@(x) ['X',num2str(x)], 1:K, 'UniformOutput', 0);
     end
-    if (nvarnames ~= N)
+    if (nvarnames ~= K)
       error (cat (2, 'bootlm: number of variable names is not equal', ...
                      ' to the number of grouping variables'))
     end
 
     % Evaluate contrasts (if applicable)
     if isempty (CONTRASTS)
-      CONTRASTS = cell (1, N);
+      CONTRASTS = cell (1, K);
       planned = false;
     else
       if (ischar(CONTRASTS))
         contr_str = CONTRASTS;
-        CONTRASTS = cell (1, N);
+        CONTRASTS = cell (1, K);
         CONTRASTS(:) = {contr_str};
       end
       if (~ iscell (CONTRASTS))
         CONTRASTS = {CONTRASTS};
       end
-      for i = 1:N
+      for i = 1:K
         if (~ isempty (CONTRASTS{i}))
           if (isnumeric(CONTRASTS{i}))
             % Check whether all the columns sum to 0
@@ -623,42 +634,42 @@ function [STATS, BOOTSTAT, AOVSTAT, X, L] = bootlm (Y, GROUP, varargin)
         case {'interaction','interactions'}
           MODELTYPE = 2;
         case 'full'
-          MODELTYPE = N;
+          MODELTYPE = K;
         otherwise
           error ('bootlm: model type not recognised')
       end
     end
     if (isscalar (MODELTYPE))
       TERMS = cell (MODELTYPE,1);
-      v = false (1, N);
+      v = false (1, K);
       switch (lower (MODELTYPE))
         case 1
           % Create term definitions for an additive linear model
-          TERMS = eye (N);
+          TERMS = eye (K);
         case 2
           % Create term definitions for a model with two predictor interactions
-          if (N > 1)
-            Nx = nchoosek (N, 2);
+          if (K > 1)
+            Nx = nchoosek (K, 2);
           else
             Nx = 0;
           end
-          TERMS = zeros (N + Nx, N);
-          TERMS(1:N,:) = eye (N);
-          for j = 1:N
-            for i = j:N-1
-              TERMS(N+j+i-1,j) = 1;
-              TERMS(N+j+i-1,i+1) = 1;
+          TERMS = zeros (K + Nx, K);
+          TERMS(1:K,:) = eye (K);
+          for j = 1:K
+            for i = j:K-1
+              TERMS(K+j+i-1,j) = 1;
+              TERMS(K+j+i-1,i+1) = 1;
             end
           end
         otherwise
-          if (MODELTYPE > N)
+          if (MODELTYPE > K)
             error (msg);
           end
           % Create term definitions for a full model
-          Nx = zeros (1, N-1);
+          Nx = zeros (1, K-1);
           Nx = 0;
-          for k = 1:N
-            Nx = Nx + nchoosek(N,k);
+          for k = 1:K
+            Nx = Nx + nchoosek(K,k);
           end
           for j = 1:MODELTYPE
             v(1:j) = 1;
@@ -669,7 +680,7 @@ function [STATS, BOOTSTAT, AOVSTAT, X, L] = bootlm (Y, GROUP, varargin)
       TERMS = logical (TERMS);
     else
       % Assume that the user provided a suitable matrix of term definitions
-      if (size (MODELTYPE, 2) > N)
+      if (size (MODELTYPE, 2) > K)
         error (msg);
       end
       if (~ all (ismember (MODELTYPE(:), [0,1])))
@@ -762,12 +773,13 @@ function [STATS, BOOTSTAT, AOVSTAT, X, L] = bootlm (Y, GROUP, varargin)
         end
       end
     end
+    N = max (IC);
 
     % Use bootstrap methods to calculate statistics
     if isempty (DIM)
 
       % Error checking
-      if ( (~ isempty (POSTHOC)) && (~ strcmpi (lower (POSTHOC), 'none')) )
+      if ( (~ isempty (POSTHOC)) && (~ strcmpi (POSTHOC, 'none')) )
         error (cat (2, 'bootlm: for posthoc tests you must specify a', ...
                        ' categorical predictor using the DIM input argument'))
       end
@@ -787,6 +799,12 @@ function [STATS, BOOTSTAT, AOVSTAT, X, L] = bootlm (Y, GROUP, varargin)
             AOVSTAT = bootanova (Y, X, cat (1, 1, df), dfe, DEP, NBOOT, ALPHA, ...
                                  SEED, ISOCTAVE);
             AOVSTAT.MODEL = formula;
+          end
+          if (nargout > 3)
+            % Estimate prediction errors
+            PRED_ERR = booterr (Y, X, cat (1, 1, df), n, DEP, NBOOT, ALPHA, ...
+                                 SEED, ISOCTAVE);
+            PRED_ERR.MODEL = cat (1, {'Y ~ 1'}, formula);
           end
         case {'bayes', 'bayesian'}
           [STATS, BOOTSTAT] = bootbayes (Y, X, DEP, NBOOT, ...
@@ -813,19 +831,6 @@ function [STATS, BOOTSTAT, AOVSTAT, X, L] = bootlm (Y, GROUP, varargin)
       if (any (nlevels(DIM) < 2))
           error (cat (2, 'bootlm: DIM must specify only categorical', ...
                          ' factors with 2 or more degrees of freedom.'))
-      end
-      % Check that all continuous variables were centered
-      msg = 'bootlm: model must be refit with a sum-to-zero contrast coding';
-      if (any (cont_vec - center_continuous))
-        error (msg)
-      end
-      % Check that the columns of CONTRASTS sum to 0
-      for j = 1:N
-        if (isnumeric (CONTRASTS{j}))
-          if (any (abs (sum (CONTRASTS{j})) > eps('single')))
-            error (msg)
-          end
-        end
       end
 
       % Create names for estimated marginal means
@@ -1082,7 +1087,7 @@ function [STATS, BOOTSTAT, AOVSTAT, X, L] = bootlm (Y, GROUP, varargin)
         plot (ax2_xlim, ones (1, 2) * sqrt (4), 'k--');
         hold off;
         arrayfun (@(i) text (fit(DI(i)), sqrt (abs (t(DI(i)))), ...
-                             sprintf ('  %u', DI(i))), [1:min(nk,n)]);
+                             sprintf ('  %u', DI(i))), (1:min(nk,n)));
         xlim (ax2_xlim); 
 
         % Residual-Leverage plot
@@ -1096,7 +1101,7 @@ function [STATS, BOOTSTAT, AOVSTAT, X, L] = bootlm (Y, GROUP, varargin)
         ax3_ylim = get (gca, 'YLim');
         hold on; plot (ax3_xlim, zeros (1, 2), 'k-'); hold off;
         arrayfun (@(i) text (h(DI(i)), t(DI(i)), ...
-                             sprintf ('  %u', DI(i))), [1:min(nk,n)]);
+                             sprintf ('  %u', DI(i))), (1:min(nk,n)));
         set (gca, 'ygrid', 'on');
         xlim (ax3_xlim); ylim (ax3_ylim);
 
@@ -1129,7 +1134,7 @@ function [STATS, BOOTSTAT, AOVSTAT, X, L] = bootlm (Y, GROUP, varargin)
 
         error ('bootlm: wrong value for ''display'' parameter.')
 
-  end
+    end
 
 end
 
@@ -1567,8 +1572,8 @@ function AOVSTAT = bootanova (Y, X, DF, DFE, DEP, NBOOT, ALPHA, SEED, ISOCTAVE)
   % et al (Eds.) Bootstrapping and Related Techniques. Springer-Verlag, Berlin,
   % pg 79-86
   % See also the R function: https://rdrr.io/cran/lmboot/src/R/ANOVA.boot.R
-  [jnk, jnk, BOOTSSE] = arrayfun (@(j) bootwild (RESID{end}, ...
-                                X(:,1:sum (DF(1:j))), ...
+  [jnk, BOOTSTAT, BOOTSSE] = arrayfun (@(j) bootwild ( ...
+                                RESID{end}, X(:, 1:sum (DF(1:j))), ...
                                 DEP, NBOOT, ALPHA, SEED, [], ISOCTAVE), ...
                                 (1:Nt + 1)', 'UniformOutput', false);
   BOOTSSE = cell2mat (BOOTSSE);
@@ -1598,45 +1603,91 @@ end
 
 %--------------------------------------------------------------------------
 
+% FUNCTION TO ESTIMATE PREDICTION ERRORS
+
+function PRED_ERR = booterr (Y, X, DF, n, DEP, NBOOT, ALPHA, SEED, ISOCTAVE)
+
+  % Refined bootstrap estimates of prediction error of linear models
+
+  % Compute observed statistics
+  Nt = numel (DF) - 1;
+  [jnk, RSS, RESID] = arrayfun (@(j) lmfit (X(:,1:sum (DF(1:j))), Y, ...
+                                ISOCTAVE), (1:Nt + 1)', 'UniformOutput', false);
+
+  % Compute refined bootstrap estimates of prediction error (PE)
+  % See Efron and Tibshirani (1993) An Introduction to the Bootstrap. pg 247-252
+  [jnk, jnk, BOOTRSS, BOOTFIT] = arrayfun (@(j) bootwild ( ...
+                                Y, X(:, 1:sum (DF(1:j))), ...
+                                DEP, NBOOT, ALPHA, SEED, [], ISOCTAVE), ...
+                                (1:Nt + 1)', 'UniformOutput', false);
+  S_ERR = cell2mat (arrayfun (@(j) sum (bsxfun (@minus, Y, ...
+                    BOOTFIT{j}).^2, 1) / n, (1:Nt + 1)', ...
+                    'UniformOutput', false));  % Simple estimate of error
+  A_ERR = cell2mat (BOOTRSS) / n;              % Apparent error in resamples
+  OPTIM = S_ERR - A_ERR;                       % Optimism in apparent error
+  PE = cell2mat (RSS) / n + sum (OPTIM, 2) / NBOOT;
+
+  % Transform predictive errors to R-squared statistics
+  MST = RSS{1};                                % Total mean squares
+  PE_RSQ = 1 - PE / MST;                       % Adjusted R-squared calculated 
+                                               % using the bootstrap PE
+
+  % Compute relative likelihood or PE the models
+  % Likelihood of all models to an intercept-only model
+  PE_RL = exp ((PE(1) - PE) / 2);              % Relative likelihood of
+                                               % prediction errors
+
+  % Compute relative likelihood for successive models
+  % Each model is compared to the one above it. A value of NaN is
+  % returned for the first model (i.e. the intercept only model)
+  PE_SUCC_RL = cat (1, NaN, PE_RL(2:end) ./ PE_RL(1:end-1));
+
+  % Prepare output
+  PRED_ERR = struct ('MODEL', [], 'PE', PE, 'RSQ', PE_RSQ, ...
+                     'RL', PE_RL, 'SUCC_RL', PE_SUCC_RL);
+
+end
+
+%--------------------------------------------------------------------------
 %!demo
 %!
-%! # Two-sample unpaired test on independent samples (equivalent to Welch's
-%! # t-test). 
+%! ## Two-sample unpaired test on independent samples (equivalent to Welch's
+%! ## t-test). 
 %!
 %! score = [54 23 45 54 45 43 34 65 77 46 65]';
 %! gender = {'male' 'male' 'male' 'male' 'male' 'female' 'female' 'female' ...
 %!           'female' 'female' 'female'}';
 %!
-%! % 95% confidence intervals and p-values for the difference in mean score
-%! % between males and females (computed by wild bootstrap)
+%! ## 95% confidence intervals and p-values for the difference in mean score
+%! ## between males and females (computed by wild bootstrap)
 %! STATS = bootlm (score, gender, 'display', 'on', 'varnames', 'gender', ...
 %!                 'dim', 1, 'posthoc','trt_vs_ctrl');
 %!
-%! % 95% credible intervals for the estimated marginal means of the scores by
-%! % males and females (computed by Bayesian bootstrap)
+%! ## 95% credible intervals for the estimated marginal means of the scores by
+%! ## males and females (computed by Bayesian bootstrap)
 %! STATS = bootlm (score, gender, 'display', 'on', 'varnames', 'gender', ...
 %!                 'dim', 1, 'method', 'bayesian', 'prior', 'auto');
 
 
 %!demo
 %!
-%! # Two-sample paired test on dependent or matched samples equivalent to a
-%! # paired t-test.
+%! ## Two-sample paired test on dependent or matched samples equivalent to a
+%! ## paired t-test.
 %!
 %! score = [4.5 5.6; 3.7 6.4; 5.3 6.4; 5.4 6.0; 3.9 5.7]';
 %! treatment = {'before' 'after'; 'before' 'after'; 'before' 'after';
 %!              'before' 'after'; 'before' 'after'}';
 %! subject = {'GS' 'GS'; 'JM' 'JM'; 'HM' 'HM'; 'JW' 'JW'; 'PS' 'PS'}';
 %!
-%! % 95% confidence intervals and p-values for the difference in mean score
-%! % before and after treatment (computed by wild bootstrap)
+%! ## 95% confidence intervals and p-values for the difference in mean score
+%! ## before and after treatment (computed by wild bootstrap)
 %! STATS = bootlm (score(:), {subject(:), treatment(:)}, ...
 %!                            'model', 'linear', 'display', 'on', ...
 %!                            'varnames', {'subject','treatment'}, ...
 %!                            'dim', 2, 'posthoc','trt_vs_ctrl');
 %!
-%! % 95% credible intervals for the estimated marginal means of the scores
-%! % before and after treatment (computed by Bayesian bootstrap)
+%! ## 95% credible intervals for the estimated marginal means of the scores
+%! ## before and after treatment (computed by Bayesian bootstrap)
 %! STATS = bootlm (score(:), {subject(:), treatment(:)}, ...
 %!                            'model', 'linear', 'display', 'on', ...
 %!                            'varnames', {'subject','treatment'}, ...
@@ -1644,8 +1695,8 @@ end
 
 %!demo
 %!
-%! # One-way design. The data is from a study on the strength of structural
-%! # beams, in Hogg and Ledolter (1987) Engineering Statistics. NY: MacMillan
+%! ## One-way design. The data is from a study on the strength of structural
+%! ## beams, in Hogg and Ledolter (1987) Engineering Statistics. NY: MacMillan
 %!
 %! strength = [82 86 79 83 84 85 86 87 74 82 ...
 %!            78 75 76 77 79 79 77 78 82 79]';
@@ -1653,21 +1704,21 @@ end
 %!          'al1','al1','al1','al1','al1','al1', ...
 %!          'al2','al2','al2','al2','al2','al2'}';
 %!
-%! % 95% confidence intervals and p-values for the differences in mean strength
-%! % of three alloys (computed by wild bootstrap)
+%! ## 95% confidence intervals and p-values for the differences in mean strength
+%! ## of three alloys (computed by wild bootstrap)
 %! STATS = bootlm (strength, alloy, 'display', 'on', 'varnames', 'alloy', ...
 %!                 'dim', 1, 'posthoc','pairwise');
 %!
-%! % 95% credible intervals for the estimated marginal means of the strengths
-%! % of each of the alloys (computed by Bayesian bootstrap)
+%! ## 95% credible intervals for the estimated marginal means of the strengths
+%! ## of each of the alloys (computed by Bayesian bootstrap)
 %! STATS = bootlm (strength, alloy, 'display', 'on', 'varnames', 'alloy', ...
 %!                 'dim', 1, 'method','bayesian', 'prior', 'auto');
 
 %!demo
 %!
-%! # One-way repeated measures design. The data is from a study on the number of
-%! # words recalled by 10 subjects for three time condtions, in Loftus & Masson
-%! # (1994) Psychon Bull Rev. 1(4):476-490, Table 2.
+%! ## One-way repeated measures design. The data is from a study on the number
+%! ## of words recalled by 10 subjects for three time condtions, in Loftus &
+%! ## Masson (1994) Psychon Bull Rev. 1(4):476-490, Table 2.
 %!
 %! words = [10 13 13; 6 8 8; 11 14 14; 22 23 25; 16 18 20; ...
 %!          15 17 17; 1 1 4; 12 15 17;  9 12 12;  8 9 12];
@@ -1676,15 +1727,15 @@ end
 %! subject = [ 1  1  1;  2  2  2;  3  3  3;  4  4  4;  5  5  5; ...
 %!             6  6  6;  7  7  7;  8  8  8;  9  9  9; 10 10 10];
 %!
-%! % 95% confidence intervals and p-values for the differences in mean number of
-%! % words recalled for the different times (using wild bootstrap).
+%! ## 95% confidence intervals and p-values for the differences in mean number
+%! ## of words recalled for the different times (using wild bootstrap).
 %! STATS = bootlm (words(:), {subject(:), seconds(:)}, ...
 %!                            'model', 'linear', 'display', 'on', ...
 %!                            'varnames', {'subject', 'seconds'}, ...
 %!                            'dim', 2, 'posthoc', 'pairwise');
 %!
-%! % 95% credible intervals for the estimated marginal means of the number of
-%! % words recalled for each time (computed using Bayesian bootstrap).
+%! ## 95% credible intervals for the estimated marginal means of the number of
+%! ## words recalled for each time (computed using Bayesian bootstrap).
 %! STATS = bootlm (words(:), {subject(:), seconds(:)}, ...
 %!                            'model', 'linear', 'display', 'on', ...
 %!                            'varnames', {'subject', 'seconds'}, ...
@@ -1692,9 +1743,9 @@ end
 
 %!demo
 %!
-%! # Balanced two-way design. The data is yield of cups of popped popcorn from
-%! # different popcorn brands and popper types, in Hogg and Ledolter (1987)
-%! # Engineering Statistics. NY: MacMillan
+%! ## Balanced two-way design. The data is yield of cups of popped popcorn from
+%! ## different popcorn brands and popper types, in Hogg and Ledolter (1987)
+%! ## Engineering Statistics. NY: MacMillan
 %!
 %! popcorn = [5.5, 4.5, 3.5; 5.5, 4.5, 4.0; 6.0, 4.0, 3.0; ...
 %!            6.5, 5.0, 4.0; 7.0, 5.5, 5.0; 7.0, 5.0, 4.5];
@@ -1707,35 +1758,35 @@ end
 %! popper = {'oil', 'oil', 'oil'; 'oil', 'oil', 'oil'; 'oil', 'oil', 'oil'; ...
 %!           'air', 'air', 'air'; 'air', 'air', 'air'; 'air', 'air', 'air'};
 %!
-%! % Check regression coefficients corresponding to brand x popper interaction
-%! % using 'anova' contrast coding
+%! ## Check regression coefficients corresponding to brand x popper interaction
+%! ## using 'anova' contrast coding
 %! STATS = bootlm (popcorn(:), {brands(:), popper(:)}, ...
 %!                            'display', 'on', 'model', 'full', ...
 %!                            'varnames', {'brands', 'popper'});
 %!
-%! % 95% confidence intervals and p-values for the differences in mean yield of
-%! % different popcorn brands (computed by wild bootstrap).
+%! ## 95% confidence intervals and p-values for the differences in mean yield of
+%! ## different popcorn brands (computed by wild bootstrap).
 %! STATS = bootlm (popcorn(:), {brands(:), popper(:)}, ...
 %!                            'display', 'on', 'model', 'full', ...
 %!                            'varnames', {'brands', 'popper'}, ...
 %!                            'dim', 1, 'posthoc', 'pairwise');
 %!
-%! % 95% credible intervals for the estimated marginal means of the yield for
-%! % each popcorn brand (computed by Bayesian bootstrap).
+%! ## 95% credible intervals for the estimated marginal means of the yield for
+%! ## each popcorn brand (computed by Bayesian bootstrap).
 %! STATS = bootlm (popcorn(:), {brands(:), popper(:)}, ...
 %!                            'display', 'on', 'model', 'full', ...
 %!                            'varnames', {'brands', 'popper'}, ...
 %!                            'dim', 1, 'method', 'bayesian', 'prior', 'auto');
 %!
-%! % 95% confidence intervals and p-values for the differences in mean yield
-%! % for different popper types (computed by wild bootstrap).
+%! ## 95% confidence intervals and p-values for the differences in mean yield
+%! ## for different popper types (computed by wild bootstrap).
 %! STATS = bootlm (popcorn(:), {brands(:), popper(:)}, ...
 %!                            'display', 'on', 'model', 'full', ...
 %!                            'varnames', {'brands', 'popper'}, ...
 %!                            'dim', 2, 'posthoc', 'pairwise');
 %!
-%! % 95% credible intervals for the estimated marginal means of the yield for
-%! % each popper type (computed by Bayesian bootstrap).
+%! ## 95% credible intervals for the estimated marginal means of the yield for
+%! ## each popper type (computed by Bayesian bootstrap).
 %! STATS = bootlm (popcorn(:), {brands(:), popper(:)}, ...
 %!                            'display', 'on', 'model', 'full', ...
 %!                            'varnames', {'brands', 'popper'}, ...
@@ -1743,9 +1794,9 @@ end
 
 %!demo
 %!
-%! # Unbalanced two-way design (2x2). The data is from a study on the effects
-%! # of gender and a college degree on starting salaries of company employees,
-%! # in Maxwell, Delaney and Kelly (2018): Chapter 7, Table 15
+%! ## Unbalanced two-way design (2x2). The data is from a study on the effects
+%! ## of gender and a college degree on starting salaries of company employees,
+%! ## in Maxwell, Delaney and Kelly (2018): Chapter 7, Table 15
 %!
 %! salary = [24 26 25 24 27 24 27 23 15 17 20 16, ...
 %!           25 29 27 19 18 21 20 21 22 19]';
@@ -1753,7 +1804,7 @@ end
 %!           'm' 'm' 'm' 'm' 'm' 'm' 'm' 'm' 'm' 'm'}';
 %! degree = [1 1 1 1 1 1 1 1 0 0 0 0 1 1 1 0 0 0 0 0 0 0]';
 %!
-%! % ANOVA (including the main effect of gender averaged over levels of degree)
+%! ## ANOVA (including the main effect of gender averaged over levels of degree)
 %! [STATS, BOOTSTAT, AOVSTAT] = bootlm (salary, {degree, gender}, 'model', ...
 %!                             'full', 'display', 'off', 'varnames', ...
 %!                             {'degree', 'gender'});
@@ -1765,7 +1816,7 @@ end
 %!            AOVSTAT.PVAL(i), AOVSTAT.MODEL{i});
 %! end
 %!
-%! % ANOVA (including the main effect of degree averaged over levels of gender)
+%! ## ANOVA (including the main effect of degree averaged over levels of gender)
 %! [STATS, BOOTSTAT, AOVSTAT] = bootlm (salary, {gender, degree}, 'model', ...
 %!                             'full', 'display', 'off', 'varnames', ...
 %!                             {'gender', 'degree'});
@@ -1777,35 +1828,35 @@ end
 %!            AOVSTAT.PVAL(i), AOVSTAT.MODEL{i});
 %! end
 %!
-%! % Check regression coefficient corresponding to gender x degree interaction
-%! % using 'anova' contrast coding
+%! ## Check regression coefficient corresponding to gender x degree interaction
+%! ## using 'anova' contrast coding
 %! STATS = bootlm (salary, {gender, degree}, 'model', 'full', ...
 %!                             'display', 'on', 'varnames', ...
 %!                             {'gender', 'degree'});
 %!
-%! % 95% confidence intervals and p-values for the differences in mean salary
-%! % between males and females (computed by wild bootstrap).
+%! ## 95% confidence intervals and p-values for the differences in mean salary
+%! ## between males and females (computed by wild bootstrap).
 %! STATS = bootlm (salary, {gender, degree}, 'model', 'full', ...
 %!                            'display', 'on', 'varnames', ...
 %!                            {'gender', 'degree'}, 'dim', 1, ...
 %!                            'posthoc', 'trt_vs_ctrl');
 %!
-%! % 95% credible intervals for the estimated marginal means for salaries of
-%! % females and males (computed by Bayesian bootstrap).
+%! ## 95% credible intervals for the estimated marginal means for salaries of
+%! ## females and males (computed by Bayesian bootstrap).
 %! STATS = bootlm (salary, {gender, degree}, 'model', 'full', ...
 %!                            'display', 'on', 'varnames', ...
 %!                            {'gender', 'degree'}, 'dim', 1, ...
 %!                            'method', 'bayesian', 'prior', 'auto');
 %!
-%! % 95% confidence intervals and p-values for the differences in mean salary
-%! % between employees with or without a degree (computed by wild bootstrap).
+%! ## 95% confidence intervals and p-values for the differences in mean salary
+%! ## between employees with or without a degree (computed by wild bootstrap).
 %! STATS = bootlm (salary, {gender, degree}, 'model', 'full', ...
 %!                            'display', 'on', 'varnames', ...
 %!                            {'gender', 'degree'}, 'dim', 2, ...
 %!                            'posthoc', 'trt_vs_ctrl');
 %!
-%! % 95% credible intervals for the estimated marginal means for salaries of
-%! % employees with or without a degree (computed by Bayesian bootstrap).
+%! ## 95% credible intervals for the estimated marginal means for salaries of
+%! ## employees with or without a degree (computed by Bayesian bootstrap).
 %! STATS = bootlm (salary, {gender, degree}, 'model', 'full', ...
 %!                            'display', 'on', 'varnames', ...
 %!                            {'gender', 'degree'}, 'dim', 2, ...
@@ -1813,9 +1864,9 @@ end
 
 %!demo
 %!
-%! # Unbalanced three-way design (3x2x2). The data is from a study of the
-%! # effects of three different drugs, biofeedback and diet on patient blood
-%! # pressure, adapted* from Maxwell, Delaney and Kelly (2018): Ch 8, Table 12
+%! ## Unbalanced three-way design (3x2x2). The data is from a study of the
+%! ## effects of three different drugs, biofeedback and diet on patient blood
+%! ## pressure, adapted* from Maxwell, Delaney and Kelly (2018): Ch 8, Table 12
 %!
 %! drug = {'X' 'X' 'X' 'X' 'X' 'X' 'X' 'X' 'X' 'X' 'X' 'X' ...
 %!         'X' 'X' 'X' 'X' 'X' 'X' 'X' 'X' 'X' 'X' 'X' 'X';
@@ -1836,8 +1887,8 @@ end
 %!       180 187 199 170 204 194 162 184 183 156 180 173 ...
 %!       202 228 190 206 224 204 205 199 170 160 179 179];
 %!
-%! % Perform 3-way ANOVA (this design is balanced so order of predictors does 
-%! % not make any difference)
+%! ## Perform 3-way ANOVA (this design is balanced so order of predictors does 
+%! ## not make any difference)
 %! [STATS, BOOTSTAT, AOVSTAT] = bootlm (BP(:), {diet(:), drug(:), ...
 %!                                    feedback(:)}, 'seed', 1, ...
 %!                                    'model', 'full', 'display', 'off', ...
@@ -1850,22 +1901,22 @@ end
 %!            AOVSTAT.PVAL(i), AOVSTAT.MODEL{i});
 %! end
 %!
-%! % Check regression coefficient corresponding to drug x feedback x diet
-%! % interaction using 'anova' contrast coding
+%! ## Check regression coefficient corresponding to drug x feedback x diet
+%! ## interaction using 'anova' contrast coding
 %! STATS = bootlm (BP(:), {diet(:), drug(:), feedback(:)}, ...
 %!                                    'model', 'full', ...
 %!                                    'display', 'on', ...
 %!                                    'varnames', {'diet', 'drug', 'feedback'});
 %!
-%! % 95% confidence intervals and p-values for the differences in mean salary
-%! % between males and females (computed by wild bootstrap).
+%! ## 95% confidence intervals and p-values for the differences in mean salary
+%! ## between males and females (computed by wild bootstrap).
 %! STATS = bootlm (BP(:), {diet(:), drug(:), feedback(:)}, 'model', 'full', ...
 %!                                    'display', 'on', 'dim', [1,2,3], ...
 %!                                    'posthoc', 'trt_vs_ctrl', ...
 %!                                    'varnames', {'diet', 'drug', 'feedback'});
 %!
-%! % 95% credible intervals for the estimated marginal means of salaries of
-%! % females and males (computed by Bayesian bootstrap).
+%! ## 95% credible intervals for the estimated marginal means of salaries of
+%! ## females and males (computed by Bayesian bootstrap).
 %! STATS = bootlm (BP(:), {diet(:), drug(:), feedback(:)}, 'model', 'full', ...
 %!                                    'display', 'on', 'dim', [1,2,3], ...
 %!                                    'method', 'bayesian', 'prior', 'auto', ...
@@ -1873,9 +1924,9 @@ end
 
 %!demo
 %!
-%! # One-way design with continuous covariate. The data is from a study of the
-%! # additive effects of species and temperature on chirpy pulses of crickets,
-%! # from Stitch, The Worst Stats Text eveR
+%! ## One-way design with continuous covariate. The data is from a study of the
+%! ## additive effects of species and temperature on chirpy pulses of crickets,
+%! ## from Stitch, The Worst Stats Text eveR
 %!
 %! pulse = [67.9 65.1 77.3 78.7 79.4 80.4 85.8 86.6 87.5 89.1 ...
 %!          98.6 100.8 99.3 101.7 44.3 47.2 47.6 49.6 50.3 51.8 ...
@@ -1887,7 +1938,7 @@ end
 %!            'ex' 'ex' 'ex' 'niv' 'niv' 'niv' 'niv' 'niv' 'niv' 'niv' ...
 %!            'niv' 'niv' 'niv' 'niv' 'niv' 'niv' 'niv' 'niv' 'niv' 'niv'};
 %!
-%! % Perform ANCOVA 
+%! ## Perform ANCOVA 
 %! [STATS, BOOTSTAT, AOVSTAT] = bootlm (pulse, {temp, species}, 'model', ...
 %!                           'linear', 'continuous', 1, 'display', 'off', ...
 %!                           'varnames', {'temp', 'species'});
@@ -1899,20 +1950,20 @@ end
 %!            AOVSTAT.PVAL(i), AOVSTAT.MODEL{i});
 %! end
 %!
-%! % Estimate regression coefficients using 'anova' contrast coding 
+%! ## Estimate regression coefficients using 'anova' contrast coding 
 %! STATS = bootlm (pulse, {temp, species}, 'model', 'linear', ...
 %!                           'continuous', 1, 'display', 'on', ...
 %!                           'varnames', {'temp', 'species'});
 %!
-%! % 95% confidence intervals and p-values for the differences in the mean of
-%! % chirpy pulses of ex ad niv species (computed by wild bootstrap).
+%! ## 95% confidence intervals and p-values for the differences in the mean of
+%! ## chirpy pulses of ex ad niv species (computed by wild bootstrap).
 %! STATS = bootlm (pulse, {temp, species}, 'model', 'linear', ...
 %!                           'continuous', 1, 'display', 'on', ...
 %!                           'varnames', {'temp', 'species'}, 'dim', 2, ...
 %!                           'posthoc', 'trt_vs_ctrl');
 %!
-%! % 95% credible intervals for the estimated marginal means of chirpy pulses
-%! % of ex and niv species (computed by Bayesian bootstrap).
+%! ## 95% credible intervals for the estimated marginal means of chirpy pulses
+%! ## of ex and niv species (computed by Bayesian bootstrap).
 %! STATS = bootlm (pulse, {temp, species}, 'model', 'linear', ...
 %!                           'continuous', 1, 'display', 'on', ...
 %!                           'varnames', {'temp', 'species'}, 'dim', 2, ...
@@ -1920,9 +1971,9 @@ end
 
 %!demo
 %!
-%! # Factorial design with continuous covariate. The data is from a study of the
-%! # effects of treatment and exercise on stress reduction score after adjusting
-%! # for age. Data from R datarium package).
+%! ## Factorial design with continuous covariate. The data is from a study of
+%! ## the effects of treatment and exercise on stress reduction score after
+%! ## adjusting for age. Data from R datarium package).
 %!
 %! score = [95.6 82.2 97.2 96.4 81.4 83.6 89.4 83.8 83.3 85.7 ...
 %!          97.2 78.2 78.9 91.8 86.9 84.1 88.6 89.8 87.3 85.4 ...
@@ -1946,7 +1997,7 @@ end
 %!        58 56 57 59 59 60 55 53 55 58 68 62 61 54 59 63 60 67 60 67 ...
 %!        75 54 57 62 65 60 58 61 65 57 56 58 58 58 52 53 60 62 61 61]';
 %!
-%! % ANOVA/ANCOVA statistics
+%! ## ANOVA/ANCOVA statistics
 %! [STATS, BOOTSTAT, AOVSTAT] = bootlm (score, {age, exercise, treatment}, ...
 %!                            'model', [1 0 0; 0 1 0; 0 0 1; 0 1 1], ...
 %!                            'continuous', 1, 'display', 'off', ...
@@ -1959,24 +2010,24 @@ end
 %!            AOVSTAT.PVAL(i), AOVSTAT.MODEL{i});
 %! end
 %!
-%! % Estimate regression coefficients using 'anova' contrast coding 
+%! ## Estimate regression coefficients using 'anova' contrast coding 
 %! STATS = bootlm (score, {age, exercise, treatment}, ...
 %!                            'model', [1 0 0; 0 1 0; 0 0 1; 0 1 1], ...
 %!                            'continuous', 1, 'display', 'on', ...
 %!                            'varnames', {'age', 'exercise', 'treatment'});
 %!
-%! % 95% confidence intervals and p-values for the differences in mean score
-%! % across different treatments and amounts of exercise after adjusting for
-%  % age (computed by wild bootstrap).
+%! ## 95% confidence intervals and p-values for the differences in mean score
+%! ## across different treatments and amounts of exercise after adjusting for
+%  ## age (computed by wild bootstrap).
 %! STATS = bootlm (score, {age, exercise, treatment}, ...
 %!                            'model', [1 0 0; 0 1 0; 0 0 1; 0 1 1], ...
 %!                            'continuous', 1, 'display', 'on', ...
 %!                            'varnames', {'age', 'exercise', 'treatment'}, ...
 %!                            'dim', [2, 3], 'posthoc', 'trt_vs_ctrl');
 %!
-%! % 95% credible intervals for the estimated marginal means of scores across
-%! % different treatments and amounts of exercise after adjusting for age
-%! % (computed by Bayesian bootstrap).
+%! ## 95% credible intervals for the estimated marginal means of scores across
+%! ## different treatments and amounts of exercise after adjusting for age
+%! ## (computed by Bayesian bootstrap).
 %! STATS = bootlm (score, {age, exercise, treatment}, 'dim', [2, 3], ...
 %!                            'model', [1 0 0; 0 1 0; 0 0 1; 0 1 1], ...
 %!                            'continuous', 1, 'display', 'on', ...
@@ -1985,9 +2036,10 @@ end
 
 %!demo
 %!
-%! # Unbalanced one-way design with custom, orthogonal contrasts. The statistics
-%! # relating to the contrasts are shown in the table of model parameters, and
-%! # can be retrieved from the STATS.coeffs output.
+%! ## Unbalanced one-way design with custom, orthogonal contrasts. The
+%! ## statistics relating to the contrasts are shown in the table of model
+%! ## parameters, and can be retrieved from the STATS.coeffs output. Data from
+%! ## www.uvm.edu/~statdhtx/StatPages/Unequal-ns/Unequal_n%27s_contrasts.html
 %!
 %! dv =  [ 8.706 10.362 11.552  6.941 10.983 10.092  6.421 14.943 15.931 ...
 %!        22.968 18.590 16.567 15.944 21.637 14.492 17.965 18.851 22.891 ...
@@ -2002,20 +2054,74 @@ end
 %!      -0.6002401  0.0000000  0.0  0.5
 %!      -0.6002401  0.0000000  0.0 -0.5];
 %!
-%! % 95% confidence intervals and p-values for linear contrasts 
+%! ## 95% confidence intervals and p-values for linear contrasts 
 %! STATS = bootlm (dv, g, 'contrasts', C, 'varnames', 'score', ...
 %!                          'alpha', 0.05, 'display', true);
 %!
-%! % 95% credible intervals for estimated marginal means 
+%! ## 95% credible intervals for estimated marginal means 
 %! STATS = bootlm (dv, g, 'contrasts', C, 'varnames', 'score', ...
 %!                          'alpha', 0.05, 'display', true, 'dim', 1, ...
 %!                          'method', 'Bayesian', 'prior', 'auto');
 
+%!demo
+%!
+%! ## Comparing analysis of nested design using ANOVA with clustered resampling.
+%! ## Two factor nested model example from:
+%! ## https://www.southampton.ac.uk/~cpd/anovas/datasets/#Chapter2
+%!
+%! data = [4.5924 7.3809 21.322; -0.5488 9.2085 25.0426; ...
+%!         6.1605 13.1147 22.66; 2.3374 15.2654 24.1283; ...
+%!         5.1873 12.4188 16.5927; 3.3579 14.3951 10.2129; ...
+%!         6.3092 8.5986 9.8934; 3.2831 3.4945 10.0203];
+%!
+%! clustid = [1 3 5; 1 3 5; 1 3 5; 1 3 5; ...
+%!            2 4 6; 2 4 6; 2 4 6; 2 4 6];
+%!
+%! group = {'A' 'B' 'C'; 'A' 'B' 'C'; 'A' 'B' 'C'; 'A' 'B' 'C'; ...
+%!          'A' 'B' 'C'; 'A' 'B' 'C'; 'A' 'B' 'C'; 'A' 'B' 'C'};
+%!
+%! [STATS, BOOTSTAT, AOVSTAT] = bootlm (data(:), group(:), 'seed', 1, ...
+%!                                      'clustid', clustid(:));
+%! 
+%! fprintf ('ANOVA SUMMARY\n')
+%! fprintf ('F(%u,%u) = %.2f, p = %.3g for the model: %s\n', ...
+%!            AOVSTAT.DF(1), AOVSTAT.DFE, AOVSTAT.F(1), ...
+%!            AOVSTAT.PVAL(1), AOVSTAT.MODEL{1});
+
+%!demo
+%!
+%! ## Prediction errors of linear models. Data from Table 9.1, on page 107 of
+%! ## Efron and Tibshirani (1993) An Introduction to the Bootstrap.
+%!
+%! amount = [25.8; 20.5; 14.3; 23.2; 20.6; 31.1; 20.9; 20.9; 30.4; ...
+%!          16.3; 11.6; 11.8; 32.5; 32.0; 18.0; 24.1; 26.5; 25.8; ...
+%!          28.8; 22.0; 29.7; 28.9; 32.8; 32.5; 25.4; 31.7; 28.5];
+%!
+%! hrs = [99; 152; 293; 155; 196; 53; 184; 171; 52; ...
+%!        376; 385; 402; 29; 76; 296; 151; 177; 209; ...
+%!        119; 188; 115; 88; 58; 49; 150; 107; 125];
+%!
+%! lot = {'A'; 'A'; 'A'; 'A'; 'A'; 'A'; 'A'; 'A'; 'A'; ...
+%!        'B'; 'B'; 'B'; 'B'; 'B'; 'B'; 'B'; 'B'; 'B'; ...
+%!        'C'; 'C'; 'C'; 'C'; 'C'; 'C'; 'C'; 'C'; 'C'};
+%!
+%! [STATS, BOOTSTAT, AOVSTAT, PRED_ERR] = bootlm (amount, {hrs, lot}, ...
+%!                                    'continuous', 1, 'seed', 1, ...
+%!                                    'model', 'linear', 'display', 'on', ...
+%!                                    'varnames', {'hrs', 'lot'}, ...
+%!                                    'contrasts', 'treatment');
+%!
+%! fprintf ('PREDICTION ERROR of the FULL MODEL = %.2f\n', PRED_ERR.PE(3))
+%!
+%! ## Note: The value of PE(3) is lower than the 3.00 calculated by Efron and
+%! ## Tibhirani (1993) using the same refined bootstrap procedure, because they
+%! ## have used case resampling whereas we have used wild bootstrap resampling.
+%! ## The equivalent value of Cp (a.k.a. AIC) statistic is 2.96.
 
 %!test
 %!
-%! # Two-sample unpaired test on independent samples (equivalent to Welch's
-%! # t-test).
+%! ## Two-sample unpaired test on independent samples (equivalent to Welch's
+%! ## t-test).
 %!
 %! score = [54 23 45 54 45 43 34 65 77 46 65]';
 %! gender = {'male' 'male' 'male' 'male' 'male' 'female' 'female' 'female' ...
@@ -2027,12 +2133,12 @@ end
 %! assert (aovstat.PVAL(1), 0.2435635849960569, 1e-09);
 %! assert (stats.pval(2), 0.2434934955512797, 1e-09);
 %! assert (stats.fpr(2), 0.4832095599189747, 1e-09);
-%! # ttest2 (with 'vartype' = 'unequal') gives a p-value of 0.2501;
+%! ## ttest2 (with 'vartype' = 'unequal') gives a p-value of 0.2501;
 
 %!test
 %!
-%! # Two-sample paired test on dependent or matched samples equivalent to a
-%! # paired t-test.
+%! ## Two-sample paired test on dependent or matched samples equivalent to a
+%! ## paired t-test.
 %!
 %! score = [4.5 5.6; 3.7 6.4; 5.3 6.4; 5.4 6.0; 3.9 5.7]';
 %! treatment = {'before' 'after'; 'before' 'after'; 'before' 'after';
@@ -2053,8 +2159,8 @@ end
 
 %!test
 %!
-%! # One-way design. The data is from a study on the strength of structural
-%! # beams, in Hogg and Ledolter (1987) Engineering Statistics. NY: MacMillan
+%! ## One-way design. The data is from a study on the strength of structural
+%! ## beams, in Hogg and Ledolter (1987) Engineering Statistics. NY: MacMillan
 %!
 %! strength = [82 86 79 83 84 85 86 87 74 82 ...
 %!            78 75 76 77 79 79 77 78 82 79]';
@@ -2073,9 +2179,9 @@ end
 
 %!test
 %!
-%! # One-way repeated measures design. The data is from a study on the number of
-%! # words recalled by 10 subjects for three time condtions, in Loftus & Masson
-%! # (1994) Psychon Bull Rev. 1(4):476-490, Table 2.
+%! ## One-way repeated measures design. The data is from a study on the number
+%! ## of words recalled by 10 subjects for three time condtions, in Loftus &
+%! ## Masson (1994) Psychon Bull Rev. 1(4):476-490, Table 2.
 %!
 %! words = [10 13 13; 6 8 8; 11 14 14; 22 23 25; 16 18 20; ...
 %!          15 17 17; 1 1 4; 12 15 17;  9 12 12;  8 9 12];
@@ -2097,9 +2203,9 @@ end
 
 %!test
 %!
-%! # Balanced two-way design with interaction. The data is from a study of
-%! # popcorn brands and popper types, in Hogg and Ledolter (1987) Engineering
-%! # Statistics. New York: MacMillan
+%! ## Balanced two-way design with interaction. The data is from a study of
+%! ## popcorn brands and popper types, in Hogg and Ledolter (1987) Engineering
+%! ## Statistics. New York: MacMillan
 %!
 %! popcorn = [5.5, 4.5, 3.5; 5.5, 4.5, 4.0; 6.0, 4.0, 3.0; ...
 %!            6.5, 5.0, 4.0; 7.0, 5.5, 5.0; 7.0, 5.0, 4.5];
@@ -2127,12 +2233,11 @@ end
 %! assert (stats.fpr(5), 0.4992799823055505, 1e-09);
 %! assert (stats.fpr(6), 0.5, 1e-09);
 
-
 %!test
 %!
-%! # Unbalanced two-way design (2x2). The data is from a study on the effects
-%! # of gender and having a college degree on salaries of company employees,
-%! # in Maxwell, Delaney and Kelly (2018): Chapter 7, Table 15
+%! ## Unbalanced two-way design (2x2). The data is from a study on the effects
+%! ## of gender and having a college degree on salaries of company employees,
+%! ## in Maxwell, Delaney and Kelly (2018): Chapter 7, Table 15
 %!
 %! salary = [24 26 25 24 27 24 27 23 15 17 20 16, ...
 %!           25 29 27 19 18 21 20 21 22 19]';
@@ -2170,9 +2275,9 @@ end
 
 %!test
 %!
-%! # Unbalanced two-way design (3x2). The data is from a study of the effect of
-%! # adding sugar and/or milk on the tendency of coffee to make people babble,
-%! # in from Navarro (2019): 16.10
+%! ## Unbalanced two-way design (3x2). The data is from a study of the effect of
+%! ## adding sugar and/or milk on the tendency of coffee to make people babble,
+%! ## in from Navarro (2019): 16.10
 %!
 %! sugar = {'real' 'fake' 'fake' 'real' 'real' 'real' 'none' 'none' 'none' ...
 %!          'fake' 'fake' 'fake' 'real' 'real' 'real' 'none' 'none' 'fake'}';
@@ -2191,9 +2296,9 @@ end
 
 %!test
 %!
-%! # Balanced three-way design (3x2x2). The data is from a study of the
-%! # effects of three different drugs, biofeedback and diet on patient blood
-%! # pressure, adapted* from Maxwell, Delaney and Kelly (2018): Ch 8, Table 12
+%! ## Balanced three-way design (3x2x2). The data is from a study of the
+%! ## effects of three different drugs, biofeedback and diet on patient blood
+%! ## pressure, adapted* from Maxwell, Delaney and Kelly (2018): Ch 8, Table 12
 %!
 %! drug = {'X' 'X' 'X' 'X' 'X' 'X' 'X' 'X' 'X' 'X' 'X' 'X' ...
 %!         'X' 'X' 'X' 'X' 'X' 'X' 'X' 'X' 'X' 'X' 'X' 'X';
@@ -2229,9 +2334,9 @@ end
 
 %!test
 %!
-%! # One-way design with continuous covariate. The data is from a study of the
-%! # additive effects of species and temperature on chirpy pulses of crickets,
-%! # from Stitch, The Worst Stats Text eveR
+%! ## One-way design with continuous covariate. The data is from a study of the
+%! ## additive effects of species and temperature on chirpy pulses of crickets,
+%! ## from Stitch, The Worst Stats Text eveR
 %!
 %! pulse = [67.9 65.1 77.3 78.7 79.4 80.4 85.8 86.6 87.5 89.1 ...
 %!          98.6 100.8 99.3 101.7 44.3 47.2 47.6 49.6 50.3 51.8 ...
@@ -2254,9 +2359,9 @@ end
 
 %!test
 %!
-%! # Factorial design with continuous covariate. The data is from a study of the
-%! # effects of treatment and exercise on stress reduction score after adjusting
-%! # for age. Data from R datarium package).
+%! ## Factorial design with continuous covariate. The data is from a study of
+%! ## the effects of treatment and exercise on stress reduction score after
+%! ## adjusting for age. Data from R datarium package).
 %!
 %! score = [95.6 82.2 97.2 96.4 81.4 83.6 89.4 83.8 83.3 85.7 ...
 %!          97.2 78.2 78.9 91.8 86.9 84.1 88.6 89.8 87.3 85.4 ...
@@ -2280,7 +2385,7 @@ end
 %!        58 56 57 59 59 60 55 53 55 58 68 62 61 54 59 63 60 67 60 67 ...
 %!        75 54 57 62 65 60 58 61 65 57 56 58 58 58 52 53 60 62 61 61]';
 %!
-%! % ANOVA/ANCOVA statistics
+%! ## ANOVA/ANCOVA statistics
 %! [stats, bootstat, aovstat] = bootlm (score, {age, exercise, treatment}, ...
 %!                            'model', [1 0 0; 0 1 0; 0 0 1; 0 1 1], ...
 %!                            'continuous', 1, 'display', 'off', 'seed', 1, ...
@@ -2322,7 +2427,8 @@ end
 
 %!test
 %!
-%! # Unbalanced one-way design with custom, orthogonal contrasts.
+%! ## Unbalanced one-way design with custom, orthogonal contrasts. Data from
+%! ## www.uvm.edu/~statdhtx/StatPages/Unequal-ns/Unequal_n%27s_contrasts.html
 %!
 %! dv =  [ 8.706 10.362 11.552  6.941 10.983 10.092  6.421 14.943 15.931 ...
 %!        22.968 18.590 16.567 15.944 21.637 14.492 17.965 18.851 22.891 ...
@@ -2367,7 +2473,7 @@ end
 
 %!test
 %!
-%! # One-way design.
+%! ## One-way design.
 %!
 %! g = [1, 1, 1, 1, 1, 1, 1, 1, ...
 %!      2, 2, 2, 2, 2, 2, 2, 2, ...
@@ -2385,3 +2491,60 @@ end
 %! assert (stats.fpr(1), 0.1254120362272493, 1e-09);
 %! assert (stats.fpr(2), 0.04738586302975815, 1e-09);
 %! assert (stats.fpr(3), 0.4392984660114189, 1e-09);
+
+%!test
+%!
+%! ## Prediction errors of linear models
+%!
+%! amount = [25.8; 20.5; 14.3; 23.2; 20.6; 31.1; 20.9; 20.9; 30.4; ...
+%!          16.3; 11.6; 11.8; 32.5; 32.0; 18.0; 24.1; 26.5; 25.8; ...
+%!          28.8; 22.0; 29.7; 28.9; 32.8; 32.5; 25.4; 31.7; 28.5];
+%!
+%! hrs = [99; 152; 293; 155; 196; 53; 184; 171; 52; ...
+%!        376; 385; 402; 29; 76; 296; 151; 177; 209; ...
+%!        119; 188; 115; 88; 58; 49; 150; 107; 125];
+%!
+%! lot = {'A'; 'A'; 'A'; 'A'; 'A'; 'A'; 'A'; 'A'; 'A'; ...
+%!        'B'; 'B'; 'B'; 'B'; 'B'; 'B'; 'B'; 'B'; 'B'; ...
+%!        'C'; 'C'; 'C'; 'C'; 'C'; 'C'; 'C'; 'C'; 'C'};
+%!
+%! [stats, bootstat, aovstat, pred_err] = bootlm (amount, {hrs, lot}, ...
+%!                                    'continuous', 1, 'seed', 1, ...
+%!                                    'model', 'linear', 'display', 'off', ...
+%!                                    'varnames', {'hrs', 'lot'}, ...
+%!                                    'contrasts', 'treatment');
+%!
+%! assert (pred_err.PE(1), 42.93695827400776, 1e-09);
+%! assert (pred_err.PE(2), 5.90864228700846, 1e-09);
+%! assert (pred_err.PE(3), 2.85817329292271, 1e-09);
+%!
+%! ## The value of PE(3) is lower than the one calculated by Efron and Tibhirani
+%! ## (1993), because they have used case resampling whereas we have used wild
+%! ## bootstrap resampling
+
+%!test
+%!
+%! ## Comparing analysis of nested design using ANOVA with clustered resampling.
+%! ## Two factor nested model example from:
+%! ## https://www.southampton.ac.uk/~cpd/anovas/datasets/#Chapter2
+%!
+%! data = [4.5924 7.3809 21.322; -0.5488 9.2085 25.0426; ...
+%!         6.1605 13.1147 22.66; 2.3374 15.2654 24.1283; ...
+%!         5.1873 12.4188 16.5927; 3.3579 14.3951 10.2129; ...
+%!         6.3092 8.5986 9.8934; 3.2831 3.4945 10.0203];
+%!
+%! clustid = [1 3 5; 1 3 5; 1 3 5; 1 3 5; ...
+%!            2 4 6; 2 4 6; 2 4 6; 2 4 6];
+%!
+%! group = {'A' 'B' 'C'; 'A' 'B' 'C'; 'A' 'B' 'C'; 'A' 'B' 'C'; ...
+%!          'A' 'B' 'C'; 'A' 'B' 'C'; 'A' 'B' 'C'; 'A' 'B' 'C'};
+%!
+%! [stats, bootstat, aovstat] = bootlm (data(:), group(:), 'seed', 1, ...
+%!                                     'clustid', clustid(:), 'display', 'off');
+%! 
+%! assert (aovstat.PVAL, 0.01795384863848686, 1e-09);
+%!
+%! [stats, bootstat, aovstat] = bootlm (data(:), group(:), 'seed', 1, ...
+%!                                      'display', 'off');
+%! 
+%! assert (aovstat.PVAL, 0.001343607345983057, 1e-09);

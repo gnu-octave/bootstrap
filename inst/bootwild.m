@@ -123,7 +123,7 @@
 %  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-function [stats, bootstat, bootsse] = bootwild (y, X, ...
+function [stats, bootstat, bootsse, bootfit] = bootwild (y, X, ...
                                           dep, nboot, alpha, seed, L, ISOCTAVE)
 
   % Check the number of function arguments
@@ -133,7 +133,7 @@ function [stats, bootstat, bootsse] = bootwild (y, X, ...
   if (nargin > 8)
     error ('bootwild: Too many input arguments')
   end
-  if (nargout > 3)
+  if (nargout > 4)
     error ('bootwild: Too many output arguments')
   end
 
@@ -209,7 +209,7 @@ function [stats, bootstat, bootsse] = bootwild (y, X, ...
       error ('bootwild: NBOOT must be a positive integer')
     end
     if (nboot < 999)
-      error ('bootwild: NBOOT must be > 999')
+      error ('bootwild: NBOOT must be >= 999')
     end
   end
   % Compute resolution limit of the p-values as determined by resampling
@@ -282,6 +282,7 @@ function [stats, bootstat, bootsse] = bootwild (y, X, ...
   bootstat = [bootout.b];
   bootse = [bootout.se];
   bootsse = [bootout.sse];
+  bootfit = [bootout.fit];
 
   % Studentize the bootstrap statistics and compute two-tailed confidence
   % intervals and p-values following both guidelines described in Hall and
@@ -382,7 +383,7 @@ function S = lmfit (X, y, clusters, L, ISOCTAVE)
     S.se = sqrt (diag (L' * vcov * L));
   end
   S.sse = sum (u.^2);
-
+  S.fit = yf;
 
 end
 
