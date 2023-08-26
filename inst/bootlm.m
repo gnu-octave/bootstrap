@@ -802,7 +802,7 @@ function [STATS, BOOTSTAT, AOVSTAT, PRED_ERR] = bootlm (Y, GROUP, varargin)
           end
           if (nargout > 3)
             % Estimate prediction errors
-            PRED_ERR = booterr (Y, X, cat (1, 1, df), n, DEP, NBOOT, ALPHA, ...
+            PRED_ERR = bootpe (Y, X, cat (1, 1, df), n, DEP, NBOOT, ALPHA, ...
                                  SEED, ISOCTAVE);
             PRED_ERR.MODEL = cat (1, {'Y ~ 1'}, formula);
           end
@@ -1605,7 +1605,7 @@ end
 
 % FUNCTION TO ESTIMATE PREDICTION ERRORS
 
-function PRED_ERR = booterr (Y, X, DF, n, DEP, NBOOT, ALPHA, SEED, ISOCTAVE)
+function PRED_ERR = bootpe (Y, X, DF, n, DEP, NBOOT, ALPHA, SEED, ISOCTAVE)
 
   % Refined bootstrap estimates of prediction error of linear models
 
