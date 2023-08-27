@@ -372,7 +372,7 @@
 %     statistics in a structure with the following fields:
 %        - 'MODEL': The formula of the linear model(s) in Wilkinson's notation
 %        - 'PE': Prediction error (computed using the refined bootstrap method)
-%        - 'RSQ': Prediction error transformed to an adjusted R-squared
+%        - 'RSQ': Prediction error transformed to predicted R-squared
 %     The linear models used are the same as for AOVSTAT, except that the 
 %     output also includes the statistics for the intercept-only model. Note
 %     that PRED_ERR statistics are only returned when the method used is wild
@@ -380,7 +380,7 @@
 %     marginal means or posthoc tests). Computations of the statistics in
 %     PRED_ERR are compatible with the 'clustid' and 'blocksz' options.
 %
-%  bootlm (version 2023.09.24)
+%  bootlm (version 2023.08.27)
 %  Author: Andrew Charles Penn
 %  https://www.researchgate.net/profile/Andrew_Penn/
 %
@@ -1625,9 +1625,9 @@ function PRED_ERR = bootpe (Y, X, DF, n, DEP, NBOOT, ALPHA, SEED, ISOCTAVE)
   OPTIM = S_ERR - A_ERR;                       % Optimism in apparent error
   PE = cell2mat (RSS) / n + sum (OPTIM, 2) / NBOOT;
 
-  % Transform predictive errors to R-squared statistics
+  % Transform predictive errors to predicted R-squared statistics
   MST = RSS{1};                                % Total mean squares
-  PE_RSQ = 1 - PE / MST;                       % Adjusted R-squared calculated 
+  PE_RSQ = 1 - PE / MST;                       % Predicted R-squared calculated 
                                                % using the bootstrap PE
 
   % Prepare output
