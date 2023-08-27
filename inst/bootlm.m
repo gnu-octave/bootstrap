@@ -372,9 +372,7 @@
 %     statistics in a structure with the following fields:
 %        - 'MODEL': The formula of the linear model(s) in Wilkinson's notation
 %        - 'PE': Prediction error (computed using the refined bootstrap method)
-%        - 'RSQ': Prediction error transformed to adjusted R-squared
-%        - 'RL': Relative likelihood: comparing to the intercept-only model
-%        - 'SUCC_RL': Relative likelihood: comparing successive models
+%        - 'RSQ': Prediction error transformed to an adjusted R-squared
 %     The linear models used are the same as for AOVSTAT, except that the 
 %     output also includes the statistics for the intercept-only model. Note
 %     that PRED_ERR statistics are only returned when the method used is wild
@@ -1632,19 +1630,8 @@ function PRED_ERR = bootpe (Y, X, DF, n, DEP, NBOOT, ALPHA, SEED, ISOCTAVE)
   PE_RSQ = 1 - PE / MST;                       % Adjusted R-squared calculated 
                                                % using the bootstrap PE
 
-  % Compute relative likelihood or PE the models
-  % Likelihood of all models to an intercept-only model
-  PE_RL = exp ((PE(1) - PE) / 2);              % Relative likelihood of
-                                               % prediction errors
-
-  % Compute relative likelihood for successive models
-  % Each model is compared to the one above it. A value of NaN is
-  % returned for the first model (i.e. the intercept only model)
-  PE_SUCC_RL = cat (1, NaN, PE_RL(2:end) ./ PE_RL(1:end-1));
-
   % Prepare output
-  PRED_ERR = struct ('MODEL', [], 'PE', PE, 'RSQ', PE_RSQ, ...
-                     'RL', PE_RL, 'SUCC_RL', PE_SUCC_RL);
+  PRED_ERR = struct ('MODEL', [], 'PE', PE, 'RSQ', PE_RSQ);
 
 end
 
