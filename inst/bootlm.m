@@ -372,15 +372,17 @@
 %     statistics in a structure with the following fields:
 %        - 'MODEL': The formula of the linear model(s) in Wilkinson's notation
 %        - 'PE': Prediction error (computed using the refined bootstrap method)
-%        - 'RSQ': Prediction error transformed to predicted R-squared
+%        - 'RSQ': Predicted R-sq (computed using the refined bootstrap method)
 %     The linear models used are the same as for AOVSTAT, except that the 
 %     output also includes the statistics for the intercept-only model. Note
 %     that PRED_ERR statistics are only returned when the method used is wild
 %     bootstrap AND when no other statistics are requested (i.e. estimated
 %     marginal means or posthoc tests). Computations of the statistics in
-%     PRED_ERR are compatible with the 'clustid' and 'blocksz' options.
+%     PRED_ERR are compatible with the 'clustid' and 'blocksz' options. Note
+%     that it is possible to get a negative value for predicted R-sq, especially
+%     for the intercept-only (i.e. first) model.
 %
-%  bootlm (version 2023.08.27)
+%  bootlm (version 2023.08.28)
 %  Author: Andrew Charles Penn
 %  https://www.researchgate.net/profile/Andrew_Penn/
 %
@@ -1625,10 +1627,12 @@ function PRED_ERR = bootpe (Y, X, DF, n, DEP, NBOOT, ALPHA, SEED, ISOCTAVE)
   OPTIM = S_ERR - A_ERR;                       % Optimism in apparent error
   PE = cell2mat (RSS) / n + sum (OPTIM, 2) / NBOOT;
 
-  % Transform predictive errors to predicted R-squared statistics
-  MST = RSS{1};                                % Total mean squares
-  PE_RSQ = 1 - PE / MST;                       % Predicted R-squared calculated 
-                                               % using the bootstrap PE
+  % Transform prediction errors to predicted R-squared statistics
+  PRESS = PE * n;                              % Bootstrap estimate of predicted 
+                                               % residual error sum of squares
+  SST = RSS{1};                                % Total sum of squares
+  PE_RSQ = 1 - PRESS / SST;                    % Predicted R-squared calculated 
+                                               % by refined bootstrap
 
   % Prepare output
   PRED_ERR = struct ('MODEL', [], 'PE', PE, 'RSQ', PE_RSQ);
