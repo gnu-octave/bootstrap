@@ -453,7 +453,7 @@ function [STATS, BOOTSTAT, AOVSTAT, PRED_ERR] = bootlm (Y, GROUP, varargin)
           VARNAMES = value;
         case 'display'
           DISPLAY = value;
-        case 'contrasts'
+        case {'contrast','contrasts'}
           CONTRASTS = value;
         case 'alpha'
           ALPHA = value;
@@ -821,8 +821,16 @@ function [STATS, BOOTSTAT, AOVSTAT, PRED_ERR] = bootlm (Y, GROUP, varargin)
       end
 
       % Assign names for model coefficients
-      NAMES = vertcat (coeffnames{:});
-      STATS.name = NAMES;
+      NAMES = {};
+      for i = 1:(Nt+1)
+        if iscell (coeffnames{i})
+          NAMES = [NAMES, coeffnames{i}{:}];
+        else
+          NAMES = [NAMES, coeffnames{i}];
+        end
+      end
+      NAMES = NAMES';
+      STATS.name = NAMES';
 
     else
 
@@ -1622,17 +1630,17 @@ function PRED_ERR = bootpe (Y, X, DF, n, DEP, NBOOT, ALPHA, SEED, ISOCTAVE)
                                 (1:Nt + 1)', 'UniformOutput', false);
   S_ERR = cell2mat (arrayfun (@(j) sum (bsxfun (@minus, Y, ...
                     BOOTFIT{j}).^2, 1) / n, (1:Nt + 1)', ...
-                    'UniformOutput', false));  % Simple estimate of error
-  A_ERR = cell2mat (BOOTRSS) / n;              % Apparent error in resamples
-  OPTIM = S_ERR - A_ERR;                       % Optimism in apparent error
+                    'UniformOutput', false)); % Simple estimate of error
+  A_ERR = cell2mat (BOOTRSS) / n;             % Apparent error in resamples
+  OPTIM = S_ERR - A_ERR;                      % Optimism in apparent error
   PE = cell2mat (RSS) / n + sum (OPTIM, 2) / NBOOT;
 
   % Transform prediction errors to predicted R-squared statistics
-  PRESS = PE * n;                              % Bootstrap estimate of predicted 
-                                               % residual error sum of squares
-  SST = RSS{1};                                % Total sum of squares
-  PE_RSQ = 1 - PRESS / SST;                    % Predicted R-squared calculated 
-                                               % by refined bootstrap
+  PRESS = PE * n;                             % Bootstrap estimate of predicted 
+                                              % residual error sum of squares
+  SST = RSS{1};                               % Total sum of squares
+  PE_RSQ = 1 - PRESS / SST;                   % Predicted R-squared calculated 
+                                              % by refined bootstrap
 
   % Prepare output
   PRED_ERR = struct ('MODEL', [], 'PE', PE, 'RSQ', PE_RSQ);
