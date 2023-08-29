@@ -321,19 +321,19 @@
 %     'bootlm' can return up to four output arguments:
 %
 %     'STATS = bootlm (...)' returns a structure with the following fields:
-%        - 'method': The bootstrap method
-%        - 'name': The names of each of the estimates
-%        - 'estimate': The value of the estimates
-%        - 'CI_lower': The lower bound(s) of the confidence/credible interval(s)
-%        - 'CI_upper': The upper bound(s) of the confidence/credible interval(s)
-%        - 'pval': The p-value(s) for the hypothesis that the estimate(s) = 0
-%        - 'fpr': The false positive risk 
-%        - 'N': The number of independnet sampling units used to compute CIs
-%        - 'prior': The prior used for Bayesian bootstrap
+%       - 'method': The bootstrap method
+%       - 'name': The names of each of the estimates
+%       - 'estimate': The value of the estimates
+%       - 'CI_lower': The lower bound(s) of the confidence/credible interval(s)
+%       - 'CI_upper': The upper bound(s) of the confidence/credible interval(s)
+%       - 'pval': The p-value(s) for the hypothesis that the estimate(s) = 0
+%       - 'fpr': The false positive risk 
+%       - 'N': The number of independnet sampling units used to compute CIs
+%       - 'prior': The prior used for Bayesian bootstrap
 %
-%        Note that the p-values returned are truncated at the resolution
-%        limit determined by the number of bootstrap replicates, specifically 
-%        1 / (NBOOT + 1).
+%          Note that the p-values returned are truncated at the resolution
+%          limit determined by the number of bootstrap replicates, specifically 
+%          1 / (NBOOT + 1).
 %
 %     '[STATS, BOOTSTAT] = bootlm (...)' also returns a P x NBOOT matrix of
 %     bootstrap statistics for the estimated parameters, where P is the number
@@ -346,41 +346,44 @@
 %     '[STATS, BOOTSTAT, AOVSTAT] = bootlm (...)' also computes bootstrapped
 %     ANOVA statistics and returns them in a structure with the following
 %     fields: 
-%        - 'MODEL': The formula of the linear model(s) in Wilkinson's notation
-%        - 'SS': Sum-of-squares
-%        - 'DF': Degrees of freedom
-%        - 'MS': Mean-squares
-%        - 'F': F-Statistic
-%        - 'PVAL': p-values
-%        - 'SSE': Sum-of-Squared Error
-%        - 'DFE': Degrees of Freedom for Error
-%        - 'MSE': Mean Squared Error
-%     The ANOVA implemented uses sequential (type I) sums-of-squares and so the
-%     results and their interpretation depend on the order of predictors in the
-%     GROUP variable (when the design is not balanced). Thus, the null model
-%     used for comparison for each model is the model listed directly above it
-%     in AOVSTAT; for the first model, the null model is the intercept-only
-%     model. Note that ANOVA statistics are only returned when the method used
-%     is wild bootstrap AND when no other statistics are requested (i.e.
-%     estimated marginal means or posthoc tests). The bootstrap is achieved by
-%     wild bootstrap of the residuals from the full model. Computations of the
-%     statistics in AOVSTAT are compatible with the 'clustid' and 'blocksz'
-%     options.
+%       - 'MODEL': The formula of the linear model(s) in Wilkinson's notation
+%       - 'SS': Sum-of-squares
+%       - 'DF': Degrees of freedom
+%       - 'MS': Mean-squares
+%       - 'F': F-Statistic
+%       - 'PVAL': p-values
+%       - 'SSE': Sum-of-Squared Error
+%       - 'DFE': Degrees of Freedom for Error
+%       - 'MSE': Mean Squared Error
+%
+%       The ANOVA implemented uses sequential (type I) sums-of-squares and so
+%       the results and their interpretation depend on the order of predictors
+%       in the GROUP variable (when the design is not balanced). Thus, the null
+%       model used for comparison for each model is the model listed directly
+%       above it in AOVSTAT; for the first model, the null model is the
+%       intercept-only model. Note that ANOVA statistics are only returned when
+%       the method used is wild bootstrap AND when no other statistics are
+%       requested (i.e. estimated marginal means or posthoc tests). The
+%       bootstrap is achieved by wild bootstrap of the residuals from the full
+%       model. Computations of the statistics in AOVSTAT are compatible with
+%       the 'clustid' and 'blocksz' options.
 %
 %     '[STATS, BOOTSTAT, AOVSTAT, PRED_ERR] = bootlm (...)' also computes
-%     refined bootstrap estimates of prediction error and returns the
+%     refined bootstrap estimates of prediction error and returns the derived
 %     statistics in a structure with the following fields:
-%        - 'MODEL': The formula of the linear model(s) in Wilkinson's notation
-%        - 'PE': Prediction error (computed using the refined bootstrap method)
-%        - 'RSQ': Predicted R-sq (computed using the refined bootstrap method)
-%     The linear models used are the same as for AOVSTAT, except that the 
-%     output also includes the statistics for the intercept-only model. Note
-%     that PRED_ERR statistics are only returned when the method used is wild
-%     bootstrap AND when no other statistics are requested (i.e. estimated
-%     marginal means or posthoc tests). Computations of the statistics in
-%     PRED_ERR are compatible with the 'clustid' and 'blocksz' options. Note
-%     that it is possible to get a negative value for predicted R-sq, especially
-%     for the intercept-only (i.e. first) model.
+%       - 'MODEL': The formula of the linear model(s) in Wilkinson's notation
+%       - 'PE': Bootstrap estimate of prediction error
+%       - 'PRESS': Bootstrap estimate of predicted residual error sum of squares
+%       - 'RSQ-pred': Bootstrap estimate of predicted R-squared
+%
+%       The linear models used are the same as for AOVSTAT, except that the 
+%       output also includes the statistics for the intercept-only model. Note
+%       that PRED_ERR statistics are only returned when the method used is wild
+%       bootstrap AND when no other statistics are requested (i.e. estimated
+%       marginal means or posthoc tests). Computations of the statistics in
+%       PRED_ERR are compatible with the 'clustid' and 'blocksz' options. Note
+%       that it is possible to get a negative value for RSQ-pred, particularly
+%       for the intercept-only (i.e. first) model.
 %
 %  bootlm (version 2023.08.28)
 %  Author: Andrew Charles Penn
@@ -1643,7 +1646,7 @@ function PRED_ERR = bootpe (Y, X, DF, n, DEP, NBOOT, ALPHA, SEED, ISOCTAVE)
                                               % by refined bootstrap
 
   % Prepare output
-  PRED_ERR = struct ('MODEL', [], 'PE', PE, 'RSQ', PE_RSQ);
+  PRED_ERR = struct ('MODEL', [], 'PE', PE, 'PRESS', PRESS, 'RSQ-pred', PE_RSQ);
 
 end
 
@@ -2112,10 +2115,72 @@ end
 %!
 %! fprintf ('PREDICTION ERROR of the FULL MODEL = %.2f\n', PRED_ERR.PE(3))
 %!
-%! ## Note: The value of PE(3) is lower than the 3.00 calculated by Efron and
-%! ## Tibhirani (1993) using the same refined bootstrap procedure, because they
-%! ## have used case resampling whereas we have used wild bootstrap resampling.
-%! ## The equivalent value of Cp (a.k.a. AIC) statistic is 2.96.
+%! ## Note: The value of prediction error is lower than the 3.00 calculated by
+%! ## Efron and Tibhirani (1993) using the same refined bootstrap procedure,
+%! ## because they have used case resampling whereas we have used wild bootstrap
+%! ## resampling. The equivalent value of Cp (a.k.a. AIC) statistic is 2.96.
+
+%!demo
+%!
+%! ## Stepwise regression
+%!
+%! sr = [11.43;12.07;13.17;05.75;12.88;08.79;00.60;11.90; ...
+%!       04.98;10.78;16.85;03.59;11.24;12.64;12.55;10.67; ...
+%!       03.01;07.70;01.27;09.00;11.34;14.28;21.10;03.98; ...
+%!       10.35;15.48;10.25;14.65;10.67;07.30;04.44;02.02; ...
+%!       12.70;12.78;12.49;11.14;13.30;11.77;06.86;14.13; ...
+%!       05.13;02.81;07.81;07.56;09.22;18.56;07.72;09.24; ...
+%!       08.89;4.71];
+%!
+%! pop15 = [29.35;23.32;23.80;41.89;42.19;31.72;39.74;44.75;
+%!          46.64;47.64;24.42;46.31;27.84;25.06;23.31;25.62;
+%!          46.05;47.32;34.03;41.31;31.16;24.52;27.01;41.74;
+%!          21.80;32.54;25.95;24.71;32.61;45.04;43.56;41.18;
+%!          44.19;46.26;28.96;31.94;31.92;27.74;21.44;23.49;
+%!          43.42;46.12;23.27;29.81;46.40;45.25;41.12;28.13;
+%!         43.69;47.20];
+%!
+%! pop75 = [2.87;4.41;4.43;1.67;0.83;2.85;1.34;0.67; ...
+%!          1.06;1.14;3.93;1.19;2.37;4.70;3.35;3.10; ...
+%!          0.87;0.58;3.08;0.96;4.19;3.48;1.91;0.91; ...
+%!          3.73;2.47;3.67;3.25;3.17;1.21;1.20;1.05; ...
+%!          1.28;1.12;2.85;2.28;1.52;2.87;4.54;3.73; ...
+%!          1.08;1.21;4.46;3.43;0.90;0.56;1.73;2.72; ...
+%!          2.07;0.66];
+%!
+%! dpi = [2329.68;1507.99;2108.47;0189.13;0728.47;2982.88;0662.86;0289.52; ...
+%!        0276.65;0471.24;2496.53;0287.77;1681.25;2213.82;2457.12;0870.85; ...
+%!        0289.71;0232.44;1900.10;0088.94;1139.95;1390.00;1257.28;0207.68; ...
+%!        2449.39;0601.05;2231.03;1740.70;1487.52;0325.54;0568.56;0220.56; ...
+%!        0400.06;0152.01;0579.51;0651.11;0250.96;0768.79;3299.49;2630.96; ...
+%!        0389.66;0249.87;1813.93;4001.89;0813.39;0138.33;0380.47;0766.54; ...
+%!        0123.58;0242.69];
+%!
+%! ddpi = [02.87;03.93;03.82;00.22;04.56;02.43;02.67;06.51;
+%!         03.08;02.80;03.99;02.19;04.32;04.52;03.44;06.28;
+%!         01.48;03.19;01.12;01.54;02.99;03.54;08.21;05.81;
+%!         01.57;08.12;03.62;07.66;01.76;02.48;03.61;01.03;
+%!         00.67;02.00;07.48;02.19;02.00;04.35;03.01;02.70;
+%!         02.96;01.13;02.01;02.45;00.53;05.14;10.23;01.88;
+%!         16.71;05.08];
+%!
+%!  [STATS, BOOTSTAT, AOVSTAT, PRED_ERR] = bootlm (sr, {pop15, pop75, ...
+%!                                     dpi, ddpi}, 'seed', 1, 'continuous', [1:4], ...
+%!                                     'model', 'linear', 'display', 'off', ...
+%!                                     'varnames', {'pop15','pop75','dpi','ddpi'},
+%!                                     'contrasts', 'treatment');
+%!
+%! PRED_ERR
+%! 
+%! ## The results from the bootstrap are broadly consistent to the results
+%! ## obtained for PE, PRESS and RSQ-pred using cross-validation:
+%! ##
+%! ##     MODEL                                  PE-CV    PRESS-CV  RSQ-pred-CV
+%! ##     Y ~ 1                                  20.48    1024.186       -0.041
+%! ##     Y ~ 1 + pop15                          16.88     843.910       +0.142
+%! ##     Y ~ 1 + pop15 + pop75                  16.62     830.879       +0.155
+%! ##     Y ~ 1 + pop15 + pop75 + dpi            16.54     827.168       +0.159
+%! ##     Y ~ 1 + pop15 + pop75 + dpi + ddpi     15.98     798.939       +0.188
 
 %!test
 %!
