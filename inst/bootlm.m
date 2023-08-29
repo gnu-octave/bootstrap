@@ -376,14 +376,14 @@
 %       - 'PRESS': Bootstrap estimate of predicted residual error sum of squares
 %       - 'RSQ-pred': Bootstrap estimate of predicted R-squared
 %
-%       The linear models used are the same as for AOVSTAT, except that the 
+%       The linear models evaluated are the same as for AOVSTAT, except that the 
 %       output also includes the statistics for the intercept-only model. Note
 %       that PRED_ERR statistics are only returned when the method used is wild
 %       bootstrap AND when no other statistics are requested (i.e. estimated
 %       marginal means or posthoc tests). Computations of the statistics in
 %       PRED_ERR are compatible with the 'clustid' and 'blocksz' options. Note
-%       that it is possible to get a negative value for RSQ-pred, particularly
-%       for the intercept-only (i.e. first) model.
+%       that it is possible (and not unusual) to get a negative value for RSQ-
+%       pred, particularly for the intercept-only (i.e. first) model.
 %
 %  bootlm (version 2023.08.28)
 %  Author: Andrew Charles Penn
