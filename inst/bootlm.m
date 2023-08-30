@@ -751,7 +751,12 @@ function [STATS, BOOTSTAT, AOVSTAT, PRED_ERR] = bootlm (Y, GROUP, varargin)
       if (i > 1)
         formula{i} = sprintf ('%s + %s', formula{i-1}, TERMNAMES{i}(2:end));
       else 
-        formula{1} = sprintf ('Y ~ 1 + %s', TERMNAMES{1}(2:end));
+        Y_name = inputname (1);
+        if isempty (Y_name)
+          formula{1} = sprintf ('Y ~ 1 + %s', TERMNAMES{1}(2:end));
+        else
+          formula{1} = sprintf ('%s ~ 1 + %s', Y_name, TERMNAMES{1}(2:end));
+        end
       end
     end
 
