@@ -108,6 +108,10 @@ function [x, F, P] = bootcdf (y, trim, m, Tol)
   ridx = isnan (y);
   y(ridx) = [];
 
+  % Set Inf values to the maximum finite value
+  infidx = isinf (y);
+  y(infidx) = max (y (~ infidx));
+
   % Get size of y
   N = numel (y);
 

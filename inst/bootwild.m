@@ -377,10 +377,10 @@ function S = lmfit (X, y, clusters, L, ISOCTAVE)
   vcov = ucov * meat * ucov;
   if ( (nargin < 4) || isempty (L) )
     S.b = b;
-    S.se = sqrt (diag (vcov));
+    S.se = sqrt (max (diag (vcov), 0));
   else
     S.b = L' * b;
-    S.se = sqrt (diag (L' * vcov * L));
+    S.se = sqrt (max (diag (L' * vcov * L), 0));
   end
   S.sse = sum (u.^2);
   S.fit = yf;

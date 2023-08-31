@@ -44,21 +44,12 @@
 %     'bootlm' can take a number of optional parameters as name-value
 %     pairs.
 %
-%     '[...] = bootlm (Y, GROUP, ..., 'dim', DIM)'
+%     '[...] = bootlm (Y, GROUP, ..., 'varnames', VARNAMES)'
 %
-%       <> DIM is a scalar or vector specifying the dimension(s) over which
-%          'bootlm' calculates and returns estimated marginal means instead of
-%          regression coefficients. For example, the value [1 3] computes the
-%          estimated marginal mean for each combination of the levels of the
-%          first and third predictors. The default value is empty, which makes
-%          'bootlm' return the statistics for for the model coefficients. If DIM
-%          is, or includes, a continuous predictor then 'bootlm' will return an
-%          error. The following statistics are printed when specifying 'dim':
-%             - name: the name(s) of the estimated marginal mean(s)
-%             - mean: the estimated marginal mean(s)
-%             - CI_lower: lower bound(s) of the 95% confidence interval (CI)
-%             - CI_upper: upper bound(s) of the 95% confidence interval (CI)
-%             - N: the number of independent sampling units used to compute CIs
+%       <> VARNAMES must be a cell array of strings with each element
+%          containing a predictor name for each column of GROUP. By default
+%          (if not parsed as optional argument), VARNAMES are
+%          'X1','X2','X3', etc.
 %
 %     '[...] = bootlm (Y, GROUP, ..., 'continuous', CONTINUOUS)'
 %
@@ -88,13 +79,6 @@
 %
 %               -- Example:
 %               A two-way design with interaction would be: [1 0; 0 1; 1 1]
-%
-%     '[...] = bootlm (Y, GROUP, ..., 'varnames', VARNAMES)'
-%
-%       <> VARNAMES must be a cell array of strings with each element
-%          containing a predictor name for each column of GROUP. By default
-%          (if not parsed as optional argument), VARNAMES are
-%          'X1','X2','X3', etc.
 %
 %     '[...] = bootlm (Y, GROUP, ..., 'method', METHOD)'
 %
@@ -180,19 +164,32 @@
 %             o A string corresponding to one of the built-in contrasts
 %               listed below:
 %
-%                  o 'anova' or 'simple' (default): Simple (ANOVA) contrast
-%                    coding. The intercept represents the grand mean. Each 
-%                    slope coefficient represents the difference between one
-%                    level of a predictor (or interaction between predictors) to
-%                    the first level for that/those predictor(s), averaged over
-%                    all levels of the other predictor(s). The first (or
-%                    reference level) of the predictor(s) is defined as the
-%                    first level of the predictor (or combination of the
-%                    predictors) listed in the GROUP argument. The columns of
-%                    this contrast coding scheme sum to zero. This type of
-%                    contrast is ideal for nominal predictor variables that
-%                    have an obvious reference or control group and that are
-%                    modelled together with a covariate or blocking factor.
+%                  o 'treatment' (default): Treatment contrast (or dummy)
+%                    coding. The intercept represents the mean of the first
+%                    level of all the predictors. Each slope coefficient
+%                    compares one level of a predictor (or interaction
+%                    between predictors) with the first level for that/those
+%                    predictor(s), at the first level of all the other
+%                    predictors. The first (or reference level) of the
+%                    predictor(s) is defined as the first level of the
+%                    predictor (or combination of the predictors) listed in
+%                    the GROUP argument. This type of contrast is ideal for
+%                    one-way designs or factorial designs of nominal predictor
+%                    variables that have an obvious reference or control group.
+%
+%                  o 'anova' or 'simple': Simple (ANOVA) contrast coding. The
+%                    intercept represents the grand mean. Each slope coefficient
+%                    represents the difference between one level of a predictor
+%                    (or interaction between predictors) to the first level for
+%                    that/those predictor(s), averaged over all levels of the
+%                    other predictor(s). The first (or reference level) of the
+%                    predictor(s) is defined as the first level of the predictor
+%                    (or combination of the predictors) listed in the GROUP
+%                    argument. The columns of this contrast coding scheme sum
+%                    to zero. This type of contrast is ideal for nominal
+%                    predictor variables that have an obvious reference or
+%                    control group and that are modelled together with a
+%                    covariate or blocking factor.
 %
 %                  o 'poly': Polynomial contrast coding for trend analysis.
 %                    The intercept represents the grand mean. The remaining
@@ -239,19 +236,6 @@
 %                    contrast coding coding scheme sum to zero. This type of
 %                    contrast is ideal for ordinal predictor variables.
 %
-%                  o 'treatment': Treatment contrast (or dummy) coding. The
-%                    intercept represents the mean of the first level of all
-%                    the predictors. Each slope coefficient compares one
-%                    level of a predictor (or interaction between predictors)
-%                    with the first level for that/those predictor(s), at the
-%                    first level of all the other predictors. The first (or
-%                    reference level) of the predictor(s) is defined as the
-%                    first level of the predictor (or combination of the
-%                    predictors) listed in the GROUP argument. This type of
-%                    contrast is ideal for one-way designs or factorial designs
-%                    of nominal predictor variables that have an obvious
-%                    reference or control group.
-%
 %            <> A matrix containing a custom contrast coding scheme (i.e.
 %               the generalized inverse of contrast weights). Rows in
 %               the contrast matrices correspond to predictor levels in the
@@ -291,6 +275,29 @@
 %          block are treated as having dependent errors. If empty (default),
 %          no clustered resampling is performed and all errors are treated
 %          as independent. The standard errors computed are cluster robust.
+%
+%     '[...] = bootlm (Y, GROUP, ..., 'dim', DIM)'
+%
+%       <> DIM can be specified as one of the following:
+%
+%             o a cell array of strings corresponding to variable names defined
+%               VARNAMES, or
+%
+%             o a scalar or vector specifying the dimension(s),
+%
+%          over which 'bootlm' calculates and returns estimated marginal means
+%          instead of regression coefficients. For example, the value [1 3]
+%          computes the estimated marginal mean for each combination of the
+%          levels of the first and third predictors. The default value is empty,
+%          which makes 'bootlm' return the statistics for for the model
+%          coefficients. If DIM is, or includes, a continuous predictor then
+%          'bootlm' will return an error. The following statistics are printed
+%          when specifying 'dim':
+%             - name: the name(s) of the estimated marginal mean(s)
+%             - mean: the estimated marginal mean(s)
+%             - CI_lower: lower bound(s) of the 95% confidence interval (CI)
+%             - CI_upper: upper bound(s) of the 95% confidence interval (CI)
+%             - N: the number of independent sampling units used to compute CIs
 %
 %     '[...] = bootlm (Y, GROUP, ..., 'posthoc', POSTHOC)'
 %
@@ -374,7 +381,7 @@
 %       - 'MODEL': The formula of the linear model(s) in Wilkinson's notation
 %       - 'PE': Bootstrap estimate of prediction error
 %       - 'PRESS': Bootstrap estimate of predicted residual error sum of squares
-%       - 'RSQ-pred': Bootstrap estimate of predicted R-squared
+%       - 'RSQ_pred': Bootstrap estimate of predicted R-squared
 %
 %       The linear models evaluated are the same as for AOVSTAT, except that the 
 %       output also includes the statistics for the intercept-only model. Note
@@ -722,6 +729,10 @@ function [STATS, BOOTSTAT, AOVSTAT, PRED_ERR] = bootlm (Y, GROUP, varargin)
     if (isempty (DIM))
       L = 1;
     else
+      if (iscell (DIM))
+        % Get indices of variables matching variables listed in VARNAMES
+        DIM = arrayfun (@(i) find (strcmp (DIM{i}, VARNAMES)), 1:numel (DIM));
+      end
       if (any (DIM < 1))
         error ('bootlm: DIM must contain positive integers')
       end
@@ -1209,12 +1220,12 @@ function  [X, levels, nlevels, df, coeffnames, gid, CONTRASTS, ...
     if (any (j == CONTINUOUS))
 
       % CONTINUOUS PREDICTOR
-      if iscell (GROUP(:,j))
+      if (iscell (GROUP(:,j)))
         X{1+j} = cell2mat (GROUP(:,j));
       else
         X{1+j} = GROUP(:,j);
       end
-      if (strcmpi (CONTRASTS{j}, 'treatment'))
+      if ((isempty (CONTRASTS{j})) || (strcmpi (CONTRASTS{j}, 'treatment')))
         % Don't center continuous variables if contrasts are 'treatment'
         center_continuous(j) = false;
         CONTRASTS{j} = [];
@@ -1230,7 +1241,7 @@ function  [X, levels, nlevels, df, coeffnames, gid, CONTRASTS, ...
 
       % CATEGORICAL PREDICTOR
       if (isempty (CONTRASTS{j}))
-        CONTRASTS{j} = contr_simple (nlevels(j));
+        CONTRASTS{j} = contr_treatment (nlevels(j));
       elseif (isnumeric (CONTRASTS{j}))
         % EVALUATE CUSTOM CONTRAST MATRIX
         % Check that the contrast matrix provided is the correct size
@@ -1250,6 +1261,10 @@ function  [X, levels, nlevels, df, coeffnames, gid, CONTRASTS, ...
         end
       else
         switch (lower (CONTRASTS{j}))
+          case 'treatment'
+            % TREATMENT CONTRAST CODING
+            % The first level is the reference level
+            CONTRASTS{j} = contr_treatment (nlevels(j));
           case {'simple','anova'}
             % SIMPLE EFFECT CODING (DEFAULT)
             % The first level is the reference level
@@ -1266,10 +1281,6 @@ function  [X, levels, nlevels, df, coeffnames, gid, CONTRASTS, ...
           case {'sdif','sdiff'}
             % SUCCESSIVE DEVIATIONS CONTRAST CODING
             CONTRASTS{j} = contr_sdif (nlevels(j));
-          case 'treatment'
-            % TREATMENT CONTRAST CODING
-            % The first level is the reference level
-            CONTRASTS{j} = contr_treatment (nlevels(j));
         end
       end
       C = CONTRASTS{j};
@@ -1304,7 +1315,13 @@ function  [X, levels, nlevels, df, coeffnames, gid, CONTRASTS, ...
       coeffnames{1+Nm+i} = cell (df(Nm+i),1);
       for v = 1:df(Nm+i)
         str = sprintf ('%s:', VARNAMES{I-1});
-        coeffnames{1+Nm+i}{v} = strcat (str(1:end-1), '_', num2str (v));
+        if (any (CONTINUOUS == I(end)-1))
+          % Continuous variable
+          coeffnames{1+Nm+i}{v} = str(1:end-1);
+        else
+          % Categorical variable
+          coeffnames{1+Nm+i}{v} = strcat (str(1:end-1), '_', num2str (v));
+        end
       end
     end
   end
@@ -1651,7 +1668,7 @@ function PRED_ERR = booterr (Y, X, DF, n, DEP, NBOOT, ALPHA, SEED, ISOCTAVE)
                                               % by refined bootstrap
 
   % Prepare output
-  PRED_ERR = struct ('MODEL', [], 'PE', PE, 'PRESS', PRESS, 'RSQ-pred', PE_RSQ);
+  PRED_ERR = struct ('MODEL', [], 'PE', PE, 'PRESS', PRESS, 'RSQ_pred', PE_RSQ);
 
 end
 
@@ -1766,7 +1783,6 @@ end
 %!           'air', 'air', 'air'; 'air', 'air', 'air'; 'air', 'air', 'air'};
 %!
 %! ## Check regression coefficients corresponding to brand x popper interaction
-%! ## using 'anova' contrast coding
 %! STATS = bootlm (popcorn(:), {brands(:), popper(:)}, ...
 %!                            'display', 'on', 'model', 'full', ...
 %!                            'varnames', {'brands', 'popper'});
@@ -1836,7 +1852,6 @@ end
 %! end
 %!
 %! ## Check regression coefficient corresponding to gender x degree interaction
-%! ## using 'anova' contrast coding
 %! STATS = bootlm (salary, {gender, degree}, 'model', 'full', ...
 %!                             'display', 'on', 'varnames', ...
 %!                             {'gender', 'degree'});
@@ -1909,7 +1924,6 @@ end
 %! end
 %!
 %! ## Check regression coefficient corresponding to drug x feedback x diet
-%! ## interaction using 'anova' contrast coding
 %! STATS = bootlm (BP(:), {diet(:), drug(:), feedback(:)}, ...
 %!                                    'model', 'full', ...
 %!                                    'display', 'on', ...
@@ -1946,9 +1960,11 @@ end
 %!            'niv' 'niv' 'niv' 'niv' 'niv' 'niv' 'niv' 'niv' 'niv' 'niv'};
 %!
 %! ## Perform ANCOVA 
+%! ## Use 'anova' contrasts so that the continuous covariate is centered
 %! [STATS, BOOTSTAT, AOVSTAT] = bootlm (pulse, {temp, species}, 'model', ...
 %!                           'linear', 'continuous', 1, 'display', 'off', ...
-%!                           'varnames', {'temp', 'species'});
+%!                           'varnames', {'temp', 'species'}, ...
+%!                           'contrasts', 'anova');
 %!
 %! fprintf ('ANCOVA SUMMARY\n')
 %! for i = 1:numel(AOVSTAT.F)
@@ -1960,21 +1976,23 @@ end
 %! ## Estimate regression coefficients using 'anova' contrast coding 
 %! STATS = bootlm (pulse, {temp, species}, 'model', 'linear', ...
 %!                           'continuous', 1, 'display', 'on', ...
-%!                           'varnames', {'temp', 'species'});
+%!                           'varnames', {'temp', 'species'}, ...
+%!                           'contrasts', 'anova');
 %!
 %! ## 95% confidence intervals and p-values for the differences in the mean of
 %! ## chirpy pulses of ex ad niv species (computed by wild bootstrap).
 %! STATS = bootlm (pulse, {temp, species}, 'model', 'linear', ...
 %!                           'continuous', 1, 'display', 'on', ...
 %!                           'varnames', {'temp', 'species'}, 'dim', 2, ...
-%!                           'posthoc', 'trt_vs_ctrl');
+%!                           'posthoc', 'trt_vs_ctrl', 'contrasts', 'anova');
 %!
 %! ## 95% credible intervals for the estimated marginal means of chirpy pulses
 %! ## of ex and niv species (computed by Bayesian bootstrap).
 %! STATS = bootlm (pulse, {temp, species}, 'model', 'linear', ...
 %!                           'continuous', 1, 'display', 'on', ...
 %!                           'varnames', {'temp', 'species'}, 'dim', 2, ...
-%!                           'method', 'bayesian', 'prior', 'auto');
+%!                           'method', 'bayesian', 'prior', 'auto', ...
+%!                           'contrasts', 'anova');
 
 %!demo
 %!
@@ -2005,10 +2023,12 @@ end
 %!        75 54 57 62 65 60 58 61 65 57 56 58 58 58 52 53 60 62 61 61]';
 %!
 %! ## ANOVA/ANCOVA statistics
+%! ## Use 'anova' contrasts so that the continuous covariate is centered
 %! [STATS, BOOTSTAT, AOVSTAT] = bootlm (score, {age, exercise, treatment}, ...
 %!                            'model', [1 0 0; 0 1 0; 0 0 1; 0 1 1], ...
 %!                            'continuous', 1, 'display', 'off', ...
-%!                            'varnames', {'age', 'exercise', 'treatment'});
+%!                            'varnames', {'age', 'exercise', 'treatment'},...
+%!                            'contrasts', 'anova');
 %!
 %! fprintf ('ANOVA / ANCOVA SUMMARY\n')
 %! for i = 1:numel(AOVSTAT.F)
@@ -2017,11 +2037,12 @@ end
 %!            AOVSTAT.PVAL(i), AOVSTAT.MODEL{i});
 %! end
 %!
-%! ## Estimate regression coefficients using 'anova' contrast coding 
+%! ## Estimate regression coefficients
 %! STATS = bootlm (score, {age, exercise, treatment}, ...
 %!                            'model', [1 0 0; 0 1 0; 0 0 1; 0 1 1], ...
 %!                            'continuous', 1, 'display', 'on', ...
-%!                            'varnames', {'age', 'exercise', 'treatment'});
+%!                            'varnames', {'age', 'exercise', 'treatment'}, ...
+%!                            'contrasts', 'anova');
 %!
 %! ## 95% confidence intervals and p-values for the differences in mean score
 %! ## across different treatments and amounts of exercise after adjusting for
@@ -2030,7 +2051,8 @@ end
 %!                            'model', [1 0 0; 0 1 0; 0 0 1; 0 1 1], ...
 %!                            'continuous', 1, 'display', 'on', ...
 %!                            'varnames', {'age', 'exercise', 'treatment'}, ...
-%!                            'dim', [2, 3], 'posthoc', 'trt_vs_ctrl');
+%!                            'dim', [2, 3], 'posthoc', 'trt_vs_ctrl', ...
+%!                            'contrasts', 'anova');
 %!
 %! ## 95% credible intervals for the estimated marginal means of scores across
 %! ## different treatments and amounts of exercise after adjusting for age
@@ -2039,7 +2061,8 @@ end
 %!                            'model', [1 0 0; 0 1 0; 0 0 1; 0 1 1], ...
 %!                            'continuous', 1, 'display', 'on', ...
 %!                            'varnames', {'age', 'exercise', 'treatment'}, ...
-%!                            'method', 'bayesian', 'prior', 'auto');
+%!                            'method', 'bayesian', 'prior', 'auto', ...
+%!                            'contrasts', 'anova');
 
 %!demo
 %!
@@ -2178,9 +2201,9 @@ end
 %! PRED_ERR
 %! 
 %! ## The results from the bootstrap are broadly consistent to the results
-%! ## obtained for PE, PRESS and RSQ-pred using cross-validation:
+%! ## obtained for PE, PRESS and RSQ_pred using cross-validation:
 %! ##
-%! ##     MODEL                                  PE-CV    PRESS-CV  RSQ-pred-CV
+%! ##     MODEL                                  PE-CV    PRESS-CV  RSQ_pred-CV
 %! ##     Y ~ 1                                  20.48    1024.186       -0.041
 %! ##     Y ~ 1 + pop15                          16.88     843.910       +0.142
 %! ##     Y ~ 1 + pop15 + pop75                  16.62     830.879       +0.155
@@ -2219,12 +2242,12 @@ end
 %!                            'off', 'varnames', {'subject', 'treatment'});
 %!
 %! assert (aovstat.PVAL(2), 0.002663575883388276, 1e-09);
-%! assert (stats.pval(1), 0.0007121854921651428, 1e-09);
-%! assert (stats.pval(2), 0.9999999999999909, 1e-09);
-%! assert (stats.pval(3), 0.06635496003291047, 1e-09);
-%! assert (stats.pval(4), 0.4382333666561281, 1e-09);
-%! assert (stats.pval(5), 0.3639361232818495, 1e-09);
-%! assert (stats.pval(6), 0.002663469844077109, 1e-09);
+%! assert (stats.pval(1), 0.0007634153906149638, 1e-09);
+%! assert (stats.pval(2), 0.9999999999999976, 1e-09);
+%! assert (stats.pval(3), 0.06635496003291264, 1e-09);
+%! assert (stats.pval(4), 0.4382333666561285, 1e-09);
+%! assert (stats.pval(5), 0.3639361232818445, 1e-09);
+%! assert (stats.pval(6), 0.002663469844077179, 1e-09);
 
 %!test
 %!
@@ -2291,15 +2314,15 @@ end
 %!                            'display', 'off', 'model', 'full', ...
 %!                            'varnames', {'brands', 'popper'});
 %!
-%! assert (stats.pval(2), 0.0001, 1e-09);
+%! assert (stats.pval(2), 0.009600960096009694, 1e-09);
 %! assert (stats.pval(3), 0.0001, 1e-09);
-%! assert (stats.pval(4), 0.0001338515324481833, 1e-09);
-%! assert (stats.pval(5), 0.3403340334033442, 1e-09);
-%! assert (stats.pval(6), 0.7317882724305511, 1e-09);
-%! assert (stats.fpr(2), 0.00249737757706675, 1e-09);
+%! assert (stats.pval(4), 0.0173568003134047, 1e-09);
+%! assert (stats.pval(5), 0.3403340334033385, 1e-09);
+%! assert (stats.pval(6), 0.7317882724305477, 1e-09);
+%! assert (stats.fpr(2), 0.1081374669924721, 1e-09);
 %! assert (stats.fpr(3), 0.00249737757706675, 1e-09);
-%! assert (stats.fpr(4), 0.003234567489304454, 1e-09);
-%! assert (stats.fpr(5), 0.4992799823055505, 1e-09);
+%! assert (stats.fpr(4), 0.1605524433179735, 1e-09);
+%! assert (stats.fpr(5), 0.4992799823055503, 1e-09);
 %! assert (stats.fpr(6), 0.5, 1e-09);
 
 %!test
@@ -2321,10 +2344,10 @@ end
 %! assert (aovstats.PVAL(1), 0.7523035992551597, 1e-09);   % Normal ANOVA: 0.747 
 %! assert (aovstats.PVAL(2), 0.0001, 1e-09);               % Normal ANOVA: <.001 
 %! assert (aovstats.PVAL(3), 0.5666177238662272, 1e-09);   % Normal ANOVA: 0.524
-%! assert (stats.pval(2), 0.01257386294526463, 1e-09);
+%! assert (stats.pval(2), 0.2203059381026674, 1e-09);
 %! assert (stats.pval(3), 0.0001, 1e-09);
-%! assert (stats.pval(4), 0.5820694859231055, 1e-09);
-%! assert (stats.fpr(2), 0.1301119743071732, 1e-09);
+%! assert (stats.pval(4), 0.5820694859231031, 1e-09);
+%! assert (stats.fpr(2), 0.4753158903896984, 1e-09);
 %! assert (stats.fpr(3), 0.00249737757706675, 1e-09);
 %! assert (stats.fpr(4), 0.5, 1e-09);
 %!
@@ -2336,10 +2359,10 @@ end
 %! assert (aovstats.PVAL(2), 0.004950446391560281, 1e-09); % Normal ANOVA: 0.004
 %! assert (aovstats.PVAL(3), 0.566617723866227, 1e-09);    % Normal ANOVA: 0.524
 %! assert (stats.pval(2), 0.0001, 1e-09);
-%! assert (stats.pval(3), 0.01257386294526464, 1e-09);
-%! assert (stats.pval(4), 0.5820694859231067, 1e-09);
+%! assert (stats.pval(3), 0.2203059381026671, 1e-09);
+%! assert (stats.pval(4), 0.5820694859231046, 1e-09);
 %! assert (stats.fpr(2), 0.00249737757706675, 1e-09);
-%! assert (stats.fpr(3), 0.1301119743071733, 1e-09);
+%! assert (stats.fpr(3), 0.4753158903896983, 1e-09);
 %! assert (stats.fpr(4), 0.5, 1e-09);
 
 %!test
@@ -2419,7 +2442,8 @@ end
 %!
 %! stats = bootlm (pulse, {temp, species}, 'model', 'linear', ...
 %!                           'continuous', 1, 'display', 'off', ...
-%!                           'varnames', {'temp', 'species'}, 'seed', 1);
+%!                           'varnames', {'temp', 'species'}, 'seed', 1, ...
+%!                           'contrasts', 'anova');
 %!
 %! assert (stats.CI_lower(2), 3.408042874444448, 1e-09);
 %! assert (stats.CI_upper(2), 3.797462875271906, 1e-09);
@@ -2458,14 +2482,15 @@ end
 %! [stats, bootstat, aovstat] = bootlm (score, {age, exercise, treatment}, ...
 %!                            'model', [1 0 0; 0 1 0; 0 0 1; 0 1 1], ...
 %!                            'continuous', 1, 'display', 'off', 'seed', 1, ...
-%!                            'varnames', {'age', 'exercise', 'treatment'});
+%!                            'varnames', {'age', 'exercise', 'treatment'}, ...
+%!                            'contrasts', 'anova');
 %!
 %! assert (aovstat.PVAL(1), 0.0001, 1e-09);
 %! assert (aovstat.PVAL(2), 0.0001, 1e-09);
 %! assert (aovstat.PVAL(3), 0.00209853874900942, 1e-09);
 %! assert (aovstat.PVAL(4), 0.0145576845409309, 1e-09);
-%! assert (stats.pval(6), 0.9605479032987221, 1e-09);
-%! assert (stats.pval(7), 0.01418066878652798, 1e-09);
+%! assert (stats.pval(6), 0.960547903298728, 1e-09);
+%! assert (stats.pval(7), 0.01418066878652797, 1e-09);
 %! assert (stats.fpr(6), 0.5, 1e-09);
 %! assert (stats.fpr(7), 0.1409314554632885, 1e-09);
 %!
@@ -2473,7 +2498,7 @@ end
 %!                            'model', [1 0 0; 0 1 0; 0 0 1; 0 1 1], ...
 %!                            'continuous', 1, 'display', 'off', ...
 %!                            'varnames', {'age', 'exercise', 'treatment'}, ...
-%!                            'dim', [2, 3]);
+%!                            'dim', [2, 3], 'contrasts', 'anova');
 %!
 %! assert (stats.estimate(1), 86.9787857062843,1e-09)
 %! assert (stats.estimate(2), 86.9962428587431,1e-09)
@@ -2486,7 +2511,8 @@ end
 %!                            'model', [1 0 0; 0 1 0; 0 0 1; 0 1 1], ...
 %!                            'continuous', 1, 'display', 'off', ...
 %!                            'varnames', {'age', 'exercise', 'treatment'}, ...
-%!                            'dim', [2, 3], 'posthoc', 'trt_vs_ctrl');
+%!                            'dim', [2, 3], 'posthoc', 'trt_vs_ctrl', ...
+%!                            'contrasts', 'anova');
 %!
 %! assert (stats.estimate(1), -0.0174571524588316,1e-09)
 %! assert (stats.estimate(2), 13.7033101825921,1e-09)
