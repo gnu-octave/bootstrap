@@ -110,7 +110,7 @@
 %             o 'auto': Sets a value for PRIOR that effectively incorporates
 %                  Bessel's correction a priori such that the variance of the
 %                  posterior (i.e. the rows of BOOTSTAT) becomes an unbiased
-%                  estimator of the sampling variance. The calculation used for
+%                  estimator of the sampling variance*. The calculation used for
 %                  'auto' is as follows:
 % 
 %                     PRIOR = 1 - 2 / N
@@ -288,11 +288,12 @@
 %          over which 'bootlm' calculates and returns estimated marginal means
 %          instead of regression coefficients. For example, the value [1 3]
 %          computes the estimated marginal mean for each combination of the
-%          levels of the first and third predictors. The default value is empty,
-%          which makes 'bootlm' return the statistics for for the model
-%          coefficients. If DIM is, or includes, a continuous predictor then
-%          'bootlm' will return an error. The following statistics are printed
-%          when specifying 'dim':
+%          levels of the first and third predictors. The rows of the estimates
+%          returned are sorted according to the order of the dimensions
+%          specified in DIM. The default value of DIM is empty, which makes
+%          'bootlm' return the statistics for the model coefficients. If DIM
+%          is, or includes, a continuous predictor then 'bootlm' will return an
+%          error. The following statistics are printed when specifying 'dim':
 %             - name: the name(s) of the estimated marginal mean(s)
 %             - mean: the estimated marginal mean(s)
 %             - CI_lower: lower bound(s) of the 95% confidence interval (CI)
@@ -310,8 +311,8 @@
 %             o 'pairwise' : Pairwise comparisons are performed.
 %
 %             o 'trt_vs_ctrl' : Treatment vs. Control comparisons are performed.
-%                The control is the first group number 1 as returned when 
-%                POSTHOC is set to 'none'.
+%                Control corresponds to the level(s) of the predictor(s) listed
+%                within the first row of STATS when POSTHOC is set to 'none'.
 %
 %             o {'trt_vs_ctrl', k} : Treatment vs. Control comparisons are
 %                performed. The control is group number k as returned when
@@ -351,7 +352,7 @@
 %     categorical predictor for posthoc testing.
 %
 %     '[STATS, BOOTSTAT, AOVSTAT] = bootlm (...)' also computes bootstrapped
-%     ANOVA statistics and returns them in a structure with the following
+%     ANOVA statistics* and returns them in a structure with the following
 %     fields: 
 %       - 'MODEL': The formula of the linear model(s) in Wilkinson's notation
 %       - 'SS': Sum-of-squares
@@ -376,7 +377,7 @@
 %       the 'clustid' and 'blocksz' options.
 %
 %     '[STATS, BOOTSTAT, AOVSTAT, PRED_ERR] = bootlm (...)' also computes
-%     refined bootstrap estimates of prediction error and returns the derived
+%     refined bootstrap estimates of prediction error* and returns the derived
 %     statistics in a structure with the following fields:
 %       - 'MODEL': The formula of the linear model(s) in Wilkinson's notation
 %       - 'PE': Bootstrap estimate of prediction error
@@ -392,7 +393,11 @@
 %       that it is possible (and not unusual) to get a negative value for RSQ-
 %       pred, particularly for the intercept-only (i.e. first) model.
 %
-%  bootlm (version 2023.08.28)
+%     * If the parallel computing toolbox (Matlab) or package (Octave) is
+%       installed and loaded, then these computations will be automatically
+%       accelerated by parallel processing on platforms with multiple processors
+%
+%  bootlm (version 2023.09.01)
 %  Author: Andrew Charles Penn
 %  https://www.researchgate.net/profile/Andrew_Penn/
 %
@@ -420,6 +425,25 @@ function [STATS, BOOTSTAT, AOVSTAT, PRED_ERR] = bootlm (Y, GROUP, varargin)
     % Check if running in Octave (else assume Matlab)
     info = ver; 
     ISOCTAVE = any (ismember ({info.Name}, 'Octave'));
+
+    % Check if we have parallel processing capabilities
+    PARALLEL = false; % Default
+    if (ISOCTAVE)
+      software = pkg ('list');
+      names = cellfun (@(S) S.name, software, 'UniformOutput', false);
+      status = cellfun (@(S) S.loaded, software, 'UniformOutput', false);
+      index = find (~ cellfun (@isempty, regexpi (names, '^parallel')));
+      if ( (~ isempty (index)) && (logical (status{index})) )
+        PARALLEL = true;
+      end
+    else
+      try 
+        pool = gcp ('nocreate'); 
+        PARALLEL = ~ isempty (pool);
+      catch
+        % Do nothing
+      end
+    end
 
     % Check supplied parameters
     if ((numel (varargin) / 2) ~= fix (numel (varargin) / 2))
@@ -470,7 +494,7 @@ function [STATS, BOOTSTAT, AOVSTAT, PRED_ERR] = bootlm (Y, GROUP, varargin)
         case {'clustid', 'blocksz'}
           DEP = value;
         case {'dim', 'dimension'}
-          DIM = value;
+          DIM = value(:)';
         case {'posthoc', 'posttest'}
           POSTHOC = value;
         case 'nboot'
@@ -522,17 +546,20 @@ function [STATS, BOOTSTAT, AOVSTAT, PRED_ERR] = bootlm (Y, GROUP, varargin)
     end
     cont_vec = false (1, K);
     cont_vec(CONTINUOUS) = true;
+    GROUPID = zeros (n, K);
     if (iscell (GROUP))
       if (size (GROUP, 1) == 1)
         tmp = cell (n, K);
         for j = 1:K
           if (isnumeric (GROUP{j}))
+            [jnk, jnk, GROUPID(:,j)] = unique_stable ([GROUP{:,j}]);
             if (ismember (j, CONTINUOUS))
               tmp(:,j) = num2cell (GROUP{j});
             else
               tmp(:,j) = cellstr (num2str (GROUP{j}));
             end
           else
+            [jnk, jnk, GROUPID(:,j)] = unique_stable (GROUP{:,j});
             if (ismember (j, CONTINUOUS))
               error ('bootlm: continuous predictors must be a numeric datatype')
             end
@@ -578,9 +605,15 @@ function [STATS, BOOTSTAT, AOVSTAT, PRED_ERR] = bootlm (Y, GROUP, varargin)
     % Evaluate contrasts (if applicable)
     if isempty (CONTRASTS)
       CONTRASTS = cell (1, K);
-      planned = false;
+      if isempty (DIM)
+        CONTRASTS(:) = {'treatment'};
+        contr_sum_to_zero = false (1, K);
+      else
+        CONTRASTS(:) = {'anova'};
+        contr_sum_to_zero = true (1, K);
+      end
     else
-      if (ischar(CONTRASTS))
+      if (ischar (CONTRASTS))
         contr_str = CONTRASTS;
         CONTRASTS = cell (1, K);
         CONTRASTS(:) = {contr_str};
@@ -588,13 +621,17 @@ function [STATS, BOOTSTAT, AOVSTAT, PRED_ERR] = bootlm (Y, GROUP, varargin)
       if (~ iscell (CONTRASTS))
         CONTRASTS = {CONTRASTS};
       end
+      contr_sum_to_zero = false (1, K);
       for i = 1:K
         if (~ isempty (CONTRASTS{i}))
           if (isnumeric(CONTRASTS{i}))
             % Check whether all the columns sum to 0
             if (any (abs (sum (CONTRASTS{i})) > eps ('single')))
+              contr_sum_to_zero (i) = false;
               warning (sprintf ( ...
               'Note that the CONTRASTS for predictor %u do not sum to zero', i))
+            else
+              contr_sum_to_zero (i) = true;
             end
             % Check whether contrasts are orthogonal
             if (any (abs (reshape (corr (CONTRASTS{i}) - ...
@@ -611,10 +648,25 @@ function [STATS, BOOTSTAT, AOVSTAT, PRED_ERR] = bootlm (Y, GROUP, varargin)
                             ' ''simple'', ''poly'', ''helmert'',', ...
                             '''effect'', ''sdif'' or ''treatment'''))
             end
+            if strcmpi (CONTRASTS{i}, 'treatment')
+              contr_sum_to_zero (i) = false;
+            else
+              contr_sum_to_zero (i) = true;
+            end
           end
         end
       end
-      planned = true;
+    end
+    % Enforce 'anova' contrasts if the purpose is to estimate marginal means
+    % or conduct posthoc tests
+    if (~ isempty (DIM))
+      for i = 1:K
+        if (~ contr_sum_to_zero (i))
+          warning (sprintf ( ...
+                    'CONTRASTS for predictor %u have been set to ''anova''', i))
+        end
+      end
+      CONTRASTS(~ contr_sum_to_zero) = {'anova'};
     end
 
     % Remove NaN or non-finite observations
@@ -714,6 +766,27 @@ function [STATS, BOOTSTAT, AOVSTAT, PRED_ERR] = bootlm (Y, GROUP, varargin)
                      ' must have a main effect'))
     end
 
+    % If requesting estimated marginal means or posthoc tests, sort levels of
+    % each predictor according to the order of the predictors in DIM
+    if (~ isempty (DIM))
+      if (iscell (DIM))
+        % Get indices of variables matching variables listed in VARNAMES
+        DIM = arrayfun (@(i) find (strcmp (DIM{i}, VARNAMES)), 1:numel (DIM));
+      end
+      if (any (DIM < 1))
+        error ('bootlm: DIM must contain positive integers')
+      end
+      if (~ all (ismember (DIM, (1:Nm))))
+        error ('bootlm: values in DIM cannot exceed the number of predictors')
+      end
+      [jnk, rowidx] = sortrows (GROUPID, fliplr (DIM));
+      GROUP = GROUP (rowidx,:);
+      Y = Y(rowidx,:);
+      if (~ isempty (DEP))
+        DEP = DEP(rowidx,:);
+      end
+    end
+
     % Create design matrix
     [X, grpnames, nlevels, df, coeffnames, gid, CONTRASTS, ...
      center_continuous] = mDesignMatrix (GROUP, TERMS, ...
@@ -729,16 +802,6 @@ function [STATS, BOOTSTAT, AOVSTAT, PRED_ERR] = bootlm (Y, GROUP, varargin)
     if (isempty (DIM))
       L = 1;
     else
-      if (iscell (DIM))
-        % Get indices of variables matching variables listed in VARNAMES
-        DIM = arrayfun (@(i) find (strcmp (DIM{i}, VARNAMES)), 1:numel (DIM));
-      end
-      if (any (DIM < 1))
-        error ('bootlm: DIM must contain positive integers')
-      end
-      if (~ all (ismember (DIM, (1:Nm))))
-        error ('bootlm: values in DIM cannot exceed the number of predictors')
-      end
       H = X;
       ridx = ~ ismember ((1:Nm), DIM);
       for i = 1:Nt
@@ -816,13 +879,13 @@ function [STATS, BOOTSTAT, AOVSTAT, PRED_ERR] = bootlm (Y, GROUP, varargin)
           if (nargout > 2)
             % Perform ANOVA
             AOVSTAT = bootanova (Y, X, cat (1, 1, df), dfe, DEP, NBOOT, ALPHA, ...
-                                 SEED, ISOCTAVE);
+                                 SEED, ISOCTAVE, PARALLEL);
             AOVSTAT.MODEL = formula;
           end
           if (nargout > 3)
             % Estimate prediction errors
             PRED_ERR = booterr (Y, X, cat (1, 1, df), n, DEP, NBOOT, ALPHA, ...
-                                 SEED, ISOCTAVE);
+                                 SEED, ISOCTAVE, PARALLEL);
             PRED_ERR.MODEL = cat (1, {'Y ~ 1'}, formula);
           end
         case {'bayes', 'bayesian'}
@@ -869,11 +932,10 @@ function [STATS, BOOTSTAT, AOVSTAT, PRED_ERR] = bootlm (Y, GROUP, varargin)
       for i = 1:Np
         str = '';
         for j = 1:Nd
-          str = sprintf('%s%s=%s, ', str, ...
-                    num2str (VARNAMES{DIM(j)}), ...
+          str = sprintf('%s, %s', str, ...
                     num2str (grpnames{DIM(j)}{gid(idx(i),DIM(j))}));
         end
-        NAMES{i} = str(1:end-2);
+        NAMES{i} = str(3:end);
         str = '';
       end
 
@@ -905,9 +967,28 @@ function [STATS, BOOTSTAT, AOVSTAT, PRED_ERR] = bootlm (Y, GROUP, varargin)
               switch (lower (PRIOR))
                 case 'auto'
                   PRIOR = 1 - 2 ./ N_dim;
-                  [STATS, BOOTSTAT] = arrayfun (@(i) bootbayes (Y, X, ...
-                         DEP, NBOOT, fliplr (1 - ALPHA), PRIOR(i), SEED, ...
-                         L(:, i), ISOCTAVE), (1:Np)', 'UniformOutput', false);
+                  % Use parallel processing if it is available to accelerate
+                  % bootstrap computation for each column of the hypothesis
+                  % matrix.
+                  if (PARALLEL)
+                    if (ISOCTAVE)
+                      [STATS, BOOTSTAT] = pararrayfun (inf, @(i) bootbayes ( ...
+                                Y, X, DEP, NBOOT, fliplr (1 - ALPHA), ...
+                                PRIOR(i), SEED, L(:, i), ISOCTAVE), (1:Np)', ...
+                                'UniformOutput', false);
+                    else
+                      STATS = cell (Np, 1); BOOTSTAT = cell (Np, 1);
+                      parfor i = 1:Np
+                        [STATS{i}, BOOTSTAT{i}] =  bootbayes (Y, X, DEP, ...
+                                         NBOOT, fliplr (1 - ALPHA), ...
+                                         PRIOR(i), SEED, L(:, i), ISOCTAVE)
+                      end
+                    end
+                  else
+                    [STATS, BOOTSTAT] = arrayfun (@(i) bootbayes (Y, X, ...
+                           DEP, NBOOT, fliplr (1 - ALPHA), PRIOR(i), SEED, ...
+                           L(:, i), ISOCTAVE), (1:Np)', 'UniformOutput', false);
+                  end
                   STATS = flatten_struct (cell2mat (STATS));
                   BOOTSTAT = cell2mat (BOOTSTAT);
                 otherwise
@@ -934,14 +1015,18 @@ function [STATS, BOOTSTAT, AOVSTAT, PRED_ERR] = bootlm (Y, GROUP, varargin)
 
           % Model posthoc comparisons
           if (iscell (POSTHOC))
-            if (~ strcmpi (POSTHOC{1}, 'trt_vs_ctrl'))
+            if (strcmp (POSTHOC{1}, 'trt.vs.ctrl'))
+              POSTHOC{1} = 'trt_vs_ctrl';
+            elseif (~ strcmp (POSTHOC{1}, 'trt_vs_ctrl'))
               error (cat (2, 'bootlm: REF can only be used to specify a', ...\
                              ' control group for ''trt_vs_ctrl'''))
             end
             [L, pairs] = feval (POSTHOC{1}, L, POSTHOC{2:end});
             POSTHOC = POSTHOC{1};
           else
-            if (~ ismember (POSTHOC, {'pairwise', 'trt_vs_ctrl'}))
+            if (strcmp (POSTHOC, 'trt.vs.ctrl'))
+              POSTHOC = 'trt_vs_ctrl';
+            elseif (~ ismember (POSTHOC, {'pairwise', 'trt_vs_ctrl'}))
               error (cat (2, 'bootlm: available options for POSTHOC are', ...
                              ' ''pairwise'' and ''trt_vs_ctrl'''))
             end
@@ -962,9 +1047,28 @@ function [STATS, BOOTSTAT, AOVSTAT, PRED_ERR] = bootlm (Y, GROUP, varargin)
                   wgt = bsxfun (@rdivide, N_dim(pairs')', ...
                                 sum (N_dim(pairs')', 2));
                   PRIOR = sum ((1 - wgt) .* (1 - 2 ./ N_dim(pairs')'), 2);
-                  [STATS, BOOTSTAT] = arrayfun (@(i) bootbayes (Y, X, DEP, ...
-                     NBOOT, fliplr (1 - ALPHA), PRIOR(i), SEED, L(:, i), ...
-                     ISOCTAVE), (1:size (L, 2))', 'UniformOutput', false);
+                  % Use parallel processing if it is available to accelerate
+                  % bootstrap computation for each column of the hypothesis
+                  % matrix.
+                  if (PARALLEL)
+                    if (ISOCTAVE)
+                      [STATS, BOOTSTAT] = pararrayfun (inf, @(i) bootbayes ( ...
+                                Y, X, DEP, NBOOT, fliplr (1 - ALPHA), ...
+                                PRIOR(i), SEED, L(:, i), ISOCTAVE), (1:size (L, 2))', ...
+                                'UniformOutput', false);
+                    else
+                      STATS = cell (size (L, 2), 1); BOOTSTAT = cell (size (L, 2), 1);
+                      parfor i = 1:size (L, 2)
+                        [STATS{i}, BOOTSTAT{i}] =  bootbayes (Y, X, DEP, ...
+                                         NBOOT, fliplr (1 - ALPHA), ...
+                                         PRIOR(i), SEED, L(:, i), ISOCTAVE)
+                      end
+                    end
+                  else
+                    [STATS, BOOTSTAT] = arrayfun (@(i) bootbayes (Y, X, ...
+                           DEP, NBOOT, fliplr (1 - ALPHA), PRIOR(i), SEED, ...
+                           L(:, i), ISOCTAVE), (1:size (L, 2))', 'UniformOutput', false);
+                  end
                   STATS = flatten_struct (cell2mat (STATS));
                   BOOTSTAT = cell2mat (BOOTSTAT);
                 otherwise
@@ -1479,8 +1583,8 @@ function [L, pairs] = trt_vs_ctrl (L_EMM, REF)
   % Create pairs matrix for pairwise comparisons
   gid = (1:Ng)';  % Create numeric group ID
   pairs = zeros (Ng - 1, 2);
-  pairs(:,1) = REF;
-  pairs(:,2) = gid(gid ~= REF);
+  pairs(:,1) = gid(gid ~= REF);
+  pairs(:,2) = REF;
 
   % Calculate hypothesis matrix for pairwise comparisons from the
   % estimated marginal means
@@ -1586,7 +1690,8 @@ end
 
 % FUNCTION TO PERFORM ANOVA
 
-function AOVSTAT = bootanova (Y, X, DF, DFE, DEP, NBOOT, ALPHA, SEED, ISOCTAVE)
+function AOVSTAT = bootanova (Y, X, DF, DFE, DEP, NBOOT, ALPHA, SEED, ...
+                              ISOCTAVE, PARALLEL)
 
   % Bootstrap ANOVA (using sequential sums-of-squares, a.k.a. Type 1)
 
@@ -1605,10 +1710,28 @@ function AOVSTAT = bootanova (Y, X, DF, DFE, DEP, NBOOT, ALPHA, SEED, ISOCTAVE)
   % et al (Eds.) Bootstrapping and Related Techniques. Springer-Verlag, Berlin,
   % pg 79-86
   % See also the R function: https://rdrr.io/cran/lmboot/src/R/ANOVA.boot.R
-  [jnk, BOOTSTAT, BOOTSSE] = arrayfun (@(j) bootwild ( ...
-                                RESID{end}, X(:, 1:sum (DF(1:j))), ...
-                                DEP, NBOOT, ALPHA, SEED, [], ISOCTAVE), ...
-                                (1:Nt + 1)', 'UniformOutput', false);
+  % Use parallel processing if it is available to accelerate bootstrap
+  % computation of stepwise regression.
+  if (PARALLEL)
+    if (ISOCTAVE)
+      [jnk, BOOTSTAT, BOOTSSE] = pararrayfun (inf, @(j) bootwild ( ...
+                                    RESID{end}, X(:, 1:sum (DF(1:j))), ...
+                                    DEP, NBOOT, ALPHA, SEED, [], ISOCTAVE), ...
+                                    (1:Nt + 1)', 'UniformOutput', false);
+    else
+      BOOTSTAT = cell (Nt + 1, 1); BOOTSSE = cell (Nt + 1, 1);
+      parfor j = 1:Nt + 1
+        [jnk, BOOTSTAT{j}, BOOTSSE{j}] = bootwild (RESID{end}, ...
+                                     X(:, 1:sum (DF(1:j))), DEP, NBOOT,...
+                                     ALPHA, SEED, [], ISOCTAVE)
+      end
+    end
+  else
+    [jnk, BOOTSTAT, BOOTSSE] = arrayfun (@(j) bootwild ( RESID{end}, ...
+                                  X(:, 1:sum (DF(1:j))), DEP, NBOOT, ALPHA, ...
+                                  SEED, [], ISOCTAVE), (1:Nt + 1)', ...
+                                  'UniformOutput', false);
+  end
   BOOTSSE = cell2mat (BOOTSSE);
   BOOTSS = max (-diff (BOOTSSE), 0);
   BOOTMS = bsxfun (@rdivide, BOOTSS, DF(2:end));
@@ -1638,7 +1761,8 @@ end
 
 % FUNCTION TO ESTIMATE PREDICTION ERRORS
 
-function PRED_ERR = booterr (Y, X, DF, n, DEP, NBOOT, ALPHA, SEED, ISOCTAVE)
+function PRED_ERR = booterr (Y, X, DF, n, DEP, NBOOT, ALPHA, SEED, ...
+                             ISOCTAVE, PARALLEL)
 
   % Refined bootstrap estimates of prediction error of linear models
 
@@ -1649,10 +1773,29 @@ function PRED_ERR = booterr (Y, X, DF, n, DEP, NBOOT, ALPHA, SEED, ISOCTAVE)
 
   % Compute refined bootstrap estimates of prediction error (PE)
   % See Efron and Tibshirani (1993) An Introduction to the Bootstrap. pg 247-252
-  [jnk, jnk, BOOTRSS, BOOTFIT] = arrayfun (@(j) bootwild ( ...
-                                Y, X(:, 1:sum (DF(1:j))), ...
-                                DEP, NBOOT, ALPHA, SEED, [], ISOCTAVE), ...
-                                (1:Nt + 1)', 'UniformOutput', false);
+  % Use parallel processing if it is available to accelerate bootstrap
+  % computation of stepwise regression.
+  if (PARALLEL)
+    if (ISOCTAVE)
+      [jnk, jnk, BOOTRSS, BOOTFIT] = pararrayfun (inf, @(j) bootwild ( ...
+                                    Y, X(:, 1:sum (DF(1:j))), DEP,  ...
+                                    NBOOT, ALPHA, SEED, [], ISOCTAVE), ...
+                                    (1:Nt + 1)', 'UniformOutput', false);
+    else
+      BOOTRSS = cell (Nt + 1, 1); BOOTFIT = cell (Nt + 1, 1);
+      parfor j = 1:Nt + 1
+        [jnk, jnk, BOOTRSS{j}, BOOTFIT{j}] = bootwild (Y, ...
+                                         X(:, 1:sum (DF(1:j))), DEP, NBOOT, ...
+                                         ALPHA, SEED, [], ISOCTAVE)
+                                     
+      end
+    end
+  else
+    [jnk, jnk, BOOTRSS, BOOTFIT] = arrayfun (@(j) bootwild ( ...
+                                  Y, X(:, 1:sum (DF(1:j))), ...
+                                  DEP, NBOOT, ALPHA, SEED, [], ISOCTAVE), ...
+                                  (1:Nt + 1)', 'UniformOutput', false);
+  end
   S_ERR = cell2mat (arrayfun (@(j) sum (bsxfun (@minus, Y, ...
                     BOOTFIT{j}).^2, 1) / n, (1:Nt + 1)', ...
                     'UniformOutput', false)); % Simple estimate of error
@@ -2514,11 +2657,11 @@ end
 %!                            'dim', [2, 3], 'posthoc', 'trt_vs_ctrl', ...
 %!                            'contrasts', 'anova');
 %!
-%! assert (stats.estimate(1), -0.0174571524588316,1e-09)
-%! assert (stats.estimate(2), 13.7033101825921,1e-09)
-%! assert (stats.estimate(3), -1.52857959000781,1e-09)
-%! assert (stats.estimate(4), -1.70106530749405,1e-09)
-%! assert (stats.estimate(5), 3.9565061050745,1e-09)
+%! assert (stats.estimate(1), 0.01745715245881591,1e-09)
+%! assert (stats.estimate(2), -13.70331018259217,1e-09)
+%! assert (stats.estimate(3), 1.528579590007819,1e-09)
+%! assert (stats.estimate(4), 1.701065307494099,1e-09)
+%! assert (stats.estimate(5), -3.956506105074522,1e-09)
 
 %!test
 %!
