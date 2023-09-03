@@ -56,8 +56,8 @@
 %     'bootbayes (Y, X, ..., NBOOT, PROB)' where PROB is numeric and sets the
 %     lower and upper bounds of the credible interval(s). The value(s) of PROB
 %     must be between 0 and 1. PROB can either be:
-%       <> scalar: To set the central mass of shortest probability intervals
-%                  (SPI) to 100*(1-PROB)%
+%       <> scalar: To set the central mass of shortest probability
+%                  intervals (SPI) to 100*(1-PROB)%
 %       <> vector: A pair of probabilities defining the lower and upper
 %                  percentiles of the credible interval(s) as 100*(PROB(1))%
 %                  and 100*(PROB(2))% respectively. 
@@ -108,6 +108,10 @@
 %     '[STATS, BOOTSTAT] = bootbayes (...)  also returns the a vector (or
 %     matrix) of bootstrap statistics (BOOTSTAT) calculated over the bootstrap
 %     resamples.
+%
+%     The syntax in this function code is known to be compatible with
+%     recent versions of Octave (v3.2.4 on Debian 6 Linux 2.6.32) and
+%     Matlab (v6.5.0 and v7.4.0 on Windows XP).
 %
 %  Bibliography:
 %  [1] Rubin (1981) The Bayesian Bootstrap. Ann. Statist. 9(1):130-134
@@ -345,30 +349,7 @@ function [stats, bootstat] = bootbayes (Y, X, dep, nboot, prob, prior, seed, ...
   bias = mean (bootstat, 2) - original;
 
   % Compute credible intervals
-  % https://discourse.mc-stan.org/t/shortest-posterior-intervals/16281/16
-  % This solution avoids fencepost errors
-  ci = nan (p, 2);
-  bootstat = sort (bootstat, 2);
-  gap = round (prob * (nboot + 1));
-  for j = 1:p
-    if (nprob > 1)
-      % Percentile intervals
-      if (~ isnan (prob))
-        ci(j, :) = bootstat(j, gap);
-      end
-    else
-      % Shortest probability interval
-      % This implementation ensures that if there are multiple minima, the
-      % the shortest probability interval closest to the central interval is
-      % chosen
-      width = bootstat(j, (gap + 1):nboot) - bootstat(j, 1:(nboot - gap));
-      index = find (width == min (width))';
-      best_index = index (dsearchn (index, 0.5 * (1 - prob) * (nboot + 1)));
-      if (~ isnan (prob))
-        ci(j, :) = bootstat(j, [best_index, best_index + gap]);
-      end
-    end
-  end
+  ci = credint (bootstat, prob);
 
   % Prepare output arguments
   stats = struct;
