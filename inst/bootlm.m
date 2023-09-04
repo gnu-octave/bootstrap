@@ -338,10 +338,14 @@
 %       - 'fpr': The false positive risk 
 %       - 'N': The number of independnet sampling units used to compute CIs
 %       - 'prior': The prior used for Bayesian bootstrap
+%       - 'levels': A cell array with the levels of each predictor.
+%       - 'contrasts': A cell array of contrasts associated with each predictor.
 %
 %          Note that the p-values returned are truncated at the resolution
 %          limit determined by the number of bootstrap replicates, specifically 
-%          1 / (NBOOT + 1).
+%          1 / (NBOOT + 1). The following fields are only returned when
+%          'estimate' corresponds to the model regression coefficients:
+%          'levels' and 'contrasts'.
 %
 %     '[STATS, BOOTSTAT] = bootlm (...)' also returns a P x NBOOT matrix of
 %     bootstrap statistics for the estimated parameters, where P is the number
@@ -463,6 +467,8 @@ function [STATS, BOOTSTAT, AOVSTAT, PRED_ERR] = bootlm (Y, GROUP, varargin)
     METHOD = 'wild';
     PRIOR = 1;
     L = [];
+    STATS = [];
+    BOOTSTAT = [];
     AOVSTAT = [];
     PRED_ERR = [];
     for idx = 3:2:nargin
@@ -876,6 +882,8 @@ function [STATS, BOOTSTAT, AOVSTAT, PRED_ERR] = bootlm (Y, GROUP, varargin)
           STATS = rmfield (STATS, {'std_err', 'tstat', 'sse'});
           STATS.N = N;
           STATS.prior = [];
+          STATS.levels = grpnames;
+          STATS.contrasts = CONTRASTS';
           if (nargout > 2)
             % Perform ANOVA
             AOVSTAT = bootanova (Y, X, cat (1, 1, df), dfe, DEP, NBOOT, ALPHA, ...
@@ -1106,8 +1114,14 @@ function [STATS, BOOTSTAT, AOVSTAT, PRED_ERR] = bootlm (Y, GROUP, varargin)
       case {'bayes','bayesian'}
         STATS.method = 'Bayesian bootstrap';
     end
-    STATS = orderfields (STATS, {'method','name', 'estimate', 'CI_lower', ...
-                                 'CI_upper', 'pval', 'fpr', 'N', 'prior'});
+    if ( (isempty (DIM)) && (~ isempty (STATS)) )
+      STATS = orderfields (STATS, {'method','name', 'estimate', 'CI_lower', ...
+                                  'CI_upper', 'pval', 'fpr', 'N', 'prior', ...
+                                  'levels', 'contrasts'});
+    else
+      STATS = orderfields (STATS, {'method','name', 'estimate', 'CI_lower', ...
+                                  'CI_upper', 'pval', 'fpr', 'N', 'prior'});
+    end
 
     % Print table of model coefficients and make figure of diagnostic plots
     switch (lower (DISPLAY))
@@ -2289,7 +2303,7 @@ end
 %! ## Note: The value of prediction error is lower than the 3.00 calculated by
 %! ## Efron and Tibhirani (1993) using the same refined bootstrap procedure,
 %! ## because they have used case resampling whereas we have used wild bootstrap
-%! ## resampling. The equivalent value of Cp (a.k.a. AIC) statistic is 2.96.
+%! ## resampling. The equivalent value of Cp (eq. to AIC) statistic is 2.96.
 
 %!demo
 %!

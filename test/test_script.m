@@ -663,6 +663,12 @@ try
   pval6 = randtest2 (X, Y, false, [], 1);
   pval6 = randtest2 (X, Y, false, [], []);
  
+  % credint:test:1
+  randn ('seed', 1);
+  Y = exp (randn (5, 999));
+  CI = credint (Y,0.95);          % Shortest probability interval
+  CI = credint (Y,[0.025,0.975]); % Equal-tailed interval
+
   fprintf('Tests completed successfully.\n')
 
 catch
