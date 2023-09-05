@@ -882,8 +882,6 @@ function [STATS, BOOTSTAT, AOVSTAT, PRED_ERR] = bootlm (Y, GROUP, varargin)
           STATS = rmfield (STATS, {'std_err', 'tstat', 'sse'});
           STATS.N = N;
           STATS.prior = [];
-          STATS.levels = grpnames;
-          STATS.contrasts = CONTRASTS';
           if (nargout > 2)
             % Perform ANOVA
             AOVSTAT = bootanova (Y, X, cat (1, 1, df), dfe, DEP, NBOOT, ALPHA, ...
@@ -909,6 +907,11 @@ function [STATS, BOOTSTAT, AOVSTAT, PRED_ERR] = bootlm (Y, GROUP, varargin)
           error (cat (2, 'bootlm: unrecignised bootstrap method. Use', ...
                          ' ''wild'' or bayesian''.'))
       end
+
+      % Add the names of the levels and contrasts for all the predictors to
+      % the STATS output
+      STATS.levels = grpnames;
+      STATS.contrasts = CONTRASTS';
 
       % Assign names for model coefficients
       NAMES = {};
