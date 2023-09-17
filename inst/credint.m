@@ -8,7 +8,7 @@
 %
 %        * The matrix should have dimensions P * NBOOT, where P corresponds to
 %          the number of parameter estimates and NBOOT corresponds to the number
-%          of posterior (or Bayesian bootstrap) samples
+%          of posterior (or Bayesian bootstrap) samples.
 %
 %     'CI = credint (Y, PROB)' returns credible intervals, where PROB is numeric
 %     and sets the lower and upper bounds of the credible interval(s). The
@@ -20,10 +20,6 @@
 %                  and 100*(PROB(2))% respectively. 
 %          The default value of PROB is the scalar: 0.95, for a 95% shortest 
 %          posterior credible interval.
-%
-%     The syntax in this function code is known to be compatible with
-%     recent versions of Octave (v3.2.4 on Debian 6 Linux 2.6.32) and
-%     Matlab (v6.5.0 and v7.4.0 on Windows XP).
 %
 %  Bibliography:
 %  [1] Liu, Gelman & Zheng (2015). Simulation-efficient shortest probability

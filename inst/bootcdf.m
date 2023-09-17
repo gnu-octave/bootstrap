@@ -24,10 +24,6 @@
 %
 %     '[x, F, P] = bootcdf (...)' also returns the distribution of P values.
 %
-%     The syntax in this function code is known to be compatible with
-%     recent versions of Octave (v3.2.4 on Debian 6 Linux 2.6.32) and
-%     Matlab (v6.5.0 and v7.4.0 on Windows XP).
-%
 %  bootcdf (version 2023.07.05)
 %  Author: Andrew Charles Penn
 %  https://www.researchgate.net/profile/Andrew_Penn/

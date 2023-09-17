@@ -95,7 +95,7 @@ else
       errflag = true;
       err = lasterror();
       disp(err.message);
-      warning ('Could not compile boot.oct. Falling back to the (slower) boot.m file.')
+      warning ('Could not compile boot.%s. Falling back to the (slower) boot.m file.',mexext)
     end
   else
     try  

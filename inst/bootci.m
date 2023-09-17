@@ -10,7 +10,7 @@
 % -- Function File: CI = bootci (...,'Options', PAROPT)
 % -- Function File: [CI, BOOTSTAT] = bootci (...)
 %
-%     'CI = bootci (NBOOT, BOOTFUN, D)' draws nboot bootstrap resamples from
+%     'CI = bootci (NBOOT, BOOTFUN, D)' draws NBOOT bootstrap resamples from
 %     the rows of a data sample D and returns 95% confidence intervals (CI) for
 %     the bootstrap statistics computed by BOOTFUN [1]. BOOTFUN is a function 
 %     handle (e.g. specified with @), or a string indicating the function name. 

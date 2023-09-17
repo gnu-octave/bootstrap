@@ -26,11 +26,9 @@
 %     the Parallel Computing Toolbox or Octave Parallel package is available).
 %     This argument is a structure with the following recognised fields:
 %        o 'UseParallel':  If true, use parallel processes to accelerate
-%                          bootstrap computations on multicore machines,
-%                          specifically non-vectorized function evaluations,
-%                          double bootstrap resampling and jackknife function
-%                          evaluations. Default is false for serial computation.
-%                          In MATLAB, the default is true if a parallel pool
+%                          bootstrap computations on multicore machines. 
+%                          Default is false for serial computation. In MATLAB,
+%                          the default is true if a parallel pool
 %                          has already been started. 
 %        o 'nproc':        nproc sets the number of parallel processes
 %
@@ -125,7 +123,7 @@ function [bootstat, bootsam] = bootstrp (argin1, argin2, varargin)
   % Error checking
   % nboot input argument
   if ((nargin < 2) || isempty (nboot))
-    nboot = [2000, 0];
+    nboot = 2000;
   else
     if (~ isa (nboot, 'numeric'))
       error ('bootstrp: NBOOT must be numeric');

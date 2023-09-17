@@ -45,10 +45,6 @@
 %     not require explicit choice of a smoothing parameter or a probability
 %     density function.
 %
-%     The syntax in this function code is known to be compatible with
-%     recent versions of Octave (v3.2.4 on Debian 6 Linux 2.6.32) and
-%     Matlab (v6.5.0 and v7.4.0 on Windows XP).
-%
 %  Bibliography:
 %  [1] Brown, Hall and Young (2001) The smoothed median and the
 %       bootstrap. Biometrika 88(2):519-534

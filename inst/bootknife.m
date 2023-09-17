@@ -1,7 +1,7 @@
 % -- Function File: bootknife (DATA)
 % -- Function File: bootknife (DATA, NBOOT)
 % -- Function File: bootknife (DATA, NBOOT, BOOTFUN)
-% -- Function File: bootknife ({DATA}, NBOOT, BOOTFUN)
+% -- Function File: bootknife ({D1, D2, ...}, NBOOT, BOOTFUN)
 % -- Function File: bootknife (DATA, NBOOT, {BOOTFUN, ...})
 % -- Function File: bootknife (DATA, NBOOT, ..., ALPHA)
 % -- Function File: bootknife (DATA, NBOOT, ..., ALPHA, STRATA)
@@ -234,7 +234,7 @@ function [stats, bootstat, bootsam] = bootknife (x, nboot, bootfun, alpha, ...
     if (iscell (x))
       % If DATA is a cell array of equal size colunmn vectors, convert the cell
       % array to a matrix and redefine bootfun to parse multiple input arguments
-      szx = cellfun (@(x) size (x,2), x);
+      szx = cellfun (@(x) size (x, 2), x);
       x = [x{:}];
       bootfun = @(x) localfunc.col2args (bootfun, x, szx);
     else
@@ -485,6 +485,7 @@ function [stats, bootstat, bootsam] = bootknife (x, nboot, bootfun, alpha, ...
       end
     else
       if (nvar > 1) || (nargout > 2)
+        % Resample the sample indices, which we will refer to as bootsam
         % We can save some memory by making bootsam an int32 datatype
         bootsam = zeros (n, B, 'int32');
         bootsam(:, :) = boot (n, B, unbiased);
@@ -766,8 +767,8 @@ function [stats, bootstat, bootsam] = bootknife (x, nboot, bootfun, alpha, ...
                                    se(j) * sqrt (1 / (n - K)), 1 - 1 / (n - K));
         catch
           % Linear interpolation (legacy)
-          fprintf (cat (2, 'Note: Falling back to linear interpolation to', ...
-                           ' calculate percentiles for interval pair %u\n', j));
+          fprintf (strcat ('Note: Falling back to linear interpolation to', ...
+                           ' calculate percentiles for interval pair %u\n'), j);
           [t1, cdf] = bootcdf (bootstat(j, :), true, 1);
           ci(j, 1) = interp1 (cdf, t1, l(j, 1), 'linear', min (t1));
           ci(j, 2) = interp1 (cdf, t1, l(j, 2), 'linear', max (t1));

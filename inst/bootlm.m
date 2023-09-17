@@ -144,7 +144,7 @@
 %                  and upper bounds of the interval(s) as 100*(ALPHA(1))% and 
 %                  100*(ALPHA(2))% respectively. For example, [.025, .975] for
 %                  a 95% interval. If METHOD is 'wild', then the intervals are
-%                  assymmetric bootstrap-t confidence intervals. If METHOD is
+%                  asymmetric bootstrap-t confidence intervals. If METHOD is
 %                  'bayesian', then the intervals are simple percentile credible
 %                  intervals.
 %

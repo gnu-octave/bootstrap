@@ -61,7 +61,7 @@
 %       https://doi.org/10.48550/arXiv.2007.01360
 %  [2] https://en.wikipedia.org/wiki/Wasserstein_metric
 %
-%  randtest2 (version 2023.07.27)
+%  randtest2 (version 2023.09.16)
 %  Author: Andrew Charles Penn
 %  https://www.researchgate.net/profile/Andrew_Penn/
 %
@@ -119,31 +119,29 @@ function [pval, stat, STATS] = randtest2 (x, y, paired, nreps, seed)
   szx = size (x);
   szy = size (y);
 
-  % Evaluate definition of the sampling units (e.g. clusters) for x and y
+  % Evaluate definition of the sampling units (e.g. clusters) of x and y
   if (szx(2) > 1)
     gx = x(:, 2);
-    ux = unique (gx);
+    [ux, ix] = unique_stable (gx); % ix are indices where ux appear last in gx
   else
     gx = (1 : szx(1))';
     ux = gx;
+    ix = gx;
   end
   nx = numel (ux);
-  if (~ all (ismember (1 : nx, ux)))
-    error (cat (2, 'randtest2: sampling units must be defined as', ...
-                   ' consecutive positive integers (1, 2, 3, etc.)'))
-  end
   if (szy(2) > 1)
     gy = y(:, 2);
-    uy = unique (gy);
+    [uy, iy] = unique_stable (gy);  % iy are indices where uy appear last in gy
   else
     switch paired
       case false
         gy = (nx + 1 : nx + szy(1))';
-        uy = gy;
+        iy = gy - nx;
       case true
         gy = gx;
-        uy = gy;
+        iy = gy;
     end
+    uy = gy;
   end
   ny = numel (uy);
 
@@ -173,14 +171,23 @@ function [pval, stat, STATS] = randtest2 (x, y, paired, nreps, seed)
     case false
 
       % Error checking
-      if (any (ismember (ux, uy)))
+      if ( any (ismember (ux, uy)) )
         error (cat (2, 'randtest2: sampling units defined in GX and GY', ...
-                       ' must be unique when paired = false'))
+                       ' must be unique when PAIRED is false'))
       end
       nz = nx + ny;
-      if (~ all (ismember ((1 + nx) : nz, uy)))
+      if ( ~ all (ismember ((1 + nx) : nz, uy)) )
         error (cat (2, 'randtest2: sampling units defined in GY must', ...
-                       ' continue numbering from GX when paired = false'))
+                       ' continue numbering from GX when PAIRED is false'))
+      end
+      if ( (any ((ux ~= (1 : nx)'))) || ...
+           (any ((uy ~= (1 : ny)' + nx))) )
+        error (cat (2, 'randtest2: sampling units must be defined as', ...
+                       ' consecutive positive integers (1, 2, 3, etc.)'))
+      end
+      if ( (any (ix ~= cumsum (accumarray (gx, 1)))) || ...
+           (any (iy ~= cumsum (accumarray (gy - nx, 1)))) )
+        error ('randtest2: clustered observations must be grouped together')
       end
 
       % Compute test statistic on the original data
@@ -188,7 +195,7 @@ function [pval, stat, STATS] = randtest2 (x, y, paired, nreps, seed)
 
       % Create cell array of x and y samples
       z = cat (1, mat2cell (x(:, 1), accumarray (gx, 1)),...
-                  mat2cell (y(:, 1), accumarray (gy-nx, 1)));
+                  mat2cell (y(:, 1), accumarray (gy - nx, 1)));
       gz = cat (1, gx, gy);
 
       % Create permutations or randomized samples
@@ -211,12 +218,21 @@ function [pval, stat, STATS] = randtest2 (x, y, paired, nreps, seed)
       % Error checking
       if (nx ~= ny)
         error (cat (2, 'randtest2: X and Y must have the same number of', ...
-                       ' sampling units for PAIRED = true'))
+                       ' sampling units when PAIRED is true'))
       end
-      nz = nx;
       if (any (ux ~= uy))
         error (cat (2, 'randtest2: GX and GY must use the same IDs for', ...
-                       ' sampling units when PAIRED = true'))
+                       ' sampling units when PAIRED is true'))
+      end
+      if ( (~ all (ismember (1 : nx, ux))) || ...
+           (~ all (ismember (1 : ny, uy))) )
+        error (cat (2, 'randtest2: sampling units must be defined as', ...
+                       ' consecutive positive integers (1, 2, 3, etc.)'))
+      end
+      nz = nx;
+      if ( (any (ix ~= cumsum (accumarray (gx, 1)))) || ...
+           (any (iy ~= cumsum (accumarray (gy, 1)))) )
+        error ('randtest2: clustered observations must be grouped together')
       end
 
       % Compute test statistic on the original data
@@ -297,6 +313,48 @@ function W = wass_stat (x, y)
   E = cumsum (I <= nx) / nx;
   F = cumsum (I > nx) / ny;
   W = sum (D .* abs (E - F));
+
+end
+
+%--------------------------------------------------------------------------
+
+% FUNCTION THAT RETURNS UNIQUE VALUES IN THE ORDER THAT THEY FIRST APPEAR
+
+function [U, IA, IC] = unique_stable (A, varargin)
+
+  % Subfunction used for backwards compatibility
+
+  % Error checking
+  if any (ismember (varargin, {'first', 'last', 'sorted', 'stable'}))
+    error ('unique_stable: the only option available is ''rows''')
+  end
+  if (iscell (A) && ismember ('rows', varargin))
+    error ('unique_stable: ''rows'' option not supported for cell arrays')
+  end
+
+  % Flatten A to a column vector if 'rows' option is not specified
+  if (~ ismember ('rows', varargin))
+    A = A(:);
+  end
+
+  % Obtain sorted unique values
+  [u, ia, ic] = unique (A, 'last', varargin{:});
+
+  % Sort index of last occurence of unique values as they first appear
+  IA = sort (ia);
+
+  % Get unique values in the order of appearace (a.k.a. 'stable')
+  U = A(IA,:);
+
+  % Create vector of numeric identifiers for unique values in A
+  n = numel (IA);
+  if iscell (A)
+    IC = sum (cell2mat (arrayfun (@(i) i * ismember (A, U(i,:)), ...
+                        (1:n), 'UniformOutput', false)), 2);
+  elseif isnumeric (A)
+    IC = sum (cell2mat (arrayfun (@(i) i * (all (bsxfun (@eq, A, U(i,:)), ...
+                        2)), (1:n), 'UniformOutput', false)), 2);
+  end
 
 end
 
