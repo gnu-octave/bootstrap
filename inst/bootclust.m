@@ -21,11 +21,11 @@
 %        respectively to be used as cluster labels or identifiers. Rows in
 %        DATA with the same CLUSTID value are treated as clusters of
 %        observations that are resampled together. Since this function uses
-%        bootknife resampling, the the variance of the bootstrap statistics is
+%        bootknife resampling [1], the variance of the bootstrap statistics is
 %        an unbiased estimator of the sampling variance, and so the standard
-%        errors are also unbiased.The confidence intervals returned are
+%        errors are also unbiased. The confidence intervals returned are
 %        percentile intervals computed from a kernel density estimate of the
-%        bootstrap statistics (with shrinkage corrrection). These intervals
+%        bootstrap statistics (with shrinkage correction). These intervals
 %        resemble the normal intervals (i.e. original +/- std_error * norminv
 %        (1-alpha/2)) at very small sample sizes, but become increasingly more
 %        like percentile intervals as a function of increasing sample size.
@@ -48,7 +48,10 @@
 %        but the output will be reshaped as a column vector. BOOTFUN must
 %        calculate a statistic representative of the finite data sample; it
 %        should NOT be an estimate of a population parameter (unless they are
-%        one of the same). By default, BOOTFUN is @mean.
+%        one of the same). If BOOTFUN is @mean or 'mean', narrowness bias of
+%        the confidence intervals for single bootstrap are reduced by expanding
+%        the probabilities of the percentiles using Student's t-distribution
+%        [2]. By default, BOOTFUN is @mean.
 %
 %     'bootclust (..., CLUSTID, BOOTFUN, NBOOT)' specifies the number of
 %     bootstrap resamples, where NBOOT is a scalar, positive integer
@@ -73,16 +76,18 @@
 %     'STATS = bootclust (...)' returns a structure with the following fields
 %     (defined above): original, bias, std_error, CI_lower, CI_upper.
 %
-%     '[STATs, BOOTSTAT] = bootclust (...)' returns BOOTSTAT, a vector or matrix
-%     of bootstrap statistics calculated over the (first, or outer layer of)
-%     bootstrap resamples.
+%     '[STATS, BOOTSTAT] = bootclust (...)' returns BOOTSTAT, a vector or matrix
+%     of bootstrap statistics calculated over the bootstrap resamples.
 %
 %  BIBLIOGRAPHY:
 %  [1] Hesterberg T.C. (2004) Unbiasing the Bootstrap—Bootknife Sampling 
 %        vs. Smoothing; Proceedings of the Section on Statistics & the 
 %        Environment. Alexandria, VA: American Statistical Association.
+%  [2] Hesterberg, Tim (2014), What Teachers Should Know about the 
+%        Bootstrap: Resampling in the Undergraduate Statistics Curriculum, 
+%        http://arxiv.org/abs/1411.5279
 %
-%  bootclust (version 2023.09.17)
+%  bootclust (version 2023.09.18)
 %  Author: Andrew Charles Penn
 %  https://www.researchgate.net/profile/Andrew_Penn/
 %
@@ -107,7 +112,8 @@ function [stats, bootstat] = bootclust (x, clustid, bootfun, nboot, alpha, seed)
   ISOCTAVE = any (ismember ({info.Name}, 'Octave'));
   % Store local functions in a stucture for parallel processes
   localfunc = struct ('col2args', @col2args, ...
-                      'kdeinv', @kdeinv);
+                      'kdeinv', @kdeinv, ...
+                      'ExpandProbs', @ExpandProbs);
 
   % Check if we have parallel processing capabilities
   PARALLEL = false; % Default
@@ -119,12 +125,10 @@ function [stats, bootstat] = bootclust (x, clustid, bootfun, nboot, alpha, seed)
     if ( (~ isempty (index)) && (logical (status{index})) )
       PARALLEL = true;
     end
-    ncpus = nproc;
   else
     try 
       pool = gcp ('nocreate'); 
       PARALLEL = ~ isempty (pool);
-      ncpus = feature ('numcores');
     catch
       % Do nothing
     end
@@ -212,6 +216,7 @@ function [stats, bootstat] = bootclust (x, clustid, bootfun, nboot, alpha, seed)
                      ' in ascending numeric order'))
     end
     probs = alpha;
+    alpha = 1 - probs(2) + probs(1);
   else
     probs = [alpha / 2 , 1 - alpha / 2];
   end
@@ -241,6 +246,10 @@ function [stats, bootstat] = bootclust (x, clustid, bootfun, nboot, alpha, seed)
   if ((nargin < 2) || isempty (clustid))
     clustid = (1:n)';
   else
+    if ( any (size (clustid) ~= [n, 1]) )
+      error (cat (2, 'bootclust: CLUSTID must be a column vector with', ...
+                     ' the same number of rows as DATA'))
+    end
     [clustid, idx] = sort (clustid);
     x = x(idx,:);
   end
@@ -303,7 +312,7 @@ function [stats, bootstat] = bootclust (x, clustid, bootfun, nboot, alpha, seed)
     if (PARALLEL)
       if (ISOCTAVE)
         % Set unique random seed for each parallel thread
-        bootstat = cell2mat (pararrayfun (ncpus, ...
+        bootstat = cell2mat (pararrayfun (nproc, ...
                                           @(b) bootfun (vertcat (X{:,b})), ...
                                           1 : nboot, 'UniformOutput', false));
       else
@@ -319,11 +328,25 @@ function [stats, bootstat] = bootclust (x, clustid, bootfun, nboot, alpha, seed)
     end
   end
 
+  % Remove bootstrap statistics that contain NaN or inf
+  ridx = any (or (isnan (bootstat), isinf (bootstat)) , 1);
+  bootstat(:, ridx) = [];
+  if (isempty (bootstat))
+    error ('bootclust: BOOTFUN returned NaN or inf for all bootstrap resamples')
+  end
+  nboot = nboot - sum (ridx);
+
   % Bootstrap bias estimation
   bias = mean (bootstat, 2) - T0;
 
   % Bootstrap standard error
   se = std (bootstat, 0, 2);  % Unbiased since we used bootknife resampling
+
+  % If bootfun is the arithmetic meam, expand the probabilities of the 
+  % percentiles for the confidence intervals using Student's t-distribution
+  if (strcmpi (bootfun_str, 'mean'))
+    probs = localfunc.ExpandProbs (probs, nx);
+  end
 
   % Intervals constructed from kernel density estimate of the bootstrap
   % statistics (with shrinkage correction)
@@ -347,12 +370,12 @@ function [stats, bootstat] = bootclust (x, clustid, bootfun, nboot, alpha, seed)
   stats.original = T0;
   stats.bias = bias;          % Bootstrap bias estimation
   stats.std_error = se;       % Bootstrap standard error
-  stats.CI_lower = ci(:, 1);  % Lower percentile 
-  stats.CI_upper = ci(:, 2);  % Upper percentile 
+  stats.CI_lower = ci(:, 1);  % Lower percentile
+  stats.CI_upper = ci(:, 2);  % Upper percentile
 
   % Print output if no output arguments are requested
   if (nargout == 0) 
-    print_output (stats, nboot, probs, m, bootfun_str);
+    print_output (stats, nboot, alpha, probs, m, bootfun_str);
   end
 
 end
@@ -417,7 +440,46 @@ end
 
 %--------------------------------------------------------------------------
 
-function print_output (stats, nboot, probs, m, bootfun_str)
+function PX = ExpandProbs (P, DF)
+
+  % Modify ALPHA to adjust tail probabilities assuming that the kurtosis
+  % of the sampling distribution scales with degrees of freedom like the
+  % t-distribution. This is related in concept to ExpandProbs in the
+  % R package 'resample':
+  % www.rdocumentation.org/packages/resample/versions/0.6/topics/ExpandProbs
+
+  % Get size of P
+  sz = size (P);
+
+  % Create required distribution functions
+  stdnormcdf = @(X) 0.5 * (1 + erf (X / sqrt (2)));
+  stdnorminv = @(P) sqrt (2) * erfinv (2 * P - 1);
+  if (exist ('betaincinv', 'file'))
+    studinv = @(P, DF) sign (P - 0.5) * ...
+                sqrt ( DF ./ betaincinv (2 * min (P, 1 - P), DF / 2, 0.5) - DF);
+  else
+    % Earlier versions of Matlab do not have betaincinv
+    % Instead, use betainv from the Statistics and Machine Learning Toolbox
+    try 
+      studinv = @(P, DF) sign (P - 0.5) * ...
+                  sqrt ( DF ./ betainv (2 * min (P, 1 - P), DF / 2, 0.5) - DF);
+    catch
+      % Use the Normal distribution (i.e. do not expand probabilities) if
+      % either betaincinv or betainv are not available
+      studinv = @(P, DF) stdnorminv (P);
+      warning ('bootknife:ExpandProbs', ...
+          'Could not create studinv function; intervals will not be expanded.');
+    end
+  end
+ 
+  % Calculate statistics of the data
+  PX = stdnormcdf (arrayfun (studinv, P, repmat (DF, sz)));
+
+end
+
+%--------------------------------------------------------------------------
+
+function print_output (stats, nboot, alpha, probs, m, bootfun_str)
 
     fprintf (cat (2, '\nSummary of cluster bootstrap estimates of', ...
                      ' bias and precision\n', ...
@@ -427,8 +489,12 @@ function print_output (stats, nboot, probs, m, bootfun_str)
     fprintf (' Function: %s\n', bootfun_str);
     fprintf (' Resampling method: Balanced, bootknife resampling \n');
     fprintf (' Number of resamples: %u \n', nboot(1));
-    fprintf (' Confidence interval (CI) type: Percentile\n');
-    coverage = 100 * abs (probs(2) - probs(1));
+    if (strcmpi (bootfun_str, 'mean'))
+      fprintf (' Confidence interval (CI) type: Expanded percentile\n');
+    else
+      fprintf (' Confidence interval (CI) type: Percentile\n');
+    end
+    coverage = 100 * (1 - alpha);
     fprintf (cat (2, ' Nominal coverage (and the percentiles used):', ...
                       ' %.3g%% (%.1f%%, %.1f%%)\n\n'), coverage, 100 * probs);
     fprintf ('Bootstrap Statistics: \n');
