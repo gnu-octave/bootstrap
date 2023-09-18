@@ -358,7 +358,7 @@ function [stats, bootstat] = bootclust (x, clustid, bootfun, nboot, alpha, seed)
     catch
       % Linear interpolation (legacy)
       fprintf (strcat ('Note: Falling back to linear interpolation to', ...
-                           ' calculate percentiles for interval pair %u\n'), j);
+                       ' calculate percentiles for interval pair %u\n'), j);
       [t1, cdf] = bootcdf (bootstat(j, :), true, 1);
       ci(j, 1) = interp1 (cdf, t1, probs(1), 'linear', min (t1));
       ci(j, 2) = interp1 (cdf, t1, probs(2), 'linear', max (t1));
