@@ -14,15 +14,21 @@
 %     their means and display the following statistics:
 %        - original: the original estimate(s) calculated by BOOTFUN and the DATA
 %        - bias: bootstrap bias of the estimate(s)
-%        - std_error: bootstrap estandard error of the estimate(s)
+%        - std_error: bootstrap standard error of the estimate(s)
 %        - CI_lower: lower bound(s) of the 95% bootstrap confidence interval
 %        - CI_upper: upper bound(s) of the 95% bootstrap confidence interval
 %        CLUSTID must be a vector or cell array of numbers or strings
 %        respectively to be used as cluster labels or identifiers. Rows in
 %        DATA with the same CLUSTID value are treated as clusters of
-%        observations that are resampled together. The confidence intervals
-%        returned are percentile intervals computed from a kernel density
-%        estimate of the bootstrap statistics (with shrinkage corrrection). 
+%        observations that are resampled together. Since this function uses
+%        bootknife resampling, the the variance of the bootstrap statistics is
+%        an unbiased estimator of the sampling variance, and so the standard
+%        errors are also unbiased.The confidence intervals returned are
+%        percentile intervals computed from a kernel density estimate of the
+%        bootstrap statistics (with shrinkage corrrection). These intervals
+%        resemble the normal intervals (i.e. original +/- std_error * norminv
+%        (1-alpha/2)) at very small sample sizes, but become increasingly more
+%        like percentile intervals as a function of increasing sample size.
 %
 %     'bootclust ({D1, D2, ...}, CLUSTID)' resamples from the clusters of the
 %     data vectors D1, D2 etc and the resamples are passed onto BOOTFUN as
@@ -125,8 +131,8 @@ function [stats, bootstat] = bootclust (x, clustid, bootfun, nboot, alpha, seed)
   end
 
   % Check the number of function arguments
-  if (nargin < 2)
-    error ('bootclust: DATA and CLUSTID must be provided');
+  if (nargin < 1)
+    error ('bootclust: DATA must be provided');
   end
   if (nargin > 6)
     error ('bootclust: Too many input arguments')
@@ -225,23 +231,26 @@ function [stats, bootstat] = bootclust (x, clustid, bootfun, nboot, alpha, seed)
     szx = size (x, 2);
   end
 
-  % Sort rows of CLUSTID and the DATA
-  [clustid, idx] = sort (clustid);
-  x = x(idx,:);
-
-  % Evaluate definition of the sampling units (e.g. clusters) of x 
-  % Note that ix are indices where ux appear first in clustid
-  [ux, jnk, ic] = unique (clustid);
-  nx = numel (ux);
-
   % Determine properties of the DATA (x)
   [n, nvar] = size (x);
   if (n < 2)
     error ('bootclust: DATA must be numeric and contain > 1 row')
   end
 
-  % Calculate the number of elements return value of bootfun and check whether
-  % function evaluations can be vectorized
+  % Sort rows of CLUSTID and the DATA
+  if ((nargin < 2) || isempty (clustid))
+    clustid = (1:n)';
+  else
+    [clustid, idx] = sort (clustid);
+    x = x(idx,:);
+  end
+
+  % Evaluate definition of the sampling units (e.g. clusters) of x 
+  [ux, jnk, ic] = unique (clustid);
+  nx = numel (ux);
+
+  % Calculate the number of elements in the return value of bootfun and check
+  % whether function evaluations can be vectorized
   T0 = bootfun (x);
   m = numel (T0);
   if (nvar > 1)
