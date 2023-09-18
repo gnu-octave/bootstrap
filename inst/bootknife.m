@@ -74,9 +74,9 @@
 %        confidence interval.
 %
 %     'bootknife (..., NBOOT, BOOTFUN, ALPHA, STRATA)' also sets STRATA, which
-%     are identifiers that define the grouping of the DATA rows for stratified
+%     are identifiers that define the grouping of the DATA rows for stratified*
 %     bootstrap resampling. STRATA should be a column vector or cell array with
-%     the same number of rows as the DATA. 
+%     the same number of rows as the DATA.
 %
 %     'bootknife (..., NBOOT, BOOTFUN, ALPHA, STRATA, NPROC)' also sets the
 %     number of parallel processes to use to accelerate computations of double
@@ -102,6 +102,10 @@
 %     to one bootstrap resample and contains the row indices of the values
 %     drawn from the nonscalar DATA argument to create that sample.
 %
+%  * For cluster resampling, use the 'bootclust' function instead. Clustered
+%    or serially dependent data is also supported in the 'bootwild' and
+%    'bootbayes' functions.
+%
 %  REQUIREMENTS:
 %    The function file boot.m (or better boot.mex) and bootcdf, which are
 %    distributed with the statistics-bootstrap package.
@@ -116,7 +120,7 @@
 %  estimating the bias of BOOTFUN [8,9].
 %    For single bootstrap, the confidence intervals are constructed from the
 %  quantiles of a kernel density estimate of the bootstrap statistics
-%  (with shrinkage corrrection). 
+%  (with shrinkage correction). 
 %    For double bootstrap, calibration is used to improve the accuracy of the 
 %  bias and standard error, and coverage of the confidence intervals [2-6]. 
 %  Double bootstrap confidence intervals are constructed from the empirical
@@ -682,7 +686,7 @@ function [stats, bootstat, bootsam] = bootknife (x, nboot, bootfun, alpha, ...
     % Bootstrap standard error
     se = std (bootstat, 0, 2);  % Unbiased since we used bootknife resampling
     if (~ isnan (alpha))
-      % If bootfun is the arithmetic meam, expand the probability of the 
+      % If bootfun is the arithmetic meam, expand the probabilities of the 
       % percentiles using Student's t-distribution
       if (strcmpi (bootfun_str, 'mean'))
         expan_alpha = (3 - nalpha) * ...
@@ -737,8 +741,7 @@ function [stats, bootstat, bootsam] = bootknife (x, nboot, bootfun, alpha, ...
                   ' jackknife calculations; acceleration constant set to 0.\n'))
             a = zeros (m, 1);
           end
-          % Calculate the bias correction constant (z0)
-          % Calculate the median bias correction z0
+          % Calculate the median bias correction constant (z0)
           z0 = stdnorminv (sum (bsxfun (@lt, bootstat, T0), 2) / B);
           if (~ all (isfinite (z0)))
             % Revert to percentile bootstrap confidence intervals
