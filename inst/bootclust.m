@@ -317,7 +317,7 @@ function [stats, bootstat] = bootclust (x, clustid, bootfun, nboot, alpha, seed)
   se = std (bootstat, 0, 2);  % Unbiased since we used bootknife resampling
 
   % Intervals constructed from kernel density estimate of the bootstrap
-  % (with shrinkage correction)
+  % statistics (with shrinkage correction)
   ci = nan (m, 2);
   for j = 1:m
     try
@@ -344,14 +344,6 @@ function [stats, bootstat] = bootclust (x, clustid, bootfun, nboot, alpha, seed)
   % Print output if no output arguments are requested
   if (nargout == 0) 
     print_output (stats, nboot, probs, m, bootfun_str);
-  else
-    if (isempty (bootsam))
-      [warnmsg, warnID] = lastwarn;
-      if (ismember (warnID, {'bootknife:biasfail','bootknife:jackfail'}))
-        warning ('bootknife:lastwarn', warnmsg);
-      end
-      lastwarn ('', '');
-    end
   end
 
 end
