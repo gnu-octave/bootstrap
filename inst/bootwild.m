@@ -255,8 +255,16 @@ function [stats, bootstat, bootsse, bootfit] = bootwild (y, X, ...
     p = size (L, 2);
   end
 
+  % Compute unscaled covariance matrix
+  [Q, R] = qr (X, 0);        % Economy-sized QR decomposition
+  if ISOCTAVE
+    ucov = chol2inv (R);     % Instead of pinv (X' * X). Faster
+  else
+    ucov = inv (R' * R);     % Instead of pinv (X' * X). Slower
+  end
+
   % Create least squares anonymous function for bootstrap
-  bootfun = @(y) lmfit (X, y, clusters, L, ISOCTAVE);
+  bootfun = @(y) lmfit (X, y, ucov, clusters, L, ISOCTAVE);
 
   % Calculate estimate(s)
   S = bootfun (y);
@@ -342,7 +350,7 @@ end
 
 %% FUNCTION TO FIT THE LINEAR MODEL
 
-function S = lmfit (X, y, clusters, L, ISOCTAVE)
+function S = lmfit (X, y, ucov, clusters, L, ISOCTAVE)
 
   % Get model coefficients by solving the linear equation by matrix arithmetic
 
@@ -367,12 +375,6 @@ function S = lmfit (X, y, clusters, L, ISOCTAVE)
     Sigma = cellfun (@(g) X(g,:)' * u(g) * u(g)' * X(g,:), ...
                   num2cell (clusters, 1), 'UniformOutput', false);
     meat = sum (cat (3, Sigma{:}), 3);
-  end
-  [Q, R] = qr (X, 0);        % Economy-sized QR decomposition
-  if ISOCTAVE
-    ucov = chol2inv (R);     % Instead of pinv (X' * X). Faster
-  else
-    ucov = inv (R' * R);     % Instead of pinv (X' * X). Slower
   end
   vcov = ucov * meat * ucov;
   if ( (nargin < 4) || isempty (L) )

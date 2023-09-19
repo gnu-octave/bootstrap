@@ -615,7 +615,6 @@ try
   stats = bootlm (y, g, 'display', false, 'dim', 1, 'posthoc', 'pairwise', ...
                         'seed', 1);
 
-
   % bootlm:test:14
   % Prediction errors of linear models
   amount = [25.8; 20.5; 14.3; 23.2; 20.6; 31.1; 20.9; 20.9; 30.4; ...
@@ -668,6 +667,45 @@ try
   Y = exp (randn (5, 999));
   CI = credint (Y,0.95);          % Shortest probability interval
   CI = credint (Y,[0.025,0.975]); % Equal-tailed interval
+
+  % bootclust 
+  % bootclust:test:1
+  y = randn (20,1); 
+  clustid = [1;1;1;1;1;1;1;1;1;1;2;2;2;2;2;3;3;3;3;3];
+  stats = bootclust (y, 1999, @mean);
+  stats = bootclust (y, 1999, 'mean');
+  stats = bootclust (y, 1999, {@var,1});
+  stats = bootclust (y, 1999, {'var',1});
+  stats = bootclust (y, 1999, @mean, [], clustid);
+  stats = bootclust (y, 1999, {'var',1}, [], clustid);
+  stats = bootclust (y, 1999, {@var,1}, [], clustid, 2);
+  stats = bootclust (y, 1999, @mean, .1, clustid, 2);
+  stats = bootclust (y, 1999, @mean, [.05,.95], clustid, 2);
+  stats = bootclust (y(1:5), 1999, @mean, .1);
+  stats = bootclust (y(1:5), 1999, @mean, [.05,.95]);
+  % bootclust:test:2
+  Y = randn (20); 
+  clustid = [1;1;1;1;1;1;1;1;1;1;2;2;2;2;2;3;3;3;3;3];
+  stats = bootclust (Y, 1999, @mean);
+  stats = bootclust (Y, 1999, 'mean');
+  stats = bootclust (Y, 1999, {@var, 1});
+  stats = bootclust (Y, 1999, {'var',1});
+  stats = bootclust (Y, 1999, @mean, [], clustid);
+  stats = bootclust (Y, 1999, {'var',1}, [], clustid);
+  stats = bootclust (Y, 1999, {@var,1}, [], clustid, 1);
+  stats = bootclust (Y, 1999, @mean, .1, clustid, 1);
+  stats = bootclust (Y, 1999, @mean, [.05,.95], clustid, 1);
+  stats = bootclust (Y(1:5,:), 1999, @mean, .1);
+  stats = bootclust (Y(1:5,:), 1999, @mean, [.05,.95]);
+  % bootclust:test:3
+  y = randn (20,1); x = randn (20,1); X = [ones(20,1), x];
+  stats = bootclust ({x,y}, 1999, @cor);
+  stats = bootclust ({x,y}, 1999, @cor, [], clustid);
+  stats = bootclust ({y,x}, 1999, @(y,x) pinv(x)*y); % Could use @regress
+  stats = bootclust ({y,X}, 1999, @(y,X) pinv(X)*y);
+  stats = bootclust ({y,X}, 1999, @(y,X) pinv(X)*y, [], clustid);
+  stats = bootclust ({y,X}, 1999, @(y,X) pinv(X)*y, [], clustid, 1);
+  stats = bootclust ({y,X}, 1999, @(y,X) pinv(X)*y, [.05,.95], clustid);
 
   fprintf('Tests completed successfully.\n')
 
