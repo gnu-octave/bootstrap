@@ -5,18 +5,16 @@
 % -- Function File: bootclust (DATA, NBOOT, {BOOTFUN, ...})
 % -- Function File: bootclust (DATA, NBOOT, BOOTFUN, ALPHA)
 % -- Function File: bootclust (DATA, NBOOT, BOOTFUN, ALPHA, CLUSTID)
-% -- Function File: bootclust (DATA, NBOOT, BOOTFUN, ALPHA, CLUSTID, SEED)
+% -- Function File: bootclust (DATA, NBOOT, BOOTFUN, ALPHA, CLUSTID, LOO)
+% -- Function File: bootclust (DATA, NBOOT, BOOTFUN, ALPHA, CLUSTID, LOO, SEED)
 % -- Function File: STATS = bootclust (...)
 % -- Function File: [STATS, BOOTSTAT] = bootclust (...)
 %
-%     The 'bootclust' function is the 'bootknife' function adapted to support
-%     cluster resampling. 
-%
-%     'bootclust (DATA)'  uses a variant of nonparametric bootstrap, called
-%     bootknife [1], to generate 1999 resamples from clusters of rows of the
-%     DATA (column vector or matrix). By default, each rows is it's own cluster
-%     (i.e. no clustering). The means of the resamples are then computed and
-%     the following statistics are displayed:
+%     'bootclust (DATA)' uses nonparametric balanced bootstrap resampling
+%     to generate 1999 resamples from clusters of rows of the DATA (column
+%     vector or matrix). By default, each rows is it's own cluster (i.e. no
+%     clustering). The means of the resamples are then computed and the
+%     following statistics are displayed:
 %        - original: the original estimate(s) calculated by BOOTFUN and the DATA
 %        - bias: bootstrap bias of the estimate(s)
 %        - std_error: bootstrap standard error of the estimate(s)
@@ -43,7 +41,7 @@
 %        one of the same). If BOOTFUN is @mean or 'mean', narrowness bias of
 %        the confidence intervals for single bootstrap are reduced by expanding
 %        the probabilities of the percentiles using Student's t-distribution
-%        [2]. By default, BOOTFUN is @mean.
+%        [1]. By default, BOOTFUN is @mean.
 %
 %     'bootclust ({D1, D2, ...}, NBOOT, BOOTFUN)' resamples from the clusters
 %     of rows of the data vectors D1, D2 etc and the resamples are passed onto
@@ -58,7 +56,7 @@
 %       <> vector: A pair of probabilities defining the (nominal) lower and
 %                  upper percentiles of the confidence interval(s) as
 %                  100*(ALPHA(1))% and 100*(ALPHA(2))% respectively. The
-%                  percentiles bias-corrected and accelerated (BCa) [3].
+%                  percentiles are bias-corrected and accelerated (BCa) [2].
 %        The default value of ALPHA is the vector: [.025, .975], for a 95%
 %        BCa confidence interval.
 %
@@ -69,9 +67,19 @@
 %     the same CLUSTID value are treated as clusters of observations that are
 %     resampled together.
 %
-%     'bootclust (DATA, NBOOT, BOOTFUN, ALPHA, CLUSTID, SEED)' initialises the
-%     Mersenne Twister random number generator using an integer SEED value so
-%     that bootclust results are reproducible.
+%     'bootclust (DATA, NBOOT, BOOTFUN, ALPHA, CLUSTID, LOO)' sets the
+%     resampling method. If LOO is false, the resampling method used is
+%     balanced bootstrap resampling. If LOO is true, the resampling method used
+%     is balanced bootknife resampling [3]. Where N is the number of clusters,
+%     bootknife cluster resampling involves creating leave-one-out jackknife
+%     samples of size N - 1, and then drawing resamples of size N with
+%     replacement from the jackknife samples, thereby incorporating Bessel's
+%     correction into the resampling procedure. LOO must be a scalar logical
+%     value. The default value of LOO is false.
+%
+%     'bootclust (DATA, NBOOT, BOOTFUN, ALPHA, CLUSTID, LOO, SEED)' initialises
+%     the Mersenne Twister random number generator using an integer SEED value
+%     so that bootclust results are reproducible.
 %
 %     'STATS = bootclust (...)' returns a structure with the following fields
 %     (defined above): original, bias, std_error, CI_lower, CI_upper.
@@ -84,16 +92,16 @@
 %    distributed with the statistics-bootstrap package.
 %
 %  BIBLIOGRAPHY:
-%  [1] Hesterberg T.C. (2004) Unbiasing the Bootstrap—Bootknife Sampling 
-%        vs. Smoothing; Proceedings of the Section on Statistics & the 
-%        Environment. Alexandria, VA: American Statistical Association.
-%  [2] Hesterberg, Tim (2014), What Teachers Should Know about the 
+%  [1] Hesterberg, Tim (2014), What Teachers Should Know about the 
 %        Bootstrap: Resampling in the Undergraduate Statistics Curriculum, 
 %        http://arxiv.org/abs/1411.5279
-%  [3] Efron, and Tibshirani (1993) An Introduction to the Bootstrap. 
+%  [2] Efron, and Tibshirani (1993) An Introduction to the Bootstrap. 
 %        New York, NY: Chapman & Hall
+%  [3] Hesterberg T.C. (2004) Unbiasing the Bootstrap—Bootknife Sampling 
+%        vs. Smoothing; Proceedings of the Section on Statistics & the 
+%        Environment. Alexandria, VA: American Statistical Association.
 %
-%  bootclust (version 2023.09.19)
+%  bootclust (version 2023.09.20)
 %  Author: Andrew Charles Penn
 %  https://www.researchgate.net/profile/Andrew_Penn/
 %
@@ -111,7 +119,8 @@
 %  You should have received a copy of the GNU General Public License
 %  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-function [stats, bootstat] = bootclust (x, nboot, bootfun, alpha, clustid, seed)
+function [stats, bootstat] = bootclust (x, nboot, bootfun, alpha, clustid, ...
+                                        loo, seed)
 
   % Check if we are running Octave or Matlab
   info = ver; 
@@ -121,7 +130,7 @@ function [stats, bootstat] = bootclust (x, nboot, bootfun, alpha, clustid, seed)
   if (nargin < 1)
     error ('bootclust: DATA must be provided');
   end
-  if (nargin > 6)
+  if (nargin > 7)
     error ('bootclust: Too many input arguments')
   end
   if (nargout > 2)
@@ -204,8 +213,17 @@ function [stats, bootstat] = bootclust (x, nboot, bootfun, alpha, clustid, seed)
     probs = [alpha / 2 , 1 - alpha / 2];
   end
 
+  % LOO input argument
+  if ((nargin > 5) && ~ isempty (loo))
+    if (~ islogical (loo))
+      error ('bootclust: LOO must be a logical scalar value')
+    end
+  else
+    loo = false;
+  end
+  
   % Initialise the random number generator with the SEED (if provided)
-  if ( (nargin > 5) && (~ isempty (seed)) )
+  if ( (nargin > 6) && (~ isempty (seed)) )
     boot (1, 1, true, seed);
   end
 
@@ -283,7 +301,7 @@ function [stats, bootstat] = bootclust (x, nboot, bootfun, alpha, clustid, seed)
   x = mat2cell (x, accumarray (ic, 1));
 
   % Perform resampling of clusters
-  bootsam = boot (nx, nboot, true);
+  bootsam = boot (nx, nboot, loo);
   X = arrayfun (@(i) x(bootsam(i, :)), 1 : nx, 'UniformOutput', false);
   X = [X{:}]';
 
@@ -308,14 +326,14 @@ function [stats, bootstat] = bootclust (x, nboot, bootfun, alpha, clustid, seed)
   bias = mean (bootstat, 2) - T0;
 
   % Bootstrap standard error
-  se = std (bootstat, 0, 2);  % Unbiased since we used bootknife resampling
+  se = std (bootstat, 0, 2);
 
   % Make corrections to the probabilities for the lower and upper bounds of the
   % confidence intervals.
   % First, if bootfun is the arithmetic meam, expand the probabilities of the 
   % percentiles for the confidence intervals using Student's t-distribution
   if (strcmpi (bootfun_str, 'mean'))
-    probs = ExpandProbs (probs, nx - 1);
+    probs = ExpandProbs (probs, nx - 1, loo);
   end
   % If requested, perform adjustments to the probabilities to correct for bias
   % and skewness
@@ -463,7 +481,7 @@ end
 
 %--------------------------------------------------------------------------
 
-function PX = ExpandProbs (P, DF)
+function PX = ExpandProbs (P, DF, LOO)
 
   % Modify ALPHA to adjust tail probabilities assuming that the kurtosis
   % of the sampling distribution scales with degrees of freedom like the
@@ -495,8 +513,14 @@ function PX = ExpandProbs (P, DF)
     end
   end
  
-  % Calculate statistics of the data
-  PX = stdnormcdf (arrayfun (studinv, P, repmat (DF, sz)));
+  % Calculate expanded probabilities
+  if LOO
+    PX = stdnormcdf (arrayfun (studinv, P, repmat (DF, sz)));
+  else
+    n = DF + 1;
+    PX = stdnormcdf (sqrt (n / (n - 1)) * ...
+                     arrayfun (studinv, P, repmat (DF, sz)));
+  end
 
 end
 
@@ -673,9 +697,12 @@ end
 %! stats = bootclust (y, 1999, {'var',1});
 %! stats = bootclust (y, 1999, @mean, [], clustid);
 %! stats = bootclust (y, 1999, {'var',1}, [], clustid);
-%! stats = bootclust (y, 1999, {@var,1}, [], clustid, 2);
-%! stats = bootclust (y, 1999, @mean, .1, clustid, 2);
-%! stats = bootclust (y, 1999, @mean, [.05,.95], clustid, 2);
+%! stats = bootclust (y, 1999, {'var',1}, [], clustid, true);
+%! stats = bootclust (y, 1999, {@var,1}, [], clustid, true, 1);
+%! stats = bootclust (y, 1999, @mean, .1, clustid, true);
+%! stats = bootclust (y, 1999, @mean, .1, clustid, true, 1);
+%! stats = bootclust (y, 1999, @mean, [.05,.95], clustid, true);
+%! stats = bootclust (y, 1999, @mean, [.05,.95], clustid, true, 1);
 %! stats = bootclust (y(1:5), 1999, @mean, .1);
 %! stats = bootclust (y(1:5), 1999, @mean, [.05,.95]);
 %! Y = randn (20); 
@@ -686,9 +713,12 @@ end
 %! stats = bootclust (Y, 1999, {'var',1});
 %! stats = bootclust (Y, 1999, @mean, [], clustid);
 %! stats = bootclust (Y, 1999, {'var',1}, [], clustid);
-%! stats = bootclust (Y, 1999, {@var,1}, [], clustid, 1);
-%! stats = bootclust (Y, 1999, @mean, .1, clustid, 1);
-%! stats = bootclust (Y, 1999, @mean, [.05,.95], clustid, 1);
+%! stats = bootclust (Y, 1999, {@var,1}, [], clustid, true);
+%! stats = bootclust (Y, 1999, {@var,1}, [], clustid, true, 1);
+%! stats = bootclust (Y, 1999, @mean, .1, clustid, true);
+%! stats = bootclust (Y, 1999, @mean, .1, clustid, true, 1);
+%! stats = bootclust (Y, 1999, @mean, [.05,.95], clustid, true);
+%! stats = bootclust (Y, 1999, @mean, [.05,.95], clustid, true, 1);
 %! stats = bootclust (Y(1:5,:), 1999, @mean, .1);
 %! stats = bootclust (Y(1:5,:), 1999, @mean, [.05,.95]);
 %! y = randn (20,1); x = randn (20,1); X = [ones(20,1), x];
@@ -697,7 +727,8 @@ end
 %! stats = bootclust ({y,x}, 1999, @(y,x) pinv(x)*y); % Could use @regress
 %! stats = bootclust ({y,X}, 1999, @(y,X) pinv(X)*y);
 %! stats = bootclust ({y,X}, 1999, @(y,X) pinv(X)*y, [], clustid);
-%! stats = bootclust ({y,X}, 1999, @(y,X) pinv(X)*y, [], clustid, 1);
+%! stats = bootclust ({y,X}, 1999, @(y,X) pinv(X)*y, [], clustid, true);
+%! stats = bootclust ({y,X}, 1999, @(y,X) pinv(X)*y, [], clustid, true, 1);
 %! stats = bootclust ({y,X}, 1999, @(y,X) pinv(X)*y, [.05,.95], clustid);
 
 %!test
@@ -707,12 +738,12 @@ end
 %! x = [3, 5, 7, 18, 43, 85, 91, 98, 100, 130, 230, 487]';
 %!
 %! ## Nonparametric 95% expanded percentile confidence intervals (equal-tailed)
+%! ## Balanced bootknife resampling
 %! ## Example 5.4 percentile intervals are 43.9 - 192.1
 %! ## Note that the intervals calculated below are wider because the narrowness
 %! ## bias was removed by expanding the probabilities of the percentiles using
 %! ## Student's t-distribution
-%! boot (1, 1, false, 1); # Set random seed
-%! stats = bootknife(x,1999,@mean,0.05);
+%! stats = bootclust(x,1999,@mean,0.05,[],true,1);
 %! if (isempty (regexp (which ('boot'), 'mex$')))
 %!   ## test boot m-file result
 %!   assert (stats.original, 108.0833333333333, 1e-08);
@@ -723,12 +754,12 @@ end
 %! end
 %!
 %! ## Nonparametric 95% expanded BCa confidence intervals
+%! ## Balanced bootknife resampling
 %! ## Example 5.8 BCa intervals are 55.33 - 243.5
 %! ## Note that the intervals calculated below are wider because the narrowness
 %! ## bias was removed by expanding the probabilities of the percentiles using
 %! ## Student's t-distribution
-%! boot (1, 1, false, 1); # Set random seed
-%! stats = bootknife(x,1999,@mean,[0.025,0.975]);
+%! stats = bootclust(x,1999,@mean,[0.025,0.975],[],true,1);
 %! if (isempty (regexp (which ('boot'), 'mex$')))
 %!   ## test boot m-file result
 %!   assert (stats.original, 108.0833333333333, 1e-08);
@@ -749,9 +780,9 @@ end
 %!      0 33 28 34 4 32 24 47 41 24 26 30 41]';
 %!
 %! ## Nonparametric 90% equal-tailed percentile confidence intervals
+%! ## Balanced bootknife resampling
 %! ## Table 14.2 percentile intervals are 100.8 - 233.9
-%! boot (1, 1, false, 1); # Set random seed
-%! stats = bootclust(A,1999,{@var,1},0.1);
+%! stats = bootclust(A,1999,{@var,1},0.1,[],true,1);
 %! if (isempty (regexp (which ('boot'), 'mex$')))
 %!   ## test boot m-file result
 %!   assert (stats.original, 171.534023668639, 1e-08);
@@ -762,9 +793,9 @@ end
 %! end
 %!
 %! ## Nonparametric 90% BCa confidence intervals
+%! ## Balanced bootknife resampling
 %! ## Table 14.2 BCa intervals are 115.8 - 259.6
-%! boot (1, 1, false, 1); # Set random seed
-%! stats = bootclust(A,1999,{@var,1},[0.05 0.95]);
+%! stats = bootclust(A,1999,{@var,1},[0.05 0.95],[],true,1);
 %! if (isempty (regexp (which ('boot'), 'mex$')))
 %!   ## test boot m-file result
 %!   assert (stats.original, 171.534023668639, 1e-08);
@@ -788,27 +819,27 @@ end
 %!        3.36 3.13 3.12 2.74 2.76 2.88 2.96]';
 %!
 %! ## Nonparametric 90% equal-tailed percentile confidence intervals
+%! ## Balanced bootstrap resampling
 %! ## Percentile intervals on page 266 are 0.524 - 0.928
-%! boot (1, 1, false, 1); # Set random seed
-%! stats = bootclust({LSAT,GPA},1999,@cor,0.1);
+%! stats = bootclust({LSAT,GPA},1999,@cor,0.1,[],false,1);
 %! if (isempty (regexp (which ('boot'), 'mex$')))
 %!   ## test boot m-file result
 %!   assert (stats.original, 0.7763744912894071, 1e-08);
-%!   assert (stats.bias, -0.008329526543031429, 1e-08);
-%!   assert (stats.std_error, 0.1422804068655692, 1e-08);
-%!   assert (stats.CI_lower, 0.5046604076771914, 1e-08);
-%!   assert (stats.CI_upper, 0.9586661175519952, 1e-08);
+%!   assert (stats.bias, -0.007614791775856333, 1e-08);
+%!   assert (stats.std_error, 0.1355245146889644, 1e-08);
+%!   assert (stats.CI_lower, 0.5146251204001586, 1e-08);
+%!   assert (stats.CI_upper, 0.9531054945982934, 1e-08);
 %! end
 %!
 %! ## Nonparametric 90% BCa confidence intervals
+%! ## Balanced bootstrap resampling
 %! ## BCa intervals on page 266 are 0.410 - 0.923
-%! boot (1, 1, false, 1); # Set random seed
-%! stats = bootclust({LSAT,GPA},1999,@cor,[0.05 0.95]);
+%! stats = bootclust({LSAT,GPA},1999,@cor,[0.05 0.95],[],false,1);
 %! if (isempty (regexp (which ('boot'), 'mex$')))
 %!   ## test boot m-file result
 %!   assert (stats.original, 0.7763744912894071, 1e-08);
-%!   assert (stats.bias, -0.008329526543031429, 1e-08);
-%!   assert (stats.std_error, 0.1422804068655692, 1e-08);
-%!   assert (stats.CI_lower, 0.4094344122396682, 1e-08);
-%!   assert (stats.CI_upper, 0.9301552819706758, 1e-08);
+%!   assert (stats.bias, -0.007614791775856333, 1e-08);
+%!   assert (stats.std_error, 0.1355245146889644, 1e-08);
+%!   assert (stats.CI_lower, 0.4177828971982108, 1e-08);
+%!   assert (stats.CI_upper, 0.9238952404759969, 1e-08);
 %! end

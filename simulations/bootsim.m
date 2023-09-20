@@ -7,8 +7,8 @@ state = warning ('query', 'all');
 warning ('off', 'all');
 
 % Set significance level
-%alpha = .05;          % 95% confidence interval
-alpha = [.025,.975];  % 95% confidence interval
+alpha = .05;          % 95% confidence interval
+%alpha = [.025,.975];  % 95% confidence interval
 
 %--------------------------------------------------------------
 % Uncomment one of the following example simulation conditions
@@ -36,7 +36,7 @@ bootfun = @mean; nvar = 1; rnd = @(n) random ('norm', 0, 1, [n, 1]); theta = 0;
 %--------------------------------------------------------------
 
 % Define sample size
-n = 12;
+n = 7;
 
 % Define number of simulations
 sim = 1000;
@@ -48,7 +48,8 @@ above = 0;
 below = 0;
 
 % Bootstrap resampling
-nboot = [1999,199];
+%nboot = [1999,199];
+nboot = 1999;
 type = 'bca';
 
 % Print settings
@@ -87,9 +88,11 @@ for i=1:sim
   % Bootstrap confidence interval
   %ci = bootci (nboot(1), {bootfun,x}, 'alpha', alpha, 'type', type, 'Options', paropt);
   if (nvar > 1)
-    S = bootknife ({x, y}, nboot, bootfun, alpha, [], ncpus); ci = [S.CI_lower; S.CI_upper];
+    %S = bootknife ({x, y}, nboot, bootfun, alpha, [], ncpus); ci = [S.CI_lower; S.CI_upper];
+    S = bootclust ({x, y}, nboot, bootfun, alpha, [], false); ci = [S.CI_lower; S.CI_upper];
   else
-    S = bootknife (x, nboot, bootfun, alpha, [], ncpus); ci = [S.CI_lower; S.CI_upper];
+    %S = bootknife (x, nboot, bootfun, alpha, [], ncpus); ci = [S.CI_lower; S.CI_upper];
+    S = bootclust (x, nboot, bootfun, alpha, [], false); ci = [S.CI_lower; S.CI_upper];
     %S = bootbayes (x, [], [], nboot(1), [alpha/2, 1 - alpha/2]); ci=[S.CI_lower,S.CI_upper];
     %S = bootwild (x, [], [], nboot(1)); ci=[S.CI_lower,S.CI_upper];
   end
