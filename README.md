@@ -43,8 +43,10 @@ To install (or test) the statistics-bootstrap package at it's existing location 
 
 ### Functions
 
-* `boot` returns resamples data or indices created by balanced bootstrap or bootknife resampling  
-* `bootknife` performs balanced bootknife resampling and calculates bootstrap bias, standard error and confidence intervals for any user defined-function of the data. The interval types supported are simple percentile, bias-corrected and accelerated (BCa), or calibrated percentile. This function supports iterated and stratified resampling.
+* `boot` returns resamples data or indices created by balanced bootstrap or bootknife resampling 
+* `bootstrp` is a function for calculating bootstrap statistics. This function has the same usage as the `bootstrp` function from Matlab's Statistics and Machine Learning toolbox.  
+* `bootci` is a function for calculating bootstrap confidence intervals. This function has the same usage as the `bootci` function from Matlab's Statistics and Machine Learning toolbox. Unlike Matlab's `bootci`, this function also provides the option for obtaining calibrated bootstrap confidence intervals by iterated bootstrap.
+* `bootknife` performs balanced bootknife resampling and calculates bootstrap bias, standard error and confidence intervals for any user defined-function of the data. The interval types supported are simple percentile, bias-corrected and accelerated (BCa), or calibrated percentile. This function supports iterated and stratified resampling, but not cluster resampling (see `bootclust`).
 * `bootclust` can perform balanced bootstrap or bootknife resampling of clustered data and calculate bootstrap bias, standard error and confidence intervals for any user defined-function of the data. The interval types supported are simple percentile, and bias-corrected and accelerated (BCa).
 * `bootbayes` performs Bayesian nonparametric bootstrap and calculates posterior statistics for the mean, or regression coefficients from a linear model. Two credible interval types are supported: shortest probability intervals and percentile intervals. Cluster and block resampling is supported in cases where the distribution of residuals and errors in the model have a dependence structure. See also `bootlm`.
 * `bootwild` performs wild bootstrap-t resampling and calculates confidence intervals and frequentist *p*-values for the mean, or regression coefficients from a linear model (H0 = 0). Cluster and block resampling is supported in cases where the distribution of residuals and errors in the model have a dependence structure. See also `bootlm`.
@@ -52,8 +54,7 @@ To install (or test) the statistics-bootstrap package at it's existing location 
 * `bootnhst` calculates *p*-values by bootstrap null-hypothesis significance testing (two-tailed) in simple designs comparing 2 or more (independent) samples in designs with a one-way layout. This function resamples under the null hypothesis (assuming exchangeability similar to a permutation test) and can be used to compare functions of the data other than the mean (e.g. robust estimators). The function also computes and returns multiple comparison tests that control the family-wise error rate.
 * `randtest2` is a function for performing permutation or randomization tests to compare independent or paired distributions using the Wassertstein metric. A feature of this function is that one can define the sampling units for clustered resampling in the case of nested experimental designs. 
 * `bootmode` uses bootstrap to evaluate the likely number of real modes in a distribution
-* `bootci` is a function for calculating bootstrap confidence intervals. This function is a wrapper of the `bootknife` function but has the same usage as the `bootci` function from Matlab's Statistics and Machine Learning toolbox.  
-* `bootstrp` is a function for calculating bootstrap statistics. This function is a wrapper of the `bootknife` function but has the same usage as the `bootstrp` function from Matlab's Statistics and Machine Learning toolbox.  
+
 
 At the Octave/MATLAB command prompt, type `help function-name` for more information about the function and it's input and output arguments. In Octave, you can also request demonstrations of function usage through examples by typing 'demo function-name` at the command prompt.
 

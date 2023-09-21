@@ -102,7 +102,7 @@ function bootsam = boot (x, nboot, u, s, w)
                    ' finite positive integer'))
   end
   if ((nargin > 2) && ~ isempty (u))
-    if (~ islogical (u))
+    if ( (~ isscalar (u)) || (~ islogical (u)) )
       error (cat (2, 'boot: The third input argument (UNBIASED) must be', ...
                      ' a logical scalar value'))
     end

@@ -29,7 +29,7 @@
 %       <> vector: A pair of positive integers defining the number of outer and
 %                  inner (nested) resamples for iterated (a.k.a. double)
 %                  bootstrap and coverage calibration [3-6].
-%        THe default value of NBOOT is the scalar: 1999.
+%        The default value of NBOOT is the scalar: 1999.
 %
 %     'bootknife (DATA, NBOOT, BOOTFUN)' also specifies BOOTFUN: the function
 %     calculated on the original sample and the bootstrap resamples. BOOTFUN
@@ -103,7 +103,7 @@
 %     drawn from the nonscalar DATA argument to create that sample.
 %
 %  * For cluster resampling, use the 'bootclust' function instead. Clustered
-%    or serially dependent data is also supported in the 'bootwild' and
+%    or serially dependent data can also be analysed by the 'bootwild' and
 %    'bootbayes' functions.
 %
 %  REQUIREMENTS:
@@ -178,11 +178,11 @@
 
 
 function [stats, bootstat, bootsam] = bootknife (x, nboot, bootfun, alpha, ...
-                              strata, ncpus, bootsam, REF, ISOCTAVE, ERRCHK)
+                             strata, ncpus, bootsam, REF, ISOCTAVE, ERRCHK, LOO)
 
   % Input argument names in all-caps are for internal use only
-  % REF, ISOCTAVE and ERRCHK are undocumented input arguments required
-  % for some of the functionalities of bootknife
+  % REF, ISOCTAVE, ERRCHK and LOO are undocumented input arguments required for
+  % some of the features of bootknife or the functions that require it
 
   % Store local functions in a stucture for parallel processes
   localfunc = struct ('col2args', @col2args, ...
@@ -304,6 +304,11 @@ function [stats, bootstat, bootsam] = bootknife (x, nboot, bootfun, alpha, ...
     end
   else
     szx = 1;
+  end
+  if ((nargin < 11) || isempty (LOO))
+    % Default has LOO (leave-one-out) set to true for bootknife resampling
+    % Undocumented feature for simple bootstrap resampling: set LOO to false
+    LOO = true;
   end
 
   % Determine properties of the DATA (x)
@@ -461,7 +466,6 @@ function [stats, bootstat, bootsam] = bootknife (x, nboot, bootfun, alpha, ...
   end
 
   % Perform balanced bootknife resampling
-  unbiased = true;  % Set to true for bootknife resampling
   if ((nargin < 7) || isempty (bootsam))
     if (~ isempty (strata))
       if (nvar > 1) || (nargout > 2)
@@ -469,7 +473,7 @@ function [stats, bootstat, bootsam] = bootknife (x, nboot, bootfun, alpha, ...
         bootsam = zeros (n, B, 'int32');
         for k = 1 : K
           if ((sum (g(:, k))) > 1)
-            bootsam(g(:, k), :) = boot (find (g(:, k)), B, unbiased);
+            bootsam(g(:, k), :) = boot (find (g(:, k)), B, LOO);
           else
             bootsam(g(:, k), :) = find (g(:, k)) * ones (1, B);
           end
@@ -481,7 +485,7 @@ function [stats, bootstat, bootsam] = bootknife (x, nboot, bootfun, alpha, ...
         X = zeros (n, B);
         for k = 1 : K
           if ((sum (g(:, k))) > 1)
-            X(g(:, k), :) = boot (x(g(:, k), :), B, unbiased);
+            X(g(:, k), :) = boot (x(g(:, k), :), B, LOO);
           else
             X(g(:, k), :) = x(g(:, k), :) * ones (1, B);
           end
@@ -492,12 +496,12 @@ function [stats, bootstat, bootsam] = bootknife (x, nboot, bootfun, alpha, ...
         % Resample the sample indices, which we will refer to as bootsam
         % We can save some memory by making bootsam an int32 datatype
         bootsam = zeros (n, B, 'int32');
-        bootsam(:, :) = boot (n, B, unbiased);
+        bootsam(:, :) = boot (n, B, LOO);
       else
         % For more efficiency, if we don't need bootsam, we can directly
         % resample values of x
         bootsam = [];
-        X = boot (x, B, unbiased);
+        X = boot (x, B, LOO);
       end
     end
   else
@@ -569,9 +573,9 @@ function [stats, bootstat, bootsam] = bootknife (x, nboot, bootfun, alpha, ...
     bootstat = cell2mat (bootstat);
   end
   
-  % Remove bootstrap statistics that contain NaN, along with their associated 
-  % DATA resamples in X or bootsam
-  ridx = any (isnan (bootstat), 1);
+  % Remove bootstrap statistics that contain NaN or Inf, along with their
+  % associated DATA resamples in X or bootsam
+  ridx = any (or (isnan (bootstat), isinf (bootstat)) , 1);
   bootstat_all = bootstat;
   bootstat(:, ridx) = [];
   if (isempty (bootsam))
@@ -596,15 +600,15 @@ function [stats, bootstat, bootsam] = bootknife (x, nboot, bootfun, alpha, ...
         % Set unique random seed for each parallel thread
         pararrayfun (ncpus, @boot, 1, 1, false, 1 : ncpus);
         if (vectorized && isempty (bootsam))
-          cellfunc = @(x) bootknife (x, C, bootfun, ...
-                                     NaN, strata, 0, [], T0, ISOCTAVE, false);
-          bootout = parcellfun (ncpus, cellfunc, ...
-                                num2cell (X, 1), 'UniformOutput', false);
+          cellfunc = @(x) bootknife (x, C, bootfun, NaN, strata, 0, [], T0, ...
+                                     ISOCTAVE, false, LOO);
+          bootout = parcellfun (ncpus, cellfunc, num2cell (X, 1), ...
+                                'UniformOutput', false);
         else
-          cellfunc = @(bootsam) bootknife (x(bootsam, :), C, bootfun, ...
-                                     NaN, strata, 0, [], T0, ISOCTAVE, false);
-          bootout = parcellfun (ncpus, cellfunc, ...
-                                num2cell (bootsam, 1), 'UniformOutput', false);
+          cellfunc = @(bootsam) bootknife (x(bootsam, :), C, bootfun, NaN, ...
+                                     strata, 0, [], T0, ISOCTAVE, false, LOO);
+          bootout = parcellfun (ncpus, cellfunc, num2cell (bootsam, 1), ...
+                                'UniformOutput', false);
         end
       else
         % MATLAB
@@ -614,24 +618,24 @@ function [stats, bootstat, bootsam] = bootknife (x, nboot, bootfun, alpha, ...
         % Preallocate structure array
         bootout = cell (1, B);
         if (vectorized && isempty (bootsam))
-          cellfunc = @(x) bootknife (x, C, bootfun, ...
-                                     NaN, strata, 0, [], T0, ISOCTAVE, false);
+          cellfunc = @(x) bootknife (x, C, bootfun, NaN, strata, 0, [], T0, ...
+                                     ISOCTAVE, false, LOO);
           parfor b = 1 : B; bootout{b} = cellfunc (X(:, b)); end
         else
-          cellfunc = @(bootsam) bootknife (x(bootsam, :), C, bootfun, ...
-                                     NaN, strata, 0, [], T0, ISOCTAVE, false);
+          cellfunc = @(bootsam) bootknife (x(bootsam, :), C, bootfun, NaN, ...
+                                     strata, 0, [], T0, ISOCTAVE, false);
           parfor b = 1 : B; bootout{b} = cellfunc (bootsam(:, b)); end
         end
       end
     else
       % SERIAL execution of inner layer resampling for double bootstrap
       if (vectorized && isempty (bootsam))
-        cellfunc = @(x) bootknife (x, C, bootfun, ...
-                                   NaN, strata, 0, [], T0, ISOCTAVE, false);
+        cellfunc = @(x) bootknife (x, C, bootfun, NaN, strata, 0, [], T0, ...
+                                   ISOCTAVE, false, LOO);
         bootout = cellfun (cellfunc, num2cell (X, 1), 'UniformOutput', false);
       else
         cellfunc = @(bootsam) bootknife (x(bootsam, :), C, bootfun, NaN, ...
-                                         strata, 0, [], T0, ISOCTAVE, false);
+                                       strata, 0, [], T0, ISOCTAVE, false, LOO);
         bootout = cellfun (cellfunc, num2cell (bootsam, 1), ...
                            'UniformOutput', false);
       end
@@ -690,7 +694,7 @@ function [stats, bootstat, bootsam] = bootknife (x, nboot, bootfun, alpha, ...
       % percentiles using Student's t-distribution
       if (strcmpi (bootfun_str, 'mean'))
         expan_alpha = (3 - nalpha) * ...
-                      localfunc.ExpandProbs (alpha / (3 - nalpha), n - K);
+                      localfunc.ExpandProbs (alpha / (3 - nalpha), n - K, LOO);
       else
         expan_alpha = alpha;
       end
@@ -988,7 +992,7 @@ end
 
 %--------------------------------------------------------------------------
 
-function PX = ExpandProbs (P, DF)
+function PX = ExpandProbs (P, DF, LOO)
 
   % Modify ALPHA to adjust tail probabilities assuming that the kurtosis
   % of the sampling distribution scales with degrees of freedom like the
@@ -1019,9 +1023,15 @@ function PX = ExpandProbs (P, DF)
           'Could not create studinv function; intervals will not be expanded.');
     end
   end
- 
-  % Calculate statistics of the data
-  PX = stdnormcdf (arrayfun (studinv, P, repmat (DF, sz)));
+
+  % Calculate expanded probabilities
+  if LOO
+    PX = stdnormcdf (arrayfun (studinv, P, repmat (DF, sz)));
+  else
+    n = DF + 1;
+    PX = stdnormcdf (sqrt (n / (n - 1)) * ...
+                     arrayfun (studinv, P, repmat (DF, sz)));
+  end
 
 end
 
