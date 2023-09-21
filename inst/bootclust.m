@@ -5,6 +5,7 @@
 % -- Function File: bootclust (DATA, NBOOT, {BOOTFUN, ...})
 % -- Function File: bootclust (DATA, NBOOT, BOOTFUN, ALPHA)
 % -- Function File: bootclust (DATA, NBOOT, BOOTFUN, ALPHA, CLUSTID)
+% -- Function File: bootclust (DATA, NBOOT, BOOTFUN, ALPHA, CLUSTSZ)
 % -- Function File: bootclust (DATA, NBOOT, BOOTFUN, ALPHA, CLUSTID, LOO)
 % -- Function File: bootclust (DATA, NBOOT, BOOTFUN, ALPHA, CLUSTID, LOO, SEED)
 % -- Function File: STATS = bootclust (...)
@@ -66,6 +67,10 @@
 %     cell array with the same number of rows as the DATA. Rows in DATA with
 %     the same CLUSTID value are treated as clusters of observations that are
 %     resampled together.
+%
+%     'bootclust (DATA, NBOOT, BOOTFUN, ALPHA, CLUSTSZ)' groups consecutive
+%     DATA rows into clusters of length CLUSTSZ. This is equivalent to block
+%     bootstrap resampling. By default, CLUSTSZ is 1.
 %
 %     'bootclust (DATA, NBOOT, BOOTFUN, ALPHA, CLUSTID, LOO)' sets the
 %     resampling method. If LOO is false, the resampling method used is
@@ -243,10 +248,24 @@ function [stats, bootstat] = bootclust (x, nboot, bootfun, alpha, clustid, ...
     error ('bootclust: DATA must be numeric and contain > 1 row')
   end
 
+
   % Sort rows of CLUSTID and the DATA accordingly
   if ((nargin < 5) || isempty (clustid))
     clustid = (1 : n)';
   else
+    if isscalar (clustid)
+      % Group consecutive DATA rows into clusters of >= CLUSTID rows
+      clustsz = clustid;
+      if ( (~ isnumeric (clustsz)) || (clustsz ~= abs (clustsz)) || ...
+                 (clustsz >= n) || (clustsz ~= fix (clustsz)) )
+        error (cat (2, 'bootclust: CLUSTSZ must be a positive', ...
+                       ' integer less than the number of DATA rows'))
+      end
+      nx = fix (n / clustsz);
+      clustid = (nx + 1) * ones (n, 1);
+      clustid(1:clustsz * nx, :) = reshape (ones (clustsz, 1) * (1:nx), [], 1);
+      nx = clustid(end);
+    end
     if ( any (size (clustid) ~= [n, 1]) )
       error (cat (2, 'bootclust: CLUSTID must be a column vector with', ...
                      ' the same number of rows as DATA'))
@@ -408,7 +427,7 @@ function [stats, bootstat] = bootclust (x, nboot, bootfun, alpha, clustid, ...
 
   % Print output if no output arguments are requested
   if (nargout == 0) 
-    print_output (stats, nboot, nalpha, alpha, probs, m, bootfun_str);
+    print_output (stats, nboot, nalpha, alpha, probs, m, bootfun_str, loo);
   else
     if (isempty (bootsam))
       [warnmsg, warnID] = lastwarn;
@@ -526,7 +545,7 @@ end
 
 %--------------------------------------------------------------------------
 
-function print_output (stats, nboot, nalpha, alpha, probs, m, bootfun_str)
+function print_output (stats, nboot, nalpha, alpha, probs, m, bootfun_str, loo)
 
     fprintf (cat (2, '\nSummary of nonparametric cluster bootstrap', ...
                      ' estimates of bias and precision\n', ...
@@ -534,7 +553,11 @@ function print_output (stats, nboot, nalpha, alpha, probs, m, bootfun_str)
                      '*****************************\n\n'));
     fprintf ('Bootstrap settings: \n');
     fprintf (' Function: %s\n', bootfun_str);
-    fprintf (' Resampling method: Balanced, bootknife cluster resampling \n');
+    if loo
+      fprintf (' Resampling method: Balanced, bootknife cluster resampling \n');
+    else
+      fprintf (' Resampling method: Balanced, bootstrap cluster resampling \n');
+    end
     fprintf (' Number of resamples: %u \n', nboot(1));
     if (nalpha > 1)
       [jnk, warnID] = lastwarn;
@@ -695,6 +718,7 @@ end
 %! stats = bootclust (y, 1999, 'mean');
 %! stats = bootclust (y, 1999, {@var,1});
 %! stats = bootclust (y, 1999, {'var',1});
+%! stats = bootclust (y, 1999, @mean, [], 4);
 %! stats = bootclust (y, 1999, @mean, [], clustid);
 %! stats = bootclust (y, 1999, {'var',1}, [], clustid);
 %! stats = bootclust (y, 1999, {'var',1}, [], clustid, true);
