@@ -9,15 +9,15 @@
 // USAGE
 // BOOTSAM = boot (N, NBOOT)
 // BOOTSAM = boot (X, NBOOT)
-// BOOTSAM = boot (..., NBOOT, UNBIASED)
-// BOOTSAM = boot (..., NBOOT, UNBIASED, SEED)
-// BOOTSAM = boot (..., NBOOT, UNBIASED, SEED, WEIGHTS)
+// BOOTSAM = boot (..., NBOOT, LOO)
+// BOOTSAM = boot (..., NBOOT, LOO, SEED)
+// BOOTSAM = boot (..., NBOOT, LOO, SEED, WEIGHTS)
 //
 // INPUT VARIABLES
 // N (double) is the number of rows (of the data vector)
 // X (double) is a data vector intended for resampling
 // NBOOT (double) is the number of bootstrap resamples
-// UNBIASED (boolean) for unbiased resampling: false (for bootstrap) or true
+// LOO (boolean) to set the resampling method: false (for bootstrap) or true
 //   (for bootknife)
 // SEED (double) is a seed used to initialise the pseudo-random number generator
 // WEIGHTS (double) is a weight vector of length N
@@ -27,8 +27,8 @@
 //   columns of resampled data (X)
 //
 // NOTES
-// UNBIASED is an optional input argument. The default is false. If UNBIASED is
-// true, bootknife resampling is used, which involves creating leave-one-out
+// LOO is an optional input argument. The default is false. If LOO is true
+// bootknife resampling is used, which involves creating leave-one-out
 // jackknife samples of size N - 1, and then drawing resamples of size N with
 // replacement from the jackknife samples, thereby incorporating Bessel's
 // correction into the resampling procedure. The sample index for omission in
@@ -119,11 +119,11 @@ void mexFunction (int nlhs, mxArray* plhs[],
     if ( !mxIsFinite (nboot) ) {
         mexErrMsgTxt ("The second input argument (NBOOT) cannot be NaN or Inf.");    
     }
-    // Third input argument (u, unbiased)
+    // Third input argument (u)
     bool u;
     if ( nrhs > 2 && !mxIsEmpty (prhs[2]) ) {
         if (mxGetNumberOfElements (prhs[2]) > 1 || !mxIsClass (prhs[2], "logical")) {
-            mexErrMsgTxt ("The third input argument (UNBIASED) must be a logical scalar value.");
+            mexErrMsgTxt ("The third input argument (LOO) must be a logical scalar value.");
         }
         u = *(mxGetLogicals (prhs[2]));
     } else {
@@ -217,8 +217,8 @@ void mexFunction (int nlhs, mxArray* plhs[],
         }
         for ( int i = 0; i < n ; i++ ) {
             if (u == true) {
-                // Only LOO if sample index r doesn't account for all remaining 
-                // sampling counts
+                // Only leave-one-out if sample index r doesn't account for all
+                // remaining sampling counts
                 if (c[r] < N) {
                     m = c[r];
                     c[r] = 0;

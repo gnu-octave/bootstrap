@@ -1,8 +1,8 @@
 % -- Function File: BOOTSAM = boot (N, NBOOT)
 % -- Function File: BOOTSAM = boot (X, NBOOT)
-% -- Function File: BOOTSAM = boot (..., NBOOT, UNBIASED)
-% -- Function File: BOOTSAM = boot (..., NBOOT, UNBIASED, SEED)
-% -- Function File: BOOTSAM = boot (..., NBOOT, UNBIASED, SEED, WEIGHTS)
+% -- Function File: BOOTSAM = boot (..., NBOOT, LOO)
+% -- Function File: BOOTSAM = boot (..., NBOOT, LOO, SEED)
+% -- Function File: BOOTSAM = boot (..., NBOOT, LOO, SEED, WEIGHTS)
 %
 %     'BOOTSAM = boot (N, NBOOT)' generates NBOOT bootstrap samples of length N.
 %     The samples generated are composed of indices within the range 1:N, which
@@ -19,16 +19,16 @@
 %     are chosen by balanced bootstrap resampling as described above [1-3].
 %     Balanced resampling only applies when NBOOT > 1.
 %
-%     'BOOTSAM = boot (..., NBOOT, UNBIASED)' sets the resampling method. If
-%     UNBIASED is false, the resampling method used is balanced bootstrap
-%     resampling. If UNBIASED is true, the resampling method used is balanced
-%     bootknife resampling [4]. The latter involves creating leave-one-out
-%     jackknife samples of size N - 1, and then drawing resamples of size N
-%     with replacement from the jackknife samples, thereby incorporating
-%     Bessel's correction into the resampling procedure. UNBIASED must be a
-%     scalar logical value. The default value of UNBIASED is false.
+%     'BOOTSAM = boot (..., NBOOT, LOO)' sets the resampling method. If LOO
+%     is false, the resampling method used is balanced bootstrap resampling.
+%     If LOO is true, the resampling method used is balanced bootknife
+%     resampling [4]. The latter involves creating leave-one-out jackknife
+%     samples of size N - 1, and then drawing resamples of size N with
+%     replacement from the jackknife samples, thereby incorporating Bessel's
+%     correction into the resampling procedure. LOO must be a scalar logical
+%     value. The default value of LOO is false.
 %
-%     'BOOTSAM = boot (..., NBOOT, UNBIASED, SEED)' sets a seed to initialize
+%     'BOOTSAM = boot (..., NBOOT, LOO, SEED)' sets a seed to initialize
 %     the pseudo-random number generator to make resampling reproducible between
 %     calls to the boot function. Note that the mex function compiled from the
 %     source code boot.cpp is not thread-safe. Below is an example of a line of
@@ -41,7 +41,7 @@
 %            ncpus = feature('numcores'); 
 %            parfor i = 1:ncpus; boot (1, 1, false, i); end;
 %
-%     'BOOTSAM = boot (..., NBOOT, UNBIASED, SEED, WEIGHTS)' sets a weight
+%     'BOOTSAM = boot (..., NBOOT, LOO, SEED, WEIGHTS)' sets a weight
 %     vector of length N. If WEIGHTS is empty or not provided, the default 
 %     is a vector of length N, with each element equal to NBOOT (i.e. uniform
 %     weighting). Each element of WEIGHTS is the number of times that the
@@ -103,7 +103,7 @@ function bootsam = boot (x, nboot, u, s, w)
   end
   if ((nargin > 2) && ~ isempty (u))
     if ( (~ isscalar (u)) || (~ islogical (u)) )
-      error (cat (2, 'boot: The third input argument (UNBIASED) must be', ...
+      error (cat (2, 'boot: The third input argument (LOO) must be', ...
                      ' a logical scalar value'))
     end
   else
@@ -208,32 +208,32 @@ function bootsam = boot (x, nboot, u, s, w)
 %! assert (all (I1(:) == I2(:)), false);
 
 %!test
-%! ## Test that random seed gives identical resamples when UNBIASED is false.
+%! ## Test that random seed gives identical resamples when LOO is false.
 %! I1 = boot (3, 20, false, 1);
 %! I2 = boot (3, 20, false, 1);
 %! assert (all (I1(:) == I2(:)), true);
 
 %!test
-%! ## Test that random seed gives identical resamples when UNBIASED is true.
+%! ## Test that random seed gives identical resamples when LOO is true.
 %! I1 = boot (3, 20, true, 1);
 %! I2 = boot (3, 20, true, 1);
 %! assert (all (I1(:) == I2(:)), true);
 
 %!test
-%! ## Test that default setting for UNBIASED is false.
+%! ## Test that default setting for LOO is false.
 %! I1 = boot (3, 20, [], 1);
 %! I2 = boot (3, 20, false, 1);
 %! assert (all (I1(:) == I2(:)), true);
 
 %!test
-%! ## Test that resampling is balanced when UNBIASED is false.
+%! ## Test that resampling is balanced when LOO is false.
 %! I = boot (3, 20, false, 1);
 %! assert (sum (I(:) == 1), 20, 1e-03);
 %! assert (sum (I(:) == 2), 20, 1e-03);
 %! assert (sum (I(:) == 3), 20, 1e-03);
 
 %!test
-%! ## Test that resampling is balanced when UNBIASED is true.
+%! ## Test that resampling is balanced when LOO is true.
 %! I = boot (3, 20, true, 1);
 %! assert (sum (I(:) == 1), 20, 1e-03);
 %! assert (sum (I(:) == 2), 20, 1e-03);
@@ -245,11 +245,11 @@ function bootsam = boot (x, nboot, u, s, w)
 %! assert (all (diff (sort (I(1:end-1)))), false);
 
 %!test
-%! ## Test feature for changing resampling weights when UNBIASED is false
+%! ## Test feature for changing resampling weights when LOO is false
 %! I = boot (3, 20, false, 1, [30,30,0]);
 %! assert (any (I(:) == 3), false);
 
 %!test
-%! ## Test feature for changing resampling weights when UNBIASED is true
+%! ## Test feature for changing resampling weights when LOO is true
 %! I = boot (3, 20, true, 1, [30,30,0]);
 %! assert (any (I(:) == 3), false);
