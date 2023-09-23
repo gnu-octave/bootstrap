@@ -10,20 +10,20 @@
 % -- Function File: [PVAL, C, STATS] = bootnhst (DATA, GROUP, ...)
 % -- Function File: [...] = bootnhst (..., 'display', DISPLAYOPT)
 %
-%     'bootnhst (DATA, GROUP)' performs a bootstrap variant of a one-way
-%     analysis of variance (ANOVA) on DATA, which is categorized according
-%     to the labels in GROUP. DATA must be a numeric column vector or matrix,
-%     and GROUP must be a vector or cell array with the same number of rows as
-%     DATA. Pairwise post hoc tests are automatically computed by the single-
-%     step maximum t-statistic (maxT) procedure, which controls the family-wise
-%     error rate (FWER) in a manner analagous to the Tukey-Kramer Honest
-%     Significance Difference test. The omnibus test represents the smallest of
-%     the multiplicity-adjusted p-values. The results are displayed as a pretty
-%     table and the differences between groups are plotted along with the
-%     symmetic 95% bootstrap-t confidence intervals (CI). The colours of the
-%     markers and error bars depend on the value of the multiplicity-adjusted
-%     p-values: red if p < .05, or blue if p > .05. All of the p-values reported
-%     represent the outcome of two-tailed tests. 
+%     'bootnhst (DATA, GROUP)' performs a bootstrap randomization test [1] of
+%     categorical DATA in a one-way layout, where the categorization of the DATA
+%     values are defined by the labels in GROUP. DATA must be a numeric column
+%     vector or matrix, and GROUP must be a vector or cell array with the same
+%     number of rows as DATA. Pairwise post hoc tests are automatically computed
+%     by the single-step maximum t-statistic (maxT) procedure, which controls
+%     the family-wise error rate (FWER) in a manner analagous to the Tukey-
+%     Kramer Honest Significance Difference test. The omnibus test represents
+%     the smallest of the multiplicity-adjusted p-values. The results are
+%     displayed as a pretty table and the differences between groups are
+%     plotted along with the symmetic 95% bootstrap-t confidence intervals (CI).
+%     The colours of the markers and error bars depend on the value of the
+%     multiplicity-adjusted p-values: red if p < .05, or blue if p > .05. All
+%     of the p-values reported represent the outcome of two-tailed tests. 
 %
 %     bootnhst can take a number of optional parameters as NAME-VALUE pairs:
 %
@@ -110,6 +110,10 @@
 %     '[...] = bootnhst (..., 'display', DISPLAYOPT)' a logical value (true 
 %      or false) used to specify whether to display the results and plot the
 %      graph in addition to creating the output arguments. The default is true.
+%
+%  BIBLIOGRAPHY:
+%  [1] Efron, and Tibshirani (1993) An Introduction to the Bootstrap. 
+%        New York, NY: Chapman & Hall
 %
 %  bootnhst (version 2023.07.04)
 %  Bootstrap Null Hypothesis Significance Test
