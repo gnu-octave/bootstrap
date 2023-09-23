@@ -436,7 +436,7 @@ function [pval, c, stats] = bootnhst (data, group, varargin)
         % jackknife resampling
         jackstat = jackknife (bootfun, data(g == gk(j), :));
         SE(j) = sqrt ((nk(j) - 1) / nk(j) * ...
-                sum(((mean (jackstat) - jackstat)).^2));
+                sum (((mean (jackstat) - jackstat)).^2));
         if (j == 1); se_method = 'Leave-one-out jackknife'; end;
       end
     else
