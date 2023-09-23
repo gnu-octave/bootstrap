@@ -410,10 +410,10 @@ function [pval, c, stats] = bootnhst (data, group, varargin)
   % Use newer, faster and balanced (less biased) resampling
   % functions (boot and bootknife)
   if (paropt.UseParallel)
-    [null, Q] = bootknife (data, nboot(1), func, ...
+    [jnk, Q] = bootknife (data, nboot(1), func, ...
                            NaN, [], paropt.nproc, [], [], ISOCTAVE);
   else
-    [null, Q] = bootknife (data, nboot(1), func, NaN, [], 0, [], [], ISOCTAVE);
+    [jnk, Q] = bootknife (data, nboot(1), func, NaN, [], 0, [], [], ISOCTAVE);
   end
   
   % Compute the estimate (theta) and it's pooled (weighted mean) sampling
