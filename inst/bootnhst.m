@@ -10,20 +10,21 @@
 % -- Function File: [PVAL, C, STATS] = bootnhst (DATA, GROUP, ...)
 % -- Function File: [...] = bootnhst (..., 'display', DISPLAYOPT)
 %
-%     'bootnhst (DATA, GROUP)' performs a bootstrap randomization test [1] of
-%     categorical DATA in a one-way layout, where the categorization of the DATA
-%     values are defined by the labels in GROUP. DATA must be a numeric column
-%     vector or matrix, and GROUP must be a vector or cell array with the same
-%     number of rows as DATA. Pairwise post hoc tests are automatically computed
-%     by the single-step maximum t-statistic (maxT) procedure, which controls
-%     the family-wise error rate (FWER) in a manner analagous to the Tukey-
-%     Kramer Honest Significance Difference test. The omnibus test represents
-%     the smallest of the multiplicity-adjusted p-values. The results are
-%     displayed as a pretty table and the differences between groups are
-%     plotted along with the symmetic 95% bootstrap-t confidence intervals (CI).
-%     The colours of the markers and error bars depend on the value of the
-%     multiplicity-adjusted p-values: red if p < .05, or blue if p > .05. All
-%     of the p-values reported represent the outcome of two-tailed tests. 
+%     'bootnhst (DATA, GROUP)' performs a bootstrap version of a randomization
+%     test [1] for comparing independent samples of data in a one-way layout,
+%     where the categorization of the DATA values are defined by the labels in
+%     GROUP. DATA must be a numeric column vector or matrix, and GROUP must be
+%     a vector or cell array with the same number of rows as DATA. Pairwise
+%     posthoc tests are automatically computed by the single-step maximum t-
+%     statistic (maxT) procedure, which controls the family-wise error rate
+%     (FWER) in a manner analagous to the Tukey-Kramer Honest Significance
+%     Difference test. The omnibus test represents the smallest of the
+%     multiplicity-adjusted p-values. The results are displayed as a pretty
+%     table and the differences between groups are plotted along with the
+%     symmetic 95% bootstrap-t confidence intervals (CI). The colours of the
+%     markers and error bars depend on the value of the multiplicity-adjusted
+%     p-values: red if p < .05, or blue if p > .05. All of the p-values reported
+%     represent the outcome of two-tailed tests. 
 %
 %     bootnhst can take a number of optional parameters as NAME-VALUE pairs:
 %
@@ -35,7 +36,7 @@
 %        o a cell array where the first cell is one of the above function
 %          definitions and the remaining cells are (additional) input arguments 
 %          to that function (other than the data arguments).
-%        In all cases BOOTFUN must take DATA for the initial input argument(s).
+%        In all cases, BOOTFUN must take DATA for the initial input argument(s).
 %        BOOTFUN must calculate a statistic representative of the finite data
 %        sample; it should NOT be an estimate of a population parameter (unless
 %        they are one of the same). By default, BOOTFUN is @mean. If a robust

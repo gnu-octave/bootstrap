@@ -2,7 +2,8 @@
 % -- Function File: PVAL = randtest2 (X, Y, PAIRED)
 % -- Function File: PVAL = randtest2 (X, Y, PAIRED, NREPS)
 % -- Function File: PVAL = randtest2 (X, Y, PAIRED, NREPS)
-% -- Function File: PVAL = randtest2 (X, Y, PAIRED, NREPS, SEED)
+% -- Function File: PVAL = randtest2 (X, Y, PAIRED, NREPS, FUNC)
+% -- Function File: PVAL = randtest2 (X, Y, PAIRED, NREPS, FUNC, SEED)
 % -- Function File: PVAL = randtest2 ([X, GX], [Y, GY], ...)
 % -- Function File: [PVAL, STAT] = randtest (...)
 %
@@ -34,11 +35,25 @@
 %     permutations is 2^12 = 4096, so NREPS will be truncated at 4096 and
 %     sampling will systematically evaluate all possible permutations. 
 %
-%     'PVAL = randtest2 (X, Y, PAIRED, NREPS, SEED)' initialises the Mersenne
-%     Twister random number generator using an integer SEED value so that
-%     that the results of 'randtest2' results are reproducible when the test
-%     is approximate (i.e. when using randomization if not all permutations can
-%     be evaluated systematically).
+%     'PVAL = randtest2 (X, Y, PAIRED, NREPS, FUNC)' also specifies a custom
+%     function calculated on the original samples, and the randomized or
+%     permuted resamples. FUNC must be either a:
+%        o function handle,
+%        o string of function name, or
+%        o a cell array where the first cell is one of the above function
+%          definitions and the remaining cells are (additional) input arguments 
+%          to that function (other than the data arguments).
+%        In all cases, FUNC must take X and Y for the initial input argument(s).
+%        FUNC must calculate a statistic representative of the finite data
+%        sample; it should NOT be an estimate of a population parameter (unless
+%        they are one of the same). By default, the function computed is the
+%        Wasserstein metric.
+%
+%     'PVAL = randtest2 (X, Y, PAIRED, NREPS, FUNC, SEED)' initialises the
+%     Mersenne Twister random number generator using an integer SEED value so
+%     that that the results of 'randtest2' results are reproducible when the
+%     test is approximate (i.e. when using randomization if not all permutations
+%     can be evaluated systematically).
 %
 %     'PVAL = randtest2 ([X, GX], [Y, GY], ...)' also specifies the sampling
 %     units (i.e. clusters) using consecutive positive integers in GX and GY
@@ -79,17 +94,39 @@
 %  You should have received a copy of the GNU General Public License
 %  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-function [pval, stat, STATS] = randtest2 (x, y, paired, nreps, seed)
+function [pval, stat, STATS] = randtest2 (x, y, paired, nreps, func, seed)
 
   % Check if we are running Octave or Matlab
   info = ver; 
   ISOCTAVE = any (ismember ({info.Name}, 'Octave'));
 
+  % Store local function wass_stat in a stucture (for parallel processes)
+  localfunc = struct ('wass_stat', @wass_stat);
+
+  % Check if we have parallel processing capabilities
+  PARALLEL = false; % Default
+  if (ISOCTAVE)
+    software = pkg ('list');
+    names = cellfun (@(S) S.name, software, 'UniformOutput', false);
+    status = cellfun (@(S) S.loaded, software, 'UniformOutput', false);
+    index = find (~ cellfun (@isempty, regexpi (names, '^parallel')));
+    if ( (~ isempty (index)) && (logical (status{index})) )
+      PARALLEL = true;
+    end
+  else
+    try 
+      pool = gcp ('nocreate'); 
+      PARALLEL = ~ isempty (pool);
+    catch
+      % Do nothing
+    end
+  end
+
   % Check the number of function arguments
   if (nargin < 2)
     error ('randtest2: X and Y must be provided');
   end
-  if (nargin > 5)
+  if (nargin > 6)
     error ('randtest2: Too many input arguments')
   end
   if (nargout > 3)
@@ -103,7 +140,28 @@ function [pval, stat, STATS] = randtest2 (x, y, paired, nreps, seed)
   if ( (nargin < 4) || isempty (nreps) )
     nreps = 5000;
   end
-  if ( (nargin > 4) && (~ isempty (seed)) )
+  if ( (nargin > 4) && (~ isempty (func)) )
+    if (iscell (func))
+      if (ischar (func{1}))
+        % Convert character string of a function name to a function handle
+        func = str2func (func{1});
+      else
+        func = func{1};
+      end
+      args = func(2:end);
+      func = @(varargin) func (varargin{:}, args{:});
+    elseif (ischar (func))
+      % Convert character string of a function name to a function handle
+      func = str2func (func);
+    elseif (isa (func, 'function_handle'))
+      % Do nothing
+    else
+      error ('randtest2: FUNC must be a function name or function handle')
+    end
+  else
+    func = localfunc.wass_stat;
+  end
+  if ( (nargin > 5) && (~ isempty (seed)) )
     % Set random seed
     rand ('seed', seed);
   end
@@ -145,27 +203,6 @@ function [pval, stat, STATS] = randtest2 (x, y, paired, nreps, seed)
   end
   ny = numel (uy);
 
-  % Check if we have parallel processing capabilities
-  PARALLEL = false; % Default
-  if (ISOCTAVE)
-    software = pkg ('list');
-    names = cellfun (@(S) S.name, software, 'UniformOutput', false);
-    status = cellfun (@(S) S.loaded, software, 'UniformOutput', false);
-    index = find (~ cellfun (@isempty, regexpi (names, '^parallel')));
-    if ( (~ isempty (index)) && (logical (status{index})) )
-      PARALLEL = true;
-      % Store local function wass_stat in a stucture for parallel processes
-      localfunc = struct ('wass_stat', @wass_stat);
-    end
-  else
-    try 
-      pool = gcp ('nocreate'); 
-      PARALLEL = ~ isempty (pool);
-    catch
-      % Do nothing
-    end
-  end
-
   switch paired
 
     case false
@@ -191,7 +228,7 @@ function [pval, stat, STATS] = randtest2 (x, y, paired, nreps, seed)
       end
 
       % Compute test statistic on the original data
-      stat = wass_stat (x(:, 1), y(:, 1));
+      stat = func (x(:, 1), y(:, 1));
 
       % Create cell array of x and y samples
       z = cat (1, mat2cell (x(:, 1), accumarray (gx, 1)),...
@@ -234,9 +271,13 @@ function [pval, stat, STATS] = randtest2 (x, y, paired, nreps, seed)
            (any (iy ~= cumsum (accumarray (gy, 1)))) )
         error ('randtest2: clustered observations must be grouped together')
       end
+      if (any (gx ~= gy))
+        error (cat (2, 'randtest2: cluster definitions must be identical', ...
+                       ' for x and y when PAIRED is true'))
+      end
 
       % Compute test statistic on the original data
-      stat = wass_stat (x(:, 1), y(:, 1));
+      stat = func (x(:, 1), y(:, 1));
 
       % Create cell array of x and y samples
       z = cat (1, mat2cell (x(:, 1), accumarray (gx, 1))', ...
@@ -264,32 +305,31 @@ function [pval, stat, STATS] = randtest2 (x, y, paired, nreps, seed)
   if VECTORIZED
     X = reshape (vertcat (X{:}), [], nreps);
     Y = reshape (vertcat (Y{:}), [], nreps);
-    STATS = wass_stat (X, Y);
+    STATS = func (X, Y);
   else
     if (PARALLEL)
       if (ISOCTAVE)
-        STATS = pararrayfun (inf, @(b) localfunc.wass_stat ( ...
-                                                   vertcat (X{:,b}), ...
-                                                   vertcat (Y{:,b})), 1:nreps);
+        STATS = pararrayfun (inf, @(b) func (vertcat (X{:,b}), ...
+                                             vertcat (Y{:,b})), 1:nreps);
       else
         STATS = zeros (1, nreps);
         parfor b = 1:nreps
-          STATS(b) = wass_stat (vertcat (X{:,b}), vertcat (Y{:,b}))
+          STATS(b) = func (vertcat (X{:,b}), vertcat (Y{:,b}))
         end
       end
     else
-      STATS = arrayfun (@(b) wass_stat (vertcat (X{:,b}), ...
-                                        vertcat (Y{:,b})), 1:nreps);
+      STATS = arrayfun (@(b) func (vertcat (X{:,b}), ...
+                                   vertcat (Y{:,b})), 1:nreps);
     end
   end
 
   % Calculate two-tailed p-value(s) by linear interpolation
-  [x, jnk, P] = bootcdf (STATS, true);
+  [x, jnk, P] = bootcdf (abs (STATS), true);
   res_lim = 1 / nreps;
-  if (stat < x(1))
-    pval = interp1 (x, P, stat, 'linear', 1);
+  if (abs (stat) < x(1))
+    pval = interp1 (x, P, abs (stat), 'linear', 1);
   else
-    pval = interp1 (x, P, stat, 'linear', res_lim);
+    pval = interp1 (x, P, abs (stat), 'linear', res_lim);
   end
 
 end
@@ -367,18 +407,50 @@ end
 %! Y = [26,34,27,38,44,34,45,38,31,41,34,35,38,46]';
 %! GY = [4,4,4,5,5,5,5,5,6,6,6,6,6,6]';
 %!
-%! [pval, stat] = randtest2 ([X GX], [Y GY], false)
+%! % Randomization test comparing the distributions of observations from two
+%! % independent samples (assuming i.i.d) using the Wasserstein metric
+%! [pval, stat] = randtest2 (X, Y, false, 5000)
 %!
+%! % Randomization test comparing the distributions of clustered observations
+%! % from two independent samples using the Wasserstein metric
+%! [pval, stat] = randtest2 ([X GX], [Y GY], false, 5000)
+%!
+%! % Randomization test comparing the difference in means between two
+%! % independent samples with clustered observations
+%! [pval, stat] = randtest2 ([X GX], [Y GY], false, 5000, ...
+%!                           @(x, y) mean (x) - mean (y))
+%!
+%! % Randomization test comparing the ratio of variances between two
+%! % independent samples with clustered observations
+%! [pval, stat] = randtest2 ([X GX], [Y GY], false, 5000, ...
+%!                           @(x, y) var (x, 0, 1) ./ var (y, 0 ,1))
 
 %!demo
 %!
 %! X = [21,26,33,22,18,25,26,24,21,25,35,28,32,36,38]';
 %! GX = [1,1,1,1,2,2,2,2,2,2,3,3,3,3,3]';
 %! Y = [26,34,27,38,44,34,45,38,31,41,34,35,38,46,36]';
-%! GY = [1,1,1,2,2,2,2,2,3,3,3,3,3,3,3]';
+%! GY = [1,1,1,1,2,2,2,2,2,2,3,3,3,3,3]';
 %!
-%! [pval, stat] = randtest2 ([X GX], [Y GY], true)
+%! % Randomization test comparing the distributions of observations from two
+%! % paired or matched samples (assuming i.i.d) using the Wasserstein metric
+%! [pval, stat] = randtest2 (X, Y, true, 5000)
 %!
+%! % Randomization test comparing the distributions of clustered observations
+%! % from two paired or matched using the Wasserstein metric
+%! [pval, stat] = randtest2 ([X GX], [Y GY], true, 5000)
+%!
+%! % Randomization test comparing the difference in means between two
+%! % paired or matched samples with clustered observations
+%! [pval, stat] = randtest2 ([X GX], [Y GY], true, 5000, ...
+%!                           @(x, y) mean (x) - mean (y))
+%!
+%! % Randomization test comparing the ratio of variances between two
+%! % paired or matched samples with clustered observations
+%! [pval, stat] = randtest2 ([X GX], [Y GY], true, 5000, ...
+%!                           @(x, y) var (x, 0, 1) ./ var (y, 0 ,1))
+%!
+
 
 %!test
 %!
@@ -395,7 +467,7 @@ end
 %! randtest2 (X, Y, [], []);
 %! X = randn (9,1);
 %! Y = randn (9,1);
-%! pval5 = randtest2 (X, Y, false, [], 1);
-%! pval6 = randtest2 (X, Y, false, [], 1);
+%! pval5 = randtest2 (X, Y, false, [], [], 1);
+%! pval6 = randtest2 (X, Y, false, [], [], 1);
 %! assert (pval5, pval6, 1e-08);
 %! pval6 = randtest2 (X, Y, false, [], []);
