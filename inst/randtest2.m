@@ -46,7 +46,7 @@
 %        o a cell array where the first cell is one of the above function
 %          definitions and the remaining cells are (additional) input arguments 
 %          to that function (other than the data arguments).
-%!       See the built-in demos for example usage.
+%!       See the built-in demos for example usage with the mean or vaiance.
 %
 %     'PVAL = randtest2 (X, Y, PAIRED, NREPS, FUNC, SEED)' initialises the
 %     Mersenne Twister random number generator using an integer SEED value so
@@ -439,8 +439,7 @@ end
 %! % Randomization test comparing the difference in means between two
 %! % paired or matching samples independent samples (assuming i.i.d and
 %! % exchangeability) 
-%! pval= randtest2 (A, B, true, 5000, @(A, B) mean (A) - mean (B));
-%!
+%! pval = randtest2 (A, B, true, 5000, @(A, B) mean (A) - mean (B))
 %!
 %! % Randomization test comparing the ratio of variances between two
 %! % paired or matching samples (assuming i.i.d and exchangeability). (Note
@@ -458,11 +457,11 @@ end
 %!
 %! % Randomization test comparing the distributions of observations from two
 %! % independent samples (assuming i.i.d) using the Wasserstein metric
-%! [pval, stat] = randtest2 (X, Y, false, 5000)
+%! pval = randtest2 (X, Y, false, 5000)
 %!
 %! % Randomization test comparing the distributions of clustered observations
 %! % from two independent samples using the Wasserstein metric
-%! [pval, stat] = randtest2 ([X GX], [Y GY], false, 5000)
+%! pval = randtest2 ([X GX], [Y GY], false, 5000)
 %!
 
 %!demo
@@ -474,11 +473,11 @@ end
 %!
 %! % Randomization test comparing the distributions of observations from two
 %! % paired or matched samples (assuming i.i.d) using the Wasserstein metric
-%! [pval, stat] = randtest2 (X, Y, true, 5000)
+%! pval = randtest2 (X, Y, true, 5000)
 %!
 %! % Randomization test comparing the distributions of clustered observations
 %! % from two paired or matched using the Wasserstein metric
-%! [pval, stat] = randtest2 ([X GX], [Y GY], true, 5000)
+%! pval = randtest2 ([X GX], [Y GY], true, 5000)
 %!
 
 
