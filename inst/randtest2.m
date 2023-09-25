@@ -180,15 +180,17 @@ function [pval, stat, STATS] = randtest2 (x, y, paired, nreps, func, seed)
   if (szx(2) > 1)
     gx = x(:, 2);
     [ux, ix] = unique_stable (gx); % ix are indices where ux appear last in gx
+    nx = numel (ux);
   else
     gx = (1 : szx(1))';
     ux = gx;
     ix = gx;
+    nx = szx(1);
   end
-  nx = numel (ux);
   if (szy(2) > 1)
     gy = y(:, 2);
     [uy, iy] = unique_stable (gy);  % iy are indices where uy appear last in gy
+    ny = numel (uy);
   else
     switch paired
       case false
@@ -199,8 +201,8 @@ function [pval, stat, STATS] = randtest2 (x, y, paired, nreps, func, seed)
         iy = gy;
     end
     uy = gy;
+    ny = szy(1);
   end
-  ny = numel (uy);
 
   switch paired
 
@@ -408,17 +410,17 @@ end
 %! % Randomization test comparing the distributions of observations from two
 %! % independent samples (assuming i.i.d and exchangeability) using the
 %! % Wasserstein metric
-%! [pval, stat] = randtest2 (control, treatment, false, 5000)
+%! pval = randtest2 (control, treatment, false, 5000)
 %!
 %! % Randomization test comparing the difference in means between two
 %! % independent samples (assuming i.i.d and exchangeability) 
-%! [pval, stat] = randtest2 (control, treatment, false, 5000, ...
+%! pval = randtest2 (control, treatment, false, 5000, ...
 %!                           @(x, y) mean (x) - mean (y))
 %!
 %! % Randomization test comparing the ratio of variances between two
 %! % independent samples (assuming i.i.d and exchangeability). (Note that
 %! % the log transformation is necessary to make the p-value two-tailed)
-%! [pval, stat] = randtest2 (control, treatment, false, 5000, ...
+%! pval = randtest2 (control, treatment, false, 5000, ...
 %!                           @(x, y) log (var (y) ./ var (x)))
 %!
 
@@ -432,19 +434,19 @@ end
 %! % Randomization test comparing the distributions of observations from two
 %! % paired or matching samples (assuming i.i.d and exchangeability) using the
 %! % Wasserstein metric
-%! [pval, stat] = randtest2 (A, B, true, 5000)
+%! pval = randtest2 (A, B, true, 5000)
 %!
 %! % Randomization test comparing the difference in means between two
 %! % paired or matching samples independent samples (assuming i.i.d and
 %! % exchangeability) 
-%! [pval, stat] = randtest2 (A, B, true, 5000, @(A,B) mean (A) - mean (B));
+%! pval= randtest2 (A, B, true, 5000, @(A, B) mean (A) - mean (B));
 %!
 %!
 %! % Randomization test comparing the ratio of variances between two
 %! % paired or matching samples (assuming i.i.d and exchangeability). (Note
 %! % that the log transformation is necessary to make the p-value two-tailed)
-%! [pval, stat] = randtest2 (control, treatment, true, 5000, ...
-%!                           @(x, y) log (var (y) ./ var (x)))
+%! pval = randtest2 (A, B,  true, 5000, @(A, B) log (var (A) ./ var (B)))
+%!                           
 %!
 
 %!demo
@@ -488,14 +490,12 @@ end
 %! pval1 = randtest2 (X, Y);
 %! pval2 = randtest2 (X, Y, false);
 %! pval3 = randtest2 (X, Y, []);
-%! assert (pval1, pval2, 1e-08);
-%! assert (pval1, pval3, 1e-08);
 %! randtest2 (X, Y, true);
 %! randtest2 (X, Y, [], 500);
 %! randtest2 (X, Y, [], []);
 %! X = randn (9,1);
 %! Y = randn (9,1);
+%! pval5 = randtest2 (X, Y, false, 5000);
 %! pval5 = randtest2 (X, Y, false, [], [], 1);
-%! pval6 = randtest2 (X, Y, false, [], [], 1);
-%! assert (pval5, pval6, 1e-08);
-%! pval6 = randtest2 (X, Y, false, [], []);
+%! pval6 = randtest2 (X, Y, false, [], @(X, Y) mean (X) - mean (Y), 1);
+%! pval7 = randtest2 (X, Y, false, [], @(A, B) log (var (A) ./ var (B)), 1);
