@@ -34,7 +34,7 @@
 %     'bootknife (DATA, NBOOT, BOOTFUN)' also specifies BOOTFUN: the function
 %     calculated on the original sample and the bootstrap resamples. BOOTFUN
 %     must be either a:
-%       <> function handle,
+%       <> function handle or anonymous function,
 %       <> string of function name, or
 %       <> a cell array where the first cell is one of the above function
 %          definitions and the remaining cells are (additional) input arguments 

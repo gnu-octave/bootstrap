@@ -6,6 +6,7 @@
 % -- Function File: PVAL = randtest2 (X, Y, PAIRED, NREPS, FUNC, SEED)
 % -- Function File: PVAL = randtest2 ([X, GX], [Y, GY], ...)
 % -- Function File: [PVAL, STAT] = randtest (...)
+% -- Function File: [PVAL, STAT, PERMSTATS] = randtest (...)
 %
 %     'PVAL = randtest2 (X, Y)' performs a randomization (a.k.a. permutation)
 %     test to ascertain whether data samples X and Y come from populations with
@@ -13,7 +14,8 @@
 %     metric [1,2], which is the area of the difference between the empirical
 %     cumulative distribution functions of X and Y. The data in X and Y should
 %     be column vectors that represent measurements of the same variable. The
-%     value returned is a 2-tailed p-value against the null hypothesis.
+%     value returned is a 2-tailed p-value against the null hypothesis computed
+%     using the absolute values of the test statistics.
 %
 %     'PVAL = randtest2 (X, Y, PAIRED)' specifies whether X and Y should be
 %     treated as independent (unpaired) or paired samples. PAIRED accepts a
@@ -36,18 +38,15 @@
 %     sampling will systematically evaluate all possible permutations. 
 %
 %     'PVAL = randtest2 (X, Y, PAIRED, NREPS, FUNC)' also specifies a custom
-%     function calculated on the original samples, and the randomized or
-%     permuted resamples. FUNC must be either a:
-%        o function handle,
+%     function calculated on the original samples, and the permuted or
+%     randomized resamples. Note that FUNC must compute a difference statistic
+%     between samples X and Y, and should either be a:
+%        o function handle or anonymous function,
 %        o string of function name, or
 %        o a cell array where the first cell is one of the above function
 %          definitions and the remaining cells are (additional) input arguments 
 %          to that function (other than the data arguments).
-%        In all cases, FUNC must take X and Y for the initial input argument(s).
-%        FUNC must calculate a statistic representative of the finite data
-%        sample; it should NOT be an estimate of a population parameter (unless
-%        they are one of the same). By default, the function computed is the
-%        Wasserstein metric.
+%!       See the built-in demos for example usage.
 %
 %     'PVAL = randtest2 (X, Y, PAIRED, NREPS, FUNC, SEED)' initialises the
 %     Mersenne Twister random number generator using an integer SEED value so
@@ -66,7 +65,7 @@
 %     and loaded, then the function evaluations will be automatically
 %     accelerated by parallel processing on platforms with multiple processors.
 %
-%     '[PVAL, STAT] = randtest2 (...)' also returns the Wasserstein metric.
+%     '[PVAL, STAT] = randtest2 (...)' also returns the test statistic.
 %
 %     '[PVAL, STAT, PERMSTATS] = randtest2 (...)' also returns the statistics
 %     of the permutation distribution.
@@ -402,6 +401,54 @@ end
 
 %!demo
 %!
+%! % Mouse data from Table 2 (page 11) of Efron and Tibshirani (1993)
+%! treatment = [94 197 16 38 99 141 23]';
+%! control = [52 104 146 10 51 30 40 27 46]';
+%!
+%! % Randomization test comparing the distributions of observations from two
+%! % independent samples (assuming i.i.d and exchangeability) using the
+%! % Wasserstein metric
+%! [pval, stat] = randtest2 (control, treatment, false, 5000)
+%!
+%! % Randomization test comparing the difference in means between two
+%! % independent samples (assuming i.i.d and exchangeability) 
+%! [pval, stat] = randtest2 (control, treatment, false, 5000, ...
+%!                           @(x, y) mean (x) - mean (y))
+%!
+%! % Randomization test comparing the ratio of variances between two
+%! % independent samples (assuming i.i.d and exchangeability). (Note that
+%! % the log transformation is necessary to make the p-value two-tailed)
+%! [pval, stat] = randtest2 (control, treatment, false, 5000, ...
+%!                           @(x, y) log (var (y) ./ var (x)))
+%!
+
+%!demo
+%!
+%! % Example data from: 
+%! % https://www.biostat.wisc.edu/~kbroman/teaching/labstat/third/notes18.pdf
+%! A = [117.3 100.1 94.5 135.5 92.9 118.9 144.8 103.9 103.8 153.6 163.1]';
+%! B = [145.9 94.8 108 122.6 130.2 143.9 149.9 138.5 91.7 162.6 202.5]';
+%!
+%! % Randomization test comparing the distributions of observations from two
+%! % paired or matching samples (assuming i.i.d and exchangeability) using the
+%! % Wasserstein metric
+%! [pval, stat] = randtest2 (A, B, true, 5000)
+%!
+%! % Randomization test comparing the difference in means between two
+%! % paired or matching samples independent samples (assuming i.i.d and
+%! % exchangeability) 
+%! [pval, stat] = randtest2 (A, B, true, 5000, @(A,B) mean (A) - mean (B));
+%!
+%!
+%! % Randomization test comparing the ratio of variances between two
+%! % paired or matching samples (assuming i.i.d and exchangeability). (Note
+%! % that the log transformation is necessary to make the p-value two-tailed)
+%! [pval, stat] = randtest2 (control, treatment, true, 5000, ...
+%!                           @(x, y) log (var (y) ./ var (x)))
+%!
+
+%!demo
+%!
 %! X = [21,26,33,22,18,25,26,24,21,25,35,28,32,36,38]';
 %! GX = [1,1,1,1,2,2,2,2,2,2,3,3,3,3,3]';
 %! Y = [26,34,27,38,44,34,45,38,31,41,34,35,38,46]';
@@ -415,15 +462,6 @@ end
 %! % from two independent samples using the Wasserstein metric
 %! [pval, stat] = randtest2 ([X GX], [Y GY], false, 5000)
 %!
-%! % Randomization test comparing the difference in means between two
-%! % independent samples with clustered observations
-%! [pval, stat] = randtest2 ([X GX], [Y GY], false, 5000, ...
-%!                           @(x, y) mean (x) - mean (y))
-%!
-%! % Randomization test comparing the ratio of variances between two
-%! % independent samples with clustered observations
-%! [pval, stat] = randtest2 ([X GX], [Y GY], false, 5000, ...
-%!                           @(x, y) var (x, 0, 1) ./ var (y, 0 ,1))
 
 %!demo
 %!
@@ -439,16 +477,6 @@ end
 %! % Randomization test comparing the distributions of clustered observations
 %! % from two paired or matched using the Wasserstein metric
 %! [pval, stat] = randtest2 ([X GX], [Y GY], true, 5000)
-%!
-%! % Randomization test comparing the difference in means between two
-%! % paired or matched samples with clustered observations
-%! [pval, stat] = randtest2 ([X GX], [Y GY], true, 5000, ...
-%!                           @(x, y) mean (x) - mean (y))
-%!
-%! % Randomization test comparing the ratio of variances between two
-%! % paired or matched samples with clustered observations
-%! [pval, stat] = randtest2 ([X GX], [Y GY], true, 5000, ...
-%!                           @(x, y) var (x, 0, 1) ./ var (y, 0 ,1))
 %!
 
 

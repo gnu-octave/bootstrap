@@ -31,7 +31,7 @@
 %     'bootnhst (..., 'bootfun', BOOTFUN)' also specifies BOOTFUN: the function
 %     calculated on the original sample and the bootstrap resamples. BOOTFUN
 %     must be either a:
-%        o function handle,
+%        o function handle or anonymous function,
 %        o string of function name, or
 %        o a cell array where the first cell is one of the above function
 %          definitions and the remaining cells are (additional) input arguments 
