@@ -718,9 +718,10 @@ try
   randtest2 (X, Y, [], []);
   X = randn (9,1);
   Y = randn (9,1);
-  pval5 = randtest2 (X, Y, false, [], 1);
-  pval6 = randtest2 (X, Y, false, [], 1);
-  pval6 = randtest2 (X, Y, false, [], []);
+  pval5 = randtest2 (X, Y, false, 5000);
+  pval5 = randtest2 (X, Y, false, [], [], 1);
+  pval6 = randtest2 (X, Y, false, [], @(X, Y) mean (X) - mean (Y), 1);
+  pval7 = randtest2 (X, Y, false, [], @(A, B) log (var (A) ./ var (B)), 1);
  
   % credint:test:1
   randn ('seed', 1);
