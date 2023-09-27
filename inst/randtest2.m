@@ -46,7 +46,7 @@
 %        o a cell array where the first cell is one of the above function
 %          definitions and the remaining cells are (additional) input arguments 
 %          to that function (other than the data arguments).
-%!       See the built-in demos for example usage with the mean or vaiance.
+%        See the built-in demos for example usage with the mean or vaiance.
 %
 %     'PVAL = randtest2 (X, Y, PAIRED, NREPS, FUNC, SEED)' initialises the
 %     Mersenne Twister random number generator using an integer SEED value so
