@@ -14,4 +14,7 @@ else
   end
 end
 
+fprintf (strcat ('Note that this is the last release of the ''statistics-bootstrap'' package.\n', ...
+                 'Newer versions of this package will be renamed ''statistics-resampling''.\n'));
+
 clear dirlist dirname

@@ -6,9 +6,9 @@ Andrew Penn (andy.c.penn@gmail.com)
 ## Package contributors
 Andrew Penn
 
-## A statistics package for Octave/Matlab providing a variety of bootstrap resampling tools
+## A statistics package for Octave/Matlab providing a variety of bootstrap and other resampling tools
 
-This package of functions can be used to estimate bias, uncertainty (standard errors and confidence intervals), prediction error, and test hypotheses (*p*-values) using bootstrap resampling. Variations of the bootstrap are included that improve the coverage and accuracy of bootstrap confidence intervals for small samples and samples with complex dependence structures.  
+This package of functions can be used to estimate bias, uncertainty (standard errors and confidence intervals), prediction error, and test hypotheses (*p*-values) using bootstrap and other resampling methods. Variations of the resampling methods are included that improve the coverage and accuracy of confidence intervals and p-values for small samples and samples with complex dependence structures.  
 
 ## Requirements and dependencies
 
@@ -51,7 +51,7 @@ To install (or test) the statistics-bootstrap package at it's existing location 
 * `bootbayes` performs Bayesian nonparametric bootstrap and calculates posterior statistics for the mean, or regression coefficients from a linear model. Two credible interval types are supported: shortest probability intervals and percentile intervals. Cluster and block resampling is supported in cases where the distribution of residuals and errors in the model have a dependence structure. See also `bootlm`.
 * `bootwild` performs wild bootstrap-t resampling and calculates confidence intervals and frequentist *p*-values for the mean, or regression coefficients from a linear model (H0 = 0). Cluster and block resampling is supported in cases where the distribution of residuals and errors in the model have a dependence structure. See also `bootlm`.
 * `bootlm` is a bootstrap function for calculating confidence intervals and *p*-values for the regression coefficients from a linear model, estimated marginal means or posthoc tests. The usage of this function is similar to `anovan` and can also return bootstrapped ANOVA statistics and prediction errors. This function uses `bootwild` or `bootbayes` to improve robustness and reduce bias in the presence of heteroscedasticity and it supports cluster/block resampling (e.g. for nested multifactorial designs).
-* `bootnhst` calculates *p*-values by bootstrap null-hypothesis significance testing (two-tailed) in simple designs comparing 2 or more (independent) samples in designs with a one-way layout. This function resamples under the null hypothesis (assuming exchangeability similar to a permutation test) and can be used to compare functions of the data other than the mean (e.g. robust estimators). The function also computes and returns multiple comparison tests that control the family-wise error rate.
+* `boot1way` calculates *p*-values by bootstrap null-hypothesis significance testing (two-tailed) in simple designs comparing 2 or more (independent) samples in designs with a one-way layout. This function resamples under the null hypothesis (assuming exchangeability similar to a randomization/permutation test) and can be used to compare functions of the data other than the mean (e.g. robust estimators). The function computes and returns multiple comparison tests that control the family-wise error rate.
 * `randtest2` is a function for performing permutation or randomization tests to compare independent or paired distributions using the Wassertstein metric. A feature of this function is that one can define the sampling units for clustered resampling in the case of nested experimental designs. 
 * `bootmode` uses bootstrap to evaluate the likely number of real modes in a distribution
 
@@ -59,4 +59,7 @@ To install (or test) the statistics-bootstrap package at it's existing location 
 At the Octave/MATLAB command prompt, type `help function-name` for more information about the function and it's input and output arguments. In Octave, you can also request demonstrations of function usage through examples by typing 'demo function-name` at the command prompt.
 
 ## Development roadmap
+
+* Proposed changes to `boot1way`: To remove omnibus test statistic and replace degrees of freedom with n numbers.  
+* Proposed changes to `bootlm`: To add the option of using type III sums of squares for the model comparisons in the ANOVA tests and prediction error estimates - currently only type I sums-of-squares are supported.  
 

@@ -169,8 +169,8 @@ try
   y = randn (20,1);
   bootstat = bootstrp (50, @mean, y);
   
-  % bootnhst 
-  % bootnhst:test:1
+  % boot1way 
+  % boot1way:test:1
   y = [111.39 110.21  89.21  76.64  95.35  90.97  62.78;
        112.93  60.36  92.29  59.54  98.93  97.03  79.65;
         85.24 109.63  64.93  75.69  95.28  57.41  75.83;
@@ -179,9 +179,9 @@ try
        1 2 3 4 5 6 7;
        1 2 3 4 5 6 7;
        1 2 3 4 5 6 7];
-  p = bootnhst (y(:),g(:),'ref',1,'nboot',[1000,0],'DisplayOpt',false);
-  p = bootnhst (y(:),g(:),'nboot',[1000,0],'DisplayOpt',false);
-  % bootnhst:test:2
+  p = boot1way (y(:),g(:),'ref',1,'nboot',[999,0],'DisplayOpt',false);
+  p = boot1way (y(:),g(:),'nboot',[999,0],'DisplayOpt',false);
+  % boot1way:test:2
   y = [54       43
        23       34 
        45       65
@@ -194,9 +194,9 @@ try
        'male' 'female'
        'male' 'female'
        'male' 'female'};
-  p = bootnhst (y(:),g(:),'ref','male','nboot',[1000,0],'DisplayOpt',false);
-  p = bootnhst (y(:),g(:),'nboot',[1000,0],'DisplayOpt',false);
-  % bootnhst:test:3
+  p = boot1way (y(:),g(:),'ref','male','nboot',[999,0],'DisplayOpt',false);
+  p = boot1way (y(:),g(:),'nboot',[999,0],'DisplayOpt',false);
+  % boot1way:test:3
   y = [54  87  45
        23  98  39
        45  64  51
@@ -209,13 +209,13 @@ try
         1   2   3
         1   2   3
         1   2   3];
-  p = bootnhst (y(:),g(:),'nboot',[1000,0],'DisplayOpt',false);
-  p = bootnhst (y(:),g(:),'bootfun',@(y)std(y,1),'DisplayOpt',false);
-  p = bootnhst (y(:),g(:),'bootfun',{@std,1},'DisplayOpt',false);
-  % bootnhst:test:4
+  p = boot1way (y(:),g(:),'nboot',[999,0],'DisplayOpt',false);
+  p = boot1way (y(:),g(:),'bootfun',@(y)std(y,1),'DisplayOpt',false);
+  p = boot1way (y(:),g(:),'bootfun',{@std,1},'DisplayOpt',false);
+  % boot1way:test:4
   Y = randn (20, 2); g = [zeros(10, 1); ones(10, 1)];
   func = @(M) cor (M(:,1), M(:,2));
-  p = bootnhst (Y, g, 'bootfun', func, 'DisplayOpt', false);
+  p = boot1way (Y, g, 'bootfun', func, 'DisplayOpt', false);
 
   % bootmode
   % bootmode:test:1
