@@ -60,6 +60,6 @@ At the Octave/MATLAB command prompt, type `help function-name` for more informat
 
 ## Development roadmap
 
-* Proposed changes to `boot1way`: To remove omnibus test statistic and replace degrees of freedom with n numbers.  
-* Proposed changes to `bootlm`: To add the option of using type III sums of squares for the model comparisons in the ANOVA tests and prediction error estimates - currently only type I sums-of-squares are supported.  
+
+* We plan to rename the package to `statistics-resampling` to reflect the fact that this package also has functions that include forms of resampling that are not bootstrap (e.g. randomization)
 

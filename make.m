@@ -42,20 +42,23 @@ try
                                    'Answer (1 or 2): ']), 's');
         end
         if isempty(retval)
-          retval = 2;
+          retval = '2';
         end
         if (strcmpi (retval,'1'))
           copyfile (sprintf (repmat ('%s',1,3), binary_paths{~cellfun (@isempty, arch_idx)}, 'boot.', mexext),...
                     sprintf (repmat ('%s',1,6), '.', filesep, 'inst', filesep, 'boot.', mexext), 'f');
           copyfile (sprintf (repmat ('%s',1,3), binary_paths{~cellfun (@isempty, arch_idx)}, 'smoothmedian.', mexext),... 
                     sprintf (repmat ('%s',1,8), '.', filesep, 'inst', filesep, 'param', filesep, 'smoothmedian.', mexext), 'f');
+          % Perform basic tests
+          % If tests fail, try compiling source code instead
+          clear boot smoothmedian
+          boot (1, 1)
+          smoothmedian (1)
           binary = true;
         else
-          binary = false;
           error ('Break from try-catch statement')
         end
       else
-        disp('No precompiled binaries are available for this architecture.');
         binary = false;
       end
   case 'B'
@@ -73,6 +76,7 @@ if binary
   fprintf('\n%s%s%s%s%s', '.', filesep, binary_paths{~cellfun(@isempty,arch_idx)}, 'boot.', mexext);
   fprintf('\n%s%s%s%s%s', '.', filesep, binary_paths{~cellfun(@isempty,arch_idx)}, 'smoothmedian.', mexext);
 else
+  disp('Either you chose to compile the source code, or none of the binaries are suitable.');
   disp('Attempting to compile the source code...');
   if isoctave
     try
