@@ -640,7 +640,7 @@ function [STATS, BOOTSTAT, AOVSTAT, PRED_ERR] = bootlm (Y, GROUP, varargin)
               contr_sum_to_zero (i) = true;
             end
             % Check whether contrasts are orthogonal
-            if (any (abs (reshape (corr (CONTRASTS{i}) - ...
+            if (any (abs (reshape (cov2corr (cov (CONTRASTS{i})) - ...
                                      eye (size (CONTRASTS{i}, 2)), [], 1)) ...
                                      > eps ('single')))
               warning (sprintf ( ...
@@ -1512,6 +1512,19 @@ function C = contr_treatment (N)
   % Ideal for unordered predictors, with comparison to a reference level
   % The first predictor level is the reference level
   C =  cat (1, zeros (1, N - 1), eye (N - 1));
+
+end
+
+%--------------------------------------------------------------------------
+
+% FUNCTION TO CONVERT CORRELATION MATRIX FROM VARIANCE-COVARIANCE MATRIX
+
+function R = cov2corr (vcov)
+
+   % Convert covariance matrix to correlation matrix
+   se = sqrt (diag (vcov));
+   R = vcov ./ (se * se');
+   R = (R + R') / 2; % This step ensures that the matrix is positive definite
 
 end
 

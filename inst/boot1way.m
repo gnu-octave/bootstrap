@@ -572,7 +572,7 @@ function [pval, c, stats] = boot1way (data, group, varargin)
     else
       fprintf (' Multiple comparison method:%s \n', ...
                ' Single-step maxT procedure based on Dunnett');
-      fprintf (' Reference group used for comparisons: %u (%s) \n',
+      fprintf (' Reference group used for comparisons: %u (%s) \n', ...
                gk(ref), gnames{ref});
     end
     if (size (c,1) >= 1)

@@ -1006,7 +1006,7 @@ function PX = ExpandProbs (P, DF, LOO)
   % Create required distribution functions
   stdnormcdf = @(X) 0.5 * (1 + erf (X / sqrt (2)));
   stdnorminv = @(P) sqrt (2) * erfinv (2 * P - 1);
-  if (exist ('betaincinv', 'file'))
+  if ((exist ('betaincinv', 'builtin')) || (exist ('betaincinv', 'file')))
     studinv = @(P, DF) sign (P - 0.5) * ...
                 sqrt ( DF ./ betaincinv (2 * min (P, 1 - P), DF / 2, 0.5) - DF);
   else

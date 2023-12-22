@@ -348,7 +348,7 @@ end
 
 %--------------------------------------------------------------------------
 
-%% FUNCTION TO FIT THE LINEAR MODEL
+% FUNCTION TO FIT THE LINEAR MODEL
 
 function S = lmfit (X, y, ucov, clusters, L, ISOCTAVE)
 
@@ -391,7 +391,7 @@ end
 
 %--------------------------------------------------------------------------
 
-%% FUNCTION TO COMPUTE FALSE POSITIVE RISK (FPR)
+% FUNCTION TO COMPUTE FALSE POSITIVE RISK (FPR)
 
 function fpr = pval2fpr (p)
 
@@ -420,7 +420,7 @@ end
 
 %--------------------------------------------------------------------------
 
-%% FUNCTION TO PRINT OUTPUT
+% FUNCTION TO PRINT OUTPUT
 
 function print_output (stats, nboot, alpha, p, L, method)
 

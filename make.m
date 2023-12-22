@@ -52,8 +52,8 @@ try
           % Perform basic tests
           % If tests fail, try compiling source code instead
           clear boot smoothmedian
-          boot (1, 1)
-          smoothmedian (1)
+          boot (1, 1);
+          smoothmedian (1);
           binary = true;
         else
           error ('Break from try-catch statement')
@@ -76,7 +76,7 @@ if binary
   fprintf('\n%s%s%s%s%s', '.', filesep, binary_paths{~cellfun(@isempty,arch_idx)}, 'boot.', mexext);
   fprintf('\n%s%s%s%s%s', '.', filesep, binary_paths{~cellfun(@isempty,arch_idx)}, 'smoothmedian.', mexext);
 else
-  disp('Either you chose to compile the source code, or none of the binaries are suitable.');
+  disp('Either you chose to compile from source, or no binaries are suitable.');
   disp('Attempting to compile the source code...');
   if isoctave
     try

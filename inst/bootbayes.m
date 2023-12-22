@@ -315,7 +315,18 @@ function [stats, bootstat] = bootbayes (Y, X, dep, nboot, prob, prior, seed, ...
     if (ISOCTAVE)
       r = randg (prior, N, nboot);
     else
-      r = gamrnd (prior, 1, N, nboot);
+      if ((exist ('gammaincinv', 'builtin')) || ...
+          (exist ('gammaincinv', 'file')))
+        r = gammaincinv (rand (N, nboot), prior); % Fast
+      else
+        % Earlier versions of Matlab do not have gammaincinv
+        % Instead, use functions from the Statistics and Machine Learning Toolbox
+        try 
+          r = gaminv (rand (N, nboot), prior, 1); % Fast
+        catch
+          r = gamrnd (prior, 1, N, nboot); % Slow 
+        end
+      end
     end
   else
     % Haldane prior
@@ -366,7 +377,7 @@ end
 
 %--------------------------------------------------------------------------
 
-%% FUNCTION TO FIT THE LINEAR MODEL
+% FUNCTION TO FIT THE LINEAR MODEL
 
 function param = lmfit (X, y, W, L)
 
@@ -391,7 +402,7 @@ end
 
 %--------------------------------------------------------------------------
 
-%% FUNCTION TO PRINT OUTPUT
+% FUNCTION TO PRINT OUTPUT
 
 function print_output (stats, nboot, prob, prior, p, L, method, intercept_only)
 
