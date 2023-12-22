@@ -1454,7 +1454,7 @@ end
 
 %--------------------------------------------------------------------------
 
-% BUILT IN CONTRAST CODING FUNCTIONS
+% BUILT-IN CONTRAST CODING FUNCTIONS
 
 function C = contr_simple (N)
 
@@ -1517,7 +1517,7 @@ end
 
 %--------------------------------------------------------------------------
 
-% FUNCTION TO CONVERT CORRELATION MATRIX FROM VARIANCE-COVARIANCE MATRIX
+% FUNCTION TO CONVERT VARIANCE-COVARIANCE MATRIX TO CORRELATION MATRIX
 
 function R = cov2corr (vcov)
 
