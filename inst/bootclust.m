@@ -94,7 +94,7 @@
 %
 %  REQUIREMENTS:
 %    The function file boot.m (or better boot.mex) and bootcdf, which are
-%    distributed with the statistics-bootstrap package.
+%    distributed with the statistics-resampling package.
 %
 %  BIBLIOGRAPHY:
 %  [1] Hesterberg, Tim (2014), What Teachers Should Know about the 

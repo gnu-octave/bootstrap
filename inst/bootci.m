@@ -591,7 +591,7 @@ end
 %! ## -------------------|--------|--------|--------|-------|
 %! ## parametric - exact |  118.4 |  305.2 |  186.8 |  2.52 |
 %! 
-%! ## Calculations using the 'statistics-bootstrap' package for Octave/Matlab
+%! ## Calculations using the 'statistics-resampling' package for Octave/Matlab
 %! ##
 %! ## A = [48 36 20 29 42 42 20 42 22 41 45 14 6 ...
 %! ##      0 33 28 34 4 32 24 47 41 24 26 30 41].';
@@ -604,7 +604,7 @@ end
 %! ## ci6 = bootci (19999,{{@var,1},A},'alpha',0.1,'type','cal', ...
 %! ##                                              'nbootcal',499,'seed',1);
 %! ##
-%! ## Summary of results from 'statistics-bootstrap' package for Octave/Matlab
+%! ## Summary of results from 'statistics-resampling' package for Octave/Matlab
 %! ##
 %! ## method             |   0.05 |   0.95 | length | shape |  
 %! ## -------------------|--------|--------|--------|-------|

@@ -1,14 +1,14 @@
-name: statistics-bootstrap
-version: 5.4.3
-date: 2023-12-22
+name: statistics-resampling
+version: 5.4.4
+date: 2023-12-24
 author: Andrew Penn <andy.c.penn@gmail.com>
 maintainer: Andrew Penn <andy.c.penn@gmail.com>
-title: A statistics package with a variety of bootstrap resampling tools
+title: A statistics package with a variety of resampling tools
 categories: package
 Description: This package of functions can be used to estimate
  bias, uncertainty (standard errors and confidence intervals), 
- prediction error, and test hypotheses (p-values) using bootstrap
- resampling. Variations of the bootstrap are included that improve
+ prediction error, and test hypotheses (p-values) using resampling
+ methods. Variations of the bootstrap are included that improve
  the coverage and accuracy of bootstrap confidence intervals for
  small samples and samples with complex dependence structures.
 License: GPLv3+

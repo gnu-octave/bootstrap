@@ -108,7 +108,7 @@
 %
 %  REQUIREMENTS:
 %    The function file boot.m (or better boot.mex) and bootcdf, which are
-%    distributed with the statistics-bootstrap package.
+%    distributed with the statistics-resampling package.
 %
 %  DETAILS:
 %    For a DATA sample with n rows, bootknife resampling involves creating
@@ -1170,14 +1170,14 @@ end
 %! ## ci4  - percentile (resample)          |   47.7 |  191.8 |  144.1 |  1.39 |
 %! ## ci5  - expanded percentile (resample) |   41.1 |  209.0 |  167.9 |  1.51 |
 %!
-%! ## Calculations using the 'statistics-bootstrap' package for Octave/Matlab
+%! ## Calculations using the 'statistics-resampling' package for Octave/Matlab
 %! ##
 %! ## x = [3 5 7 18 43 85 91 98 100 130 230 487]';
 %! ## boot (1,1,false,1); ci3 = bootknife (x, 19999, @mean, [.025,.975]);
 %! ## boot (1,1,false,1); ci5 = bootknife (x, 19999, @mean, 0.05);
 %! ## boot (1,1,false,1); ci6 = bootknife (x, [19999,499], @mean, [.025,.975]);
 %! ##
-%! ## Confidence intervals from 'statistics-bootstrap' package for Octave/Matlab
+%! ## Confidence intervals from 'statistics-resampling' package for Octave/Matlab
 %! ##
 %! ## method                                |  0.025 |  0.975 | length | shape |
 %! ## --------------------------------------|--------|--------|--------|-------|
@@ -1303,7 +1303,7 @@ end
 %! ## -----------------------------------|----------|---------|----------------|
 %! ## parametric - exact                 |   171.53 |   -6.86 |         178.40 |
 %!
-%! ## Calculations using the 'statistics-bootstrap' package for Octave/Matlab
+%! ## Calculations using the 'statistics-resampling' package for Octave/Matlab
 %! ##
 %! ## A = [48 36 20 29 42 42 20 42 22 41 45 14 6 ...
 %! ##      0 33 28 34 4 32 24 47 41 24 26 30 41].';
@@ -1312,7 +1312,7 @@ end
 %! ## boot (1,1,false,1); ci6a = bootknife (A,[19999,499],{@var,1},0.1);
 %! ## boot (1,1,false,1); ci6b = bootknife (A,[19999,499],{@var,1},[0.05,0.95]);
 %! ##
-%! ## Confidence intervals from 'statistics-bootstrap' package for Octave/Matlab
+%! ## Confidence intervals from 'statistics-resampling' package for Octave/Matlab
 %! ##
 %! ## method                                |   0.05 |   0.95 | length | shape |
 %! ## --------------------------------------|--------|--------|--------|-------|
@@ -1348,11 +1348,11 @@ end
 %! ## parametric - exact                 |   171.53 |   -6.86 |         178.40 |
 %!
 %! ## The equivalent methods for constructing bootstrap intervals in the 'boot'
-%! ## and 'bootstrap' packages (in R) and the statistics-bootstrap package (in
+%! ## and 'bootstrap' packages (in R) and the statistics-resampling package (in
 %! ## Octave/Matlab) produce intervals with very similar end points, length and
-%! ## shape. However, all intervals calculated using the 'statistics-bootstrap'
+%! ## shape. However, all intervals calculated using the 'statistics-resampling'
 %! ## package are slightly longer than the equivalent intervals calculated in
-%! ## R because the 'statistics-bootstrap' package uses bootknife resampling.
+%! ## R because the 'statistics-resampling' package uses bootknife resampling.
 %! ## The scale of the sampling distribution for small samples is approximated
 %! ## better by bootknife (rather than bootstrap) resampling. 
 

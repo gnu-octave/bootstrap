@@ -1,4 +1,4 @@
-# statistics-bootstrap package
+# statistics-resampling package
 
 ## Package maintainer
 Andrew Penn (andy.c.penn@gmail.com)
@@ -19,7 +19,7 @@ Core functions in this package are known to be compatible with versions of Octav
  
 ## Installation
  
-To install (or test) the statistics-bootstrap package at it's existing location in either Octave or Matlab, follow these steps: 
+To install (or test) the statistics-resampling package at it's existing location in either Octave or Matlab, follow these steps: 
  
  * Download the package. If it is a compressed file, decompress it.
  * Open Octave or Matlab command prompt.
@@ -31,13 +31,13 @@ To install (or test) the statistics-bootstrap package at it's existing location 
  
  Alternatively, users of more recent versions of Octave can install the package automatically with the following command:
  
- `pkg install "https://github.com/gnu-octave/statistics-bootstrap/archive/refs/heads/master.zip"`
+ `pkg install "https://github.com/gnu-octave/statistics-resampling/archive/refs/heads/master.zip"`
  
  The package can be loaded on demand in Octave with the following commmand:
  
- `pkg load statistics-bootstrap`
+ `pkg load statistics-resampling`
  
- In Octave, you can find out basic information about the package by typing: `pkg describe -verbose statistics-bootstrap`  
+ In Octave, you can find out basic information about the package by typing: `pkg describe -verbose statistics-resampling`  
 
 ## Usage
 
@@ -60,6 +60,4 @@ At the Octave/MATLAB command prompt, type `help function-name` for more informat
 
 ## Development roadmap
 
-
-* We plan to rename the package to `statistics-resampling` to reflect the fact that this package also has functions that include forms of resampling that are not bootstrap (e.g. randomization)
 

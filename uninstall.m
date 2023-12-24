@@ -24,7 +24,7 @@ if isoctave
   else
     error('~/.octaverc does not exist');
   end
-  comment = regexptranslate ('escape', '% Load statistics-bootstrap package');
+  comment = regexptranslate ('escape', '% Load statistics-resampling package');
   S = regexprep(S,['\r\n\r\n',comment],'');
   for i=1:n
     S = regexprep(S,strcat('\r\n',...
@@ -48,7 +48,7 @@ end
 
 
 % Notify user that uninstall is complete
-disp ('This statistics-bootstrap package has been uninstalled from this location')
+disp ('This statistics-resampling package has been uninstalled from this location')
 
 % Clean up
 clear info isoctave dirlist S comment i ii octaverc fid n msg
