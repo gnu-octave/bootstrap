@@ -334,8 +334,8 @@
 %       - 'estimate': The value of the estimates
 %       - 'CI_lower': The lower bound(s) of the confidence/credible interval(s)
 %       - 'CI_upper': The upper bound(s) of the confidence/credible interval(s)
-%       - 'pval': The p-value(s) for the hypothesis that the estimate(s) = 0
-%       - 'fpr': The false positive risk 
+%       - 'pval': The p-value(s) for the hypothesis that the estimate(s) == 0
+%       - 'fpr': The minimum false positive risk (FPR) for each p-value
 %       - 'N': The number of independnet sampling units used to compute CIs
 %       - 'prior': The prior used for Bayesian bootstrap
 %       - 'levels': A cell array with the levels of each predictor.
@@ -343,9 +343,10 @@
 %
 %          Note that the p-values returned are truncated at the resolution
 %          limit determined by the number of bootstrap replicates, specifically 
-%          1 / (NBOOT + 1). The following fields are only returned when
-%          'estimate' corresponds to the model regression coefficients:
-%          'levels' and 'contrasts'.
+%          1 / (NBOOT + 1). Values for the minumum false positive risk are
+%          computed using the Sellke-Berger approach. The following fields are
+%          only returned when 'estimate' corresponds to model regression
+%          coefficients: 'levels' and 'contrasts'.
 %
 %     '[STATS, BOOTSTAT] = bootlm (...)' also returns a P x NBOOT matrix of
 %     bootstrap statistics for the estimated parameters, where P is the number
@@ -364,6 +365,7 @@
 %       - 'MS': Mean-squares
 %       - 'F': F-Statistic
 %       - 'PVAL': p-values
+%       - 'FPR': The minimum false positive risk for each p-value
 %       - 'SSE': Sum-of-Squared Error
 %       - 'DFE': Degrees of Freedom for Error
 %       - 'MSE': Mean Squared Error
@@ -1049,6 +1051,8 @@ function [STATS, BOOTSTAT, AOVSTAT, PRED_ERR] = bootlm (Y, GROUP, varargin)
                                             L, ISOCTAVE);
               % Control the type 1 error rate across multiple comparisons
               STATS.pval = holm (STATS.pval);
+              % Update minimum false positive risk after multiple comparisons
+              STATS.fpr = pval2fpr (STATS.pval);
               % Clean-up
               STATS = rmfield (STATS, {'std_err', 'tstat', 'sse'});
               STATS.prior = [];
@@ -1718,6 +1722,35 @@ end
 
 %--------------------------------------------------------------------------
 
+% FUNCTION TO COMPUTE MINIMUM FALSE POSITIVE RISK (FPR)
+
+function fpr = pval2fpr (p)
+
+  % Subfunction to compute minimum false positive risk. These are calculated
+  % from a Bayes factor based on the sampling distributions of the p-value and
+  % that H0 and H1 have equal prior probabilities. This is called the Sellke-
+  % Berger approach.
+  % 
+  % References:
+  %  Held and Ott (2018) On p-Values and Bayes Factors. 
+  %    Annu. Rev. of Stat. Appl. 5:393-419
+  %  David Colquhoun (2019) The False Positive Risk: A Proposal 
+  %    Concerning What to Do About p-Values, The American Statistician, 
+  %    73:sup1, 192-201, DOI: 10.1080/00031305.2018.1529622 
+
+  % Calculate minimum Bayes Factor (P(H0) / P(H1)) by the Sellke-Berger method 
+  logp = min (log (p), -1);
+  minBF = exp (1 + logp + log (-logp));
+
+  % Calculate the false-positive risk from the minumum Bayes Factor
+  L10 = 1 ./ minBF;      % Convert to Maximum Likelihood ratio L10 (P(H1)/P(H0))
+  fpr = max (0, 1 ./ (1 + L10));  % Calculate minimum false positive risk 
+  fpr(isnan(p)) = NaN; 
+
+end
+
+%--------------------------------------------------------------------------
+
 % FUNCTION TO PERFORM ANOVA
 
 function AOVSTAT = bootanova (Y, X, DF, DFE, DEP, NBOOT, ALPHA, SEED, ...
@@ -1780,10 +1813,13 @@ function AOVSTAT = bootanova (Y, X, DF, DFE, DEP, NBOOT, ALPHA, SEED, ...
     end
   end
 
+  % Compute minimum false positive risk
+  FPR = pval2fpr (PVAL);
+
   % Prepare output
   AOVSTAT = struct ('MODEL', [], 'SS', SS, 'DF', DF(2:end), 'MS', MS, 'F', ...
-                     F, 'PVAL', PVAL, 'SSE', SSE{end}, 'DFE', DFE, ...
-                    'MSE', MSE);
+                     F, 'PVAL', PVAL, 'FPR', FPR, 'SSE', SSE{end}, ...
+                    'DFE', DFE, 'MSE', MSE);
 
 end
 
@@ -2239,9 +2275,7 @@ end
 
 %!demo
 %!
-%! ## Unbalanced one-way design with custom, orthogonal contrasts. The
-%! ## statistics relating to the contrasts are shown in the table of model
-%! ## parameters, and can be retrieved from the STATS.coeffs output. Data from
+%! ## Unbalanced one-way design with custom, orthogonal contrasts. Data from
 %! ## www.uvm.edu/~statdhtx/StatPages/Unequal-ns/Unequal_n%27s_contrasts.html
 %!
 %! dv =  [ 8.706 10.362 11.552  6.941 10.983 10.092  6.421 14.943 15.931 ...
@@ -2756,9 +2790,9 @@ end
 %! assert (stats.pval(1), 0.02381212481394462, 1e-09);
 %! assert (stats.pval(2), 0.009547350172112052, 1e-09);
 %! assert (stats.pval(3), 0.1541408530918242, 1e-09);
-%! assert (stats.fpr(1), 0.1254120362272493, 1e-09);
-%! assert (stats.fpr(2), 0.04738586302975815, 1e-09);
-%! assert (stats.fpr(3), 0.4392984660114189, 1e-09);
+%! assert (stats.fpr(1), 0.1947984337990365, 1e-09);
+%! assert (stats.fpr(2), 0.1077143325366211, 1e-09);
+%! assert (stats.fpr(3), 0.4392984660114188, 1e-09);
 
 %!test
 %!

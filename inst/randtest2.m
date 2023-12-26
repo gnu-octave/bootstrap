@@ -6,7 +6,8 @@
 % -- Function File: PVAL = randtest2 (X, Y, PAIRED, NREPS, FUNC, SEED)
 % -- Function File: PVAL = randtest2 ([X, GX], [Y, GY], ...)
 % -- Function File: [PVAL, STAT] = randtest (...)
-% -- Function File: [PVAL, STAT, PERMSTATS] = randtest (...)
+% -- Function File: [PVAL, STAT, FPR] = randtest (...)
+% -- Function File: [PVAL, STAT, FPR, PERMSTAT] = randtest (...)
 %
 %     'PVAL = randtest2 (X, Y)' performs a randomization (a.k.a. permutation)
 %     test to ascertain whether data samples X and Y come from populations with
@@ -67,8 +68,12 @@
 %
 %     '[PVAL, STAT] = randtest2 (...)' also returns the test statistic.
 %
-%     '[PVAL, STAT, PERMSTATS] = randtest2 (...)' also returns the statistics
-%     of the permutation distribution.
+%     '[PVAL, STAT, FPR] = randtest2 (...)' also returns the minimum false
+%     positive risk (FPR) calculated for the p-value, computed using the
+%     Sellke-Berger approach.
+%
+%     '[PVAL, STAT, FPR, PERMSTAT] = randtest2 (...)' also returns the
+%     statistics of the permutation distribution.
 %
 %  Bibliography:
 %  [1] Dowd (2020) A New ECDF Two-Sample Test Statistic. arXiv.
@@ -93,7 +98,7 @@
 %  You should have received a copy of the GNU General Public License
 %  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-function [pval, stat, STATS] = randtest2 (x, y, paired, nreps, func, seed)
+function [pval, stat, fpr, STATS] = randtest2 (x, y, paired, nreps, func, seed)
 
   % Check if we are running Octave or Matlab
   info = ver; 
@@ -128,7 +133,7 @@ function [pval, stat, STATS] = randtest2 (x, y, paired, nreps, func, seed)
   if (nargin > 6)
     error ('randtest2: Too many input arguments')
   end
-  if (nargout > 3)
+  if (nargout > 4)
     error ('randtest2: Too many output arguments')
   end
   
@@ -332,6 +337,10 @@ function [pval, stat, STATS] = randtest2 (x, y, paired, nreps, func, seed)
   else
     pval = interp1 (x, P, abs (stat), 'linear', res_lim);
   end
+  if (nargout > 2)
+    % Compute minimum false positive risk
+    fpr = pval2fpr (pval);
+  end
 
 end
 
@@ -396,6 +405,35 @@ function [U, IA, IC] = unique_stable (A, varargin)
     IC = sum (cell2mat (arrayfun (@(i) i * (all (bsxfun (@eq, A, U(i,:)), ...
                         2)), (1:n), 'UniformOutput', false)), 2);
   end
+
+end
+
+%--------------------------------------------------------------------------
+
+% FUNCTION TO COMPUTE MINIMUM FALSE POSITIVE RISK (FPR)
+
+function fpr = pval2fpr (p)
+
+  % Subfunction to compute minimum false positive risk. These are calculated
+  % from a Bayes factor based on the sampling distributions of the p-value and
+  % that H0 and H1 have equal prior probabilities. This is called the Sellke-
+  % Berger approach.
+  % 
+  % References:
+  %  Held and Ott (2018) On p-Values and Bayes Factors. 
+  %    Annu. Rev. of Stat. Appl. 5:393-419
+  %  David Colquhoun (2019) The False Positive Risk: A Proposal 
+  %    Concerning What to Do About p-Values, The American Statistician, 
+  %    73:sup1, 192-201, DOI: 10.1080/00031305.2018.1529622 
+
+  % Calculate minimum Bayes Factor (P(H0) / P(H1)) by the Sellke-Berger method 
+  logp = min (log (p), -1);
+  minBF = exp (1 + logp + log (-logp));
+
+  % Calculate the false-positive risk from the minumum Bayes Factor
+  L10 = 1 ./ minBF;      % Convert to Maximum Likelihood ratio L10 (P(H1)/P(H0))
+  fpr = max (0, 1 ./ (1 + L10));  % Calculate minimum false positive risk 
+  fpr(isnan(p)) = NaN; 
 
 end
 

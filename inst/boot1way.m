@@ -80,15 +80,16 @@
 %
 %     '[PVAL, C] = boot1way (DATA, GROUP, ...)' also returns a 9 column matrix
 %     that summarises multiple comparison test results. The columns of C are:
-%       - column 1: test GROUP number
-%       - column 2: reference GROUP number
-%       - column 3: value of BOOTFUN evaluated for the test GROUP
-%       - column 4: value of BOOTFUN evaluated for the reference GROUP
-%       - column 5: the difference between the groups (column 3 minus column 4)
-%       - column 6: t-ratio
-%       - column 7: multiplicity-adjusted p-value
-%       - column 8: LOWER bound of the 100*(1-ALPHA)% bootstrap-t CI
-%       - column 9: UPPER bound of the 100*(1-ALPHA)% bootstrap-t CI
+%       - column 1:  test GROUP number
+%       - column 2:  reference GROUP number
+%       - column 3:  value of BOOTFUN evaluated for the test GROUP
+%       - column 4:  value of BOOTFUN evaluated for the reference GROUP
+%       - column 5:  the difference between the groups (column 3 minus column 4)
+%       - column 6:  LOWER bound of the 100*(1-ALPHA)% bootstrap-t CI
+%       - column 7:  UPPER bound of the 100*(1-ALPHA)% bootstrap-t CI
+%       - column 8:  t-ratio
+%       - column 9:  multiplicity-adjusted p-value
+%       - column 10: minimum false positive risk for the p-value
 %
 %     '[PVAL, C, STATS] = boot1way (DATA, GROUP, ...)' also returns a structure 
 %     containing additional statistics. The stats structure contains the 
@@ -100,11 +101,13 @@
 %       ref      - index of the reference group
 %       groups   - group index and BOOTFUN for each group with sample size,
 %                  standard error and CI, which start to overlap at a
-%                  multiplicity adjusted p-value of approximately 0.05
+%                  multiplicity-adjusted p-value of approximately 0.05
 %       Var      - weighted mean (pooled) sampling variance
-%       nboot    - number of bootstrap resamples
+%       nboot    - number of bootstrap resamples (1st and 2nd resampling layers)
 %       alpha    - two-tailed significance level for the CI reported in C.
-%       bootstat - test statistic computed for each bootstrap resample 
+%
+%     '[PVAL, C, STATS, BOOTSTAT] = boot1way (DATA, GROUP, ...)' also returns
+%     the maximum test statistic computed for each bootstrap resample
 %
 %     '[...] = boot1way (..., 'display', DISPLAYOPT)' a logical value (true 
 %      or false) used to specify whether to display the results and plot the
@@ -115,7 +118,7 @@
 %        New York, NY: Chapman & Hall
 %
 %  boot1way (version 2023.10.04)
-%  Bootstrap Null Hypothesis Significance Test
+%  Bootstrap tests for comparing independent groups in a one-way layout
 %  Author: Andrew Charles Penn
 %  https://www.researchgate.net/profile/Andrew_Penn/
 %
@@ -134,7 +137,7 @@
 %  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-function [pval, c, stats] = boot1way (data, group, varargin)
+function [pval, c, stats, Q] = boot1way (data, group, varargin)
 
   % Evaluate the number of function arguments
   if (nargin < 2)
@@ -149,7 +152,7 @@ function [pval, c, stats] = boot1way (data, group, varargin)
   % Check if running in Octave (else assume Matlab)
   info = ver; 
   ISOCTAVE = any (ismember ({info.Name}, 'Octave'));
-  
+
   % Apply defaults
   bootfun = 'mean';
   nboot = [999,99];
@@ -268,8 +271,8 @@ function [pval, c, stats] = boot1way (data, group, varargin)
   if (~ isempty (ref) && strcmpi (ref,'pairwise'))
     ref = [];
   end
-  if (nargout > 3)
-    error ('boot1way: Only supports up to 3 output arguments')
+  if (nargout > 4)
+    error ('boot1way: Only supports up to 4 output arguments')
   end
   if (~ islogical (DisplayOpt) || (numel (DisplayOpt) > 1))
     error ('boot1way: The value DISPLAYOPT must be a logical scalar value')
@@ -485,26 +488,27 @@ function [pval, c, stats] = boot1way (data, group, varargin)
     ridx = (M(:,1) == 0);
     M(ridx, :) = [];
     n = size (M, 1);
-    c = zeros (n, 9);
+    c = zeros (n, 10);
     c(:,1:2) = M;
     for i = 1:n
       c(i,3) = theta(c(i,1));
       c(i,4) = theta(c(i,2));
       c(i,5) = c(i,3) - c(i,4);
       SED = sqrt (Var * (w(c(i,1)) + w(c(i,2))));
-      c(i,6) = c(i,5) / SED;
-      if (c(i,6) < Q(1))
-        c(i,7) = interp1 (Q, P, abs (c(i,6)), 'linear', 1);
+      c(i,6) = c(i,5) - SED * interp1 (F, Q, 1 - alpha, 'linear', max (Q));
+      c(i,7) = c(i,5) + SED * interp1 (F, Q, 1 - alpha, 'linear', max (Q));
+      c(i,8) = c(i,5) / SED;
+      if (c(i,8) < Q(1))
+        c(i,9) = interp1 (Q, P, abs (c(i,8)), 'linear', 1);
       else
-        c(i,7) = interp1 (Q, P, abs (c(i,6)), 'linear', res_lim);
+        c(i,9) = interp1 (Q, P, abs (c(i,8)), 'linear', res_lim);
       end
-      c(i,8) = c(i,5) - SED * interp1 (F, Q, 1 - alpha, 'linear', max (Q));
-      c(i,9) = c(i,5) + SED * interp1 (F, Q, 1 - alpha, 'linear', max (Q));
     end
+    c(:,10) = pval2fpr (c(:,9));
   else
     % Single-step maxT procedure for treatment vs control comparisons is
     % a resampling version of Dunnett's test
-    c = zeros (k, 9);
+    c = zeros (k, 10);
     c(:,2) = ref;
     c(:,4) = theta (ref);
     for j = 1:k
@@ -512,20 +516,21 @@ function [pval, c, stats] = boot1way (data, group, varargin)
       c(j,3) = theta(c(j,1));
       c(j,5) = c(j,3) - c(j,4); 
       SED = sqrt (Var * (w(c(j,1)) + w(c(j,2))));
-      c(j,6) = c(j,5) / SED;
-      if (c(j,6) < Q(1))
-        c(j,7) = interp1 (Q, P, abs (c(j,6)), 'linear', 1);
+      c(j,6) = c(j,5) - SED * interp1 (F, Q, 1 - alpha, 'linear', max (Q));
+      c(j,7) = c(j,5) + SED * interp1 (F, Q, 1 - alpha, 'linear', max (Q));
+      c(j,8) = c(j,5) / SED;
+      if (c(j,8) < Q(1))
+        c(j,9) = interp1 (Q, P, abs (c(j,8)), 'linear', 1);
       else
-        c(j,7) = interp1 (Q, P, abs (c(j,6)), 'linear', res_lim);
+        c(j,9) = interp1 (Q, P, abs (c(j,8)), 'linear', res_lim);
       end
-      c(j,8) = c(j,5) - SED * interp1 (F, Q, 1 - alpha, 'linear', max (Q));
-      c(j,9) = c(j,5) + SED * interp1 (F, Q, 1 - alpha, 'linear', max (Q));
     end
+    c(:,10) = pval2fpr (c(:,9));
     c(ref,:) = [];
   end
 
   % Assign the calculated p-values to the return value
-  pval = c(:,7);
+  pval = c(:,9);
 
   % Prepare stats output structure
   stats = struct;
@@ -544,11 +549,10 @@ function [pval, c, stats] = boot1way (data, group, varargin)
   stats.Var = Var;
   stats.nboot = nboot;
   stats.alpha = alpha;
-  stats.bootstat = Q;
 
   % Print output and plot graph with confidence intervals if no output
   % arguments are requested
-  cols = [1,2,5,6,7]; % columns in c that we want to print data for
+  cols = [1,2,5,8,9]; % columns in c that we want to print data for
   if ((nargout == 0) || (DisplayOpt == true))
     if (~ iscellstr (gnames))
       gnames = cellstr (num2str (gnames));
@@ -586,20 +590,20 @@ function [pval, c, stats] = boot1way (data, group, varargin)
         for i = 1:n
           tmp = num2cell (c(i, cols));
           tmp{end} = round (tmp{end} * 1000);
-          if (c(i,7) <= 0.001)
+          if (c(i,9) <= 0.001)
             tmp(end) = [];
             fprintf (cat (2, '| %10u | %10u | %10u | %#+10.4g | %+10.2f |', ...
                              '    <.001 |***\n'), i, tmp{:});
-          elseif (c(i,7) > 0.999)
+          elseif (c(i,9) > 0.999)
             tmp(end) = [];
             fprintf (cat (2, '| %10u | %10u | %10u | %#+10.4g | %+10.2f |', ...
                              '    1.000 |\n'), i, tmp{:});
           else
             fprintf (cat (2, '| %10u | %10u | %10u | %#+10.4g | %+10.2f |', ...
                              '     .%03u |'), i, tmp{:});
-            if (c(i,7) < 0.01)
+            if (c(i,9) < 0.01)
               fprintf ('**\n')
-            elseif (c(i,7) < 0.05)
+            elseif (c(i,9) < 0.05)
               fprintf ('*\n')
             else
               fprintf ('\n')
@@ -610,20 +614,20 @@ function [pval, c, stats] = boot1way (data, group, varargin)
         for j = 1:k-1
           tmp = num2cell (c(j, cols));
           tmp{end} = round (tmp{end} * 1000);
-          if (c(j,7) <= 0.001)
+          if (c(j,9) <= 0.001)
             tmp(end) = [];
             fprintf (cat (2, '| %10u | %10u | %10u | %#+10.4g | %+10.2f |', ...
                              '    <.001 |***\n'), j, tmp{:});
-          elseif (c(j,7) > 0.999)
+          elseif (c(j,9) > 0.999)
             tmp(end) = [];
             fprintf (cat (2, '| %10u | %10u | %10u | %#+10.4g | %+10.2f |', ...
                              '    1.000 |\n'), j, tmp{:});
           else
             fprintf (cat (2, '| %10u | %10u | %10u | %#+10.4g | %+10.2f |', ...
                              '     .%03u |'), j, tmp{:});
-            if (c(j,7) < 0.01)
+            if (c(j,9) < 0.01)
               fprintf ('**\n')
-            elseif (c(j,7) < 0.05)
+            elseif (c(j,9) < 0.05)
               fprintf ('*\n')
             else
               fprintf ('\n')
@@ -652,16 +656,16 @@ function [pval, c, stats] = boot1way (data, group, varargin)
     ylim ([0.5, nc + 0.5]);            % Set y-axis limits
     hold on
     for i = 1 : nc
-      if (c(i,7) < 0.05)
+      if (c(i,9) < 0.05)
         % Plot marker for the difference estimate
         plot (c(i, 5), i, 'or', 'MarkerFaceColor', 'r');
         % Plot line for each confidence interval
-        plot ([c(i, 8), c(i, 9)], i * ones (2, 1), 'r-');
+        plot ([c(i, 6), c(i, 7)], i * ones (2, 1), 'r-');
       else
         % Plot marker for the difference estimate
         plot (c(i,5), i, 'ob', 'MarkerFaceColor', 'b');
         % Plot line for each confidence interval 
-        plot ([c(i,8), c(i,9)], i * ones (2, 1), 'b-');   
+        plot ([c(i,6), c(i,7)], i * ones (2, 1), 'b-');   
       end
     end
     hold off
@@ -752,6 +756,35 @@ function maxT = maxstat (Y, g, nboot, bootfun, ref, ISOCTAVE)
   end
   maxT = max(t);
   
+end
+
+%--------------------------------------------------------------------------
+
+% FUNCTION TO COMPUTE MINIMUM FALSE POSITIVE RISK (FPR)
+
+function fpr = pval2fpr (p)
+
+  % Subfunction to compute minimum false positive risk. These are calculated
+  % from a Bayes factor based on the sampling distributions of the p-value and
+  % that H0 and H1 have equal prior probabilities. This is called the Sellke-
+  % Berger approach.
+  % 
+  % References:
+  %  Held and Ott (2018) On p-Values and Bayes Factors. 
+  %    Annu. Rev. of Stat. Appl. 5:393-419
+  %  David Colquhoun (2019) The False Positive Risk: A Proposal 
+  %    Concerning What to Do About p-Values, The American Statistician, 
+  %    73:sup1, 192-201, DOI: 10.1080/00031305.2018.1529622 
+
+  % Calculate minimum Bayes Factor (P(H0) / P(H1)) by the Sellke-Berger method 
+  logp = min (log (p), -1);
+  minBF = exp (1 + logp + log (-logp));
+
+  % Calculate the false-positive risk from the minumum Bayes Factor
+  L10 = 1 ./ minBF;      % Convert to Maximum Likelihood ratio L10 (P(H1)/P(H0))
+  fpr = max (0, 1 ./ (1 + L10));  % Calculate minimum false positive risk 
+  fpr(isnan(p)) = NaN; 
+
 end
 
 %--------------------------------------------------------------------------
