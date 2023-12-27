@@ -52,9 +52,12 @@ try
           % Perform basic tests
           % If tests fail, try compiling source code instead
           clear boot smoothmedian
+          cd inst
           boot (1, 1);
+          cd param
           smoothmedian (1);
           binary = true;
+          cd ../..
         else
           error ('Break from try-catch statement')
         end
