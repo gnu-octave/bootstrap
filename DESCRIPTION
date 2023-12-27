@@ -1,6 +1,6 @@
 name: statistics-resampling
-version: 5.5.0
-date: 2023-12-26
+version: 5.5.1
+date: 2023-12-27
 author: Andrew Penn <andy.c.penn@gmail.com>
 maintainer: Andrew Penn <andy.c.penn@gmail.com>
 title: A statistics package with a variety of resampling tools
