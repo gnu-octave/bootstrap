@@ -135,6 +135,7 @@ else
 end
 if errflag
   fprintf('\nmake completed with errors. Please review the details in the errors in the above output. \n')
+  fprintf('If you now execute ''install'', .m files equivalent to the mex files will be used instead. \n')
 else
   fprintf('\n''make'' completed. Please now run the ''install'' command. \n')
 end
