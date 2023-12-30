@@ -8,14 +8,14 @@ Andrew Penn
 
 ## A statistics package for Octave/Matlab providing a variety of bootstrap and other resampling tools
 
-This package of functions can be used to estimate bias, uncertainty (standard errors and confidence intervals), prediction error, and test hypotheses (*p*-values) using bootstrap and other resampling methods. Variations of the resampling methods are included that improve the coverage and accuracy of confidence intervals and p-values for small samples and samples with complex dependence structures.  
+This package of functions can be used to estimate bias, uncertainty (standard errors and confidence intervals), prediction error, and test hypotheses (*p*-values) using bootstrap and/or randomization methods. Variations of the resampling methods are included that improve the accuracy of confidence intervals and *p*-values for small samples and samples with complex dependence structures.  
 
 ## Requirements and dependencies
 
 Core functions in this package are known to be compatible with versions of Octave v4.4.0+ and Matlab v7.4.0+. Some features of this package have specific dependencies:
 
  * All parallel computing options require either the parallel package (in Octave) or the Parallel Computing Matlab Toolbox (in Matlab).  
- * The optional jackknife functionality in `bootnhst` requires the Statistics package (in Octave) or the Statistics and Machine Learning Toolbox (in Matlab).  
+ * The optional jackknife functionality in `boot1way` requires the Statistics package (in Octave) or the Statistics and Machine Learning Toolbox (in Matlab).  
  
 ## Installation
  
@@ -56,7 +56,7 @@ To install (or test) the statistics-resampling package at it's existing location
 * `bootmode` uses bootstrap to evaluate the likely number of real modes in a distribution
 
 
-At the Octave/MATLAB command prompt, type `help function-name` for more information about the function and it's input and output arguments. In Octave, you can also request demonstrations of function usage through examples by typing 'demo function-name` at the command prompt.
+At the Octave/MATLAB command prompt, type `help function-name` for more information about the function and it's input and output arguments. In Octave, you can also request demonstrations of function usage through examples by typing `demo function-name` at the command prompt.
 
 ## Development roadmap
 
