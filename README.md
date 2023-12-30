@@ -8,7 +8,7 @@ Andrew Penn
 
 ## A statistics package for Octave/Matlab providing a variety of bootstrap and other resampling tools
 
-This package of functions can be used to estimate bias, uncertainty (standard errors and confidence intervals), prediction error, and test hypotheses (*p*-values) using bootstrap and/or randomization methods. Variations of the resampling methods are included that improve the accuracy of confidence intervals and *p*-values for small samples and samples with complex dependence structures.  
+This package of functions can be used to estimate bias, uncertainty (standard errors and confidence intervals), prediction error, and test hypotheses (*p*-values) using bootstrap and/or randomization. Variations of the resampling methods are included that improve the accuracy of confidence intervals and *p*-values for small samples and samples with complex dependence structures.  
 
 ## Requirements and dependencies
 
