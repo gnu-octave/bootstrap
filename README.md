@@ -8,7 +8,7 @@ Andrew Penn
 
 ## A statistics package for Octave/Matlab providing a variety of bootstrap and other resampling tools
 
-This package of functions can be used to estimate bias, uncertainty (standard errors and confidence intervals), prediction error, and test hypotheses (*p*-values) using bootstrap and/or randomization. Variations of the resampling methods are included that improve the accuracy of confidence intervals and *p*-values for small samples and samples with complex dependence structures.  
+The statistics-resampling package is an Octave package and Matlab toolbox that can be used to overcome a wide variety of statistics problems using non-parametric resampling methods. In particular, the functions included can be used to  estimate bias, uncertainty (standard errors and confidence intervals), prediction error, and test hypotheses (p-values) using resampling methods. Variations of the resampling methods are included that improve the accuracy of the statistics for small samples and samples with complex dependence structures. 
 
 ## Requirements and dependencies
 
@@ -21,13 +21,13 @@ Core functions in this package are known to be compatible with versions of Octav
  
 To install (or test) the statistics-resampling package at it's existing location in either Octave or Matlab, follow these steps: 
  
- * Download the package. If it is a compressed file, decompress it.
- * Open Octave or Matlab command prompt.
- * `cd` to the package directory. (The directory contains a file called 'make.m' and 'install.m')
- * Type `make` to compile the mex files from source (or use the precompiled binaries if available. If suitable precompiled binaries are not available for your platform, then Matlab/Octave will need access to a C++11 compiler. Note that if you skip the `make` step, then the package functions will still work, but some will run significantly slower.) 
- * Type `install`. The package will load now (and automatically in the future) when you start Octave/Matlab.
+ * Download the package. If it is a compressed file (.zip or .tar.gz), extract it's contents and move the package directory to the desired location.
+ * Open the Octave or Matlab command prompt.
+ * Change directory (cd) into the package folder. (The directory contains a file called 'make.m' and 'install.m', among others)
+ * Type make to compile the mex files from source (or use the precompiled binaries if available. If suitable precompiled binaries are not available for your platform, then Matlab/Octave will need access to a C++11 compiler. Note that if you skip the make step, then the package functions will still work, but some will run slower. This step is interactive so check the command window.) 
+ * Type install. The package will load now (and automatically in the future) when you start Octave/Matlab.
  
- To uninstall, `cd` to the package directory and type  `uninstall`.
+ If you want or need to uninstall the package/toolbox, change directory (cd) into the package folder and type uninstall.
  
  Alternatively, users of more recent versions of Octave can install the package automatically with the following command:
  
@@ -41,7 +41,7 @@ To install (or test) the statistics-resampling package at it's existing location
 
 ## Usage
 
-### Functions
+### Brief overview of some of the functions
 
 * `boot` returns resamples data or indices created by balanced bootstrap or bootknife resampling 
 * `bootstrp` is a function for calculating bootstrap statistics. This function has the same usage as the `bootstrp` function from Matlab's Statistics and Machine Learning toolbox.  
@@ -59,5 +59,3 @@ To install (or test) the statistics-resampling package at it's existing location
 At the Octave/MATLAB command prompt, type `help function-name` for more information about the function and it's input and output arguments. In Octave, you can also request demonstrations of function usage through examples by typing `demo function-name` at the command prompt.
 
 ## Development roadmap
-
-
