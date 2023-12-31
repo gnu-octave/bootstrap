@@ -96,7 +96,7 @@
 %  GNU General Public License for more details.
 %
 %  You should have received a copy of the GNU General Public License
-%  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+%  along with this program.  If not, see http://www.gnu.org/licenses/
 
 function [pval, stat, fpr, STATS] = randtest2 (x, y, paired, nreps, func, seed)
 
@@ -475,8 +475,7 @@ end
 %! pval = randtest2 (A, B, true, 5000)
 %!
 %! % Randomization test comparing the difference in means between two
-%! % paired or matching samples independent samples (assuming i.i.d and
-%! % exchangeability) 
+%! % independent samples (assuming i.i.d and exchangeability) 
 %! pval = randtest2 (A, B, true, 5000, @(A, B) mean (A) - mean (B))
 %!
 %! % Randomization test comparing the ratio of variances between two
