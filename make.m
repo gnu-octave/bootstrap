@@ -48,16 +48,15 @@ try
           copyfile (sprintf (repmat ('%s',1,3), binary_paths{~cellfun (@isempty, arch_idx)}, 'boot.', mexext),...
                     sprintf (repmat ('%s',1,6), '.', filesep, 'inst', filesep, 'boot.', mexext), 'f');
           copyfile (sprintf (repmat ('%s',1,3), binary_paths{~cellfun (@isempty, arch_idx)}, 'smoothmedian.', mexext),... 
-                    sprintf (repmat ('%s',1,8), '.', filesep, 'inst', filesep, 'param', filesep, 'smoothmedian.', mexext), 'f');
+                    sprintf (repmat ('%s',1,8), '.', filesep, 'inst', filesep, 'smoothmedian.', mexext), 'f');
           % Perform basic tests
           % If tests fail, try compiling source code instead
           clear boot smoothmedian
           cd inst
           boot (1, 1);
-          cd param
           smoothmedian (1);
           binary = true;
-          cd ../..
+          cd ..
         else
           error ('Break from try-catch statement')
         end
@@ -70,8 +69,6 @@ try
 catch
   binary = false;
 end
-dirlist = {'helper', 'param', 'legacy', sprintf('legacy%shelper', filesep)};
-dirname = fileparts (mfilename ('fullpath'));
 
 % Attemt to compile binaries from source code automatically if no suitable binaries can be found
 if binary
@@ -90,9 +87,8 @@ else
       disp(err.message);
       warning ('Could not compile boot.%s. Falling back to the (slower) boot.m file.',mexext)
     end
-    path_to_smoothmedian = sprintf('./inst/param/smoothmedian.%s',mexext);
     try
-      mkoctfile --mex --output ./inst/param/smoothmedian ./src/smoothmedian.cpp
+      mkoctfile --mex --output ./inst/smoothmedian ./src/smoothmedian.cpp
     catch
       errflag = true;
       err = lasterror();
@@ -124,7 +120,7 @@ else
       warning ('Could not compile boot.%s. Falling back to the (slower) boot.m file.',mexext)
     end
     try
-      mex -compatibleArrayDims -output ./inst/param/smoothmedian ./src/smoothmedian.cpp
+      mex -compatibleArrayDims -output ./inst/smoothmedian ./src/smoothmedian.cpp
     catch
       errflag = true;
       err = lasterror();
@@ -140,4 +136,4 @@ else
   fprintf('\n''make'' completed. Please now run the ''install'' command. \n')
 end
 
-clear arch arch_idx binary binary_paths comp dirlist dirname endian info isoctave maxsize
+clear arch arch_idx binary binary_paths comp endian info isoctave maxsize errflag retval

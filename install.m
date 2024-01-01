@@ -1,13 +1,9 @@
 % Basic script for local installation
 % 
 
-% Add directories to path
-copyfile ('PKG_ADD','PKG_ADD.m');
-run (fullfile(pwd,'PKG_ADD.m'));
-dirlist = cell(2,1); % dir list needs to be in increasing order of length
-dirlist{1} = fullfile (pwd,'inst','');
-dirlist{2} = fullfile (pwd,'inst','param');
-n = numel (dirlist);
+% Add inst directory to path
+inst_dir = fullfile (fileparts (mfilename ('fullpath')), 'inst');
+addpath (inst_dir)
 
 % Check if running in Octave (else assume Matlab)
 info = ver; 
@@ -24,19 +20,13 @@ if isoctave
   end 
   S = (fread (fid, '*char')).';
   comment = sprintf ('\r\n\r\n%s', '% Load statistics-resampling package');
-  if isempty(strfind(S,comment))
-    S = strcat (S, comment);
-  end
-  for i=1:n
-    if isempty(strfind(S,dirlist{i}))
-      S = strcat (S, sprintf ('\r\naddpath (''%s'', ''-end'')', dirlist{i}));
-    end
-  end
+  S = strcat (S, comment);
+  S = strcat (S, sprintf ('\r\naddpath (''%s'', ''-end'')', inst_dir));
   fseek (fid, 0);
   fputs (fid, S);
   fclose (fid);
 else
-  % Assumming install for Matlab instead
+  % Assuming install for Matlab instead
   if exist('savepath')
     savepath;
   else
@@ -49,5 +39,5 @@ end
 disp ('The statistics-resampling package has been installed at the current location ')
 
 % Clean up
-clear info isoctave dirlist S comment i ii octaverc fid n msg
-delete ('PKG_ADD.m');
+clear info isoctave S comment octaverc fid msg inst_dir
+

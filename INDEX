@@ -1,9 +1,9 @@
 statistics-resampling >> Statistical analysis using resampling methods
 Main functions
  bootknife
- bootbayes
- bootwild
  bootclust
+ bootwild
+ bootbayes
  randtest2
  bootlm
  boot1way
@@ -17,4 +17,7 @@ Utility Functions
  credint
  deffcalc
  sampszcalc
-
+Parameter functions
+ cor
+ smoothmedian
+ smoothmad

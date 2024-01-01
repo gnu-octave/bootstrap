@@ -1,9 +1,8 @@
-% Basic uninstall script 
+% Basic uninstall script for local installation
 % 
 
-copyfile ('PKG_ADD','PKG_ADD.m'); % copy to m-file for backwards compatibility
-copyfile ('PKG_DEL','PKG_DEL.m'); % copy to m-file for backwards compatibility
-run (fullfile(pwd,'PKG_ADD.m'));
+% Get inst directory
+inst_dir = fullfile (fileparts (mfilename ('fullpath')), 'inst');
 
 % Check if running in Octave (else assume Matlab)
 info = ver; 
@@ -11,12 +10,9 @@ isoctave = any (ismember ({info.Name}, 'Octave'));
 
 if isoctave
   % Uninstall for Octave
-  dirlist = cell(2,1); % dir list needs to be in decreasing order of length
-  dirlist{1} = fullfile (pwd,'inst','param');
-  dirlist{2} = fullfile (pwd,'inst','');
-  n = numel (dirlist);
+  rmpath (inst_dir)
   octaverc = '~/.octaverc';
-  if exist(octaverc,'file')
+  if (exist (octaverc,'file'))
     [fid, msg] = fopen (octaverc, 'r+t');
     S = (fread (fid, '*char')).';
     fclose(fid);
@@ -26,18 +22,14 @@ if isoctave
   end
   comment = regexptranslate ('escape', '% Load statistics-resampling package');
   S = regexprep(S,['\r\n\r\n',comment],'');
-  for i=1:n
-    S = regexprep(S,strcat('\r\n',...
-                  regexptranslate ('escape', strcat('addpath (''',dirlist{i},''', ''-end'')'))),'');
-  end
+  S = regexprep(S,strcat('\r\n',...
+                  regexptranslate ('escape', strcat('addpath (''', inst_dir, ''', ''-end'')'))),'');
   fseek (fid, 0);
   fputs (fid, S);
   fclose (fid);
-  % Unload package from current session
-  run (fullfile(pwd,'PKG_DEL.m'));
 else
   % Assumming uninstall for Matlab instead
-  run (fullfile(pwd,'PKG_DEL'));
+  rmpath (inst_dir)
   if exist('savepath')
     savepath
   else
@@ -51,6 +43,4 @@ end
 disp ('This statistics-resampling package has been uninstalled from this location')
 
 % Clean up
-clear info isoctave dirlist S comment i ii octaverc fid n msg
-delete ('PKG_ADD.m');
-delete ('PKG_DEL.m');
+clear info isoctave S comment octaverc fid msg inst_dir
