@@ -1,3 +1,6 @@
+% Computes the design effect (DEFF), which can subsequently be used to correct
+% sample size calculations using the 'sampszcalc' function.
+%
 % -- Function File: DEFF = deffcalc (BOOTSTAT, BOOTSTAT_SRS)
 %
 %     'DEFF = deff_calc (BOOTSTAT, BOOTSTAT_SRS)' computes the design effect

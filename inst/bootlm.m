@@ -1,3 +1,6 @@
+% Uses bootstrap to calculate confidence intervals (and p-values) for the
+% regression coefficients from a linear model and perform N-way ANOVA etc.
+%
 % -- Function File: bootlm (Y, GROUP)
 % -- Function File: bootlm (Y, GROUP, ..., NAME, VALUE)
 % -- Function File: bootlm (Y, GROUP, ..., 'dim', DIM)

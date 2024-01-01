@@ -1,5 +1,5 @@
 % Computes the empirical cumulative distribution function (ECDF), accounting for
-% the presence of ties.
+% the presence of ties. Useful for bootstrap statistics, which often contain ties.
 %
 % -- Function File: [x, F] = bootcdf (y)
 % -- Function File: [x, F] = bootcdf (y, trim)

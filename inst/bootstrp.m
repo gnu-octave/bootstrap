@@ -1,3 +1,6 @@
+% Balanced bootstrap resampling.
+%
+%
 % -- Function File: BOOTSTAT = bootstrp (NBOOT, BOOTFUN, D)
 % -- Function File: BOOTSTAT = bootstrp (NBOOT, BOOTFUN, D1, ..., DN)
 % -- Function File: BOOTSTAT = bootstrp (..., 'seed', SEED)

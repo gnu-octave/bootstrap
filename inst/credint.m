@@ -1,3 +1,6 @@
+% Computes credible intervals from the provided vector of posterior data values,
+% for example, obtained by bayesian bootstrap. 
+%
 % -- Function File: CI = credint (Y)
 % -- Function File: CI = credint (Y, PROB)
 %

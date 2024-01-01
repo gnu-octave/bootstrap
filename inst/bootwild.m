@@ -1,3 +1,6 @@
+% Performs wild resampling and calculates bootstrap-t confidence intervals and 
+% p-values for the mean, or the regression coefficients from a linear model.
+%
 % -- Function File: bootwild (y)
 % -- Function File: bootwild (y, X)
 % -- Function File: bootwild (y, X, CLUSTID)

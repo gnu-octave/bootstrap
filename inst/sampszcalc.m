@@ -1,5 +1,5 @@
 % Performs sample size calculations by power analysis (with optional
-% correction for the design effect)
+% correction for the design effect deviating from unity).
 %
 % -- Function File: N = sampszcalc (TESTTYPE, EFFSZ)
 % -- Function File: N = sampszcalc (TESTTYPE, EFFSZ, POW)

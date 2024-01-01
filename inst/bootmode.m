@@ -1,3 +1,6 @@
+% Uses bootstrap to evaluate the likely number of real peaks (i.e. modes)
+% in the distribution of a single set of data.
+%
 % -- Function File: H = bootmode (X, M)
 % -- Function File: H = bootmode (X, M, NBOOT)
 % -- Function File: H = bootmode (X, M, NBOOT, KERNEL)
