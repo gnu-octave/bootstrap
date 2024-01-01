@@ -16,3 +16,4 @@ Description: The statistics-resampling package is an Octave
  small samples and samples with complex dependence structures.
 License: GPLv3+
 depends: octave (>= 4.4.0)
+Url: https://github.com/gnu-octave/statistics-resampling
