@@ -1,3 +1,5 @@
+% Calculates a smoothed version of the median.
+%
 % -- Function File: M = smoothmedian (X)
 % -- Function File: M = smoothmedian (X, DIM)
 % -- Function File: M = smoothmedian (X, DIM, TOL)

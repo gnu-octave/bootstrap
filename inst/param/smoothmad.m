@@ -1,3 +1,5 @@
+% Calculates a smoothed version of the median absolute deviation (MAD).
+%
 % -- Function File: MAD = smoothmad (X)
 % -- Function File: MAD = smoothmad (X, GROUP)
 % -- Function File: MAD = smoothmad (X, GROUP, CONSTANT)

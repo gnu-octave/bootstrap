@@ -1,3 +1,6 @@
+% Vectorized function for computing Pearson's correlation coefficient (RHO)
+% for respective columns in two equal-sized matrices.
+%
 % -- Function File: RHO = cor (X, Y)
 %
 %     'RHO = cor (X, Y)' computes Pearson's correlation coefficient (RHO)

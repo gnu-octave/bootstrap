@@ -1,4 +1,4 @@
-% This script is only intended for use by the package maintainer
+% THIS SCRIPT IS ONLY INTENDED FOR USE BY THE PACKAGE MAINTAINER
 pkg load generate_html
 pkg load parallel
 pkg load statistics
