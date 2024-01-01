@@ -1,3 +1,7 @@
+% Performs Bayesian nonparametric bootstrap and calculates posterior statistics 
+% for the mean, or regression coefficients from a linear model.
+%
+%
 % -- Function File: bootbayes (Y)
 % -- Function File: bootbayes (Y, X)
 % -- Function File: bootbayes (Y, X, CLUSTID)

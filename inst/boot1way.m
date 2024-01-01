@@ -1,4 +1,7 @@
-% -- Function File: boot1way (DATA, GROUP)
+% Performs resampling under the null hypothesis and computes p-values for
+% (multiple) comparisons among 2 or more independent samples a one-way layout.
+%
+% -- Function File: boot1way (DATA, GROUP)5
 % -- Function File: boot1way (..., NAME, VALUE)
 % -- Function File: boot1way (..., 'bootfun', BOOTFUN)
 % -- Function File: boot1way (..., 'nboot', NBOOT)

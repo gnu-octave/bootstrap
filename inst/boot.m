@@ -1,3 +1,6 @@
+% This function returns resampled data or indices created by balanced bootstrap 
+% or bootknife resampling.
+%
 % -- Function File: BOOTSAM = boot (N, NBOOT)
 % -- Function File: BOOTSAM = boot (X, NBOOT)
 % -- Function File: BOOTSAM = boot (..., NBOOT, LOO)

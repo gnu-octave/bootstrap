@@ -1,3 +1,6 @@
+% Performs a permutation or randomization test to compare the distributions of 
+% two independent or paired data samples. 
+%
 % -- Function File: PVAL = randtest2 (X, Y)
 % -- Function File: PVAL = randtest2 (X, Y, PAIRED)
 % -- Function File: PVAL = randtest2 (X, Y, PAIRED, NREPS)
@@ -57,14 +60,16 @@
 %
 %     'PVAL = randtest2 ([X, GX], [Y, GY], ...)' also specifies the sampling
 %     units (i.e. clusters) using consecutive positive integers in GX and GY
-%     for X and Y respectively. If PAIRED is false, numeric identifiers in
-%     GX and GY must be unique (e.g. 1,2,3 in GX, 4,5,6 in GY). If PAIRED is
-%     true,  numeric identifiers in GX and GY must by identical (e.g. 1,2,3 in
-%     GX, 1,2,3 in GY). Note that when sampling units contain different numbers
-%     of values, function evaluations after sampling cannot be vectorized. If
-%     the parallel computing toolbox (Matlab) or package (Octave) is installed
-%     and loaded, then the function evaluations will be automatically
-%     accelerated by parallel processing on platforms with multiple processors.
+%     for X and Y respectively. Defining the sampling units has applications
+%     for clustered resampling, for example in the cases of nested experimental 
+%     designs. If PAIRED is false, numeric identifiers in GX and GY must be
+%     unique (e.g. 1,2,3 in GX, 4,5,6 in GY). If PAIRED is true, numeric
+%     identifiers in GX and GY must by identical (e.g. 1,2,3 in GX, 1,2,3 in
+%     GY). Note that when sampling units contain different numbers of values,
+%     function evaluations after sampling cannot be vectorized. If the parallel
+%     computing toolbox (Matlab) or package (Octave) is installed and loaded,
+%     then the function evaluations will be automatically accelerated by
+%     parallel processing on platforms with multiple processors.
 %
 %     '[PVAL, STAT] = randtest2 (...)' also returns the test statistic.
 %

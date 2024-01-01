@@ -43,7 +43,7 @@ To install (or test) the statistics-resampling package at it's existing location
 
 ### Brief overview of some of the functions
 
-* `boot` returns resamples data or indices created by balanced bootstrap or bootknife resampling 
+* `boot` returns resampled data or indices created by balanced bootstrap or bootknife resampling 
 * `bootstrp` is a function for calculating bootstrap statistics. This function has the same usage as the `bootstrp` function from Matlab's Statistics and Machine Learning toolbox.  
 * `bootci` is a function for calculating bootstrap confidence intervals. This function has the same usage as the `bootci` function from Matlab's Statistics and Machine Learning toolbox. Unlike Matlab's `bootci`, this function also provides the option for obtaining calibrated bootstrap confidence intervals by iterated bootstrap.
 * `bootknife` performs balanced bootknife resampling and calculates bootstrap bias, standard error and confidence intervals for any user defined-function of the data. The interval types supported are simple percentile, bias-corrected and accelerated (BCa), or calibrated percentile. This function supports iterated and stratified resampling, but not cluster resampling (see `bootclust`).

@@ -1,3 +1,6 @@
+% Performs single or double bootstrap (or bootknife) resampling and calculates
+% confidence intervals.
+%
 % -- Function File: CI = bootci (NBOOT, BOOTFUN, D)
 % -- Function File: CI = bootci (NBOOT, BOOTFUN, D1,...,DN)
 % -- Function File: CI = bootci (NBOOT, {BOOTFUN, D}, NAME, VALUE)

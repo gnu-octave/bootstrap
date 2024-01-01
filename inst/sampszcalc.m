@@ -1,10 +1,11 @@
+% Performs sample size calculations by power analysis (with optional
+% correction for the design effect)
+%
 % -- Function File: N = sampszcalc (TESTTYPE, EFFSZ)
 % -- Function File: N = sampszcalc (TESTTYPE, EFFSZ, POW)
 % -- Function File: N = sampszcalc (TESTTYPE, EFFSZ, POW, ALPHA)
 % -- Function File: N = sampszcalc (TESTTYPE, EFFSZ, POW, ALPHA, TAILS)
 % -- Function File: N = sampszcalc (TESTTYPE, EFFSZ, POW, ALPHA, TAILS, DEFF)
-%
-%      Perform sample size calculations by power analysis. 
 %
 %      'N = sampszcalc (TESTTYPE, EFFSZ)' returns the required sample size to
 %      reach the significance level (alpha) of 0.05 in a two-tailed version of

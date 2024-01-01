@@ -1,3 +1,6 @@
+% Performs balanced bootstrap (or bootknife) resampling of clustered data and 
+% calculates bootstrap bias, standard errors and confidence intervals.
+%
 % -- Function File: bootclust (DATA)
 % -- Function File: bootclust (DATA, NBOOT)
 % -- Function File: bootclust (DATA, NBOOT, BOOTFUN)

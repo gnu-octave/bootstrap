@@ -1,3 +1,6 @@
+% Performs single or double bootknife resampling and calculates bootstrap bias,
+% standard errors and confidence intervals.
+%
 % -- Function File: bootknife (DATA)
 % -- Function File: bootknife (DATA, NBOOT)
 % -- Function File: bootknife (DATA, NBOOT, BOOTFUN)
