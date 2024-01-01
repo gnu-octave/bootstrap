@@ -1,0 +1,20 @@
+statistics-resampling >> Statistical analysis using resampling methods
+Main functions
+ bootknife
+ bootbayes
+ bootwild
+ bootclust
+ randtest2
+ bootlm
+ boot1way
+ bootmode
+Cloned Matlab functions
+ bootstrp
+ bootci
+Utility Functions
+ boot
+ bootcdf
+ credint
+ deffcalc
+ sampszcalc
+
