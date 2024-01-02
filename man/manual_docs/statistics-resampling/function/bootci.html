@@ -169,6 +169,287 @@
   You should have received a copy of the GNU General Public License
   along with this program.  If not, see http://www.gnu.org/licenses/
 </pre>
+<h2>Demonstration 1</h2>
+<div class="demo">
+<p>The following code</p>
+<pre class="example">
+
+ ## Input univariate dataset
+ data = [48 36 20 29 42 42 20 42 22 41 45 14 6 ...
+         0 33 28 34 4 32 24 47 41 24 26 30 41].';
+
+ ## 95% BCa bootstrap confidence intervals for the mean
+ ci = bootci (1999, @mean, data)</pre>
+<p>Produces the following output</p>
+<pre class="example">ci =
+
+   23.825
+   34.411</pre>
+</div>
+<h2>Demonstration 2</h2>
+<div class="demo">
+<p>The following code</p>
+<pre class="example">
+
+ ## Input univariate dataset
+ data = [48 36 20 29 42 42 20 42 22 41 45 14 6 ...
+         0 33 28 34 4 32 24 47 41 24 26 30 41].';
+
+ ## 95% calibrated percentile bootstrap confidence intervals for the mean
+ ci = bootci (1999, {@mean, data}, 'type', 'cal','nbootcal',199)
+
+ ## Please be patient, the calculations will be completed soon...</pre>
+<p>Produces the following output</p>
+<pre class="example">ci =
+
+   23.462
+   34.651</pre>
+</div>
+<h2>Demonstration 3</h2>
+<div class="demo">
+<p>The following code</p>
+<pre class="example">
+
+ ## Input univariate dataset
+ data = [48 36 20 29 42 42 20 42 22 41 45 14 6 ...
+         0 33 28 34 4 32 24 47 41 24 26 30 41].';
+
+ ## 95% calibrated percentile bootstrap confidence intervals for the median
+ ## with smoothing
+ ci = bootci (1999, {@smoothmedian, data}, 'type', 'cal', 'nbootcal', 199)
+
+ ## Please be patient, the calculations will be completed soon...</pre>
+<p>Produces the following output</p>
+<pre class="example">ci =
+
+   24.811
+   36.698</pre>
+</div>
+<h2>Demonstration 4</h2>
+<div class="demo">
+<p>The following code</p>
+<pre class="example">
+
+ ## Input univariate dataset
+ data = [48 36 20 29 42 42 20 42 22 41 45 14 6 ...
+         0 33 28 34 4 32 24 47 41 24 26 30 41].';
+
+ ## 90% percentile bootstrap confidence intervals for the variance
+ ci = bootci (1999, {{@var,1}, data}, 'type', 'per', 'alpha', 0.1)</pre>
+<p>Produces the following output</p>
+<pre class="example">ci =
+
+   100.29
+   233.90</pre>
+</div>
+<h2>Demonstration 5</h2>
+<div class="demo">
+<p>The following code</p>
+<pre class="example">
+
+ ## Input univariate dataset
+ data = [48 36 20 29 42 42 20 42 22 41 45 14 6 ...
+         0 33 28 34 4 32 24 47 41 24 26 30 41].';
+
+ ## 90% BCa bootstrap confidence intervals for the variance
+ ci = bootci (1999, {{@var,1}, data}, 'type', 'bca', 'alpha', 0.1)</pre>
+<p>Produces the following output</p>
+<pre class="example">ci =
+
+   116.40
+   265.89</pre>
+</div>
+<h2>Demonstration 6</h2>
+<div class="demo">
+<p>The following code</p>
+<pre class="example">
+
+ ## Input univariate dataset
+ data = [48 36 20 29 42 42 20 42 22 41 45 14 6 ...
+         0 33 28 34 4 32 24 47 41 24 26 30 41]';
+
+ ## 90% Studentized bootstrap confidence intervals for the variance
+ ci = bootci (1999, {{@var,1}, data}, 'type', 'stud', ...
+                                              'nbootstd', 50, 'alpha', 0.1)
+
+ ## Please be patient, the calculations will be completed soon...</pre>
+<p>Produces the following output</p>
+<pre class="example">ci =
+
+   106.75
+   290.95</pre>
+</div>
+<h2>Demonstration 7</h2>
+<div class="demo">
+<p>The following code</p>
+<pre class="example">
+
+ ## Input univariate dataset
+ data = [48 36 20 29 42 42 20 42 22 41 45 14 6 ...
+         0 33 28 34 4 32 24 47 41 24 26 30 41].';
+
+ ## 90% calibrated percentile bootstrap confidence intervals for the variance
+ ci = bootci (1999, {{@var,1}, data}, 'type', 'cal', 'nbootcal', ...
+              199, 'alpha', 0.1)
+
+ ## Please be patient, the calculations will be completed soon...</pre>
+<p>Produces the following output</p>
+<pre class="example">ci =
+
+   115.81
+   278.35</pre>
+</div>
+<h2>Demonstration 8</h2>
+<div class="demo">
+<p>The following code</p>
+<pre class="example">
+
+ ## Input bivariate dataset
+ x = [2.12,4.35,3.39,2.51,4.04,5.1,3.77,3.35,4.1,3.35, ...
+      4.15,3.56, 3.39,1.88,2.56,2.96,2.49,3.03,2.66,3].';
+ y  = [2.47,4.61,5.26,3.02,6.36,5.93,3.93,4.09,4.88,3.81, ...
+       4.74,3.29,5.55,2.82,4.23,3.23,2.56,4.31,4.37,2.4].';
+
+ ## 95% BCa bootstrap confidence intervals for the correlation coefficient
+ ci = bootci (1999, @cor, x, y)
+
+ ## Please be patient, the calculations will be completed soon...</pre>
+<p>Produces the following output</p>
+<pre class="example">ci =
+
+   0.5167
+   0.8730</pre>
+</div>
+<h2>Demonstration 9</h2>
+<div class="demo">
+<p>The following code</p>
+<pre class="example">
+
+ ## Spatial Test Data from Table 14.1 of Efron and Tibshirani (1993)
+ ## An Introduction to the Bootstrap in Monographs on Statistics and Applied 
+ ## Probability 57 (Springer)
+
+ ## AIM:
+ ## To construct 90% nonparametric bootstrap confidence intervals for var(A,1)
+ ## var(A,1) = 171.5
+ ## Exact intervals based on Normal theory are [118.4, 305.2].
+
+ ## Calculations using Matlab's 'Statistics and Machine Learning toolbox'
+ ## (R2020b)
+ ##
+ ## A = [48 36 20 29 42 42 20 42 22 41 45 14 6 ...
+ ##      0 33 28 34 4 32 24 47 41 24 26 30 41].';
+ ## varfun = @(A) var(A, 1);
+ ## rng('default'); % For reproducibility
+ ## rng('default'); ci1 = bootci (19999,{varfun,A},'alpha',0.1,'type','norm');
+ ## rng('default'); ci2 = bootci (19999,{varfun,A},'alpha',0.1,'type','per');
+ ## rng('default'); ci4 = bootci (19999,{varfun,A},'alpha',0.1,'type','bca');
+ ## rng('default'); ci5 = bootci (19999,{varfun,A},'alpha',0.1,'type','stud');
+ ##
+ ## Summary of results from Matlab's 'Statistics and Machine Learning toolbox'
+ ## (R2020b)
+ ##
+ ## method             |   0.05 |   0.95 | length | shape |  
+ ## -------------------|--------|--------|--------|-------|
+ ## ci1 - normal       |  108.9 |  247.4 |  138.5 |  1.21 |
+ ## ci2 - percentile   |   97.6 |  235.8 |  138.2 |  0.87 |
+ ## ci4 - BCa          |  114.9 |  260.5 |  145.6 |  1.57 |*
+ ## ci5 - bootstrap-t  |   46.7 |  232.5 |  185.8 |  0.49 |** 
+ ## -------------------|--------|--------|--------|-------|
+ ## parametric - exact |  118.4 |  305.2 |  186.8 |  2.52 |
+ ##
+ ## * Bug in the fx0 subfunction of bootci
+ ## ** Bug in the bootstud subfunction of bootci
+
+ ## Calculations using the 'boot' and 'bootstrap' packages in R
+ ## 
+ ## library (boot)       # Functions from Davison and Hinkley (1997)
+ ## A <- c(48,36,20,29,42,42,20,42,22,41,45,14,6, ...
+ ##         0,33,28,34,4,32,24,47,41,24,26,30,41);
+ ## n <- length(A)
+ ##  var.fun <- function (d, i) { 
+ ##        # Function to compute the population variance
+ ##        n <- length (d); 
+ ##        return (var (d[i]) * (n - 1) / n) };
+ ##  boot.fun <- function (d, i) {
+ ##        # Compute the estimate
+ ##        t <- var.fun (d, i);
+ ##        # Compute sampling variance of the estimate using Tukey's jackknife
+ ##        n <- length (d);
+ ##        U <- empinf (data=d[i], statistic=var.fun, type="jack", stype="i");
+ ##        var.t <- sum (U^2 / (n * (n - 1)));
+ ##        return ( c(t, var.t) ) };
+ ## set.seed(1)
+ ## var.boot <- boot (data=A, statistic=boot.fun, R=19999, sim='balanced')
+ ## ci1 <- boot.ci (var.boot, conf=0.90, type="norm")
+ ## ci2 <- boot.ci (var.boot, conf=0.90, type="perc")
+ ## ci3 <- boot.ci (var.boot, conf=0.90, type="basic")
+ ## ci4 <- boot.ci (var.boot, conf=0.90, type="bca")
+ ## ci5 <- boot.ci (var.boot, conf=0.90, type="stud")
+ ##
+ ## library (bootstrap)  # Functions from Efron and Tibshirani (1993)
+ ## set.seed(1); 
+ ## ci4a <- bcanon (A, 19999, var.fun, alpha=c(0.05,0.95))
+ ## set.seed(1); 
+ ## ci5a <- boott (A, var.fun, nboott=19999, nbootsd=499, perc=c(.05,.95))
+ ##
+ ## Summary of results from 'boot' and 'bootstrap' packages in R
+ ##
+ ## method             |   0.05 |   0.95 | length | shape |  
+ ## -------------------|--------|--------|--------|-------|
+ ## ci1  - normal      |  109.6 |  246.7 |  137.1 |  1.22 |
+ ## ci2  - percentile  |   97.9 |  234.8 |  136.9 |  0.86 |
+ ## ci3  - basic       |  108.3 |  245.1 |  136.8 |  1.16 |
+ ## ci4  - BCa         |  116.0 |  260.7 |  144.7 |  1.60 |
+ ## ci4a - BCa         |  115.8 |  260.6 |  144.8 |  1.60 |
+ ## ci5  - bootstrap-t |  112.0 |  291.8 |  179.8 |  2.02 |
+ ## ci5a - bootstrap-t |  116.1 |  290.9 |  174.8 |  2.16 |
+ ## -------------------|--------|--------|--------|-------|
+ ## parametric - exact |  118.4 |  305.2 |  186.8 |  2.52 |
+ 
+ ## Calculations using the 'statistics-resampling' package for Octave/Matlab
+ ##
+ ## A = [48 36 20 29 42 42 20 42 22 41 45 14 6 ...
+ ##      0 33 28 34 4 32 24 47 41 24 26 30 41].';
+ ## ci1 = bootci (19999,{{@var,1},A},'alpha',0.1,'type','norm','seed',1);
+ ## ci2 = bootci (19999,{{@var,1},A},'alpha',0.1,'type','per','seed',1);
+ ## ci3 = bootci (19999,{{@var,1},A},'alpha',0.1,'type','basic','seed',1);
+ ## ci4 = bootci (19999,{{@var,1},A},'alpha',0.1,'type','bca','seed',1);
+ ## ci5 = bootci (19999,{{@var,1},A},'alpha',0.1,'type','stud',...
+ ##                                              'nbootstd',100,'seed',1);
+ ## ci6 = bootci (19999,{{@var,1},A},'alpha',0.1,'type','cal', ...
+ ##                                              'nbootcal',499,'seed',1);
+ ##
+ ## Summary of results from 'statistics-resampling' package for Octave/Matlab
+ ##
+ ## method             |   0.05 |   0.95 | length | shape |  
+ ## -------------------|--------|--------|--------|-------|
+ ## ci1 - normal       |  110.1 |  246.2 |  136.1 |  1.22 |
+ ## ci2 - percentile   |   98.1 |  234.7 |  136.6 |  0.86 |
+ ## ci3 - basic        |  108.4 |  245.0 |  136.1 |  1.17 |
+ ## ci4 - BCa          |  116.1 |  259.3 |  143.2 |  1.59 |
+ ## ci5 - bootstrap-t  |  114.0 |  290.3 |  176.3 |  2.07 |
+ ## ci6 - calibrated   |  115.3 |  276.4 |  161.1 |  1.87 |
+ ## -------------------|--------|--------|--------|-------|
+ ## parametric - exact |  118.4 |  305.2 |  186.8 |  2.52 |
+ ##
+ ## Simulation results for constructing 90% confidence intervals for the
+ ## variance of a population N(0,1) from 1000 random samples of size 26
+ ## (analagous to the situation above). Simulation performed using the
+ ## bootsim script with nboot of 1999.
+ ##
+ ## method               | coverage |  lower |  upper | length | shape |
+ ## ---------------------|----------|--------|--------|--------|-------|
+ ## normal               |    81.5% |   3.0% |  15.5% |   0.77 |  1.21 |
+ ## percentile           |    81.5% |   0.9% |  17.6% |   0.76 |  0.91 |
+ ## basic                |    81.1% |   2.5% |  16.4% |   0.78 |  1.09 |
+ ## BCa                  |    84.2% |   5.4% |  10.4% |   0.86 |  1.82 |
+ ## bootstrap-t          |    89.2% |   4.3% |   6.5% |   0.99 |  2.15 |
+ ## calibrated           |    87.4% |   4.2% |   8.4% |   0.91 |  2.03 |
+ ## ---------------------|----------|--------|--------|--------|-------|
+ ## parametric - exact   |    90.8% |   3.7% |   5.5% |   0.99 |  2.52 |</pre>
+<p>gives an example of how 'bootci' is used.</p>
+</div>
 
 <p>Package: <a href="../index.html">statistics-resampling</a></p>
 <script> write_footer (); </script></div>

@@ -160,6 +160,71 @@
   You should have received a copy of the GNU General Public License
   along with this program.  If not, see http://www.gnu.org/licenses/
 </pre>
+<h2>Demonstration 1</h2>
+<div class="demo">
+<p>The following code</p>
+<pre class="example">
+
+ ## Input univariate dataset
+ heights = [183, 192, 182, 183, 177, 185, 188, 188, 182, 185].';
+
+ ## 95% credible interval for the mean 
+ bootbayes(heights);
+
+ ## Please be patient, the calculations will be completed soon...</pre>
+<p>Produces the following output</p>
+<pre class="example">Summary of Bayesian bootstrap estimates of bias and precision for linear models
+*******************************************************************************
+
+Bootstrap settings: 
+ Function: sum (w .* Y)
+ Resampling method: Bayesian bootstrap
+ Prior: Symmetric Dirichlet distribution (a = 0.8)
+ Number of resamples: 1999 
+ Credible interval (CI) type: Shortest probability interval
+ Credible interval: 95%
+
+Posterior Statistics: 
+ original     bias         median       stdev       CI_lower      CI_upper
+ +184.5       -0.006251    +184.5       1.304       +182.1        +187.2</pre>
+</div>
+<h2>Demonstration 2</h2>
+<div class="demo">
+<p>The following code</p>
+<pre class="example">
+
+ ## Input bivariate dataset
+ X = [ones(43,1),...
+     [01,02,03,04,05,06,07,08,09,10,11,...
+      12,13,14,15,16,17,18,19,20,21,22,...
+      23,25,26,27,28,29,30,31,32,33,34,...
+      35,36,37,38,39,40,41,42,43,44]'];
+ y = [188.0,170.0,189.0,163.0,183.0,171.0,185.0,168.0,173.0,183.0,173.0,...
+     173.0,175.0,178.0,183.0,192.4,178.0,173.0,174.0,183.0,188.0,180.0,...
+     168.0,170.0,178.0,182.0,180.0,183.0,178.0,182.0,188.0,175.0,179.0,...
+     183.0,192.0,182.0,183.0,177.0,185.0,188.0,188.0,182.0,185.0]';
+
+ ## 95% credible interval for the regression coefficents
+ bootbayes(y,X);
+
+ ## Please be patient, the calculations will be completed soon...</pre>
+<p>Produces the following output</p>
+<pre class="example">Summary of Bayesian bootstrap estimates of bias and precision for linear models
+*******************************************************************************
+
+Bootstrap settings: 
+ Function: pinv (X' * W * X) * (X' * W * y)
+ Resampling method: Bayesian bootstrap
+ Prior: Symmetric Dirichlet distribution (a = 1)
+ Number of resamples: 1999 
+ Credible interval (CI) type: Shortest probability interval
+ Credible interval: 95%
+
+Posterior Statistics: 
+ original     bias         median       stdev       CI_lower      CI_upper
+ +175.5       -0.01753     +175.5       2.445       +170.9        +180.4    
+ +0.1904      +0.0001126   +0.1914      0.08012     +0.02804      +0.3344</pre>
+</div>
 
 <p>Package: <a href="../index.html">statistics-resampling</a></p>
 <script> write_footer (); </script></div>
