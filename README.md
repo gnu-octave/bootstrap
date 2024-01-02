@@ -1,23 +1,28 @@
-# statistics-resampling package
+## statistics-resampling package
 
-## Package maintainer
+### Package maintainer
 Andrew Penn (andy.c.penn@gmail.com)
 
-## Package contributors
+### Package contributors
 Andrew Penn
 
-## A statistics package for Octave/Matlab providing a variety of bootstrap and other resampling tools
+### Citations
+If you use this package, please include the following citation(s):
 
-The statistics-resampling package is an Octave package and Matlab toolbox that can be used to overcome a wide variety of statistics problems using non-parametric resampling methods. In particular, the functions included can be used to  estimate bias, uncertainty (standard errors and confidence intervals), prediction error, and test hypotheses (p-values). Variations of the resampling methods are included that improve the accuracy of the statistics for small samples and samples with complex dependence structures. 
+* Penn, Andrew Charles. (2020). Resampling methods for small samples or samples with complex dependence structures. *Zenodo*. [https://doi.org/10.5281/zenodo.3992392](https://doi.org/10.5281/zenodo.3992392)  
 
-## Requirements and dependencies
+### Description
+
+The statistics-resampling package is an Octave package and Matlab toolbox that can be used to overcome a wide variety of statistics problems using non-parametric resampling methods. In particular, the functions included can be used to estimate bias, uncertainty (standard errors and confidence intervals), prediction error, and test hypotheses (*p*-values). Variations of the resampling methods are included that improve the accuracy of the statistics for small samples and samples with complex dependence structures. 
+
+### Requirements and dependencies
 
 Core functions in this package are known to be compatible with versions of Octave v4.4.0+ and Matlab v7.4.0+. Some features of this package have specific dependencies:
 
  * All parallel computing options require either the parallel package (in Octave) or the Parallel Computing Matlab Toolbox (in Matlab).  
  * The optional jackknife functionality in `boot1way` requires the Statistics package (in Octave) or the Statistics and Machine Learning Toolbox (in Matlab).  
  
-## Installation
+### Installation
  
 To install (or test) the statistics-resampling package at it's existing location in either Octave or Matlab, follow these steps: 
  
@@ -39,9 +44,9 @@ To install (or test) the statistics-resampling package at it's existing location
  
  In Octave, you can find out basic information about the package by typing: `pkg describe -verbose statistics-resampling`  
 
-## Usage
+### Usage
 
-All function help and demos are documented in `manual.html`
+All help and demos are documented under 'Function Reference' in `MANUAL.html`
 
 Function help can also be requested from the Octave/MATLAB command prompt, by typing `help function-name`. 
 

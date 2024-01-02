@@ -63,8 +63,9 @@ function write_docs_left_menu (prefix)
   (`
 <div id="left-menu">
   <h3>Navigation</h3>
-  <p class="left-menu"><a class="left-menu-link" href="${prefix}/statistics-resampling/index.html">Package Information</a></p>
+  <p class="left-menu"><a class="left-menu-link" href="${prefix}/statistics-resampling/readme.html">Read me first</a></p>
   <p class="left-menu"><a class="left-menu-link" href="${prefix}/statistics-resampling/overview.html">Function Reference</a></p>
+  <p class="left-menu"><a class="left-menu-link" href="${prefix}/statistics-resampling/index.html">About this package</a></p>
 </div>
    `);
 }
