@@ -18,6 +18,6 @@ Utility Functions
  deffcalc
  sampszcalc
 Parameter functions
- cor
  smoothmedian
  smoothmad
+ cor
