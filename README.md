@@ -41,7 +41,9 @@ To install (or test) the statistics-resampling package at it's existing location
 
 ## Usage
 
-At the Octave/MATLAB command prompt, type `help function-name` for more information about the function and it's input and output arguments. In Octave, you can also request demonstrations of function usage through examples by typing `demo function-name` at the command prompt.  
-The function help and demos are also documented in `docs/manual.html`
+All function help and demos are documented in `docs/manual.html`
 
-## Development roadmap
+Function help can also be requested from the Octave/MATLAB command prompt, by typing `help function-name`. 
+
+In Octave only, you can also request the demonstrations of function usage by typing `demo function-name` at the command prompt.  
+

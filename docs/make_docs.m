@@ -20,22 +20,27 @@ generate_package_html ('statistics-resampling', 'manual_docs', myopt);
 
 % Modify the footer
 system ('sed -i '''' -e  ''s/\(.*\)index.html/\1overview.html/'' ./manual_docs/statistics-resampling/function/*.html');
+system ('sed -i '''' -e  ''s/\(.*\)index.html/\1overview.html/'' ./manual_docs/statistics-resampling/overview.html');
+system ('sed -i '''' -e  ''s/\(.*\)statistics-bootstrap/\1Function Reference.html/'' ./manual_docs/statistics-resampling/function/*.html');
+system ('sed -i '''' -e  ''s/\(.*\)statistics-bootstrap/\1Function Reference.html/'' ./manual_docs/statistics-resampling/overview.html');
 system ('sed -i '''' -e  ''/footer.js/d'' ./manual_docs/statistics-resampling/*.html');
 system ('sed -i '''' -e  ''/footer.js/d'' ./manual_docs/statistics-resampling/function/*.html');
 
-% Blank navigation pane
-system ('sed -i '''' -e  ''/fixed.js/d'' ./manual_docs/statistics-resampling/*.html');
-system ('sed -i '''' -e  ''/fixed.js/d'' ./manual_docs/statistics-resampling/function/*.html');
-
 % Delete files that are surplus to requirements
 delete ('./manual_docs/footer.js')
-delete ('./manual_docs/fixed.js')
 delete ('./manual_docs/news.png')
 delete ('./manual_docs/manual.png')
+delete ('./manual_docs/oct.png')
 
 % Replace the javascript file
 delete ('./manual_docs/javascript.js')
-copyfile ('./javascript.js','./manual_docs/javascript.js')
+delete ('./manual_docs/octave-forge.css')
+copyfile ('./templates/javascript.js','./manual_docs/javascript.js')
+copyfile ('./templates/manual.css','./manual_docs/manual.css')
+
+% Update file references
+system ('sed -i '''' -e  ''s/octave-forge.css/manual.css/g'' ./manual_docs/statistics-resampling/*.html');
+system ('sed -i '''' -e  ''s/octave-forge.css/manual.css/g'' ./manual_docs/statistics-resampling/function/*.html');
 
 % Create accessible link 
 if exist ('./manual.html', 'file')

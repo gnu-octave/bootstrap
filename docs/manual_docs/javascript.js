@@ -43,13 +43,8 @@ function write_top_menu (prefix)
   <div id="top-menu" class="menu"> 
    <table class="menu">
       <tr>
-        <td style="width: 90px;" class="menu" rowspan="2">
-          <a name="top">
-          <img src="${prefix}/oct.png" alt="Octave logo" />
-          </a>
-        </td>
-        <td class="menu" style="padding-top: 0.9em;">
-          <big class="menu">Octave Packages</big><small class="menu"> - Extra packages for GNU Octave</small>
+        <td class="menu" style="padding-top: 0em;">
+          <big class="menu">Manual</big>
         </td>
       </tr>
       <tr>
@@ -68,21 +63,8 @@ function write_docs_left_menu (prefix)
   (`
 <div id="left-menu">
   <h3>Navigation</h3>
-  <p class="left-menu"><a class="left-menu-link" href="${prefix}/operators.html">Operators and Keywords</a></p>
-  <p class="left-menu"><a class="left-menu-link" href="${prefix}/function_list.php">Function List:</a>
-  <ul class="left-menu-list">
-    <li class="left-menu-list">
-      <a  class="left-menu-link" href="${prefix}/octave/overview.html">&#187; Octave core</a>
-    </li>
-    <li class="left-menu-list">
-      <a  class="left-menu-link" href="${prefix}/functions_by_package.php">&#187; by package</a>
-    </li>
-    <li class="left-menu-list">
-      <a  class="left-menu-link" href="${prefix}/functions_by_alpha.php">&#187; alphabetical</a>
-    </li>
-  </ul>
-  </p>
-  <p class="left-menu"><a class="left-menu-link" href="${prefix}/doxygen/html">C++ API</a></p>
+  <p class="left-menu"><a class="left-menu-link" href="${prefix}/statistics-resampling/index.html">Package Information</a></p>
+  <p class="left-menu"><a class="left-menu-link" href="${prefix}/statistics-resampling/overview.html">Function Reference</a></p>
 </div>
    `);
 }

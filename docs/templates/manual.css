@@ -27,8 +27,9 @@ div.menu {
     /*background: #ff6600;*/ /* Bright orange */
 	/*background: #ea5224;*/ /* Orange */
 	/*background: #ea9024;*/ /* Puke yellow */
-	background: #729fcf;
+	/*background: #729fcf;*/ /* light blue */
 	/*background: white;*/
+    background: black;
 	color: black;
 	width: 100%;
 	/* position: fixed;*/
@@ -44,12 +45,12 @@ table.menu {
     border: none;
     /* border-style: hidden; */
     width: 100%;
-    height: 4em;
-    padding-left: 2em;
+    height: 1em;
+    padding-left: 0.5em;
     padding-right: 0em;
     padding-top: 0.5em;
     padding-bottom: 0em;
-    color: #363636;
+    color: white;
     background-color: inherit;
 }
 td.menu {
@@ -386,7 +387,7 @@ dt {
   position: fixed;
   /*position: absolute;*/
   float: left;
-  top: 4em;
+  top: 1em;
   left: 0em;
   width: 15em;
   bottom: 0em;
