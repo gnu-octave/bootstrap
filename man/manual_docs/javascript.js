@@ -38,7 +38,7 @@ function write_top_menu (prefix)
   <div id="top-menu" class="menu"> 
    <table class="menu">
       <tr>
-        <td style="width: 60px;" class="menu" rowspan="2">
+        <td style="width: 55px;" class="menu" rowspan="2">
           <a name="top">
           <img src="${prefix}/icon_48x48.png" alt="statistics-resampling logo" />
           </a>

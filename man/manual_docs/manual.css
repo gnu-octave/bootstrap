@@ -76,8 +76,8 @@ a.menu:hover {
 }
 big.menu {
   font-style: normal;
-  font-size: 120%;
-  letter-spacing: 0.1em;
+  font-size: 150%;
+  letter-spacing: 0.04em;
   line-height: 1.2em;
   font-weight: bold;
 }
