@@ -1,0 +1,176 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+ "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+  <head>
+  <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+  <meta name="date" content="2024-01-02"/>
+  <meta name="generator" content="generate_html 0.3.3" />
+  <meta name="author" content="The Octave-Forge Community" />
+  <meta name="description" content="Octave-Forge is a collection of packages   providing extra functionality for GNU Octave." />
+  <meta name="keywords" lang="en" content="Octave-Forge, Octave, extra packages" />
+  <title>Function Reference: bootci</title>
+  <link rel="stylesheet" type="text/css" href="../../manual.css" />
+  <script src="../../fixed.js" type="text/javascript"></script>
+  <script src="../../javascript.js" type="text/javascript"></script>
+  <script src="../../footer.js" type="text/javascript"></script>
+  <link rel="shortcut icon" href="../../favicon.ico" />
+  </head>
+  <body onload="javascript:fix_top_menu (); javascript:show_left_menu ();">
+  <script> write_top_menu ('../..'); </script>
+  <script> write_docs_left_menu ('../..'); </script>
+<div id="doccontent">
+
+<pre> Performs single or double bootstrap (or bootknife) resampling and calculates
+ confidence intervals.
+
+ -- Function File: CI = bootci (NBOOT, BOOTFUN, D)
+ -- Function File: CI = bootci (NBOOT, BOOTFUN, D1,...,DN)
+ -- Function File: CI = bootci (NBOOT, {BOOTFUN, D}, NAME, VALUE)
+ -- Function File: CI = bootci (NBOOT, {BOOTFUN, D1, ..., DN}, NAME, VALUE)
+ -- Function File: CI = bootci (...,'type', TYPE)
+ -- Function File: CI = bootci (...,'type', 'stud', 'nbootstd', NBOOTSTD)
+ -- Function File: CI = bootci (...,'type', 'cal', 'nbootcal', NBOOTCAL)
+ -- Function File: CI = bootci (...,'alpha', ALPHA)
+ -- Function File: CI = bootci (...,'strata', STRATA)
+ -- Function File: CI = bootci (...,'loo', LOO)
+ -- Function File: CI = bootci (...,'seed', SEED)
+ -- Function File: CI = bootci (...,'Options', PAROPT)
+ -- Function File: [CI, BOOTSTAT] = bootci (...)
+
+     'CI = bootci (NBOOT, BOOTFUN, D)' draws NBOOT bootstrap resamples from
+     the rows of a data sample D and returns 95% confidence intervals (CI) for
+     the bootstrap statistics computed by BOOTFUN [1]. BOOTFUN is a function 
+     handle (e.g. specified with @), or a string indicating the function name. 
+     The third input argument, data D (a column vector or a matrix), is used
+     as input for BOOTFUN. The bootstrap resampling method yields first-order
+     balance [2-3].
+
+     'CI = bootci (NBOOT, BOOTFUN, D1,...,DN)' is as above except that the
+     third and subsequent numeric input arguments are data vectors that are
+     used to create inputs for bootfun.
+
+     'CI = bootci (NBOOT, {BOOTFUN, D}, NAME, VALUE)' is as above but includes
+     setting optional parameters using Name-Value pairs.
+
+     'CI = bootci (NBOOT, {BOOTFUN, D1, ..., DN}, NAME, VALUE)' is as above but
+     includes setting optional parameters using NAME-VALUE pairs.
+
+     bootci can take a number of optional parameters as NAME-VALUE pairs:
+
+     'CI = bootci (..., 'alpha', ALPHA)' where ALPHA sets the lower and upper 
+     bounds of the confidence interval(s). The value of ALPHA must be between
+     0 and 1. The nominal lower and upper percentiles of the confidence
+     intervals CI are then 100*(ALPHA/2)% and 100*(1-ALPHA/2)% respectively,
+     and nominal central coverage of the intervals is 100*(1-ALPHA)%. The
+     default value of ALPHA is 0.05.
+
+     'CI = bootci (..., 'type', TYPE)' computes bootstrap confidence interval 
+     CI using one of the following methods:
+      <> 'norm' or 'normal': Using bootstrap bias and standard error [4].
+      <> 'per' or 'percentile': Percentile method [1,4].
+      <> 'basic': Basic bootstrap method [1,4].
+      <> 'bca': Bias-corrected and accelerated method [5,6] (Default).
+      <> 'stud' or 'student': Studentized bootstrap (bootstrap-t) [1,4].
+      <> 'cal': Calibrated percentile method (by double bootstrap [7]).
+       Note that when BOOTFUN is the mean, percentile, basic and bca intervals
+       are automatically expanded using Student's t-distribution in order to
+       improve coverage for small samples [8]. The bootstrap-t method includes
+       an additive correction to stabilize the variance when the sample size
+       is small [9].
+
+     'CI = bootci (..., 'type', 'stud', 'nbootstd', NBOOTSTD)' computes the
+     Studentized bootstrap confidence intervals CI, with the standard errors
+     of the bootstrap statistics estimated automatically using resampling
+     methods. NBOOTSTD is a positive integer value > 0 defining the number
+     of resamples. Standard errors are computed using NBOOTSTD bootstrap
+     resamples. The default value of NBOOTSTD is 100.
+
+     'CI = bootci (..., 'type', 'cal', 'nbootcal', NBOOTCAL)' computes the
+     calibrated percentile bootstrap confidence intervals CI, with the
+     calibrated percentiles of the bootstrap statistics estimated from NBOOTCAL
+     bootstrap data samples. NBOOTCAL is a positive integer value. The default
+     value of NBOOTCAL is 199.
+
+     'CI = bootci (..., 'strata', STRATA)' sets STRATA, which are identifiers
+     that define the grouping of the DATA rows for stratified bootstrap
+     resampling. STRATA should be a column vector or cell array with the same
+     number of rows as the DATA.
+
+     'CI = bootci (..., 'loo', LOO)' is a logical scalar that specifies whether
+     the resamples of size n should be obtained by sampling from the original
+     data (false) or from Leave-One-Out (LOO) jackknife samples (true) of the
+     data - otherwise known as bootknife resampling [10]. Default is false.
+
+     'CI = bootci (..., 'seed', SEED)' initialises the Mersenne Twister random
+     number generator using an integer SEED value so that bootci results are
+     reproducible.
+
+     'CI = bootci (..., 'Options', PAROPT)' specifies options that govern if
+     and how to perform bootstrap iterations using multiple processors (if the
+     Parallel Computing Toolbox or Octave Parallel package is available). This
+     argument is a structure with the following recognised fields:
+       <> 'UseParallel':  If true, use parallel processes to accelerate
+                          bootstrap computations on multicore machines,
+                          specifically non-vectorized function evaluations,
+                          double bootstrap resampling and jackknife function
+                          evaluations. Default is false for serial computation.
+                          In MATLAB, the default is true if a parallel pool
+                          has already been started. 
+       <> 'nproc':        nproc sets the number of parallel processes
+
+     '[CI, BOOTSTAT] = bootci (...)' also returns the bootstrap statistics
+     used to calculate the confidence intervals CI.
+   
+     '[CI, BOOTSTAT, BOOTSAM] = bootci (...)' also returns BOOTSAM, a matrix 
+     of indices from the bootstrap. Each column in BOOTSAM corresponds to one 
+     bootstrap sample and contains the row indices of the values drawn from 
+     the nonscalar data argument to create that sample.
+
+  Bibliography:
+  [1] Efron, and Tibshirani (1993) An Introduction to the
+        Bootstrap. New York, NY: Chapman & Hall
+  [2] Davison et al. (1986) Efficient Bootstrap Simulation.
+        Biometrika, 73: 555-66
+  [3] Booth, Hall and Wood (1993) Balanced Importance Resampling
+        for the Bootstrap. The Annals of Statistics. 21(1):286-298
+  [4] Davison and Hinkley (1997) Bootstrap Methods and their Application.
+        (Cambridge University Press)
+  [5] Efron (1987) Better Bootstrap Confidence Intervals. JASA, 
+        82(397): 171-185 
+  [6] Efron, and Tibshirani (1993) An Introduction to the
+        Bootstrap. New York, NY: Chapman & Hall
+  [7] Hall, Lee and Young (2000) Importance of interpolation when
+        constructing double-bootstrap confidence intervals. Journal
+        of the Royal Statistical Society. Series B. 62(3): 479-491
+  [8] Hesterberg, Tim (2014), What Teachers Should Know about the 
+        Bootstrap: Resampling in the Undergraduate Statistics Curriculum, 
+        http://arxiv.org/abs/1411.5279
+  [9] Polansky (2000) Stabilizing bootstrap-t confidence intervals
+        for small samples. Can J Stat. 28(3):501-516
+  [10] Hesterberg T.C. (2004) Unbiasing the Bootstrap—Bootknife Sampling 
+        vs. Smoothing; Proceedings of the Section on Statistics & the 
+        Environment. Alexandria, VA: American Statistical Association.
+
+  bootci (version 2023.07.04)
+  Author: Andrew Charles Penn
+  https://www.researchgate.net/profile/Andrew_Penn/
+
+  Copyright 2019 Andrew Charles Penn
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+
+  You should have received a copy of the GNU General Public License
+  along with this program.  If not, see http://www.gnu.org/licenses/
+</pre>
+
+<p>Package: <a href="../index.html">statistics-resampling</a></p>
+<script> write_footer (); </script></div>
+</body>
+</html>

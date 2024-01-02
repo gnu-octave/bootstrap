@@ -1,0 +1,68 @@
+<h1 id="statistics-resampling-package">statistics-resampling
+package</h1>
+<h2 id="package-maintainer">Package maintainer</h2>
+<p>Andrew Penn (andy.c.penn@gmail.com)</p>
+<h2 id="package-contributors">Package contributors</h2>
+<p>Andrew Penn</p>
+<h2
+id="a-statistics-package-for-octavematlab-providing-a-variety-of-bootstrap-and-other-resampling-tools">A
+statistics package for Octave/Matlab providing a variety of bootstrap
+and other resampling tools</h2>
+<p>The statistics-resampling package is an Octave package and Matlab
+toolbox that can be used to overcome a wide variety of statistics
+problems using non-parametric resampling methods. In particular, the
+functions included can be used to estimate bias, uncertainty (standard
+errors and confidence intervals), prediction error, and test hypotheses
+(p-values) using resampling methods. Variations of the resampling
+methods are included that improve the accuracy of the statistics for
+small samples and samples with complex dependence structures.</p>
+<h2 id="requirements-and-dependencies">Requirements and
+dependencies</h2>
+<p>Core functions in this package are known to be compatible with
+versions of Octave v4.4.0+ and Matlab v7.4.0+. Some features of this
+package have specific dependencies:</p>
+<ul>
+<li>All parallel computing options require either the parallel package
+(in Octave) or the Parallel Computing Matlab Toolbox (in Matlab).<br />
+</li>
+<li>The optional jackknife functionality in <code>boot1way</code>
+requires the Statistics package (in Octave) or the Statistics and
+Machine Learning Toolbox (in Matlab).</li>
+</ul>
+<h2 id="installation">Installation</h2>
+<p>To install (or test) the statistics-resampling package at it’s
+existing location in either Octave or Matlab, follow these steps:</p>
+<ul>
+<li>Download the package. If it is a compressed file (.zip or .tar.gz),
+extract it’s contents and move the package directory to the desired
+location.</li>
+<li>Open the Octave or Matlab command prompt.</li>
+<li>Change directory (cd) into the package folder. (The directory
+contains a file called ‘make.m’ and ‘install.m’, among others)</li>
+<li>Type make to compile the mex files from source (or use the
+precompiled binaries if available. If suitable precompiled binaries are
+not available for your platform, then Matlab/Octave will need access to
+a C++11 compiler. Note that if you skip the make step, then the package
+functions will still work, but some will run slower. This step is
+interactive so check the command window.)</li>
+<li>Type install. The package will load now (and automatically in the
+future) when you start Octave/Matlab.</li>
+</ul>
+<p>If you want or need to uninstall the package/toolbox, change
+directory (cd) into the package folder and type uninstall.</p>
+<p>Alternatively, users of more recent versions of Octave can install
+the package automatically with the following command:</p>
+<p><code>pkg install "https://github.com/gnu-octave/statistics-resampling/archive/refs/heads/master.zip"</code></p>
+<p>The package can be loaded on demand in Octave with the following
+commmand:</p>
+<p><code>pkg load statistics-resampling</code></p>
+<p>In Octave, you can find out basic information about the package by
+typing: <code>pkg describe -verbose statistics-resampling</code></p>
+<h2 id="usage">Usage</h2>
+<p>All function help and demos are documented in
+<code>manual.html</code></p>
+<p>Function help can also be requested from the Octave/MATLAB command
+prompt, by typing <code>help function-name</code>.</p>
+<p>In Octave only, you can also request the demonstrations of function
+usage by typing <code>demo function-name</code> at the command
+prompt.</p>

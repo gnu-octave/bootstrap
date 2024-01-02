@@ -1,0 +1,103 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+ "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+  <head>
+  <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+  <meta name="date" content="2024-01-02"/>
+  <meta name="generator" content="generate_html 0.3.3" />
+  <meta name="author" content="The Octave-Forge Community" />
+  <meta name="description" content="Octave-Forge is a collection of packages   providing extra functionality for GNU Octave." />
+  <meta name="keywords" lang="en" content="Octave-Forge, Octave, extra packages" />
+  <title>List of Functions for the 'statistics-resampling' package</title>
+  <link rel="stylesheet" type="text/css" href="../manual.css" />
+  <script src="../fixed.js" type="text/javascript"></script>
+  <script src="../javascript.js" type="text/javascript"></script>
+  <script src="../footer.js" type="text/javascript"></script>
+  <link rel="shortcut icon" href="../favicon.ico" />
+  </head>
+  <body onload="javascript:fix_top_menu (); javascript:show_left_menu ();">
+  <script> write_top_menu ('..'); </script>
+  <script> write_docs_left_menu ('..'); </script>
+<div id="doccontent">
+
+<h2 class="tbdesc">statistics-resampling</h2>
+
+  <div class="package_description">
+    The statistics-resampling package is an Octave  package and Matlab toolbox that can be used to overcome a wide  variety of statistics problems using non-parametric resampling  methods. In particular, the functions included can be used to  estimate bias, uncertainty (standard errors and confidence  intervals), prediction error, and test hypotheses (p-values)  using resampling methods. Variations of the resampling methods  are included that improve the accuracy of the statistics for  small samples and samples with complex dependence structures.
+  </div>
+
+<p>Select category:  <select name="cat" onchange="location = this.options[this.selectedIndex].value;">
+    <option value="#Main_functions">Main functions</option>
+    <option value="#Cloned_Matlab_functions">Cloned Matlab functions</option>
+    <option value="#Utility_Functions">Utility Functions</option>
+    <option value="#Parameter_functions">Parameter functions</option>
+  </select></p>
+
+  <h3 class="category"><a name="Main_functions">Main functions</a></h3>
+
+    <div class="func"><b><a href="function/bootknife.html">bootknife</a></b></div>
+    <div class="ftext"> Performs single or double bootknife resampling and calculates bootstrap bias,  standard errors and confidence intervals.</div>
+
+    <div class="func"><b><a href="function/bootclust.html">bootclust</a></b></div>
+    <div class="ftext"> Performs balanced bootstrap (or bootknife) resampling of clustered data and   calculates bootstrap bias, standard errors and confidence intervals.</div>
+
+    <div class="func"><b><a href="function/bootwild.html">bootwild</a></b></div>
+    <div class="ftext"> Performs wild bootstrap and calculates bootstrap-t confidence intervals and   p-values for the mean, or the regression coefficients from a linear model.</div>
+
+    <div class="func"><b><a href="function/bootbayes.html">bootbayes</a></b></div>
+    <div class="ftext"> Performs Bayesian nonparametric bootstrap and calculates posterior statistics   for the mean, or regression coefficients from a linear model.</div>
+
+    <div class="func"><b><a href="function/randtest2.html">randtest2</a></b></div>
+    <div class="ftext"> Performs a permutation or randomization test to compare the distributions of   two independent or paired data samples.</div>
+
+    <div class="func"><b><a href="function/bootlm.html">bootlm</a></b></div>
+    <div class="ftext"> Uses bootstrap to calculate confidence intervals (and p-values) for the  regression coefficients from a linear model and perform N-way ANOVA.</div>
+
+    <div class="func"><b><a href="function/boot1way.html">boot1way</a></b></div>
+    <div class="ftext"> Performs resampling under the null hypothesis and computes p-values for  (multiple) comparisons among independent samples in a one-way layout.</div>
+
+    <div class="func"><b><a href="function/bootmode.html">bootmode</a></b></div>
+    <div class="ftext"> Uses bootstrap to evaluate the likely number of real peaks (i.e. modes)  in the distribution of a single set of data.</div>
+
+  <h3 class="category"><a name="Cloned_Matlab_functions">Cloned Matlab functions</a></h3>
+
+    <div class="func"><b><a href="function/bootstrp.html">bootstrp</a></b></div>
+    <div class="ftext"> Balanced bootstrap resampling.</div>
+
+    <div class="func"><b><a href="function/bootci.html">bootci</a></b></div>
+    <div class="ftext"> Performs single or double bootstrap (or bootknife) resampling and calculates  confidence intervals.</div>
+
+  <h3 class="category"><a name="Utility_Functions">Utility Functions</a></h3>
+
+    <div class="func"><b><a href="function/boot.html">boot</a></b></div>
+    <div class="ftext"> This function returns resampled data or indices created by balanced bootstrap   or bootknife resampling.</div>
+
+    <div class="func"><b><a href="function/bootcdf.html">bootcdf</a></b></div>
+    <div class="ftext"> Computes the empirical cumulative distribution function (ECDF), accounting for  the presence of ties.</div>
+
+    <div class="func"><b><a href="function/credint.html">credint</a></b></div>
+    <div class="ftext"> Computes credible intervals from a vector of posterior data values, for  example, those obtained by bayesian bootstrap.</div>
+
+    <div class="func"><b><a href="function/deffcalc.html">deffcalc</a></b></div>
+    <div class="ftext"> Computes the design effect (DEFF), which can subsequently be used to correct  sample size calculations using the 'sampszcalc' function.</div>
+
+    <div class="func"><b><a href="function/sampszcalc.html">sampszcalc</a></b></div>
+    <div class="ftext"> Performs sample size calculations, with optional correction for the design  effect deviating from ideal unity.</div>
+
+  <h3 class="category"><a name="Parameter_functions">Parameter functions</a></h3>
+
+    <div class="func"><b><a href="function/smoothmedian.html">smoothmedian</a></b></div>
+    <div class="ftext"> Calculates a smoothed version of the median.</div>
+
+    <div class="func"><b><a href="function/smoothmad.html">smoothmad</a></b></div>
+    <div class="ftext"> Calculates a smoothed version of the median absolute deviation (MAD).</div>
+
+    <div class="func"><b><a href="function/cor.html">cor</a></b></div>
+    <div class="ftext"> Vectorized function for computing Pearson's correlation coefficient (RHO)  for the respective columns in two equal-sized matrices.</div>
+
+
+<p>Package: <a href="index.html">statistics-resampling</a></p>
+<script> write_footer (); </script></div>
+</body>
+</html>
+
