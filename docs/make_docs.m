@@ -12,7 +12,7 @@ myopt = get_html_options ("octave-forge");
 % Customize the options
 myopt.include_package_news = false;
 myopt.include_alpha = false;
-myopt.include_demos = false;
+myopt.include_demos = true;
 myopt.download_link = "https://gnu-octave.github.io/packages/statistics-resampling/";
 myopt.repository_link = "https://github.com/gnu-octave/statistics-resampling/tree/master";
 myopt.older_versions_download = "https://github.com/gnu-octave/statistics-resampling/releases";
