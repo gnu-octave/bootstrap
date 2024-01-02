@@ -224,7 +224,7 @@ a.alpha_table {
 #doccontent {
   position: absolute;
   float: left;
-  padding-left: 18em;
+  padding-left: 15em;
   padding-top: 1em;
   margin-top: 4.5em;
   margin-right: 4em;
@@ -390,7 +390,7 @@ dt {
   float: left;
   top: 4em;
   left: 0em;
-  width: 15em;
+  width: 12em;
   bottom: 0em;
 	
   background: #EEEEEC;
