@@ -123,6 +123,110 @@
   You should have received a copy of the GNU General Public License
   along with this program.  If not, see http://www.gnu.org/licenses/
 </pre>
+<h2>Demonstration 1</h2>
+<div class="demo">
+<p>The following code</p>
+<pre class="example">
+
+ % Mouse data from Table 2 (page 11) of Efron and Tibshirani (1993)
+ treatment = [94 197 16 38 99 141 23]';
+ control = [52 104 146 10 51 30 40 27 46]';
+
+ % Randomization test comparing the distributions of observations from two
+ % independent samples (assuming i.i.d and exchangeability) using the
+ % Wasserstein metric
+ pval = randtest2 (control, treatment, false, 5000)
+
+ % Randomization test comparing the difference in means between two
+ % independent samples (assuming i.i.d and exchangeability) 
+ pval = randtest2 (control, treatment, false, 5000, ...
+                           @(x, y) mean (x) - mean (y))
+
+ % Randomization test comparing the ratio of variances between two
+ % independent samples (assuming i.i.d and exchangeability). (Note that
+ % the log transformation is necessary to make the p-value two-tailed)
+ pval = randtest2 (control, treatment, false, 5000, ...
+                           @(x, y) log (var (y) ./ var (x)))
+</pre>
+<p>Produces the following output</p>
+<pre class="example">pval = 0.3496
+pval = 0.2842
+pval = 0.3301</pre>
+</div>
+<h2>Demonstration 2</h2>
+<div class="demo">
+<p>The following code</p>
+<pre class="example">
+
+ % Example data from: 
+ % https://www.biostat.wisc.edu/~kbroman/teaching/labstat/third/notes18.pdf
+ A = [117.3 100.1 94.5 135.5 92.9 118.9 144.8 103.9 103.8 153.6 163.1]';
+ B = [145.9 94.8 108 122.6 130.2 143.9 149.9 138.5 91.7 162.6 202.5]';
+
+ % Randomization test comparing the distributions of observations from two
+ % paired or matching samples (assuming i.i.d and exchangeability) using the
+ % Wasserstein metric
+ pval = randtest2 (A, B, true, 5000)
+
+ % Randomization test comparing the difference in means between two
+ % independent samples (assuming i.i.d and exchangeability) 
+ pval = randtest2 (A, B, true, 5000, @(A, B) mean (A) - mean (B))
+
+ % Randomization test comparing the ratio of variances between two
+ % paired or matching samples (assuming i.i.d and exchangeability). (Note
+ % that the log transformation is necessary to make the p-value two-tailed)
+ pval = randtest2 (A, B,  true, 5000, @(A, B) log (var (A) ./ var (B)))
+                           
+</pre>
+<p>Produces the following output</p>
+<pre class="example">pval = 0.1289
+pval = 0.037109
+pval = 0.5117</pre>
+</div>
+<h2>Demonstration 3</h2>
+<div class="demo">
+<p>The following code</p>
+<pre class="example">
+
+ X = [21,26,33,22,18,25,26,24,21,25,35,28,32,36,38]';
+ GX = [1,1,1,1,2,2,2,2,2,2,3,3,3,3,3]';
+ Y = [26,34,27,38,44,34,45,38,31,41,34,35,38,46]';
+ GY = [4,4,4,5,5,5,5,5,6,6,6,6,6,6]';
+
+ % Randomization test comparing the distributions of observations from two
+ % independent samples (assuming i.i.d) using the Wasserstein metric
+ pval = randtest2 (X, Y, false, 5000)
+
+ % Randomization test comparing the distributions of clustered observations
+ % from two independent samples using the Wasserstein metric
+ pval = randtest2 ([X GX], [Y GY], false, 5000)
+</pre>
+<p>Produces the following output</p>
+<pre class="example">pval = 6.4828e-04
+pval = 0.2000</pre>
+</div>
+<h2>Demonstration 4</h2>
+<div class="demo">
+<p>The following code</p>
+<pre class="example">
+
+ X = [21,26,33,22,18,25,26,24,21,25,35,28,32,36,38]';
+ GX = [1,1,1,1,2,2,2,2,2,2,3,3,3,3,3]';
+ Y = [26,34,27,38,44,34,45,38,31,41,34,35,38,46,36]';
+ GY = [1,1,1,1,2,2,2,2,2,2,3,3,3,3,3]';
+
+ % Randomization test comparing the distributions of observations from two
+ % paired or matched samples (assuming i.i.d) using the Wasserstein metric
+ pval = randtest2 (X, Y, true, 5000)
+
+ % Randomization test comparing the distributions of clustered observations
+ % from two paired or matched using the Wasserstein metric
+ pval = randtest2 ([X GX], [Y GY], true, 5000)
+</pre>
+<p>Produces the following output</p>
+<pre class="example">pval = 1.4000e-03
+pval = 0.2500</pre>
+</div>
 
 <p>Package: <a href="../overview.html">statistics-resampling</a></p>
 <script> write_footer (); </script></div>

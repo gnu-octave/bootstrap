@@ -86,6 +86,75 @@
   You should have received a copy of the GNU General Public License
   along with this program.  If not, see http://www.gnu.org/licenses/
 </pre>
+<h2>Demonstration 1</h2>
+<div class="demo">
+<p>The following code</p>
+<pre class="example">
+
+ # Input univariate dataset
+ data = [48 36 20 29 42 42 20 42 22 41 45 14 6 ...
+         0 33 28 34 4 32 24 47 41 24 26 30 41]';
+
+ # Compute 50 bootstrap statistics for the mean and calculate the bootstrap
+ # standard arror
+ bootstat = bootstrp (50, @mean, data)
+ std (bootstat)</pre>
+<p>Produces the following output</p>
+<pre class="example">bootstat =
+
+   31.077
+   26.615
+   29.731
+   29.231
+   27.885
+   28.962
+   29.231
+   28.654
+   35.615
+   27.654
+   26.462
+   30.885
+   31.731
+   29.615
+   28.308
+   29.538
+   29.923
+   30.115
+   32.538
+   28.962
+   31.385
+   25.231
+   30.154
+   26.115
+   25.231
+   25.962
+   33.654
+   33.269
+   31.154
+   34.385
+   30.962
+   30.808
+   29.192
+   29.038
+   25.769
+   30.192
+   30.231
+   28.192
+   28.808
+   31.269
+   27.692
+   28.231
+   32.346
+   31.385
+   28.500
+   31.038
+   28.192
+   33.308
+   30.231
+   28.038
+
+ans = 2.3366</pre>
+</div>
 
 <p>Package: <a href="../overview.html">statistics-resampling</a></p>
 <script> write_footer (); </script></div>
