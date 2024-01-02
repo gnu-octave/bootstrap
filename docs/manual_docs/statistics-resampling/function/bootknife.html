@@ -1,0 +1,206 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+ "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+  <head>
+  <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+  <meta name="date" content="2024-01-02"/>
+  <meta name="generator" content="generate_html 0.3.3" />
+  <meta name="author" content="The Octave-Forge Community" />
+  <meta name="description" content="Octave-Forge is a collection of packages   providing extra functionality for GNU Octave." />
+  <meta name="keywords" lang="en" content="Octave-Forge, Octave, extra packages" />
+  <title>Function Reference: bootknife</title>
+  <link rel="stylesheet" type="text/css" href="../../octave-forge.css" />
+  <script src="../../javascript.js" type="text/javascript"></script>
+  <link rel="shortcut icon" href="../../favicon.ico" />
+  </head>
+  <body onload="javascript:fix_top_menu (); javascript:show_left_menu ();">
+  <script> write_top_menu ('../..'); </script>
+  <script> write_docs_left_menu ('../..'); </script>
+<div id="doccontent">
+
+<pre> Performs single or double bootknife resampling and calculates bootstrap bias,
+ standard errors and confidence intervals.
+
+ -- Function File: bootknife (DATA)
+ -- Function File: bootknife (DATA, NBOOT)
+ -- Function File: bootknife (DATA, NBOOT, BOOTFUN)
+ -- Function File: bootknife ({D1, D2, ...}, NBOOT, BOOTFUN)
+ -- Function File: bootknife (DATA, NBOOT, {BOOTFUN, ...})
+ -- Function File: bootknife (DATA, NBOOT, BOOTFUN, ALPHA)
+ -- Function File: bootknife (DATA, NBOOT, BOOTFUN, ALPHA, STRATA)
+ -- Function File: bootknife (DATA, NBOOT, BOOTFUN, ALPHA, STRATA, NPROC)
+ -- Function File: bootknife (DATA, NBOOT, BOOTFUN, ALPHA, STRATA, NPROC, BOOTSAM)
+ -- Function File: STATS = bootknife (...)
+ -- Function File: [STATS, BOOTSTAT] = bootknife (...)
+ -- Function File: [STATS, BOOTSTAT] = bootknife (...)
+ -- Function File: [STATS, BOOTSTAT, BOOTSAM] = bootknife (...)
+
+     'bootknife (DATA)' uses a variant of nonparametric bootstrap, called
+     bootknife [1], to generate 1999 resamples from the rows of the DATA
+     (column vector or matrix) and compute their means and display the
+     following statistics:
+        - original: the original estimate(s) calculated by BOOTFUN and the DATA
+        - bias: bootstrap bias of the estimate(s)
+        - std_error: bootstrap estandard error of the estimate(s)
+        - CI_lower: lower bound(s) of the 95% bootstrap confidence interval
+        - CI_upper: upper bound(s) of the 95% bootstrap confidence interval
+
+     'bootknife (DATA, NBOOT)' specifies the number of bootstrap resamples,
+     where NBOOT can be either:
+       <> scalar: A positive integer specifying the number of bootstrap
+                  resamples [2,3] for single bootstrap, or
+       <> vector: A pair of positive integers defining the number of outer and
+                  inner (nested) resamples for iterated (a.k.a. double)
+                  bootstrap and coverage calibration [3-6].
+        The default value of NBOOT is the scalar: 1999.
+
+     'bootknife (DATA, NBOOT, BOOTFUN)' also specifies BOOTFUN: the function
+     calculated on the original sample and the bootstrap resamples. BOOTFUN
+     must be either a:
+       <> function handle or anonymous function,
+       <> string of function name, or
+       <> a cell array where the first cell is one of the above function
+          definitions and the remaining cells are (additional) input arguments 
+          to that function (other than the data arguments).
+        In all cases BOOTFUN must take DATA for the initial input argument(s).
+        BOOTFUN can return a scalar or any multidimensional numeric variable,
+        but the output will be reshaped as a column vector. BOOTFUN must
+        calculate a statistic representative of the finite data sample; it
+        should NOT be an estimate of a population parameter (unless they are
+        one of the same). If BOOTFUN is @mean or 'mean', narrowness bias of
+        the confidence intervals for single bootstrap are reduced by expanding
+        the probabilities of the percentiles using Student's t-distribution
+        [7]. By default, BOOTFUN is @mean.
+
+     'bootknife ({D1, D2, ...}, NBOOT, BOOTFUN)' resamples from the rows of D1,
+     D2 etc and the resamples are passed to BOOTFUN as multiple data input
+     arguments. All data vectors and matrices (D1, D2 etc) must have the same
+     number of rows.
+
+     'bootknife (DATA, NBOOT, BOOTFUN, ALPHA)', where ALPHA is numeric and
+     sets the lower and upper bounds of the confidence interval(s). The
+     value(s) of ALPHA must be between 0 and 1. ALPHA can either be:
+       <> scalar: To set the (nominal) central coverage of equal-tailed
+                  percentile confidence intervals to 100*(1-ALPHA)%. The
+                  intervals are either simple percentiles for single
+                  bootstrap, or percentiles with calibrated central coverage 
+                  for double bootstrap.
+       <> vector: A pair of probabilities defining the (nominal) lower and
+                  upper percentiles of the confidence interval(s) as
+                  100*(ALPHA(1))% and 100*(ALPHA(2))% respectively. The
+                  percentiles are either bias-corrected and accelerated (BCa)
+                  for single bootstrap, or calibrated for double bootstrap.
+        Note that the type of coverage calibration (i.e. equal-tailed or
+        not) depends on whether NBOOT is a scalar or a vector. Confidence
+        intervals are not calculated when the value(s) of ALPHA is/are NaN.
+        The default value of ALPHA is the vector: [.025, .975], for a 95%
+        confidence interval.
+
+     'bootknife (DATA, NBOOT, BOOTFUN, ALPHA, STRATA)' also sets STRATA, which
+     are identifiers that define the grouping of the DATA rows for stratified*
+     bootstrap resampling. STRATA should be a column vector or cell array with
+     the same number of rows as the DATA.
+
+     'bootknife (DATA, NBOOT, BOOTFUN, ALPHA, STRATA, NPROC)' also sets the
+     number of parallel processes to use to accelerate computations of double
+     bootstrap, jackknife and non-vectorized function evaluations on multicore
+     machines. This feature requires the Parallel package (in Octave), or the
+     Parallel Computing Toolbox (in Matlab).
+
+     'bootknife (DATA, NBOOT, BOOTFUN, ALPHA, STRATA, NPROC, BOOTSAM)' uses
+     bootstrap resampling indices provided in BOOTSAM. The BOOTSAM should be a
+     matrix with the same number of rows as the data. When BOOTSAM is provided,
+     the first element of NBOOT is ignored.
+
+     'STATS = bootknife (...)' returns a structure with the following fields
+     (defined above): original, bias, std_error, CI_lower, CI_upper.
+
+     '[STATS, BOOTSTAT] = bootknife (...)' returns BOOTSTAT, a vector or matrix
+     of bootstrap statistics calculated over the (first, or outer layer of)
+     bootstrap resamples.
+
+     '[STATS, BOOTSTAT, BOOTSAM] = bootknife (...)' also returns BOOTSAM, the
+     matrix of indices (32-bit integers) used for the (first, or outer
+     layer of) bootstrap resampling. Each column in BOOTSAM corresponds
+     to one bootstrap resample and contains the row indices of the values
+     drawn from the nonscalar DATA argument to create that sample.
+
+  * For cluster resampling, use the 'bootclust' function instead. Clustered
+    or serially dependent data can also be analysed by the 'bootwild' and
+    'bootbayes' functions.
+
+  REQUIREMENTS:
+    The function file boot.m (or better boot.mex) and bootcdf, which are
+    distributed with the statistics-resampling package.
+
+  DETAILS:
+    For a DATA sample with n rows, bootknife resampling involves creating
+  leave-one-out jackknife samples of size n - 1 and then drawing resamples
+  of size n with replacement from the jackknife samples [1]. In contrast
+  to bootstrap, bootknife resampling produces unbiased estimates of the
+  standard error of BOOTFUN when n is small. The resampling of DATA rows
+  is balanced in order to reduce Monte Carlo error, particularly for
+  estimating the bias of BOOTFUN [8,9].
+    For single bootstrap, the confidence intervals are constructed from the
+  quantiles of a kernel density estimate of the bootstrap statistics
+  (with shrinkage correction). 
+    For double bootstrap, calibration is used to improve the accuracy of the 
+  bias and standard error, and coverage of the confidence intervals [2-6]. 
+  Double bootstrap confidence intervals are constructed from the empirical
+  distribution of the bootstrap statistics by linear interpolation. 
+    This function has no input arguments for specifying a random seed. However,
+  one can reset the random number generator with a SEED value using following
+  command:
+
+     boot (1, 1, false, SEED);
+
+    Please see the help documentation for the function 'boot' for more
+  information about setting the seed for parallel execution of bootknife.
+
+  BIBLIOGRAPHY:
+  [1] Hesterberg T.C. (2004) Unbiasing the Bootstrap—Bootknife Sampling 
+        vs. Smoothing; Proceedings of the Section on Statistics & the 
+        Environment. Alexandria, VA: American Statistical Association.
+  [2] Davison A.C. and Hinkley D.V (1997) Bootstrap Methods And Their 
+        Application. (Cambridge University Press)
+  [3] Efron, and Tibshirani (1993) An Introduction to the Bootstrap. 
+        New York, NY: Chapman & Hall
+  [4] Booth J. and Presnell B. (1998) Allocation of Monte Carlo Resources for
+        the Iterated Bootstrap. J. Comput. Graph. Stat. 7(1):92-112 
+  [5] Lee and Young (1999) The effect of Monte Carlo approximation on coverage
+        error of double-bootstrap con®dence intervals. J R Statist Soc B. 
+        61:353-366.
+  [6] Hall, Lee and Young (2000) Importance of interpolation when
+        constructing double-bootstrap confidence intervals. Journal
+        of the Royal Statistical Society. Series B. 62(3): 479-491
+  [7] Hesterberg, Tim (2014), What Teachers Should Know about the 
+        Bootstrap: Resampling in the Undergraduate Statistics Curriculum, 
+        http://arxiv.org/abs/1411.5279
+  [8] Davison et al. (1986) Efficient Bootstrap Simulation.
+        Biometrika, 73: 555-66
+  [9] Gleason, J.R. (1988) Algorithms for Balanced Bootstrap Simulations. 
+        The American Statistician. Vol. 42, No. 4 pp. 263-266
+
+  bootknife (version 2023.07.04)
+  Author: Andrew Charles Penn
+  https://www.researchgate.net/profile/Andrew_Penn/
+
+  Copyright 2019 Andrew Charles Penn
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+
+  You should have received a copy of the GNU General Public License
+  along with this program.  If not, see http://www.gnu.org/licenses/
+</pre>
+
+<p>Package: <a href="../overview.html">statistics-resampling</a></p>
+<script> write_footer (); </script></div>
+</body>
+</html>
