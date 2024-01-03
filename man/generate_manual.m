@@ -68,6 +68,8 @@ system ('sed -i '''' -e  ''s/Function Reference/\<a href\=\"overview\.html\"\>Fu
 % Update meta information in all html files
 system ('sed -i '''' -e  ''s/\<meta name\=\"author\" content\=\"\(.*\)\" \/\>/\<meta name\=\"author\" content\=\"Andrew Penn\" \/\>/'' ./man/manual_docs/statistics-resampling/*.html');
 system ('sed -i '''' -e  ''s/\<meta name\=\"author\" content\=\"\(.*\)\" \/\>/\<meta name\=\"author\" content\=\"Andrew Penn\" \/\>/'' ./man/manual_docs/statistics-resampling/function/*.html');
+system ('sed -i '''' -e  ''s/\<title\>\(.*\)\<\/title\>/<title\>The statistics\-resampling package manual\<\/title\>/'' ./man/manual_docs/statistics-resampling/*.html');
+system ('sed -i '''' -e  ''s/\<title\>\(.*\)\<\/title\>/<title\>The statistics\-resampling package manual\<\/title\>/'' ./man/manual_docs/statistics-resampling/function/*.html');
 system ('sed -i '''' -e  ''s/\<meta name\=\"description\" content\=\"\(.*\)\" \/\>/\<meta name\=\"description\" content\=\"A package for statistical analysis using resampling methods.\" \/\>/'' ./man/manual_docs/statistics-resampling/*.html');
 system ('sed -i '''' -e  ''s/\<meta name\=\"description\" content\=\"\(.*\)\" \/\>/\<meta name\=\"description\" content\=\"A package for statistical analysis using resampling methods.\" \/\>/'' ./man/manual_docs/statistics-resampling/function/*.html');
 system ('sed -i '''' -e  ''s/\<meta name\=\"keywords\" lang\=\"en\" content\=\"\(.*\)\" \/\>/\<meta name\=\"keywords\" lang\=\"en\" content\=\"GNU Octave Packages, MATLAB Toolbox\" \/\>/'' ./man/manual_docs/statistics-resampling/*.html');
