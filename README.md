@@ -27,10 +27,10 @@ Core functions in this package are known to be compatible with versions of Octav
 To install (or test) the statistics-resampling package at it's existing location in either Octave or Matlab, follow these steps: 
  
  * Download the package. If it is a compressed file (.zip or .tar.gz), extract it's contents and move the package directory to the desired location.
- * Open the Octave or Matlab command prompt.
+ * Open Octave or Matlab (command prompt).
  * Change directory (cd) into the package folder. (The directory contains a file called 'make.m' and 'install.m', among others)
- * Type make to compile the mex files from source (or use the precompiled binaries if available. If suitable precompiled binaries are not available for your platform, then Matlab/Octave will need access to a C++11 compiler. Note that if you skip the make step, then the package functions will still work, but some will run slower. This step is interactive so check the command window.) 
- * Type install. The package will load now (and automatically in the future) when you start Octave/Matlab.
+ * Type `make` to compile the mex files from source (or use the precompiled binaries if available. If suitable precompiled binaries are not available for your platform, then Matlab/Octave will need access to a C++11 compiler. Note that if you skip the make step, then the package functions will still work, but some will run slower. This step is interactive so check the command window.) 
+ * Type `install`. The package will load now (and automatically in the future) when you start Octave/Matlab.
  
  If you want or need to uninstall the package/toolbox, change directory (cd) into the package folder and type uninstall.
  
@@ -46,7 +46,7 @@ To install (or test) the statistics-resampling package at it's existing location
 
 ### Usage
 
-All help and demos are documented under 'Function Reference' in `MANUAL.html`
+All help and demos are documented under 'overview.html' in the 'manual' folder. For the best experience navigating the manual, please ensure that javascript is enabled in your browser. 
 
 Function help can also be requested from the Octave/MATLAB command prompt, by typing `help function-name`. 
 

@@ -17,9 +17,9 @@ myopt = get_html_options ("octave-forge");
 % Customize the options
 myopt.include_package_news = false;
 myopt.include_alpha = false;
-myopt.include_demos = true;
+myopt.include_demos = false;
 myopt.download_link = "https://gnu-octave.github.io/packages/statistics-resampling/";
-myopt.repository_link = "https://github.com/gnu-octave/statistics-resampling/tree/master";
+myopt.repository_link = "https://github.com/gnu-octave/statistics-resampling/";
 myopt.older_versions_download = "https://github.com/gnu-octave/statistics-resampling/releases";
 generate_package_html ('statistics-resampling', 'manual_docs', myopt);
 
@@ -54,12 +54,6 @@ copyfile ('../doc/icon_48x48.png','./manual_docs/icon_48x48.png')
 % Change to main package directory
 cd ..
 
-% Create accessible link to manual
-if exist ('MANUAL.html', 'file')
-  delete ('./MANUAL.html')
-end
-system ('ln -s ./man/manual_docs/statistics-resampling/overview.html MANUAL.html');
-
 % Publish README markdown file as HTML
 system ('pandoc README.md -o ./man/manual_docs/statistics-resampling/tmp.html');
 
@@ -67,28 +61,28 @@ system ('pandoc README.md -o ./man/manual_docs/statistics-resampling/tmp.html');
 system ('cat ./man/templates/header.html ./man/manual_docs/statistics-resampling/tmp.html > ./man/manual_docs/statistics-resampling/readme.html');
 delete ('./man/manual_docs/statistics-resampling/tmp.html')
 
-% Add hyperlink to manual directly in the HTML of the readme file (since the
-% link in the markdown file would fail on GitHub page) 
-system ('sed -i '''' -e  ''s/Function Reference/\<a href\=\"overview\.html\"\>Function Reference\<\/a\>/g'' ./man/manual_docs/statistics-resampling/readme.html');
+% Add hyperlink to function reference directly in the HTML of the readme file
+% (since the link in the markdown file would fail on the GitHub page) 
+system ('sed -i '''' -e  ''s/overview.html/\<a href\=\"overview\.html\"\>overview.html\<\/a\>/g'' ./man/manual_docs/statistics-resampling/readme.html');
 
-% Create accessible link to readme page in manual
-if exist ('./README.html', 'file')
-  delete ('./README.html')
+% Update meta information in all html files
+system ('sed -i '''' -e  ''s/\<meta name\=\"author\" content\=\"\(.*\)\" \/\>/\<meta name\=\"author\" content\=\"Andrew Penn\" \/\>/'' ./man/manual_docs/statistics-resampling/*.html');
+system ('sed -i '''' -e  ''s/\<meta name\=\"author\" content\=\"\(.*\)\" \/\>/\<meta name\=\"author\" content\=\"Andrew Penn\" \/\>/'' ./man/manual_docs/statistics-resampling/function/*.html');
+system ('sed -i '''' -e  ''s/\<meta name\=\"description\" content\=\"\(.*\)\" \/\>/\<meta name\=\"description\" content\=\"A package for statistical analysis using resampling methods.\" \/\>/'' ./man/manual_docs/statistics-resampling/*.html');
+system ('sed -i '''' -e  ''s/\<meta name\=\"description\" content\=\"\(.*\)\" \/\>/\<meta name\=\"description\" content\=\"A package for statistical analysis using resampling methods.\" \/\>/'' ./man/manual_docs/statistics-resampling/function/*.html');
+system ('sed -i '''' -e  ''s/\<meta name\=\"keywords\" lang\=\"en\" content\=\"\(.*\)\" \/\>/\<meta name\=\"keywords\" lang\=\"en\" content\=\"GNU Octave Packages, MATLAB Toolbox\" \/\>/'' ./man/manual_docs/statistics-resampling/*.html');
+system ('sed -i '''' -e  ''s/\<meta name\=\"keywords\" lang\=\"en\" content\=\"\(.*\)\" \/\>/\<meta name\=\"keywords\" lang\=\"en\" content\=\"GNU Octave Packages, MATLAB Toolbox\" \/\>/'' ./man/manual_docs/statistics-resampling/function/*.html');
+system ('sed -i '''' -e  ''/\<link rel\=\"shortcut icon\" href\=\"\.\.\/favicon.ico\" \/\>/d'' ./man/manual_docs/statistics-resampling/*.html');
+system ('sed -i '''' -e  ''/\<link rel\=\"shortcut icon\" href\=\"\.\.\/.\.\/favicon.ico\" \/\>/d'' ./man/manual_docs/statistics-resampling/function/*.html');
+
+% Create accessible link to in manual HTML pages
+if exist ('./manual', 'dir')
+  delete ('./manual')
 end
-system ('ln -s ./man/manual_docs/statistics-resampling/readme.html README.html');
+system ('ln -s ./man/manual_docs/statistics-resampling manual');
 
 % Change back to man directory
 cd man
-
-% Update meta information in all html files
-system ('sed -i '''' -e  ''s/\<meta name\=\"author\" content\=\"\(.*\)\" \/\>/\<meta name\=\"author\" content\=\"Andrew Penn\" \/\>/'' ./manual_docs/statistics-resampling/*.html');
-system ('sed -i '''' -e  ''s/\<meta name\=\"author\" content\=\"\(.*\)\" \/\>/\<meta name\=\"author\" content\=\"Andrew Penn\" \/\>/'' ./manual_docs/statistics-resampling/function/*.html');
-system ('sed -i '''' -e  ''s/\<meta name\=\"description\" content\=\"\(.*\)\" \/\>/\<meta name\=\"description\" content\=\"A package for statistical analysis using resampling methods.\" \/\>/'' ./manual_docs/statistics-resampling/*.html');
-system ('sed -i '''' -e  ''s/\<meta name\=\"description\" content\=\"\(.*\)\" \/\>/\<meta name\=\"description\" content\=\"A package for statistical analysis using resampling methods.\" \/\>/'' ./manual_docs/statistics-resampling/function/*.html');
-system ('sed -i '''' -e  ''s/\<meta name\=\"keywords\" lang\=\"en\" content\=\"\(.*\)\" \/\>/\<meta name\=\"keywords\" lang\=\"en\" content\=\"GNU Octave Packages, MATLAB Toolbox\" \/\>/'' ./manual_docs/statistics-resampling/*.html');
-system ('sed -i '''' -e  ''s/\<meta name\=\"keywords\" lang\=\"en\" content\=\"\(.*\)\" \/\>/\<meta name\=\"keywords\" lang\=\"en\" content\=\"GNU Octave Packages, MATLAB Toolbox\" \/\>/'' ./manual_docs/statistics-resampling/function/*.html');
-system ('sed -i '''' -e  ''/\<link rel\=\"shortcut icon\" href\=\"\.\.\/favicon.ico\" \/\>/d'' ./manual_docs/statistics-resampling/*.html');
-system ('sed -i '''' -e  ''/\<link rel\=\"shortcut icon\" href\=\"\.\.\/.\.\/favicon.ico\" \/\>/d'' ./manual_docs/statistics-resampling/function/*.html');
 
 % Clear up
 clear myopt
