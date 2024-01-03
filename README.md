@@ -46,7 +46,7 @@ To install (or test) the statistics-resampling package at it's existing location
 
 ### Usage
 
-All help and demos are documented under 'overview.html' in the 'manual' folder. For the best experience navigating the manual, please ensure that javascript is enabled in your browser. 
+All help and demos are documented under 'overview.html' in the 'manual' folder. Note that there are two links to the folder containing the manual, one that works in Windows and one that works on Unix-based platforms such as Mac and Linux. For the best experience navigating the manual, please ensure that javascript is enabled in your browser.
 
 Function help can also be requested from the Octave/MATLAB command prompt, by typing `help function-name`. 
 
