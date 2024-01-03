@@ -59,6 +59,7 @@ system ('pandoc README.md -o ./man/manual_docs/statistics-resampling/tmp.html');
 
 % Add header to the readme page
 system ('cat ./man/templates/header.html ./man/manual_docs/statistics-resampling/tmp.html > ./man/manual_docs/statistics-resampling/readme.html');
+system ('printf "</div>\n</body>\n</html>\n" >> ./man/manual_docs/statistics-resampling/readme.html');
 delete ('./man/manual_docs/statistics-resampling/tmp.html')
 
 % Add hyperlink to function reference directly in the HTML of the readme file
@@ -76,6 +77,11 @@ system ('sed -i '''' -e  ''s/\<meta name\=\"keywords\" lang\=\"en\" content\=\"\
 system ('sed -i '''' -e  ''s/\<meta name\=\"keywords\" lang\=\"en\" content\=\"\(.*\)\" \/\>/\<meta name\=\"keywords\" lang\=\"en\" content\=\"GNU Octave Packages, MATLAB Toolbox\" \/\>/'' ./man/manual_docs/statistics-resampling/function/*.html');
 system ('sed -i '''' -e  ''/\<link rel\=\"shortcut icon\" href\=\"\.\.\/favicon.ico\" \/\>/d'' ./man/manual_docs/statistics-resampling/*.html');
 system ('sed -i '''' -e  ''/\<link rel\=\"shortcut icon\" href\=\"\.\.\/.\.\/favicon.ico\" \/\>/d'' ./man/manual_docs/statistics-resampling/function/*.html');
+
+% Fixes for validation of XHTML 1.0 Strict
+system ('sed -i '''' -e  ''s/\<script\>/\<script type\=\"text\/javascript\"\>/g'' ./man/manual_docs/statistics-resampling/*.html');
+system ('sed -i '''' -e  ''s/\<script\>/\<script type\=\"text\/javascript\"\>/g'' ./man/manual_docs/statistics-resampling/function/*.html');
+system ('sed -i '''' -e  ''s/alt\=\"Repository icon\"\>/alt\=\"Repository icon\"\/\>/'' ./man/manual_docs/statistics-resampling/index.html');
 
 % Create accessible link to in manual HTML pages
 if exist ('./manual', 'dir')
