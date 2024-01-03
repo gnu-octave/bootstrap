@@ -62,17 +62,17 @@ existing location in either Octave or Matlab, follow these steps:</p>
 <li>Download the package. If it is a compressed file (.zip or .tar.gz),
 extract it’s contents and move the package directory to the desired
 location.</li>
-<li>Open the Octave or Matlab command prompt.</li>
+<li>Open Octave or Matlab (command prompt).</li>
 <li>Change directory (cd) into the package folder. (The directory
 contains a file called ‘make.m’ and ‘install.m’, among others)</li>
-<li>Type make to compile the mex files from source (or use the
-precompiled binaries if available. If suitable precompiled binaries are
-not available for your platform, then Matlab/Octave will need access to
-a C++11 compiler. Note that if you skip the make step, then the package
-functions will still work, but some will run slower. This step is
-interactive so check the command window.)</li>
-<li>Type install. The package will load now (and automatically in the
-future) when you start Octave/Matlab.</li>
+<li>Type <code>make</code> to compile the mex files from source (or use
+the precompiled binaries if available. If suitable precompiled binaries
+are not available for your platform, then Matlab/Octave will need access
+to a C++11 compiler. Note that if you skip the make step, then the
+package functions will still work, but some will run slower. This step
+is interactive so check the command window.)</li>
+<li>Type <code>install</code>. The package will load now (and
+automatically in the future) when you start Octave/Matlab.</li>
 </ul>
 <p>If you want or need to uninstall the package/toolbox, change
 directory (cd) into the package folder and type uninstall.</p>
@@ -85,8 +85,9 @@ commmand:</p>
 <p>In Octave, you can find out basic information about the package by
 typing: <code>pkg describe -verbose statistics-resampling</code></p>
 <h3 id="usage">Usage</h3>
-<p>All help and demos are documented under ‘<a href="overview.html">Function Reference</a>’ in
-<code>MANUAL.html</code></p>
+<p>All help and demos are documented on the ‘<a href="overview.html">Function Reference</a>’ page
+(overview.html) in the manual. For the best experience navigating the
+manual, please ensure that javascript is enabled in your browser.</p>
 <p>Function help can also be requested from the Octave/MATLAB command
 prompt, by typing <code>help function-name</code>.</p>
 <p>In Octave only, you can also request the demonstrations of function

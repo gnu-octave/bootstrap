@@ -17,7 +17,7 @@ myopt = get_html_options ("octave-forge");
 % Customize the options
 myopt.include_package_news = false;
 myopt.include_alpha = false;
-myopt.include_demos = false;
+myopt.include_demos = true;
 myopt.download_link = "https://gnu-octave.github.io/packages/statistics-resampling/";
 myopt.repository_link = "https://github.com/gnu-octave/statistics-resampling/";
 myopt.older_versions_download = "https://github.com/gnu-octave/statistics-resampling/releases";
@@ -63,7 +63,7 @@ delete ('./man/manual_docs/statistics-resampling/tmp.html')
 
 % Add hyperlink to function reference directly in the HTML of the readme file
 % (since the link in the markdown file would fail on the GitHub page) 
-system ('sed -i '''' -e  ''s/overview.html/\<a href\=\"overview\.html\"\>overview.html\<\/a\>/g'' ./man/manual_docs/statistics-resampling/readme.html');
+system ('sed -i '''' -e  ''s/Function Reference/\<a href\=\"overview\.html\"\>Function Reference\<\/a\>/g'' ./man/manual_docs/statistics-resampling/readme.html');
 
 % Update meta information in all html files
 system ('sed -i '''' -e  ''s/\<meta name\=\"author\" content\=\"\(.*\)\" \/\>/\<meta name\=\"author\" content\=\"Andrew Penn\" \/\>/'' ./man/manual_docs/statistics-resampling/*.html');
@@ -79,7 +79,7 @@ system ('sed -i '''' -e  ''/\<link rel\=\"shortcut icon\" href\=\"\.\.\/.\.\/fav
 if exist ('./manual', 'dir')
   delete ('./manual')
 end
-system ('ln -s ./man/manual_docs/statistics-resampling manual');
+system ('ln -s ./man/manual_docs/statistics-resampling/ manual');
 
 % Change back to man directory
 cd man
