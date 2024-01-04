@@ -49,8 +49,8 @@ samples with complex dependence structures.</p>
 <h3 id="requirements-and-dependencies">Requirements and
 dependencies</h3>
 <p>Core functions in this package are known to be compatible with
-versions of Octave v4.4.0+ and Matlab v7.4.0+. Some features of this
-package have specific dependencies:</p>
+versions of Octave 4.4.0+ and Matlab R2007a 7.4.0+. Some features of
+this package have specific dependencies:</p>
 <ul>
 <li>All parallel computing options require either the parallel package
 (in Octave) or the Parallel Computing Matlab Toolbox (in Matlab).<br />
@@ -69,7 +69,7 @@ location.</li>
 <li>Open Octave or Matlab (command prompt).</li>
 <li>Change directory (cd) into the package folder. (The directory
 contains a file called ‘make.m’ and ‘install.m’, among others)</li>
-<li>Type <code>make</code> to compile the mex files from source (or use
+<li>Type <code>make</code> to compile the MEX files from source (or use
 the precompiled binaries if available. If suitable precompiled binaries
 are not available for your platform, then Matlab/Octave will need access
 to a C++11 compiler. Note that if you skip the make step, then the
@@ -86,19 +86,28 @@ the package automatically with the following command:</p>
 <p>The package can be loaded on demand in Octave with the following
 commmand:</p>
 <p><code>pkg load statistics-resampling</code></p>
-<p>In Octave, you can find out basic information about the package by
-typing: <code>pkg describe -verbose statistics-resampling</code></p>
+<p>MATLAB users can conveniently install the package functions as a
+toolbox by double-clicking the ‘statistics-resampling.mltbx’ file in the
+matlab subdirectory. The toolbox installed in this way can be disabled
+or uninstalled via MATLAB’s Add-On manager. Currently, MEX files are
+included with the toolbox installation in Windows (32- or 64-bit), MacOS
+(Intel 64-bit) and Linux (64-bit). Without the MEX files, all
+functionality of the package is available, but some of the functions run
+slower.</p>
 <h3 id="usage">Usage</h3>
 <p>All help and demos are documented on the ‘Function Reference’ page in
 the <a
 href="https://gnu-octave.github.io/statistics-resampling/">manual</a>.
 If you do not see the navigation pane on the manual web pages, please
 enable javascript in your browser.</p>
-<p>Function help can also be requested from the Octave/MATLAB command
-prompt, by typing <code>help function-name</code>.</p>
-<p>In Octave only, you can also request the demonstrations of function
-usage by typing <code>demo function-name</code> at the command
-prompt.</p>
+<p>Function help can also be requested directly from the Octave/MATLAB
+command prompt, by typing <code>help function-name</code> - substituting
+in the actual function name.</p>
+<p>In Octave only, you can get a basic overview of the package and it’s
+functions by typing:
+<code>pkg describe -verbose statistics-resampling</code>, or request
+demonstrations of function usage by typing
+<code>demo function-name</code>.</p>
 </div>
 </body>
 </html>
