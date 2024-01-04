@@ -95,6 +95,68 @@
   You should have received a copy of the GNU General Public License
   along with this program.  If not, see http://www.gnu.org/licenses/
 </pre>
+<h2>Demonstration 1</h2>
+<div class="demo">
+<p>The following code</p>
+<pre class="example">
+
+ # The difference between a sample mean from a zero constant (one sample test)
+ # or the difference between two dependent means (matched pair). Sample size
+ # determined for Cohen's d = 0.8.
+ # d effect size
+
+ n = sampszcalc ('t', 0.8)</pre>
+<p>Produces the following output</p>
+<pre class="example">n = 15</pre>
+</div>
+<h2>Demonstration 2</h2>
+<div class="demo">
+<p>The following code</p>
+<pre class="example">
+
+ # The difference between two independent means (two groups). Sample size
+ # determined for Cohen's d = 0.8.
+
+ n = sampszcalc ('t2', 0.8)</pre>
+<p>Produces the following output</p>
+<pre class="example">n = 26</pre>
+</div>
+<h2>Demonstration 3</h2>
+<div class="demo">
+<p>The following code</p>
+<pre class="example">
+
+ # The difference between two independent means (two groups). Sample size
+ # determined for Cohen's d = 0.8 and a design effect of 1.5
+
+ n = sampszcalc ('t2', 0.8, [], [], [], 1.5)</pre>
+<p>Produces the following output</p>
+<pre class="example">n = 39</pre>
+</div>
+<h2>Demonstration 4</h2>
+<div class="demo">
+<p>The following code</p>
+<pre class="example">
+
+ # The difference between two independent proportions (two sample test). 
+ # Sample size determined for Cohen's h = 0.8 using Normal approximation.
+
+ n = sampszcalc ('z2', 0.8)</pre>
+<p>Produces the following output</p>
+<pre class="example">n = 25</pre>
+</div>
+<h2>Demonstration 5</h2>
+<div class="demo">
+<p>The following code</p>
+<pre class="example">
+
+ # The test for Pearson's correlation coefficient (r) equal to 0 (constant),
+ # Sample size determined for r effect size = 0.5.
+
+ n = sampszcalc ('r', 0.5)</pre>
+<p>Produces the following output</p>
+<pre class="example">n = 30</pre>
+</div>
 
 <p>Package: <a href="../index.html">statistics-resampling</a></p>
 </div>
