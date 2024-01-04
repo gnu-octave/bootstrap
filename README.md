@@ -46,7 +46,7 @@ To install (or test) the statistics-resampling package at it's existing location
 
 ### Usage
 
-All help and demos are documented on the 'Function Reference' page (overview.html) in the manual. For the best experience navigating the manual, please ensure that javascript is enabled in your browser.
+All help and demos are documented on the 'Function Reference' page in the documentation. For the best experience navigating the manual, please ensure that javascript is enabled in your browser.
 
 Function help can also be requested from the Octave/MATLAB command prompt, by typing `help function-name`. 
 

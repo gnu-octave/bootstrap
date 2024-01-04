@@ -1,0 +1,85 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+ "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+  <head>
+  <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+  <meta name="date" content="2024-01-04"/>
+  <meta name="generator" content="generate_html 0.3.3" />
+  <meta name="author" content="Andrew Penn" />
+  <meta name="description" content="A package for statistical analysis using resampling methods." />
+  <meta name="keywords" lang="en" content="GNU Octave Packages, MATLAB Toolbox" />
+  <title>The statistics-resampling package manual</title>
+  <link rel="stylesheet" type="text/css" href="../site-files/manual.css" />
+  <script src="../site-files/fixed.js" type="text/javascript"></script>
+  <script src="../site-files/javascript.js" type="text/javascript"></script>
+  </head>
+  <body onload="javascript:fix_top_menu (); javascript:show_left_menu ();">
+  <script type="text/javascript"> write_top_menu ('..'); </script>
+  <script type="text/javascript"> write_docs_left_menu ('..'); </script>
+<div id="doccontent">
+
+<pre> Uses bootstrap to evaluate the likely number of real peaks (i.e. modes)
+ in the distribution of a single set of data.
+
+ -- Function File: H = bootmode (X, M)
+ -- Function File: H = bootmode (X, M, NBOOT)
+ -- Function File: H = bootmode (X, M, NBOOT, KERNEL)
+ -- Function File: H = bootmode (X, M, NBOOT, KERNEL, NPROC)
+ -- Function File: [H, P] = bootmode (X, M, ...)
+ -- Function File: [H, P, CRITVAL] = bootmode (X, M, ...)
+
+     'H = bootmode (X, M)' tests whether the distribution underlying the 
+     univariate data in vector X has M modes. The method employs the
+     smooth bootstrap as described [1]. The parsimonious approach is to
+     iteratively call this function, each time incrementally increasing
+     the number of modes until the null hypothesis (H0) is accepted (i.e.
+     H=0), where H0 corresponds to the number of modes being equal to M. 
+        - If H = 0, H0 cannot be rejected at the 5% significance level.
+        - If H = 1, H0 can be rejected at the 5% significance level.
+
+     'H = bootmode (X, M, NBOOT)' sets the number of bootstrap replicates
+
+     'H = bootmode (X, M, NBOOT, KERNEL)' sets the kernel for kernel
+     density estimation. Possible values are:
+        o 'Gaussian' (default)
+        o 'Epanechnikov'
+
+     'H = bootmode (X, M, NBOOT, KERNEL, NPROC)' sets the number of parallel
+      processes to use to accelerate computations. This feature requires the
+      Parallel package (in Octave), or the Parallel Computing Toolbox (in
+      Matlab).
+
+     '[H, P] = bootmode (X, M, ...)' also returns the p-value of the
+      bootstrap test.
+
+     '[H, P, CRITVAL] = bootmode (X, M, ...)' also returns the critical
+     bandwidth (i.e.the smallest bandwidth achievable to obtain a kernel
+     density estimate with M modes)
+
+  Bibliography:
+  [1] Efron and Tibshirani. Chapter 16 Hypothesis testing with the
+       bootstrap in An introduction to the bootstrap (CRC Press, 1994)
+
+  bootmode (version 2023.05.02)
+  Author: Andrew Charles Penn
+  https://www.researchgate.net/profile/Andrew_Penn/
+
+  Copyright 2019 Andrew Charles Penn
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+
+  You should have received a copy of the GNU General Public License
+  along with this program.  If not, see http://www.gnu.org/licenses/
+</pre>
+
+<p>Package: <a href="../index.html">statistics-resampling</a></p>
+</div>
+</body>
+</html>
