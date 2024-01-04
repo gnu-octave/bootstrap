@@ -545,8 +545,8 @@ end
 %! ## -------------------|--------|--------|--------|-------|
 %! ## parametric - exact |  118.4 |  305.2 |  186.8 |  2.52 |
 %! ##
-%! ## * Bug in the fx0 subfunction of bootci
-%! ## ** Bug in the bootstud subfunction of bootci
+%! ## * Bug in the fx0 subfunction of MathWorks MATLAB bootci function
+%! ## ** Bug in the bootstud subfunction of MathWorks MATLAB bootci
 %!
 %! ## Calculations using the 'boot' and 'bootstrap' packages in R
 %! ## 
