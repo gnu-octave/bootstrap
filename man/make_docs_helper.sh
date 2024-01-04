@@ -5,7 +5,6 @@ rm ./tmp/footer.js
 rm ./tmp/news.png
 rm ./tmp/manual.png
 rm ./tmp/oct.png
-rm ./tmp/favicon.ico
 
 # Move custom javascript and css documents to a subfolder in the dir containing index.html
 mkdir ./tmp/statistics-resampling/site-files
@@ -15,6 +14,7 @@ cp ../doc/icon_48x48.png ./tmp/statistics-resampling/site-files/pkg_icon_48x48.p
 rm ./tmp/javascript.js
 rm ./tmp/octave-forge.css
 mv ./tmp/fixed.js ./tmp/statistics-resampling/site-files/fixed.js
+mv ./tmp/favicon.ico ./tmp/statistics-resampling/site-files/favicon.ico
 mv ./tmp/doc.png ./tmp/statistics-resampling/site-files/doc.png
 mv ./tmp/homepage.png ./tmp/statistics-resampling/site-files/homepage.png
 mv ./tmp/repository.png ./tmp/statistics-resampling/site-files/repository.png
@@ -42,6 +42,8 @@ sed -i '' -e  's/\.\.\/repository\.png/\.\/site-files\/repository\.png/g' ./tmp/
 sed -i '' -e  's/\.\.\/doc\.png/\.\/site-files\/doc\.png/g' ./tmp/statistics-resampling/index.html
 sed -i '' -e  's/\.\.\/homepage\.png/\.\/site-files\/homepage\.png/g' ./tmp/statistics-resampling/index.html
 sed -i '' -e  's/COPYING\.html/copying\.html/g' ./tmp/statistics-resampling/index.html
+sed -i '' -e  's/\.\.\/favicon.ico"/\.\/site-files\/favicon.ico"/g' ./tmp/statistics-resampling/*.html
+sed -i '' -e  's/\.\.\/favicon.ico"/\.\/site-files\/favicon.ico"/g' ./tmp/statistics-resampling/function/*.html
 
 # Change page headings of the index (package info) and function reference pages
 sed -i '' -e  's/statistics-resampling<\/h2>/About this package<\/h2>/g' ./tmp/statistics-resampling/index.html
@@ -67,8 +69,6 @@ sed -i '' -e  's/<meta name="description" content="\(.*\)" \/>/<meta name="descr
 sed -i '' -e  's/<meta name="description" content="\(.*\)" \/>/<meta name="description" content="A package for statistical analysis using resampling methods." \/>/' ./tmp/statistics-resampling/function/*.html
 sed -i '' -e  's/<meta name="keywords" lang="en" content="\(.*\)" \/>/<meta name="keywords" lang="en" content="GNU Octave Packages, MATLAB Toolbox\" \/>/' ./tmp/statistics-resampling/*.html
 sed -i '' -e  's/<meta name="keywords" lang="en" content="\(.*\)" \/>/<meta name="keywords" lang="en" content="GNU Octave Packages, MATLAB Toolbox\" \/>/' ./tmp/statistics-resampling/function/*.html
-sed -i '' -e  '/<link rel="shortcut icon" href="\.\.\/favicon.ico" \/>/d' ./tmp/statistics-resampling/*.html
-sed -i '' -e  '/<link rel="shortcut icon" href="\.\.\/.\.\/favicon.ico" \/>/d' ./tmp/statistics-resampling/function/*.html
 
 # Fixes for validation of XHTML 1.0 Strict
 sed -i '' -e  's/<script>/<script type="text\/javascript">/g' ./tmp/statistics-resampling/*.html
