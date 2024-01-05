@@ -112,7 +112,7 @@ else
       disp(err.message);
     end
     try
-      mex -compatibleArrayDims -output ./inst/boot ./src/boot.cpp
+      mex -output ./inst/boot ./src/boot.cpp
     catch
       errflag = true;
       err = lasterror();
@@ -120,7 +120,7 @@ else
       warning ('Could not compile boot.%s. Falling back to the (slower) boot.m file.',mexext)
     end
     try
-      mex -compatibleArrayDims -output ./inst/smoothmedian ./src/smoothmedian.cpp
+      mex -output ./inst/smoothmedian ./src/smoothmedian.cpp
     catch
       errflag = true;
       err = lasterror();

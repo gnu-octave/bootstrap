@@ -1,5 +1,5 @@
 % Performs sample size calculations, with optional correction for the design
-% effect deviating from ideal unity.
+% effect deviating from unity.
 %
 % -- Function File: N = sampszcalc (TESTTYPE, EFFSZ)
 % -- Function File: N = sampszcalc (TESTTYPE, EFFSZ, POW)
