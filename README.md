@@ -44,7 +44,7 @@ To install (or test) the statistics-resampling package at it's existing location
  
  `pkg load statistics-resampling`
  
- MATLAB users can conveniently install the package functions as a toolbox by double-clicking the 'statistics-resampling.mltbx' file in the matlab subdirectory. The toolbox installed in this way can be disabled or uninstalled via MATLAB's Add-On manager. Currently, MEX files are included with the toolbox installation in Windows (32- or 64-bit), MacOS (Intel 64-bit) and Linux (64-bit). Without the MEX files, all functionality of the package is available, but some of the functions run slower.     
+ MATLAB users can conveniently install the package functions as a toolbox by double-clicking the 'statistics-resampling.mltbx' file in the matlab subdirectory. The toolbox installed in this way can be disabled or uninstalled via MATLAB's Add-On manager. Currently, MEX files are included with the toolbox installation for Windows (32- or 64-bit), MacOS (Intel 64-bit) and Linux (64-bit). Without the MEX files, all functionality of the package is available, but some of the functions run slower.     
 
 ### Usage
 
