@@ -8,7 +8,7 @@ isoctave = any (ismember ({info.Name}, 'Octave'));
 errflag = false;
 
 % Create cell array of paths to add
-arch = computer('arch');
+arch = computer ('arch');
 [comp, maxsize, endian] = computer ();
 try
   switch endian
@@ -80,7 +80,7 @@ else
   disp('Attempting to compile the source code...');
   if isoctave
     try
-      mkoctfile --mex --output ./inst/boot ./src/boot.cpp
+      mkoctfile -std=c++11 --mex --output ./inst/boot ./src/boot.cpp
     catch
       errflag = true;
       err = lasterror();
@@ -88,20 +88,12 @@ else
       warning ('Could not compile boot.%s. Falling back to the (slower) boot.m file.',mexext)
     end
     try
-      mkoctfile --mex --output ./inst/smoothmedian ./src/smoothmedian.cpp
+      mkoctfile -std=c++11 --mex --output ./inst/smoothmedian ./src/smoothmedian.cpp
     catch
       errflag = true;
       err = lasterror();
       disp(err.message);
       warning ('Could not compile smoothmedian.%s. Falling back to the (slower) smoothmedian.m file.',mexext)
-    end
-    try
-      mkoctfile --mex --output ./inst/boot ./src/boot.cpp
-    catch
-      errflag = true;
-      err = lasterror();
-      disp(err.message);
-      warning ('Could not compile boot.%s. Falling back to the (slower) boot.m file.',mexext)
     end
   else
     try  
@@ -112,7 +104,7 @@ else
       disp(err.message);
     end
     try
-      mex -output ./inst/boot ./src/boot.cpp
+      mex CXXFLAGS="$CXXFLAGS -std=c++11" -output ./inst/boot ./src/boot.cpp
     catch
       errflag = true;
       err = lasterror();
@@ -120,7 +112,7 @@ else
       warning ('Could not compile boot.%s. Falling back to the (slower) boot.m file.',mexext)
     end
     try
-      mex -output ./inst/smoothmedian ./src/smoothmedian.cpp
+      mex CXXFLAGS="$CXXFLAGS -std=c++11" -output ./inst/smoothmedian ./src/smoothmedian.cpp
     catch
       errflag = true;
       err = lasterror();
@@ -133,7 +125,7 @@ if errflag
   fprintf('\nmake completed with errors. Please review the details in the errors in the above output. \n')
   fprintf('If you now execute ''install'', .m files equivalent to the mex files will be used instead. \n')
 else
-  fprintf('\n''make'' completed. Please now run the ''install'' command. \n')
+  fprintf('\n''make'' completed successfully. Please now run the ''install'' command. \n')
 end
 
 clear arch arch_idx binary binary_paths comp endian info isoctave maxsize errflag retval

@@ -78,7 +78,7 @@ void mexFunction (int nlhs, mxArray* plhs[],
     } 
     // First input argument (n or x)
     double *x = (double *) mxGetData (prhs[0]);
-    int n = mxGetNumberOfElements (prhs[0]);
+    int n = mxGetNumberOfElements (prhs[0]);    // 32-bit int
     bool isvec;
     if ( n > 1 ) {
         const mwSize *sz = mxGetDimensions (prhs[0]);
@@ -103,7 +103,7 @@ void mexFunction (int nlhs, mxArray* plhs[],
         mexErrMsgTxt ("The first input argument (N or X) must be of type double.");
     }
     // Second input argument (nboot)
-    const int nboot = *(mxGetPr (prhs[1]));
+    const int nboot = *(mxGetPr (prhs[1]));     // 32-bit int
     if ( mxGetNumberOfElements (prhs[1]) > 1 ) {
         mexErrMsgTxt ("The second input argument (NBOOT) must be scalar.");
     }
