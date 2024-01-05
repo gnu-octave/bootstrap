@@ -153,7 +153,7 @@ void mexFunction (int nlhs, mxArray* plhs[],
     }
 
     // Declare variables
-    mwSize dims[2] = {n, nboot};
+    mwSize dims[2] = {static_cast<mwSize>(n), static_cast<mwSize>(nboot)};
     plhs[0] = mxCreateNumericArray(2, dims, 
                 mxDOUBLE_CLASS, 
                 mxREAL);           // Prepare array for bootstrap sample indices
