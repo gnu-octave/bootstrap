@@ -375,7 +375,7 @@
 %
 %       The ANOVA implemented uses sequential (type I) sums-of-squares and so
 %       the results and their interpretation depend on the order of predictors
-%       in the GROUP variable (when the design is not balanced)**. Thus, the null
+%       in the GROUP variable (when the design is not balanced). Thus, the null
 %       model used for comparison for each model is the model listed directly
 %       above it in AOVSTAT; for the first model, the null model is the
 %       intercept-only model. Note that ANOVA statistics are only returned when
@@ -384,10 +384,6 @@
 %       bootstrap is achieved by wild bootstrap of the residuals from the full
 %       model. Computations of the statistics in AOVSTAT are compatible with
 %       the 'clustid' and 'blocksz' options.
-%
-%       ** See demo 6 for an example of how to obtain results for ANOVA using
-%          type II sums-of-squares, which test hypotheses that give results
-%          invariant of the order of the predictors.
 %
 %     '[STATS, BOOTSTAT, AOVSTAT, PRED_ERR] = bootlm (...)' also computes
 %     refined bootstrap estimates of prediction error* and returns the derived
@@ -2046,12 +2042,10 @@ end
 %!           'm' 'm' 'm' 'm' 'm' 'm' 'm' 'm' 'm' 'm'}';
 %! degree = [1 1 1 1 1 1 1 1 0 0 0 0 1 1 1 0 0 0 0 0 0 0]';
 %!
-%! ## ANOVA (including the main effect of gender averaged over levels of degree).
-%! ## We are setting a random seed here for comparison between results for
-%! ## different models.
+%! ## ANOVA (including the main effect of gender averaged over levels of degree)
 %! [STATS, BOOTSTAT, AOVSTAT] = bootlm (salary, {degree, gender}, 'model', ...
 %!                             'full', 'display', 'off', 'varnames', ...
-%!                             {'degree', 'gender'}, 'seed', 1);
+%!                             {'degree', 'gender'});
 %!
 %! fprintf ('ANOVA SUMMARY with gender averaged over levels of degree\n')
 %! for i = 1:numel(AOVSTAT.F)
@@ -2060,13 +2054,10 @@ end
 %!            AOVSTAT.PVAL(i), AOVSTAT.MODEL{i});
 %! end
 %!
-%! ## ANOVA (including the main effect of degree averaged over levels of gender).
-%! ## We are setting a random seed here for comparison between results for
-%! ## different models. Note that the result for the interaction is not affected
-%! ## by the order of the predictors.
+%! ## ANOVA (including the main effect of degree averaged over levels of gender)
 %! [STATS, BOOTSTAT, AOVSTAT] = bootlm (salary, {gender, degree}, 'model', ...
 %!                             'full', 'display', 'off', 'varnames', ...
-%!                             {'gender', 'degree'}, 'seed', 1);
+%!                             {'gender', 'degree'});
 %!
 %! fprintf ('\nANOVA SUMMARY with degree averaged over levels of gender\n')
 %! for i = 1:numel(AOVSTAT.F)
@@ -2074,41 +2065,6 @@ end
 %!            AOVSTAT.DF(i), AOVSTAT.DFE, AOVSTAT.F(i), ...
 %!            AOVSTAT.PVAL(i), AOVSTAT.MODEL{i});
 %! end
-%!
-%! ## Since the interaction term (F(1,18) = 0.42) was not significant (p > 0.1),
-%! ## we might rather consider the hypotheses tested using type II sums-of-
-%! ## squares without the interaction, which do not depend on the order and have
-%! ## more power respectively. This is easy to achieve with 2 predictors, by
-%! ## repeating the two 'bootlm' commands above without the interaction (i.e.
-%! ## setting 'model', 'linear') and taking the second p-value from the ANOVA
-%! ## tables. For example:
-%!
-%! [~, ~, AOVSTAT1] = bootlm (salary, {degree, gender}, 'model', ...
-%!                             'linear', 'display', 'off', 'varnames', ...
-%!                             {'degree', 'gender'}, 'seed', 1);
-%!
-%! fprintf ('\nANOVA SUMMARY (with type II sums-of-squares for main effects)\n')
-%! fprintf ('F(%u,%u) = %.2f, p = %.3g for the model: %s (Gender)\n', ...
-%!            AOVSTAT1.DF(2), AOVSTAT1.DFE, AOVSTAT1.F(2), ...
-%!            AOVSTAT1.PVAL(2), AOVSTAT1.MODEL{2});
-%!
-%! [~, ~, AOVSTAT2] = bootlm (salary, {gender, degree}, 'model', ...
-%!                             'linear', 'display', 'off', 'varnames', ...
-%!                             {'gender', 'degree'}, 'seed', 1);
-%!
-%! fprintf ('F(%u,%u) = %.2f, p = %.3g for the model: %s (Degree)\n', ...
-%!            AOVSTAT2.DF(2), AOVSTAT2.DFE, AOVSTAT2.F(2), ...
-%!            AOVSTAT2.PVAL(2), AOVSTAT2.MODEL{2});
-%!
-%! ## Here is the output from 'anovan' for comparison:
-%! ## ANOVA TABLE (Type II sums-of-squares):
-%! ## 
-%! ## Source             Sum Sq.    d.f.    Mean Sq.  R Sq.            F  Prob>F
-%! ## --------------------------------------------------------------------------
-%! ## gender              30.462       1      30.462  0.373        11.31    .003
-%! ## degree              272.39       1      272.39  0.842       101.13   <.001
-%! ## Error               51.175      19      2.6934
-%! ## Total               323.86      21
 %!
 %! ## Check regression coefficient corresponding to gender x degree interaction
 %! STATS = bootlm (salary, {gender, degree}, 'model', 'full', ...
