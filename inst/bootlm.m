@@ -387,7 +387,7 @@
 %
 %       ** See demo 6 for an example of how to obtain results for ANOVA using
 %          type II sums-of-squares, which test hypotheses that give results
-%          invariant of the order of the predictors.
+%          invariant to the order of the predictors.
 %
 %     '[STATS, BOOTSTAT, AOVSTAT, PRED_ERR] = bootlm (...)' also computes
 %     refined bootstrap estimates of prediction error* and returns the derived
