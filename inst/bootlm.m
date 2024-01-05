@@ -374,8 +374,8 @@
 %       - 'MSE': Mean Squared Error
 %
 %       The ANOVA implemented uses sequential (type I) sums-of-squares and so
-%       the results and their interpretation depend on the order of predictors
-%       in the GROUP variable (when the design is not balanced)**. Thus, the null
+%       the results and their interpretation depend on the order** of predictors
+%       in the GROUP variable (when the design is not balanced). Thus, the null
 %       model used for comparison for each model is the model listed directly
 %       above it in AOVSTAT; for the first model, the null model is the
 %       intercept-only model. Note that ANOVA statistics are only returned when
