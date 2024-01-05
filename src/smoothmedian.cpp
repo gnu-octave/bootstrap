@@ -1,7 +1,7 @@
 // smoothmedian.cpp
 // c++ source code for creating smoothmedian.mex file as follows:
 //
-// mex -compatibleArrayDims smoothmedian.cpp
+// mex smoothmedian.cpp
 //
 // smoothmedian.mex is a function file for calculating a smooth version of the
 // median [1]

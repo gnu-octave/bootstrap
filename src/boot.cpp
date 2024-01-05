@@ -1,7 +1,7 @@
 // boot.cpp
 // c++ source code for creating boot.mex file using mex as follows:
 // 
-// mex -compatibleArrayDims boot.cpp
+// mex boot.cpp
 //
 // boot.mex is a function file for generating balanced bootstrap sample indices
 // or for generating balanced bootstrap resamples of a data vector
