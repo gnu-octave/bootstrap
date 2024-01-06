@@ -1,10 +1,11 @@
-## statistics-resampling package
+## Read me
 
 ### Package maintainer
 Andrew Penn (andy.c.penn@gmail.com)
 
 ### Package contributors
 Andrew Penn
+(More contributors are welcome!)
 
 ### Citations
 If you use this package, please include the following citation(s):
@@ -53,3 +54,10 @@ All help and demos are documented on the 'Function Reference' page in the [manua
 Function help can also be requested directly from the Octave/MATLAB command prompt, by typing `help function-name` - substituting in the actual function name.
 
 In Octave only, you can get a basic overview of the package and it's functions by typing: `pkg describe -verbose statistics-resampling`, or request demonstrations of function usage by typing `demo function-name`. 
+
+### Issues
+
+If you find bugs or have any suggestions, please raise an issue on GitHub [here](https://github.com/gnu-octave/statistics-resampling/issues).  
+  
+Package: [statistics-resampling](https://gnu-octave.github.io/statistics-resampling/)  
+
