@@ -50,7 +50,7 @@ sed -i '' -e  's/statistics-resampling<\/h2>/About this package<\/h2>/g' ./tmp/s
 sed -i '' -e  's/Octave<\/a> >= 4\.4\.0/Octave<\/a> >= 4\.4\.0 or Matlab >= R2007a 7\.4\.0/g' ./tmp/statistics-resampling/index.html
 sed -i '' -e  's/statistics-resampling<\/h2>/Function Reference<\/h2>/g' ./tmp/statistics-resampling/function_reference.html
 sed -i '' -e  's/<h2>/<h3>/g' ./tmp/statistics-resampling/function/*.html
-sed -i '' -e  's/<\/h2>/<h3\/>/g' ./tmp/statistics-resampling/function/*.html
+sed -i '' -e  's/<\/h2>/<\/h3>/g' ./tmp/statistics-resampling/function/*.html
 
 # Publish README markdown file as HTML and add header
 cd ..
