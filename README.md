@@ -49,7 +49,7 @@ To install (or test) the statistics-resampling package at it's existing location
 
 ### Usage
 
-All help and demos are documented on the 'Function Reference' page in the [manual](https://gnu-octave.github.io/statistics-resampling/). If you do not see the navigation pane on the manual web pages, please enable javascript in your browser.
+All help and demos are documented on the ['Function Reference'](https://gnu-octave.github.io/statistics-resampling/function_reference) page in the [manual](https://gnu-octave.github.io/statistics-resampling/). If you do not see the navigation pane on the manual web pages, please enable javascript in your browser.
 
 Function help can also be requested directly from the Octave/MATLAB command prompt, by typing `help function-name` - substituting in the actual function name.
 
