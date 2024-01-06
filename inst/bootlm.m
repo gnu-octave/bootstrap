@@ -2078,9 +2078,9 @@ end
 %! ## Since the interaction term (F(1,18) = 0.42) was not significant (p > 0.1),
 %! ## we might rather consider the hypotheses tested using type II sums-of-
 %! ## squares without the interaction, which do not depend on the order and have
-%! ## more power respectively. This is easy to achieve with 2 predictors, by
-%! ## repeating the 'bootlm' commands with different predictors added last to
-%! ## the model (as above) but without the interaction (i.e. setting 'model',
+%! ## more power respectively. This is easy to achieve with only 2 predictors,
+%! ## by repeating the 'bootlm' commands with different predictors added last to
+%! ## the model (as above) but without any interaction (i.e. setting 'model',
 %! ## 'linear'). We then take the statistics for the last main effect listed
 %! ## in each of the ANOVA tables - these then correspond to the ANOVA test for
 %! ## the respective predictor with type II sums-of-squares. For example:
