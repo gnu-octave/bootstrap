@@ -19,6 +19,7 @@
   <script type="text/javascript"> write_docs_left_menu ('..'); </script>
 <div id="doccontent">
 
+<h2>boot</h2>
 <pre> This function returns resampled data or indices created by balanced bootstrap 
  or bootknife resampling.
 
@@ -75,7 +76,6 @@
      corresponding index (or element in X) is represented in BOOTSAM.
      Therefore, the sum of WEIGHTS must equal N * NBOOT. 
 
-
   Bibliography:
   [1] Efron, and Tibshirani (1993) An Introduction to the
         Bootstrap. New York, NY: Chapman & Hall
@@ -115,9 +115,9 @@
 <p>Produces the following output</p>
 <pre class="example">ans =
 
-   2   2   3   3   1   1   2   2   3   2   2   3   3   1   3   2   1   2   3   1
-   2   3   3   2   1   1   1   2   3   3   3   1   1   2   3   3   2   1   1   2
-   3   2   3   3   2   2   2   1   3   3   1   1   1   1   2   1   2   1   3   1</pre>
+   3   3   1   2   1   3   2   3   2   1   1   3   2   1   3   3   2   2   2   3
+   3   3   1   2   1   1   1   2   3   1   1   2   1   2   3   3   1   1   3   1
+   3   2   2   3   2   2   2   1   3   1   2   3   2   3   2   1   1   1   3   2</pre>
 </div>
 <h3>Demonstration 2</h3>
 <div class="demo">
@@ -129,9 +129,9 @@
 <p>Produces the following output</p>
 <pre class="example">ans =
 
-   3   3   2   3   1   2   2   1   1   3   3   1   2   3   2   2   1   2   2   3
-   2   1   1   2   1   1   3   1   1   3   3   2   3   1   1   3   1   2   2   2
-   2   3   1   3   3   2   3   1   1   3   3   1   3   3   1   2   1   2   2   2</pre>
+   3   3   1   3   3   2   2   1   1   2   1   1   3   3   1   3   1   2   2   1
+   2   1   2   3   3   2   3   3   1   3   1   1   3   3   2   3   1   2   2   1
+   3   3   1   2   1   2   2   1   1   2   3   2   2   1   2   2   3   2   3   1</pre>
 </div>
 <h3>Demonstration 3</h3>
 <div class="demo">
