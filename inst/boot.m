@@ -54,7 +54,6 @@
 %     corresponding index (or element in X) is represented in BOOTSAM.
 %     Therefore, the sum of WEIGHTS must equal N * NBOOT. 
 %
-%
 %  Bibliography:
 %  [1] Efron, and Tibshirani (1993) An Introduction to the
 %        Bootstrap. New York, NY: Chapman & Hall

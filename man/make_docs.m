@@ -29,7 +29,7 @@ myopt.index_body_command = myopt.body_command;
 myopt.overview_filename = 'function_reference.html';
 generate_package_html ('statistics-resampling', 'tmp', myopt);
 
-% Run (bash) shell script
+% Run (bash) shell script to further customize file organization and formatting
 system ('./make_docs_helper.sh');
 
 % Clear up
