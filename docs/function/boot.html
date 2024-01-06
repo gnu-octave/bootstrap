@@ -3,7 +3,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
   <head>
   <meta http-equiv="content-type" content="text/html; charset=utf-8" />
-  <meta name="date" content="2024-01-04"/>
+  <meta name="date" content="2024-01-06"/>
   <meta name="generator" content="generate_html 0.3.3" />
   <meta name="author" content="Andrew Penn" />
   <meta name="description" content="A package for statistical analysis using resampling methods." />
@@ -43,6 +43,9 @@
      are chosen by balanced bootstrap resampling as described above [1-3].
      Balanced resampling only applies when NBOOT > 1.
 
+     Note that the values of N and NBOOT map onto int32 data types in the 
+     boot MEX file. Therefore, these values must never exceed (2^31)-1.
+
      'BOOTSAM = boot (..., NBOOT, LOO)' sets the resampling method. If LOO
      is false, the resampling method used is balanced bootstrap resampling.
      If LOO is true, the resampling method used is balanced bootknife
@@ -71,6 +74,7 @@
      weighting). Each element of WEIGHTS is the number of times that the
      corresponding index (or element in X) is represented in BOOTSAM.
      Therefore, the sum of WEIGHTS must equal N * NBOOT. 
+
 
   Bibliography:
   [1] Efron, and Tibshirani (1993) An Introduction to the
@@ -111,9 +115,9 @@
 <p>Produces the following output</p>
 <pre class="example">ans =
 
-   3   3   1   2   1   3   2   3   2   1   1   3   2   1   3   3   2   2   2   3
-   3   3   1   2   1   1   1   2   3   1   1   2   1   2   3   3   1   1   3   1
-   3   2   2   3   2   2   2   1   3   1   2   3   2   3   2   1   1   1   3   2</pre>
+   3   1   1   2   3   3   2   1   2   2   3   1   3   1   3   1   1   3   3   3
+   2   2   3   3   1   1   3   1   2   1   1   2   2   2   2   2   3   3   2   3
+   1   2   1   3   1   1   1   1   2   2   3   1   3   2   2   2   3   1   2   3</pre>
 </div>
 <h2>Demonstration 2</h2>
 <div class="demo">
@@ -125,9 +129,9 @@
 <p>Produces the following output</p>
 <pre class="example">ans =
 
-   3   3   1   3   3   2   2   1   1   2   1   1   3   3   1   3   1   2   2   1
-   2   1   2   3   3   2   3   3   1   3   1   1   3   3   2   3   1   2   2   1
-   3   3   1   2   1   2   2   1   1   2   3   2   2   1   2   2   3   2   3   1</pre>
+   3   3   1   2   3   1   2   1   2   2   1   1   3   1   2   2   3   1   1   1
+   3   3   2   3   3   2   2   1   2   2   1   2   3   1   2   3   3   2   3   1
+   3   1   1   2   3   2   3   1   1   3   3   2   3   1   2   3   1   2   1   2</pre>
 </div>
 <h2>Demonstration 3</h2>
 <div class="demo">
