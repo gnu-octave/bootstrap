@@ -29,7 +29,7 @@ Core functions in this package are known to be compatible with versions of Octav
  
 To install (or test) the statistics-resampling package at it's existing location in either Octave or Matlab, follow these steps: 
  
- * Download the package. If it is a compressed file (.zip or .tar.gz), extract it's contents and move the package directory to the desired location.
+ * Download the package release from [here](https://github.com/gnu-octave/statistics-resampling/releases/). If it is a compressed file (.zip or .tar.gz), extract it's contents and move the package directory to the desired location.
  * Open Octave or Matlab (command prompt).
  * Change directory (cd) into the package folder. (The directory contains a file called 'make.m' and 'install.m', among others)
  * Type `make` to compile the MEX files from source (or use the precompiled binaries if available. If suitable precompiled binaries are not available for your platform, then Matlab/Octave will need access to a C++11 compiler. Note that if you skip the make step, then the package functions will still work, but some will run slower. This step is interactive so check the command window.) 
