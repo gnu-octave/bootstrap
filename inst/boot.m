@@ -22,6 +22,9 @@
 %     are chosen by balanced bootstrap resampling as described above [1-3].
 %     Balanced resampling only applies when NBOOT > 1.
 %
+%     Note that the values of N and NBOOT map onto int32 data types in the 
+%     boot MEX file. Therefore, these values must never exceed (2^31)-1.
+%
 %     'BOOTSAM = boot (..., NBOOT, LOO)' sets the resampling method. If LOO
 %     is false, the resampling method used is balanced bootstrap resampling.
 %     If LOO is true, the resampling method used is balanced bootknife
@@ -50,6 +53,7 @@
 %     weighting). Each element of WEIGHTS is the number of times that the
 %     corresponding index (or element in X) is represented in BOOTSAM.
 %     Therefore, the sum of WEIGHTS must equal N * NBOOT. 
+%
 %
 %  Bibliography:
 %  [1] Efron, and Tibshirani (1993) An Introduction to the
