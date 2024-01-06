@@ -72,19 +72,19 @@ end
 
 % Attemt to compile binaries from source code automatically if no suitable binaries can be found
 if binary
-  fprintf('The following suitable binaries were detected and copied over to the inst directory: ');
-  fprintf('\n%s%s%s%s%s', '.', filesep, binary_paths{~cellfun(@isempty,arch_idx)}, 'boot.', mexext);
-  fprintf('\n%s%s%s%s%s', '.', filesep, binary_paths{~cellfun(@isempty,arch_idx)}, 'smoothmedian.', mexext);
+  fprintf ('The following suitable binaries were detected and copied over to the inst directory: ');
+  fprintf ('\n%s%s%s%s%s', '.', filesep, binary_paths{~cellfun(@isempty,arch_idx)}, 'boot.', mexext);
+  fprintf ('\n%s%s%s%s%s', '.', filesep, binary_paths{~cellfun(@isempty,arch_idx)}, 'smoothmedian.', mexext);
 else
-  disp('Either you chose to compile from source, or no binaries are suitable.');
-  disp('Attempting to compile the source code...');
+  disp ('Either you chose to compile from source, or no binaries are suitable.');
+  disp ('Attempting to compile the source code...');
   if isoctave
     try
       mkoctfile -std=c++11 --mex --output ./inst/boot ./src/boot.cpp
     catch
       errflag = true;
       err = lasterror();
-      disp(err.message);
+      disp (err.message);
       warning ('Could not compile boot.%s. Falling back to the (slower) boot.m file.',mexext)
     end
     try
@@ -108,7 +108,7 @@ else
     catch
       errflag = true;
       err = lasterror();
-      disp(err.message);
+      disp (err.message);
       warning ('Could not compile boot.%s. Falling back to the (slower) boot.m file.',mexext)
     end
     try
@@ -116,16 +116,20 @@ else
     catch
       errflag = true;
       err = lasterror();
-      disp(err.message);
+      disp (err.message);
       warning ('Could not compile smoothmedian.%s. Falling back to the (slower) smoothmedian.m file.',mexext)
     end
   end
 end
 if errflag
-  fprintf('\nmake completed with errors. Please review the details in the errors in the above output. \n')
-  fprintf('If you now execute ''install'', .m files equivalent to the mex files will be used instead. \n')
+  fprintf ('\nmake completed with errors. Please review the details in the errors in the above output. \n')
+  fprintf ('It is possible that a suitable c++ compiler is not installed or been configured properly. \n')
+  if (~ isoctave)
+    fprintf ('Try running ''mex -setup c++'' and following the instructions. \n')
+  end
+  fprintf ('If you now execute ''install'', .m files equivalent to the mex files will be used instead. \n')
 else
-  fprintf('\n''make'' completed successfully. Please now run the ''install'' command. \n')
+  fprintf ('\n''make'' completed successfully. Please now run the ''install'' command. \n')
 end
 
 clear arch arch_idx binary binary_paths comp endian info isoctave maxsize errflag retval
