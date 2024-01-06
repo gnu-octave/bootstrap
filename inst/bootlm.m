@@ -2079,9 +2079,11 @@ end
 %! ## we might rather consider the hypotheses tested using type II sums-of-
 %! ## squares without the interaction, which do not depend on the order and have
 %! ## more power respectively. This is easy to achieve with 2 predictors, by
-%! ## repeating the two 'bootlm' commands above without the interaction (i.e.
-%! ## setting 'model', 'linear') and taking the second p-value from the ANOVA
-%! ## tables. For example:
+%! ## repeating the 'bootlm' commands with different predictors added last to
+%! ## the model (as above) but without the interaction (i.e. setting 'model',
+%! ## 'linear'). We then take the statistics for the last main effect listed
+%! ## in each of the ANOVA tables - these then correspond to the ANOVA test for
+%! ## the respective predictor with type II sums-of-squares. For example:
 %!
 %! [~, ~, AOVSTAT1] = bootlm (salary, {degree, gender}, 'model', ...
 %!                             'linear', 'display', 'off', 'varnames', ...
