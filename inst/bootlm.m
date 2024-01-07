@@ -2038,7 +2038,8 @@ end
 %!
 %! ## Unbalanced two-way design (2x2). The data is from a study on the effects
 %! ## of gender and a college degree on starting salaries of company employees,
-%! ## in Maxwell, Delaney and Kelly (2018): Chapter 7, Table 15
+%! ## in Maxwell, Delaney and Kelly (2018): Chapter 7, Table 15. The starting
+%! ## salaries are in units of 1000 dollars per annum.
 %!
 %! salary = [24 26 25 24 27 24 27 23 15 17 20 16, ...
 %!           25 29 27 19 18 21 20 21 22 19]';
@@ -2046,9 +2047,12 @@ end
 %!           'm' 'm' 'm' 'm' 'm' 'm' 'm' 'm' 'm' 'm'}';
 %! degree = [1 1 1 1 1 1 1 1 0 0 0 0 1 1 1 0 0 0 0 0 0 0]';
 %!
-%! ## ANOVA (including the main effect of gender averaged over levels of degree).
-%! ## We are setting a random seed here for comparison between results for
-%! ## different models.
+%! ## ANOVA (including the main effect of gender averaged over all levels of
+%! ## degree). In this order, the variability in salary only attributed to
+%! ## having a degree is tested first. Then, having accounted for any effect of
+%! ## degree, we test for whether variability in salary attributed to gender is
+%! ## significant. Finally, the interaction term tests whether the effect of
+%! ## gender differs depending on whether the subjects have a degree or not.
 %! [STATS, BOOTSTAT, AOVSTAT] = bootlm (salary, {degree, gender}, 'model', ...
 %!                             'full', 'display', 'off', 'varnames', ...
 %!                             {'degree', 'gender'}, 'seed', 1);
@@ -2060,10 +2064,23 @@ end
 %!            AOVSTAT.PVAL(i), AOVSTAT.MODEL{i});
 %! end
 %!
-%! ## ANOVA (including the main effect of degree averaged over levels of gender).
-%! ## We are setting a random seed here for comparison between results for
-%! ## different models. Note that the result for the interaction is not affected
-%! ## by the order of the predictors.
+%! ## Since the interaction is not significant (F(1,18) = 0.42, p = 0.567), we
+%! ## draw our attention to the main effects. We see that employees in this
+%! ## have significantly different starting salaries depending or not on whether
+%! ## they have a degree (F(1,18) = 87.20, p < 0.001). We can also see that once
+%! ## we factor in any differences in salary attributed to having a degree,
+%! ## there is a significant difference in the salaries of men and women at
+%! ## this company (F(1,18) = 10.97, p = 0.005). 
+%!
+%! ## ANOVA (including the main effect of degree averaged over all levels of
+%! ## gender). In this order, the variability in salary only attributed to being
+%! ## male or female is tested first. Then, having accounted for any effect of
+%! ## gender, we test for whether variability in salary attributed to having a
+%! ## degree is significant. Finally, the interaction term tests whether the
+%! ## effect of having a degree or not differs depending on whether the subjects
+%! ## are male or female. (Note that the result for the interaction is not
+%! ## affected by the order of the predictors).
+%!
 %! [STATS, BOOTSTAT, AOVSTAT] = bootlm (salary, {gender, degree}, 'model', ...
 %!                             'full', 'display', 'off', 'varnames', ...
 %!                             {'gender', 'degree'}, 'seed', 1);
@@ -2074,6 +2091,39 @@ end
 %!            AOVSTAT.DF(i), AOVSTAT.DFE, AOVSTAT.F(i), ...
 %!            AOVSTAT.PVAL(i), AOVSTAT.MODEL{i});
 %! end
+%!
+%! ## We can now see in the output that there is no significant difference in
+%! ## salary between men and women in this company! (F(1,18) = 0.11, p = 0.752).
+%! ## Why the discrepancy? There still seems to be a significant effect of
+%! ## having a degree on the salary of people in this company (F(1,18) = 98.06, 
+%! ## p < 0.001). Lets look at the regression coefficients to see what this
+%! ## effect of degree is.
+%!
+%! STATS = bootlm (salary, {gender, degree}, 'model', 'full', ...
+%!                             'display', 'on', 'varnames', ...
+%!                             {'gender', 'degree'}, 'method', 'bayesian', ...
+%!                              'contrasts', 'treatment');
+%! STATS.levels
+%! 
+%! ## The order of the factor levels for degree indicates that having a degree
+%! ## (i.e. a code of 1) is listed first and therefore is the reference level
+%! ## for our treatment contrast coding. We see then from the second regression 
+%! ## coefficient that starting salaries in this company are $8K lower for
+%! ## employees without a college degree. Let's now take a look at the estimated
+%! ## marginal means.
+%!
+%! STATS = bootlm (salary, {gender, degree}, 'model', 'full', ...
+%!                            'display', 'on', 'varnames', ...
+%!                            {'gender', 'degree'}, 'dim', [1, 2], ...
+%!                            'method', 'bayesian','prior', 'auto');
+%! 
+%! ## Ah ha! So it seems that sample sizes are quite unbalanced here, with most
+%! ## of the women in this company having a degree, while most of the men not.
+%! ## Since the regression coefficient indicated that a high starting salary is
+%! ## an outcome of having a degree, this observation likely explains why
+%! ## salaries where not significantly different between men and women when we
+%! ## ran the ANOVA with gender listed first in the model (i.e. not accounting
+%! ## for whether employees had a college degree).
 %!
 %! ## Since the interaction term (F(1,18) = 0.42) was not significant (p > 0.1),
 %! ## we might rather consider the hypotheses tested using type II sums-of-
@@ -2111,39 +2161,7 @@ end
 %! ## degree              272.39       1      272.39  0.842       101.13   <.001
 %! ## Error               51.175      19      2.6934
 %! ## Total               323.86      21
-%!
-%! ## Check regression coefficient corresponding to gender x degree interaction
-%! STATS = bootlm (salary, {gender, degree}, 'model', 'full', ...
-%!                             'display', 'on', 'varnames', ...
-%!                             {'gender', 'degree'});
-%!
-%! ## 95% confidence intervals and p-values for the differences in mean salary
-%! ## between males and females (computed by wild bootstrap).
-%! STATS = bootlm (salary, {gender, degree}, 'model', 'full', ...
-%!                            'display', 'on', 'varnames', ...
-%!                            {'gender', 'degree'}, 'dim', 1, ...
-%!                            'posthoc', 'trt_vs_ctrl');
-%!
-%! ## 95% credible intervals for the estimated marginal means for salaries of
-%! ## females and males (computed by Bayesian bootstrap).
-%! STATS = bootlm (salary, {gender, degree}, 'model', 'full', ...
-%!                            'display', 'on', 'varnames', ...
-%!                            {'gender', 'degree'}, 'dim', 1, ...
-%!                            'method', 'bayesian', 'prior', 'auto');
-%!
-%! ## 95% confidence intervals and p-values for the differences in mean salary
-%! ## between employees with or without a degree (computed by wild bootstrap).
-%! STATS = bootlm (salary, {gender, degree}, 'model', 'full', ...
-%!                            'display', 'on', 'varnames', ...
-%!                            {'gender', 'degree'}, 'dim', 2, ...
-%!                            'posthoc', 'trt_vs_ctrl');
-%!
-%! ## 95% credible intervals for the estimated marginal means for salaries of
-%! ## employees with or without a degree (computed by Bayesian bootstrap).
-%! STATS = bootlm (salary, {gender, degree}, 'model', 'full', ...
-%!                            'display', 'on', 'varnames', ...
-%!                            {'gender', 'degree'}, 'dim', 2, ...
-%!                            'method', 'bayesian','prior', 'auto');
+
 
 %!demo
 %!
