@@ -4,7 +4,7 @@
 Andrew Penn (andy.c.penn@gmail.com)
 
 ### Package contributors
-Andrew Penn
+Andrew Penn  
 (More contributors are welcome!)
 
 ### Citations
