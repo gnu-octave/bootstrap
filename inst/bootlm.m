@@ -88,11 +88,11 @@
 %       <> METHOD can be specified as one of the following:
 %
 %             o 'wild' (default): Wild bootstrap-t, using the 'bootwild'
-%               function. Please see the help documentation for the function
+%               function. Please see the help documentation in the function
 %               'bootwild' for more information about this method.
 %
 %             o 'bayesian': Bayesian bootstrap, using the 'bootbayes' function.
-%                Please see the help documentation below in the function
+%                Please see the help documentation below and in the function
 %               'bootbayes' for more information about this method.
 %
 %             Note that p-values are a frequentist concept and are only computed
