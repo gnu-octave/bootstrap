@@ -904,7 +904,7 @@ function [STATS, BOOTSTAT, AOVSTAT, PRED_ERR] = bootlm (Y, GROUP, varargin)
             % Estimate prediction errors
             PRED_ERR = booterr (Y, X, cat (1, 1, df), n, DEP, NBOOT, ALPHA, ...
                                  SEED, ISOCTAVE, PARALLEL);
-            PRED_ERR.MODEL = cat (1, {'Y ~ 1'}, formula);
+            PRED_ERR.MODEL = cat (1, {sprintf('%s ~ 1',Y_name)}, formula);
           end
         case {'bayes', 'bayesian'}
           [STATS, BOOTSTAT] = bootbayes (Y, X, DEP, NBOOT, ...
@@ -2409,7 +2409,7 @@ end
 
 %!demo
 %!
-%! ## Stepwise regression
+%! ## Step-wise regression
 %!
 %! sr = [11.43;12.07;13.17;05.75;12.88;08.79;00.60;11.90; ...
 %!       04.98;10.78;16.85;03.59;11.24;12.64;12.55;10.67; ...
@@ -2463,11 +2463,11 @@ end
 %! ## obtained for PE, PRESS and RSQ_pred using cross-validation:
 %! ##
 %! ##     MODEL                                  PE-CV    PRESS-CV  RSQ_pred-CV
-%! ##     Y ~ 1                                  20.48    1024.186       -0.041
-%! ##     Y ~ 1 + pop15                          16.88     843.910       +0.142
-%! ##     Y ~ 1 + pop15 + pop75                  16.62     830.879       +0.155
-%! ##     Y ~ 1 + pop15 + pop75 + dpi            16.54     827.168       +0.159
-%! ##     Y ~ 1 + pop15 + pop75 + dpi + ddpi     15.98     798.939       +0.188
+%! ##     sr ~ 1                                  20.48    1024.186       -0.041
+%! ##     sr ~ 1 + pop15                          16.88     843.910       +0.142
+%! ##     sr ~ 1 + pop15 + pop75                  16.62     830.879       +0.155
+%! ##     sr ~ 1 + pop15 + pop75 + dpi            16.54     827.168       +0.159
+%! ##     sr ~ 1 + pop15 + pop75 + dpi + ddpi     15.98     798.939       +0.188
 
 %!test
 %!
