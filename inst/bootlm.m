@@ -2118,12 +2118,14 @@ end
 %!                            'method', 'bayesian','prior', 'auto');
 %! 
 %! ## Ah ha! So it seems that sample sizes are very unbalanced here, with most
-%! ## of the women in this company having a degree, while most of the men not.
+%! ## of the women in this sample having a degree, while most of the men not.
 %! ## Since the regression coefficient indicated that a high starting salary is
 %! ## an outcome of having a degree, this observation likely explains why
 %! ## salaries where not significantly different between men and women when we
 %! ## ran the ANOVA with gender listed first in the model (i.e. not accounting
-%! ## for whether employees had a college degree).
+%! ## for whether employees had a college degree). Note that our inferences here
+%! ## assume that the unbalanced samples sizes are representative of similar
+%! ## imbalance in the company as a whole (i.e. the population).
 %!
 %! ## Since the interaction term (F(1,18) = 0.42) was not significant (p > 0.1),
 %! ## we might rather consider the hypotheses tested using type II sums-of-
