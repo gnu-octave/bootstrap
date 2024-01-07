@@ -2037,9 +2037,9 @@ end
 %!demo
 %!
 %! ## Unbalanced two-way design (2x2). The data is from a study on the effects
-%! ## of gender and a college degree on starting salaries of company employees,
-%! ## in Maxwell, Delaney and Kelly (2018): Chapter 7, Table 15. The starting
-%! ## salaries are in units of 1000 dollars per annum.
+%! ## of gender and a college degree on starting salaries of a sample of company
+%! ## employees, in Maxwell, Delaney and Kelly (2018): Chapter 7, Table 15. The
+%! ## starting salaries are in units of 1000 dollars per annum.
 %!
 %! salary = [24 26 25 24 27 24 27 23 15 17 20 16, ...
 %!           25 29 27 19 18 21 20 21 22 19]';
@@ -2117,7 +2117,7 @@ end
 %!                            {'gender', 'degree'}, 'dim', [1, 2], ...
 %!                            'method', 'bayesian','prior', 'auto');
 %! 
-%! ## Ah ha! So it seems that sample sizes are quite unbalanced here, with most
+%! ## Ah ha! So it seems that sample sizes are very unbalanced here, with most
 %! ## of the women in this company having a degree, while most of the men not.
 %! ## Since the regression coefficient indicated that a high starting salary is
 %! ## an outcome of having a degree, this observation likely explains why
