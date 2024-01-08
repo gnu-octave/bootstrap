@@ -127,7 +127,7 @@ function M = smoothmedian (x, dim, Tol)
 
   % Set initial bracket bounds and calculate range along each column
   a = x(1,:);           % Minimum
-  b = x(end,:);         % Maximum
+  b = x(m,:);           % Maximum
   range = (b - a) / 2;  % Range
   
   % Check/set tolerance

@@ -1894,43 +1894,43 @@ end
 %--------------------------------------------------------------------------
 %!demo
 %!
-%! ## Two-sample unpaired test on independent samples (equivalent to Welch's
-%! ## t-test). 
+%! % Two-sample unpaired test on independent samples (equivalent to Welch's
+%! % t-test). 
 %!
 %! score = [54 23 45 54 45 43 34 65 77 46 65]';
 %! gender = {'male' 'male' 'male' 'male' 'male' 'female' 'female' 'female' ...
 %!           'female' 'female' 'female'}';
 %!
-%! ## 95% confidence intervals and p-values for the difference in mean score
-%! ## between males and females (computed by wild bootstrap)
+%! % 95% confidence intervals and p-values for the difference in mean score
+%! % between males and females (computed by wild bootstrap)
 %! STATS = bootlm (score, gender, 'display', 'on', 'varnames', 'gender', ...
 %!                 'dim', 1, 'posthoc','trt_vs_ctrl');
 %!
-%! ## 95% credible intervals for the estimated marginal means of the scores by
-%! ## males and females (computed by Bayesian bootstrap)
+%! % 95% credible intervals for the estimated marginal means of the scores by
+%! % males and females (computed by Bayesian bootstrap)
 %! STATS = bootlm (score, gender, 'display', 'on', 'varnames', 'gender', ...
 %!                 'dim', 1, 'method', 'bayesian', 'prior', 'auto');
 
 
 %!demo
 %!
-%! ## Two-sample paired test on dependent or matched samples equivalent to a
-%! ## paired t-test.
+%! % Two-sample paired test on dependent or matched samples equivalent to a
+%! % paired t-test.
 %!
 %! score = [4.5 5.6; 3.7 6.4; 5.3 6.4; 5.4 6.0; 3.9 5.7]';
 %! treatment = {'before' 'after'; 'before' 'after'; 'before' 'after';
 %!              'before' 'after'; 'before' 'after'}';
 %! subject = {'GS' 'GS'; 'JM' 'JM'; 'HM' 'HM'; 'JW' 'JW'; 'PS' 'PS'}';
 %!
-%! ## 95% confidence intervals and p-values for the difference in mean score
-%! ## before and after treatment (computed by wild bootstrap)
+%! % 95% confidence intervals and p-values for the difference in mean score
+%! % before and after treatment (computed by wild bootstrap)
 %! STATS = bootlm (score(:), {subject(:), treatment(:)}, ...
 %!                            'model', 'linear', 'display', 'on', ...
 %!                            'varnames', {'subject','treatment'}, ...
 %!                            'dim', 2, 'posthoc','trt_vs_ctrl');
 %!
-%! ## 95% credible intervals for the estimated marginal means of the scores
-%! ## before and after treatment (computed by Bayesian bootstrap)
+%! % 95% credible intervals for the estimated marginal means of the scores
+%! % before and after treatment (computed by Bayesian bootstrap)
 %! STATS = bootlm (score(:), {subject(:), treatment(:)}, ...
 %!                            'model', 'linear', 'display', 'on', ...
 %!                            'varnames', {'subject','treatment'}, ...
@@ -1938,8 +1938,8 @@ end
 
 %!demo
 %!
-%! ## One-way design. The data is from a study on the strength of structural
-%! ## beams, in Hogg and Ledolter (1987) Engineering Statistics. NY: MacMillan
+%! % One-way design. The data is from a study on the strength of structural
+%! % beams, in Hogg and Ledolter (1987) Engineering Statistics. NY: MacMillan
 %!
 %! strength = [82 86 79 83 84 85 86 87 74 82 ...
 %!            78 75 76 77 79 79 77 78 82 79]';
@@ -1947,21 +1947,21 @@ end
 %!          'al1','al1','al1','al1','al1','al1', ...
 %!          'al2','al2','al2','al2','al2','al2'}';
 %!
-%! ## 95% confidence intervals and p-values for the differences in mean strength
-%! ## of three alloys (computed by wild bootstrap)
+%! % 95% confidence intervals and p-values for the differences in mean strength
+%! % of three alloys (computed by wild bootstrap)
 %! STATS = bootlm (strength, alloy, 'display', 'on', 'varnames', 'alloy', ...
 %!                 'dim', 1, 'posthoc','pairwise');
 %!
-%! ## 95% credible intervals for the estimated marginal means of the strengths
-%! ## of each of the alloys (computed by Bayesian bootstrap)
+%! % 95% credible intervals for the estimated marginal means of the strengths
+%! % of each of the alloys (computed by Bayesian bootstrap)
 %! STATS = bootlm (strength, alloy, 'display', 'on', 'varnames', 'alloy', ...
 %!                 'dim', 1, 'method','bayesian', 'prior', 'auto');
 
 %!demo
 %!
-%! ## One-way repeated measures design. The data is from a study on the number
-%! ## of words recalled by 10 subjects for three time condtions, in Loftus &
-%! ## Masson (1994) Psychon Bull Rev. 1(4):476-490, Table 2.
+%! % One-way repeated measures design. The data is from a study on the number
+%! % of words recalled by 10 subjects for three time condtions, in Loftus &
+%! % Masson (1994) Psychon Bull Rev. 1(4):476-490, Table 2.
 %!
 %! words = [10 13 13; 6 8 8; 11 14 14; 22 23 25; 16 18 20; ...
 %!          15 17 17; 1 1 4; 12 15 17;  9 12 12;  8 9 12];
@@ -1970,15 +1970,15 @@ end
 %! subject = [ 1  1  1;  2  2  2;  3  3  3;  4  4  4;  5  5  5; ...
 %!             6  6  6;  7  7  7;  8  8  8;  9  9  9; 10 10 10];
 %!
-%! ## 95% confidence intervals and p-values for the differences in mean number
-%! ## of words recalled for the different times (using wild bootstrap).
+%! % 95% confidence intervals and p-values for the differences in mean number
+%! % of words recalled for the different times (using wild bootstrap).
 %! STATS = bootlm (words(:), {subject(:), seconds(:)}, ...
 %!                            'model', 'linear', 'display', 'on', ...
 %!                            'varnames', {'subject', 'seconds'}, ...
 %!                            'dim', 2, 'posthoc', 'pairwise');
 %!
-%! ## 95% credible intervals for the estimated marginal means of the number of
-%! ## words recalled for each time (computed using Bayesian bootstrap).
+%! % 95% credible intervals for the estimated marginal means of the number of
+%! % words recalled for each time (computed using Bayesian bootstrap).
 %! STATS = bootlm (words(:), {subject(:), seconds(:)}, ...
 %!                            'model', 'linear', 'display', 'on', ...
 %!                            'varnames', {'subject', 'seconds'}, ...
@@ -1986,9 +1986,9 @@ end
 
 %!demo
 %!
-%! ## Balanced two-way design. The data is yield of cups of popped popcorn from
-%! ## different popcorn brands and popper types, in Hogg and Ledolter (1987)
-%! ## Engineering Statistics. NY: MacMillan
+%! % Balanced two-way design. The data is yield of cups of popped popcorn from
+%! % different popcorn brands and popper types, in Hogg and Ledolter (1987)
+%! % Engineering Statistics. NY: MacMillan
 %!
 %! popcorn = [5.5, 4.5, 3.5; 5.5, 4.5, 4.0; 6.0, 4.0, 3.0; ...
 %!            6.5, 5.0, 4.0; 7.0, 5.5, 5.0; 7.0, 5.0, 4.5];
@@ -2001,34 +2001,34 @@ end
 %! popper = {'oil', 'oil', 'oil'; 'oil', 'oil', 'oil'; 'oil', 'oil', 'oil'; ...
 %!           'air', 'air', 'air'; 'air', 'air', 'air'; 'air', 'air', 'air'};
 %!
-%! ## Check regression coefficients corresponding to brand x popper interaction
+%! % Check regression coefficients corresponding to brand x popper interaction
 %! STATS = bootlm (popcorn(:), {brands(:), popper(:)}, ...
 %!                            'display', 'on', 'model', 'full', ...
 %!                            'varnames', {'brands', 'popper'});
 %!
-%! ## 95% confidence intervals and p-values for the differences in mean yield of
-%! ## different popcorn brands (computed by wild bootstrap).
+%! % 95% confidence intervals and p-values for the differences in mean yield of
+%! % different popcorn brands (computed by wild bootstrap).
 %! STATS = bootlm (popcorn(:), {brands(:), popper(:)}, ...
 %!                            'display', 'on', 'model', 'full', ...
 %!                            'varnames', {'brands', 'popper'}, ...
 %!                            'dim', 1, 'posthoc', 'pairwise');
 %!
-%! ## 95% credible intervals for the estimated marginal means of the yield for
-%! ## each popcorn brand (computed by Bayesian bootstrap).
+%! % 95% credible intervals for the estimated marginal means of the yield for
+%! % each popcorn brand (computed by Bayesian bootstrap).
 %! STATS = bootlm (popcorn(:), {brands(:), popper(:)}, ...
 %!                            'display', 'on', 'model', 'full', ...
 %!                            'varnames', {'brands', 'popper'}, ...
 %!                            'dim', 1, 'method', 'bayesian', 'prior', 'auto');
 %!
-%! ## 95% confidence intervals and p-values for the differences in mean yield
-%! ## for different popper types (computed by wild bootstrap).
+%! % 95% confidence intervals and p-values for the differences in mean yield
+%! % for different popper types (computed by wild bootstrap).
 %! STATS = bootlm (popcorn(:), {brands(:), popper(:)}, ...
 %!                            'display', 'on', 'model', 'full', ...
 %!                            'varnames', {'brands', 'popper'}, ...
 %!                            'dim', 2, 'posthoc', 'pairwise');
 %!
-%! ## 95% credible intervals for the estimated marginal means of the yield for
-%! ## each popper type (computed by Bayesian bootstrap).
+%! % 95% credible intervals for the estimated marginal means of the yield for
+%! % each popper type (computed by Bayesian bootstrap).
 %! STATS = bootlm (popcorn(:), {brands(:), popper(:)}, ...
 %!                            'display', 'on', 'model', 'full', ...
 %!                            'varnames', {'brands', 'popper'}, ...
@@ -2036,10 +2036,10 @@ end
 
 %!demo
 %!
-%! ## Unbalanced two-way design (2x2). The data is from a study on the effects
-%! ## of gender and a college degree on starting salaries of a sample of company
-%! ## employees, in Maxwell, Delaney and Kelly (2018): Chapter 7, Table 15. The
-%! ## starting salaries are in units of 1000 dollars per annum.
+%! % Unbalanced two-way design (2x2). The data is from a study on the effects
+%! % of gender and a college degree on starting salaries of a sample of company
+%! % employees, in Maxwell, Delaney and Kelly (2018): Chapter 7, Table 15. The
+%! % starting salaries are in units of 1000 dollars per annum.
 %!
 %! salary = [24 26 25 24 27 24 27 23 15 17 20 16, ...
 %!           25 29 27 19 18 21 20 21 22 19]';
@@ -2047,12 +2047,12 @@ end
 %!           'm' 'm' 'm' 'm' 'm' 'm' 'm' 'm' 'm' 'm'}';
 %! degree = [1 1 1 1 1 1 1 1 0 0 0 0 1 1 1 0 0 0 0 0 0 0]';
 %!
-%! ## ANOVA (including the main effect of gender averaged over all levels of
-%! ## degree). In this order, the variability in salary only attributed to
-%! ## having a degree is tested first. Then, having accounted for any effect of
-%! ## degree, we test for whether variability in salary attributed to gender is
-%! ## significant. Finally, the interaction term tests whether the effect of
-%! ## gender differs depending on whether the subjects have a degree or not.
+%! % ANOVA (including the main effect of gender averaged over all levels of
+%! % degree). In this order, the variability in salary only attributed to
+%! % having a degree is tested first. Then, having accounted for any effect of
+%! % degree, we test for whether variability in salary attributed to gender is
+%! % significant. Finally, the interaction term tests whether the effect of
+%! % gender differs depending on whether the subjects have a degree or not.
 %! [STATS, BOOTSTAT, AOVSTAT] = bootlm (salary, {degree, gender}, 'model', ...
 %!                             'full', 'display', 'off', 'varnames', ...
 %!                             {'degree', 'gender'}, 'seed', 1);
@@ -2064,22 +2064,22 @@ end
 %!            AOVSTAT.PVAL(i), AOVSTAT.MODEL{i});
 %! end
 %!
-%! ## Since the interaction is not significant (F(1,18) = 0.42, p = 0.567), we
-%! ## draw our attention to the main effects. We see that employees in this
-%! ## have significantly different starting salaries depending or not on whether
-%! ## they have a degree (F(1,18) = 87.20, p < 0.001). We can also see that once
-%! ## we factor in any differences in salary attributed to having a degree,
-%! ## there is a significant difference in the salaries of men and women at
-%! ## this company (F(1,18) = 10.97, p = 0.005). 
+%! % Since the interaction is not significant (F(1,18) = 0.42, p = 0.567), we
+%! % draw our attention to the main effects. We see that employees in this
+%! % have significantly different starting salaries depending or not on whether
+%! % they have a degree (F(1,18) = 87.20, p < 0.001). We can also see that once
+%! % we factor in any differences in salary attributed to having a degree,
+%! % there is a significant difference in the salaries of men and women at
+%! % this company (F(1,18) = 10.97, p = 0.005). 
 %!
-%! ## ANOVA (including the main effect of degree averaged over all levels of
-%! ## gender). In this order, the variability in salary only attributed to being
-%! ## male or female is tested first. Then, having accounted for any effect of
-%! ## gender, we test for whether variability in salary attributed to having a
-%! ## degree is significant. Finally, the interaction term tests whether the
-%! ## effect of having a degree or not differs depending on whether the subjects
-%! ## are male or female. (Note that the result for the interaction is not
-%! ## affected by the order of the predictors).
+%! % ANOVA (including the main effect of degree averaged over all levels of
+%! % gender). In this order, the variability in salary only attributed to being
+%! % male or female is tested first. Then, having accounted for any effect of
+%! % gender, we test for whether variability in salary attributed to having a
+%! % degree is significant. Finally, the interaction term tests whether the
+%! % effect of having a degree or not differs depending on whether the subjects
+%! % are male or female. (Note that the result for the interaction is not
+%! % affected by the order of the predictors).
 %!
 %! [STATS, BOOTSTAT, AOVSTAT] = bootlm (salary, {gender, degree}, 'model', ...
 %!                             'full', 'display', 'off', 'varnames', ...
@@ -2092,12 +2092,12 @@ end
 %!            AOVSTAT.PVAL(i), AOVSTAT.MODEL{i});
 %! end
 %!
-%! ## We can now see in the output that there is no significant difference in
-%! ## salary between men and women in this company! (F(1,18) = 0.11, p = 0.752).
-%! ## Why the discrepancy? There still seems to be a significant effect of
-%! ## having a degree on the salary of people in this company (F(1,18) = 98.06, 
-%! ## p < 0.001). Lets look at the regression coefficients to see what this
-%! ## effect of degree is.
+%! % We can now see in the output that there is no significant difference in
+%! % salary between men and women in this company! (F(1,18) = 0.11, p = 0.752).
+%! % Why the discrepancy? There still seems to be a significant effect of
+%! % having a degree on the salary of people in this company (F(1,18) = 98.06, 
+%! % p < 0.001). Lets look at the regression coefficients to see what this
+%! % effect of degree is.
 %!
 %! STATS = bootlm (salary, {gender, degree}, 'model', 'full', ...
 %!                             'display', 'on', 'varnames', ...
@@ -2105,37 +2105,37 @@ end
 %!                              'contrasts', 'treatment');
 %! STATS.levels
 %! 
-%! ## The order of the factor levels for degree indicates that having a degree
-%! ## (i.e. a code of 1) is listed first and therefore is the reference level
-%! ## for our treatment contrast coding. We see then from the second regression 
-%! ## coefficient that starting salaries in this company are $8K lower for
-%! ## employees without a college degree. Let's now take a look at the estimated
-%! ## marginal means.
+%! % The order of the factor levels for degree indicates that having a degree
+%! % (i.e. a code of 1) is listed first and therefore is the reference level
+%! % for our treatment contrast coding. We see then from the second regression 
+%! % coefficient that starting salaries in this company are $8K lower for
+%! % employees without a college degree. Let's now take a look at the estimated
+%! % marginal means.
 %!
 %! STATS = bootlm (salary, {gender, degree}, 'model', 'full', ...
 %!                            'display', 'on', 'varnames', ...
 %!                            {'gender', 'degree'}, 'dim', [1, 2], ...
 %!                            'method', 'bayesian','prior', 'auto');
 %! 
-%! ## Ah ha! So it seems that sample sizes are very unbalanced here, with most
-%! ## of the women in this sample having a degree, while most of the men not.
-%! ## Since the regression coefficient indicated that a high starting salary is
-%! ## an outcome of having a degree, this observation likely explains why
-%! ## salaries where not significantly different between men and women when we
-%! ## ran the ANOVA with gender listed first in the model (i.e. not accounting
-%! ## for whether employees had a college degree). Note that our inferences here
-%! ## assume that the unbalanced samples sizes are representative of similar
-%! ## imbalance in the company as a whole (i.e. the population).
+%! % Ah ha! So it seems that sample sizes are very unbalanced here, with most
+%! % of the women in this sample having a degree, while most of the men not.
+%! % Since the regression coefficient indicated that a high starting salary is
+%! % an outcome of having a degree, this observation likely explains why
+%! % salaries where not significantly different between men and women when we
+%! % ran the ANOVA with gender listed first in the model (i.e. not accounting
+%! % for whether employees had a college degree). Note that our inferences here
+%! % assume that the unbalanced samples sizes are representative of similar
+%! % imbalance in the company as a whole (i.e. the population).
 %!
-%! ## Since the interaction term (F(1,18) = 0.42) was not significant (p > 0.1),
-%! ## we might rather consider the hypotheses tested using type II sums-of-
-%! ## squares without the interaction, which do not depend on the order and have
-%! ## more power respectively. This is easy to achieve with only 2 predictors,
-%! ## by repeating the 'bootlm' commands with different predictors added last to
-%! ## the model (as above) but without any interaction (i.e. setting 'model',
-%! ## 'linear'). We then take the statistics for the last main effect listed
-%! ## in each of the ANOVA tables - these then correspond to the ANOVA test for
-%! ## the respective predictor with type II sums-of-squares. For example:
+%! % Since the interaction term (F(1,18) = 0.42) was not significant (p > 0.1),
+%! % we might rather consider the hypotheses tested using type II sums-of-
+%! % squares without the interaction, which do not depend on the order and have
+%! % more power respectively. This is easy to achieve with only 2 predictors,
+%! % by repeating the 'bootlm' commands with different predictors added last to
+%! % the model (as above) but without any interaction (i.e. setting 'model',
+%! % 'linear'). We then take the statistics for the last main effect listed
+%! % in each of the ANOVA tables - these then correspond to the ANOVA test for
+%! % the respective predictor with type II sums-of-squares. For example:
 %!
 %! [~, ~, AOVSTAT1] = bootlm (salary, {degree, gender}, 'model', ...
 %!                             'linear', 'display', 'off', 'varnames', ...
@@ -2154,22 +2154,22 @@ end
 %!            AOVSTAT2.DF(2), AOVSTAT2.DFE, AOVSTAT2.F(2), ...
 %!            AOVSTAT2.PVAL(2), AOVSTAT2.MODEL{2});
 %!
-%! ## Here is the output from 'anovan' for comparison:
-%! ## ANOVA TABLE (Type II sums-of-squares):
-%! ## 
-%! ## Source             Sum Sq.    d.f.    Mean Sq.  R Sq.            F  Prob>F
-%! ## --------------------------------------------------------------------------
-%! ## gender              30.462       1      30.462  0.373        11.31    .003
-%! ## degree              272.39       1      272.39  0.842       101.13   <.001
-%! ## Error               51.175      19      2.6934
-%! ## Total               323.86      21
+%! % Here is the output from 'anovan' for comparison:
+%! % ANOVA TABLE (Type II sums-of-squares):
+%! % 
+%! % Source             Sum Sq.    d.f.    Mean Sq.  R Sq.            F  Prob>F
+%! % --------------------------------------------------------------------------
+%! % gender              30.462       1      30.462  0.373        11.31    .003
+%! % degree              272.39       1      272.39  0.842       101.13   <.001
+%! % Error               51.175      19      2.6934
+%! % Total               323.86      21
 
 
 %!demo
 %!
-%! ## One-way design with continuous covariate. The data is from a study of the
-%! ## additive effects of species and temperature on chirpy pulses of crickets,
-%! ## from Stitch, The Worst Stats Text eveR
+%! % One-way design with continuous covariate. The data is from a study of the
+%! % additive effects of species and temperature on chirpy pulses of crickets,
+%! % from Stitch, The Worst Stats Text eveR
 %!
 %! pulse = [67.9 65.1 77.3 78.7 79.4 80.4 85.8 86.6 87.5 89.1 ...
 %!          98.6 100.8 99.3 101.7 44.3 47.2 47.6 49.6 50.3 51.8 ...
@@ -2181,8 +2181,8 @@ end
 %!            'ex' 'ex' 'ex' 'niv' 'niv' 'niv' 'niv' 'niv' 'niv' 'niv' ...
 %!            'niv' 'niv' 'niv' 'niv' 'niv' 'niv' 'niv' 'niv' 'niv' 'niv'};
 %!
-%! ## Perform ANCOVA (type I sums-of-squares)
-%! ## Use 'anova' contrasts so that the continuous covariate is centered
+%! % Perform ANCOVA (type I sums-of-squares)
+%! % Use 'anova' contrasts so that the continuous covariate is centered
 %! [STATS, BOOTSTAT, AOVSTAT] = bootlm (pulse, {temp, species}, 'model', ...
 %!                           'linear', 'continuous', 1, 'display', 'off', ...
 %!                           'varnames', {'temp', 'species'}, ...
@@ -2195,8 +2195,8 @@ end
 %!            AOVSTAT.PVAL(i), AOVSTAT.MODEL{i});
 %! end
 %!
-%! ## Perform ANCOVA (type II sums-of-squares)
-%! ## Use 'anova' contrasts so that the continuous covariate is centered
+%! % Perform ANCOVA (type II sums-of-squares)
+%! % Use 'anova' contrasts so that the continuous covariate is centered
 %! [~, ~, AOVSTAT1] = bootlm (pulse, {temp, species}, 'model', ...
 %!                           'linear', 'continuous', 1, 'display', 'off', ...
 %!                           'varnames', {'temp', 'species'}, ...
@@ -2216,21 +2216,21 @@ end
 %!            AOVSTAT2.DF(2), AOVSTAT2.DFE, AOVSTAT2.F(2), ...
 %!            AOVSTAT2.PVAL(2), AOVSTAT2.MODEL{2});
 %!
-%! ## Estimate regression coefficients using 'anova' contrast coding 
+%! % Estimate regression coefficients using 'anova' contrast coding 
 %! STATS = bootlm (pulse, {temp, species}, 'model', 'linear', ...
 %!                           'continuous', 1, 'display', 'on', ...
 %!                           'varnames', {'temp', 'species'}, ...
 %!                           'contrasts', 'anova');
 %!
-%! ## 95% confidence intervals and p-values for the differences in the mean of
-%! ## chirpy pulses of ex ad niv species (computed by wild bootstrap).
+%! % 95% confidence intervals and p-values for the differences in the mean of
+%! % chirpy pulses of ex ad niv species (computed by wild bootstrap).
 %! STATS = bootlm (pulse, {temp, species}, 'model', 'linear', ...
 %!                           'continuous', 1, 'display', 'on', ...
 %!                           'varnames', {'temp', 'species'}, 'dim', 2, ...
 %!                           'posthoc', 'trt_vs_ctrl', 'contrasts', 'anova');
 %!
-%! ## 95% credible intervals for the estimated marginal means of chirpy pulses
-%! ## of ex and niv species (computed by Bayesian bootstrap).
+%! % 95% credible intervals for the estimated marginal means of chirpy pulses
+%! % of ex and niv species (computed by Bayesian bootstrap).
 %! STATS = bootlm (pulse, {temp, species}, 'model', 'linear', ...
 %!                           'continuous', 1, 'display', 'on', ...
 %!                           'varnames', {'temp', 'species'}, 'dim', 2, ...
@@ -2239,9 +2239,9 @@ end
 
 %!demo
 %!
-%! ## Unbalanced three-way design (3x2x2). The data is from a study of the
-%! ## effects of three different drugs, biofeedback and diet on patient blood
-%! ## pressure, adapted* from Maxwell, Delaney and Kelly (2018): Ch 8, Table 12
+%! % Unbalanced three-way design (3x2x2). The data is from a study of the
+%! % effects of three different drugs, biofeedback and diet on patient blood
+%! % pressure, adapted* from Maxwell, Delaney and Kelly (2018): Ch 8, Table 12
 %!
 %! drug = {'X' 'X' 'X' 'X' 'X' 'X' 'X' 'X' 'X' 'X' 'X' 'X' ...
 %!         'X' 'X' 'X' 'X' 'X' 'X' 'X' 'X' 'X' 'X' 'X' 'X';
@@ -2262,8 +2262,8 @@ end
 %!       180 187 199 170 204 194 162 184 183 156 180 173 ...
 %!       202 228 190 206 224 204 205 199 170 160 179 179];
 %!
-%! ## Perform 3-way ANOVA (this design is balanced, thus the order of predictors 
-%! ## does not make any difference)
+%! % Perform 3-way ANOVA (this design is balanced, thus the order of predictors 
+%! % does not make any difference)
 %! [STATS, BOOTSTAT, AOVSTAT] = bootlm (BP(:), {diet(:), drug(:), ...
 %!                                    feedback(:)}, 'seed', 1, ...
 %!                                    'model', 'full', 'display', 'off', ...
@@ -2276,21 +2276,21 @@ end
 %!            AOVSTAT.PVAL(i), AOVSTAT.MODEL{i});
 %! end
 %!
-%! ## Check regression coefficient corresponding to drug x feedback x diet
+%! % Check regression coefficient corresponding to drug x feedback x diet
 %! STATS = bootlm (BP(:), {diet(:), drug(:), feedback(:)}, ...
 %!                                    'model', 'full', ...
 %!                                    'display', 'on', ...
 %!                                    'varnames', {'diet', 'drug', 'feedback'});
 %!
-%! ## 95% confidence intervals and p-values for the differences in mean salary
-%! ## between males and females (computed by wild bootstrap).
+%! % 95% confidence intervals and p-values for the differences in mean salary
+%! % between males and females (computed by wild bootstrap).
 %! STATS = bootlm (BP(:), {diet(:), drug(:), feedback(:)}, 'model', 'full', ...
 %!                                    'display', 'on', 'dim', [1,2,3], ...
 %!                                    'posthoc', 'trt_vs_ctrl', ...
 %!                                    'varnames', {'diet', 'drug', 'feedback'});
 %!
-%! ## 95% credible intervals for the estimated marginal means of salaries of
-%! ## females and males (computed by Bayesian bootstrap).
+%! % 95% credible intervals for the estimated marginal means of salaries of
+%! % females and males (computed by Bayesian bootstrap).
 %! STATS = bootlm (BP(:), {diet(:), drug(:), feedback(:)}, 'model', 'full', ...
 %!                                    'display', 'on', 'dim', [1,2,3], ...
 %!                                    'method', 'bayesian', 'prior', 'auto', ...
@@ -2298,9 +2298,9 @@ end
 
 %!demo
 %!
-%! ## Factorial design with continuous covariate. The data is from a study of
-%! ## the effects of treatment and exercise on stress reduction score after
-%! ## adjusting for age. Data from R datarium package).
+%! % Factorial design with continuous covariate. The data is from a study of
+%! % the effects of treatment and exercise on stress reduction score after
+%! % adjusting for age. Data from R datarium package).
 %!
 %! score = [95.6 82.2 97.2 96.4 81.4 83.6 89.4 83.8 83.3 85.7 ...
 %!          97.2 78.2 78.9 91.8 86.9 84.1 88.6 89.8 87.3 85.4 ...
@@ -2324,8 +2324,8 @@ end
 %!        58 56 57 59 59 60 55 53 55 58 68 62 61 54 59 63 60 67 60 67 ...
 %!        75 54 57 62 65 60 58 61 65 57 56 58 58 58 52 53 60 62 61 61]';
 %!
-%! ## ANOVA/ANCOVA statistics
-%! ## Use 'anova' contrasts so that the continuous covariate is centered
+%! % ANOVA/ANCOVA statistics
+%! % Use 'anova' contrasts so that the continuous covariate is centered
 %! [STATS, BOOTSTAT, AOVSTAT] = bootlm (score, {age, exercise, treatment}, ...
 %!                            'model', [1 0 0; 0 1 0; 0 0 1; 0 1 1], ...
 %!                            'continuous', 1, 'display', 'off', ...
@@ -2339,16 +2339,16 @@ end
 %!            AOVSTAT.PVAL(i), AOVSTAT.MODEL{i});
 %! end
 %!
-%! ## Estimate regression coefficients
+%! % Estimate regression coefficients
 %! STATS = bootlm (score, {age, exercise, treatment}, ...
 %!                            'model', [1 0 0; 0 1 0; 0 0 1; 0 1 1], ...
 %!                            'continuous', 1, 'display', 'on', ...
 %!                            'varnames', {'age', 'exercise', 'treatment'}, ...
 %!                            'contrasts', 'anova');
 %!
-%! ## 95% confidence intervals and p-values for the differences in mean score
-%! ## across different treatments and amounts of exercise after adjusting for
-%  ## age (computed by wild bootstrap).
+%! % 95% confidence intervals and p-values for the differences in mean score
+%! % across different treatments and amounts of exercise after adjusting for
+%  % age (computed by wild bootstrap).
 %! STATS = bootlm (score, {age, exercise, treatment}, ...
 %!                            'model', [1 0 0; 0 1 0; 0 0 1; 0 1 1], ...
 %!                            'continuous', 1, 'display', 'on', ...
@@ -2356,9 +2356,9 @@ end
 %!                            'dim', [2, 3], 'posthoc', 'trt_vs_ctrl', ...
 %!                            'contrasts', 'anova');
 %!
-%! ## 95% credible intervals for the estimated marginal means of scores across
-%! ## different treatments and amounts of exercise after adjusting for age
-%! ## (computed by Bayesian bootstrap).
+%! % 95% credible intervals for the estimated marginal means of scores across
+%! % different treatments and amounts of exercise after adjusting for age
+%! % (computed by Bayesian bootstrap).
 %! STATS = bootlm (score, {age, exercise, treatment}, 'dim', [2, 3], ...
 %!                            'model', [1 0 0; 0 1 0; 0 0 1; 0 1 1], ...
 %!                            'continuous', 1, 'display', 'on', ...
@@ -2368,8 +2368,8 @@ end
 
 %!demo
 %!
-%! ## Unbalanced one-way design with custom, orthogonal contrasts. Data from
-%! ## www.uvm.edu/~statdhtx/StatPages/Unequal-ns/Unequal_n%27s_contrasts.html
+%! % Unbalanced one-way design with custom, orthogonal contrasts. Data from
+%! % www.uvm.edu/~statdhtx/StatPages/Unequal-ns/Unequal_n%27s_contrasts.html
 %!
 %! dv =  [ 8.706 10.362 11.552  6.941 10.983 10.092  6.421 14.943 15.931 ...
 %!        22.968 18.590 16.567 15.944 21.637 14.492 17.965 18.851 22.891 ...
@@ -2384,20 +2384,20 @@ end
 %!      -0.6002401  0.0000000  0.0  0.5
 %!      -0.6002401  0.0000000  0.0 -0.5];
 %!
-%! ## 95% confidence intervals and p-values for linear contrasts 
+%! % 95% confidence intervals and p-values for linear contrasts 
 %! STATS = bootlm (dv, g, 'contrasts', C, 'varnames', 'score', ...
 %!                          'alpha', 0.05, 'display', true);
 %!
-%! ## 95% credible intervals for estimated marginal means 
+%! % 95% credible intervals for estimated marginal means 
 %! STATS = bootlm (dv, g, 'contrasts', C, 'varnames', 'score', ...
 %!                          'alpha', 0.05, 'display', true, 'dim', 1, ...
 %!                          'method', 'Bayesian', 'prior', 'auto');
 
 %!demo
 %!
-%! ## Comparing analysis of nested design using ANOVA with clustered resampling.
-%! ## Two factor nested model example from:
-%! ## https://www.southampton.ac.uk/~cpd/anovas/datasets/#Chapter2
+%! % Comparing analysis of nested design using ANOVA with clustered resampling.
+%! % Two factor nested model example from:
+%! % https://www.southampton.ac.uk/~cpd/anovas/datasets/#Chapter2
 %!
 %! data = [4.5924 7.3809 21.322; -0.5488 9.2085 25.0426; ...
 %!         6.1605 13.1147 22.66; 2.3374 15.2654 24.1283; ...
@@ -2420,8 +2420,8 @@ end
 
 %!demo
 %!
-%! ## Prediction errors of linear models. Data from Table 9.1, on page 107 of
-%! ## Efron and Tibshirani (1993) An Introduction to the Bootstrap.
+%! % Prediction errors of linear models. Data from Table 9.1, on page 107 of
+%! % Efron and Tibshirani (1993) An Introduction to the Bootstrap.
 %!
 %! amount = [25.8; 20.5; 14.3; 23.2; 20.6; 31.1; 20.9; 20.9; 30.4; ...
 %!          16.3; 11.6; 11.8; 32.5; 32.0; 18.0; 24.1; 26.5; 25.8; ...
@@ -2443,14 +2443,14 @@ end
 %!
 %! fprintf ('PREDICTION ERROR of the FULL MODEL = %.2f\n', PRED_ERR.PE(3))
 %!
-%! ## Note: The value of prediction error is lower than the 3.00 calculated by
-%! ## Efron and Tibhirani (1993) using the same refined bootstrap procedure,
-%! ## because they have used case resampling whereas we have used wild bootstrap
-%! ## resampling. The equivalent value of Cp (eq. to AIC) statistic is 2.96.
+%! % Note: The value of prediction error is lower than the 3.00 calculated by
+%! % Efron and Tibhirani (1993) using the same refined bootstrap procedure,
+%! % because they have used case resampling whereas we have used wild bootstrap
+%! % resampling. The equivalent value of Cp (eq. to AIC) statistic is 2.96.
 
 %!demo
 %!
-%! ## Step-wise regression
+%! % Step-wise regression
 %!
 %! sr = [11.43;12.07;13.17;05.75;12.88;08.79;00.60;11.90; ...
 %!       04.98;10.78;16.85;03.59;11.24;12.64;12.55;10.67; ...
@@ -2500,20 +2500,20 @@ end
 %!
 %! PRED_ERR
 %! 
-%! ## The results from the bootstrap are broadly consistent to the results
-%! ## obtained for PE, PRESS and RSQ_pred using cross-validation:
-%! ##
-%! ##     MODEL                                  PE-CV    PRESS-CV  RSQ_pred-CV
-%! ##     sr ~ 1                                  20.48    1024.186       -0.041
-%! ##     sr ~ 1 + pop15                          16.88     843.910       +0.142
-%! ##     sr ~ 1 + pop15 + pop75                  16.62     830.879       +0.155
-%! ##     sr ~ 1 + pop15 + pop75 + dpi            16.54     827.168       +0.159
-%! ##     sr ~ 1 + pop15 + pop75 + dpi + ddpi     15.98     798.939       +0.188
+%! % The results from the bootstrap are broadly consistent to the results
+%! % obtained for PE, PRESS and RSQ_pred using cross-validation:
+%! %
+%! %     MODEL                                  PE-CV    PRESS-CV  RSQ_pred-CV
+%! %     sr ~ 1                                  20.48    1024.186       -0.041
+%! %     sr ~ 1 + pop15                          16.88     843.910       +0.142
+%! %     sr ~ 1 + pop15 + pop75                  16.62     830.879       +0.155
+%! %     sr ~ 1 + pop15 + pop75 + dpi            16.54     827.168       +0.159
+%! %     sr ~ 1 + pop15 + pop75 + dpi + ddpi     15.98     798.939       +0.188
 
 %!test
 %!
-%! ## Two-sample unpaired test on independent samples (equivalent to Welch's
-%! ## t-test).
+%! % Two-sample unpaired test on independent samples (equivalent to Welch's
+%! % t-test).
 %!
 %! score = [54 23 45 54 45 43 34 65 77 46 65]';
 %! gender = {'male' 'male' 'male' 'male' 'male' 'female' 'female' 'female' ...
@@ -2525,12 +2525,12 @@ end
 %! assert (aovstat.PVAL(1), 0.2435635849960569, 1e-09);
 %! assert (stats.pval(2), 0.2434934955512797, 1e-09);
 %! assert (stats.fpr(2), 0.4832095599189747, 1e-09);
-%! ## ttest2 (with 'vartype' = 'unequal') gives a p-value of 0.2501;
+%! % ttest2 (with 'vartype' = 'unequal') gives a p-value of 0.2501;
 
 %!test
 %!
-%! ## Two-sample paired test on dependent or matched samples equivalent to a
-%! ## paired t-test.
+%! % Two-sample paired test on dependent or matched samples equivalent to a
+%! % paired t-test.
 %!
 %! score = [4.5 5.6; 3.7 6.4; 5.3 6.4; 5.4 6.0; 3.9 5.7]';
 %! treatment = {'before' 'after'; 'before' 'after'; 'before' 'after';
@@ -2551,8 +2551,8 @@ end
 
 %!test
 %!
-%! ## One-way design. The data is from a study on the strength of structural
-%! ## beams, in Hogg and Ledolter (1987) Engineering Statistics. NY: MacMillan
+%! % One-way design. The data is from a study on the strength of structural
+%! % beams, in Hogg and Ledolter (1987) Engineering Statistics. NY: MacMillan
 %!
 %! strength = [82 86 79 83 84 85 86 87 74 82 ...
 %!            78 75 76 77 79 79 77 78 82 79]';
@@ -2571,9 +2571,9 @@ end
 
 %!test
 %!
-%! ## One-way repeated measures design. The data is from a study on the number
-%! ## of words recalled by 10 subjects for three time condtions, in Loftus &
-%! ## Masson (1994) Psychon Bull Rev. 1(4):476-490, Table 2.
+%! % One-way repeated measures design. The data is from a study on the number
+%! % of words recalled by 10 subjects for three time condtions, in Loftus &
+%! % Masson (1994) Psychon Bull Rev. 1(4):476-490, Table 2.
 %!
 %! words = [10 13 13; 6 8 8; 11 14 14; 22 23 25; 16 18 20; ...
 %!          15 17 17; 1 1 4; 12 15 17;  9 12 12;  8 9 12];
@@ -2595,9 +2595,9 @@ end
 
 %!test
 %!
-%! ## Balanced two-way design with interaction. The data is from a study of
-%! ## popcorn brands and popper types, in Hogg and Ledolter (1987) Engineering
-%! ## Statistics. New York: MacMillan
+%! % Balanced two-way design with interaction. The data is from a study of
+%! % popcorn brands and popper types, in Hogg and Ledolter (1987) Engineering
+%! % Statistics. New York: MacMillan
 %!
 %! popcorn = [5.5, 4.5, 3.5; 5.5, 4.5, 4.0; 6.0, 4.0, 3.0; ...
 %!            6.5, 5.0, 4.0; 7.0, 5.5, 5.0; 7.0, 5.0, 4.5];
@@ -2627,9 +2627,9 @@ end
 
 %!test
 %!
-%! ## Unbalanced two-way design (2x2). The data is from a study on the effects
-%! ## of gender and having a college degree on salaries of company employees,
-%! ## in Maxwell, Delaney and Kelly (2018): Chapter 7, Table 15
+%! % Unbalanced two-way design (2x2). The data is from a study on the effects
+%! % of gender and having a college degree on salaries of company employees,
+%! % in Maxwell, Delaney and Kelly (2018): Chapter 7, Table 15
 %!
 %! salary = [24 26 25 24 27 24 27 23 15 17 20 16, ...
 %!           25 29 27 19 18 21 20 21 22 19]';
@@ -2667,9 +2667,9 @@ end
 
 %!test
 %!
-%! ## Unbalanced two-way design (3x2). The data is from a study of the effect of
-%! ## adding sugar and/or milk on the tendency of coffee to make people babble,
-%! ## in from Navarro (2019): 16.10
+%! % Unbalanced two-way design (3x2). The data is from a study of the effect of
+%! % adding sugar and/or milk on the tendency of coffee to make people babble,
+%! % in from Navarro (2019): 16.10
 %!
 %! sugar = {'real' 'fake' 'fake' 'real' 'real' 'real' 'none' 'none' 'none' ...
 %!          'fake' 'fake' 'fake' 'real' 'real' 'real' 'none' 'none' 'fake'}';
@@ -2688,9 +2688,9 @@ end
 
 %!test
 %!
-%! ## Balanced three-way design (3x2x2). The data is from a study of the
-%! ## effects of three different drugs, biofeedback and diet on patient blood
-%! ## pressure, adapted* from Maxwell, Delaney and Kelly (2018): Ch 8, Table 12
+%! % Balanced three-way design (3x2x2). The data is from a study of the
+%! % effects of three different drugs, biofeedback and diet on patient blood
+%! % pressure, adapted* from Maxwell, Delaney and Kelly (2018): Ch 8, Table 12
 %!
 %! drug = {'X' 'X' 'X' 'X' 'X' 'X' 'X' 'X' 'X' 'X' 'X' 'X' ...
 %!         'X' 'X' 'X' 'X' 'X' 'X' 'X' 'X' 'X' 'X' 'X' 'X';
@@ -2726,9 +2726,9 @@ end
 
 %!test
 %!
-%! ## One-way design with continuous covariate. The data is from a study of the
-%! ## additive effects of species and temperature on chirpy pulses of crickets,
-%! ## from Stitch, The Worst Stats Text eveR
+%! % One-way design with continuous covariate. The data is from a study of the
+%! % additive effects of species and temperature on chirpy pulses of crickets,
+%! % from Stitch, The Worst Stats Text eveR
 %!
 %! pulse = [67.9 65.1 77.3 78.7 79.4 80.4 85.8 86.6 87.5 89.1 ...
 %!          98.6 100.8 99.3 101.7 44.3 47.2 47.6 49.6 50.3 51.8 ...
@@ -2752,9 +2752,9 @@ end
 
 %!test
 %!
-%! ## Factorial design with continuous covariate. The data is from a study of
-%! ## the effects of treatment and exercise on stress reduction score after
-%! ## adjusting for age. Data from R datarium package).
+%! % Factorial design with continuous covariate. The data is from a study of
+%! % the effects of treatment and exercise on stress reduction score after
+%! % adjusting for age. Data from R datarium package).
 %!
 %! score = [95.6 82.2 97.2 96.4 81.4 83.6 89.4 83.8 83.3 85.7 ...
 %!          97.2 78.2 78.9 91.8 86.9 84.1 88.6 89.8 87.3 85.4 ...
@@ -2778,7 +2778,7 @@ end
 %!        58 56 57 59 59 60 55 53 55 58 68 62 61 54 59 63 60 67 60 67 ...
 %!        75 54 57 62 65 60 58 61 65 57 56 58 58 58 52 53 60 62 61 61]';
 %!
-%! ## ANOVA/ANCOVA statistics
+%! % ANOVA/ANCOVA statistics
 %! [stats, bootstat, aovstat] = bootlm (score, {age, exercise, treatment}, ...
 %!                            'model', [1 0 0; 0 1 0; 0 0 1; 0 1 1], ...
 %!                            'continuous', 1, 'display', 'off', 'seed', 1, ...
@@ -2822,8 +2822,8 @@ end
 
 %!test
 %!
-%! ## Unbalanced one-way design with custom, orthogonal contrasts. Data from
-%! ## www.uvm.edu/~statdhtx/StatPages/Unequal-ns/Unequal_n%27s_contrasts.html
+%! % Unbalanced one-way design with custom, orthogonal contrasts. Data from
+%! % www.uvm.edu/~statdhtx/StatPages/Unequal-ns/Unequal_n%27s_contrasts.html
 %!
 %! dv =  [ 8.706 10.362 11.552  6.941 10.983 10.092  6.421 14.943 15.931 ...
 %!        22.968 18.590 16.567 15.944 21.637 14.492 17.965 18.851 22.891 ...
@@ -2868,7 +2868,7 @@ end
 
 %!test
 %!
-%! ## One-way design.
+%! % One-way design.
 %!
 %! g = [1, 1, 1, 1, 1, 1, 1, 1, ...
 %!      2, 2, 2, 2, 2, 2, 2, 2, ...
@@ -2889,7 +2889,7 @@ end
 
 %!test
 %!
-%! ## Prediction errors of linear models
+%! % Prediction errors of linear models
 %!
 %! amount = [25.8; 20.5; 14.3; 23.2; 20.6; 31.1; 20.9; 20.9; 30.4; ...
 %!          16.3; 11.6; 11.8; 32.5; 32.0; 18.0; 24.1; 26.5; 25.8; ...
@@ -2913,15 +2913,15 @@ end
 %! assert (pred_err.PE(2), 5.90864228700846, 1e-09);
 %! assert (pred_err.PE(3), 2.85817329292271, 1e-09);
 %!
-%! ## The value of PE(3) is lower than the one calculated by Efron and Tibhirani
-%! ## (1993), because they have used case resampling whereas we have used wild
-%! ## bootstrap resampling
+%! % The value of PE(3) is lower than the one calculated by Efron and Tibhirani
+%! % (1993), because they have used case resampling whereas we have used wild
+%! % bootstrap resampling
 
 %!test
 %!
-%! ## Comparing analysis of nested design using ANOVA with clustered resampling.
-%! ## Two factor nested model example from:
-%! ## https://www.southampton.ac.uk/~cpd/anovas/datasets/#Chapter2
+%! % Comparing analysis of nested design using ANOVA with clustered resampling.
+%! % Two factor nested model example from:
+%! % https://www.southampton.ac.uk/~cpd/anovas/datasets/#Chapter2
 %!
 %! data = [4.5924 7.3809 21.322; -0.5488 9.2085 25.0426; ...
 %!         6.1605 13.1147 22.66; 2.3374 15.2654 24.1283; ...

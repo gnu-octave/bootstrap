@@ -233,12 +233,12 @@ end
 %! n = sampszcalc ('r', 0.5)
 
 %!test
-%! ## The difference between a sample mean from a zero constant (one sample
-%! ## test) or the difference between two dependent means (matched pair).
-%! ## Required sample sizes for small, medium and large effects with power, 
-%! ## alpha and the number of tails at 0.8, 0.05 and 2 respectively (defaults)
-%! ## The standardized effect size corresponds to Cohen's d
-%! ## Results compared to G*Power 3.1
+%! % The difference between a sample mean from a zero constant (one sample
+%! % test) or the difference between two dependent means (matched pair).
+%! % Required sample sizes for small, medium and large effects with power, 
+%! % alpha and the number of tails at 0.8, 0.05 and 2 respectively (defaults)
+%! % The standardized effect size corresponds to Cohen's d
+%! % Results compared to G*Power 3.1
 %! ns = sampszcalc ('t', 0.20, 0.80, 0.05, 2);
 %! assert (ns, 199, 1);
 %! nm = sampszcalc ('t', 0.50, 0.80, 0.05, 2);
@@ -253,11 +253,11 @@ end
 %! assert (nl, 15, 1);
 
 %!test
-%! ## The difference between two independent means (two groups).
-%! ## Required sample sizes for small, medium and large effects with power, 
-%! ## alpha and the number of tails at 0.8, 0.05 and 2 respectively (defaults)
-%! ## The standardized effect size corresponds to Cohen's d
-%! ## Results compared to G*Power 3.1
+%! % The difference between two independent means (two groups).
+%! % Required sample sizes for small, medium and large effects with power, 
+%! % alpha and the number of tails at 0.8, 0.05 and 2 respectively (defaults)
+%! % The standardized effect size corresponds to Cohen's d
+%! % Results compared to G*Power 3.1
 %! ns = sampszcalc ('t2', 0.20, 0.80, 0.05, 2);
 %! assert (ns, 394, 1);
 %! nm = sampszcalc ('t2', 0.50, 0.80, 0.05, 2);
@@ -272,12 +272,12 @@ end
 %! assert (nl, 26, 1);
 
 %!test
-%! ## The difference between a proportion and a constant (one sample test)
-%! ## or the difference between two dependent proportions (matched pair).
-%! ## Required sample sizes for small, medium and large effects with power, 
-%! ## alpha and the number of tails at 0.8, 0.05 and 2 respectively (defaults)
-%! ## The standardized effect size corresponds to Cohen's h
-%! ## Results compared to NCSS PASS
+%! % The difference between a proportion and a constant (one sample test)
+%! % or the difference between two dependent proportions (matched pair).
+%! % Required sample sizes for small, medium and large effects with power, 
+%! % alpha and the number of tails at 0.8, 0.05 and 2 respectively (defaults)
+%! % The standardized effect size corresponds to Cohen's h
+%! % Results compared to NCSS PASS
 %! ns = sampszcalc ('z', 0.20, 0.80, 0.05, 2);
 %! assert (ns, 197, 1);
 %! nm = sampszcalc ('z', 0.50, 0.80, 0.05, 2);
@@ -292,11 +292,11 @@ end
 %! assert (nl, 13, 1);
 
 %!test
-%! ## The difference between two independent proportions (two sample test).
-%! ## Required sample sizes for small, medium and large effects with power, 
-%! ## alpha and the number of tails at 0.8, 0.05 and 2 respectively (defaults)
-%! ## The standardized effect size corresponds to Cohen's h
-%! ## Results compared to NCSS PASS
+%! % The difference between two independent proportions (two sample test).
+%! % Required sample sizes for small, medium and large effects with power, 
+%! % alpha and the number of tails at 0.8, 0.05 and 2 respectively (defaults)
+%! % The standardized effect size corresponds to Cohen's h
+%! % Results compared to NCSS PASS
 %! ns = sampszcalc ('z2', 0.20, 0.80, 0.05, 2);
 %! assert (ns, 393, 1);
 %! nm = sampszcalc ('z2', 0.50, 0.80, 0.05, 2);
@@ -311,10 +311,10 @@ end
 %! assert (nl, 25, 1);
 
 %!test
-%! ## The test for Pearson's correlation coefficient equal to 0.
-%! ## Required sample sizes for small, medium and large effects with power, 
-%! ## alpha and the number of tails at 0.8, 0.05 and 2 respectively (defaults)
-%! ## Results compared to G*Power 3.1
+%! % The test for Pearson's correlation coefficient equal to 0.
+%! % Required sample sizes for small, medium and large effects with power, 
+%! % alpha and the number of tails at 0.8, 0.05 and 2 respectively (defaults)
+%! % Results compared to G*Power 3.1
 %! ns = sampszcalc ('r', 0.10, 0.80, 0.05, 2);
 %! assert (ns, 783, 1);
 %! nm = sampszcalc ('r', 0.30, 0.80, 0.05, 2);

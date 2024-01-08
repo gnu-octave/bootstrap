@@ -714,7 +714,7 @@ end
 %! % Please be patient, the calculations will be completed soon...
 
 %!test
-%! ## Test for errors when using different functionalities of bootclust
+%! % Test for errors when using different functionalities of bootclust
 %! y = randn (20,1); 
 %! clustid = [1;1;1;1;1;1;1;1;1;1;2;2;2;2;2;3;3;3;3;3];
 %! stats = bootclust (y, 1999, @mean);
@@ -759,20 +759,20 @@ end
 %! stats = bootclust ({y,X}, 1999, @(y,X) pinv(X)*y, [.05,.95], clustid);
 
 %!test
-%! ## Air conditioning failure times in Table 1.2 of Davison A.C. and
-%! ## Hinkley D.V (1997) Bootstrap Methods And Their Application. (Cambridge
-%! ## University Press)
+%! % Air conditioning failure times in Table 1.2 of Davison A.C. and
+%! % Hinkley D.V (1997) Bootstrap Methods And Their Application. (Cambridge
+%! % University Press)
 %! x = [3, 5, 7, 18, 43, 85, 91, 98, 100, 130, 230, 487]';
 %!
-%! ## Nonparametric 95% expanded percentile confidence intervals (equal-tailed)
-%! ## Balanced bootknife resampling
-%! ## Example 5.4 percentile intervals are 43.9 - 192.1
-%! ## Note that the intervals calculated below are wider because the narrowness
-%! ## bias was removed by expanding the probabilities of the percentiles using
-%! ## Student's t-distribution
+%! % Nonparametric 95% expanded percentile confidence intervals (equal-tailed)
+%! % Balanced bootknife resampling
+%! % Example 5.4 percentile intervals are 43.9 - 192.1
+%! % Note that the intervals calculated below are wider because the narrowness
+%! % bias was removed by expanding the probabilities of the percentiles using
+%! % Student's t-distribution
 %! stats = bootclust(x,1999,@mean,0.05,[],true,1);
 %! if (isempty (regexp (which ('boot'), 'mex$')))
-%!   ## test boot m-file result
+%!   % test boot m-file result
 %!   assert (stats.original, 108.0833333333333, 1e-08);
 %!   assert (stats.bias, -2.842170943040401e-14, 1e-08);
 %!   assert (stats.std_error, 38.21311346451331, 1e-08);
@@ -780,15 +780,15 @@ end
 %!   assert (stats.CI_upper, 200.846030428085, 1e-08);
 %! end
 %!
-%! ## Nonparametric 95% expanded BCa confidence intervals
-%! ## Balanced bootknife resampling
-%! ## Example 5.8 BCa intervals are 55.33 - 243.5
-%! ## Note that the intervals calculated below are wider because the narrowness
-%! ## bias was removed by expanding the probabilities of the percentiles using
-%! ## Student's t-distribution
+%! % Nonparametric 95% expanded BCa confidence intervals
+%! % Balanced bootknife resampling
+%! % Example 5.8 BCa intervals are 55.33 - 243.5
+%! % Note that the intervals calculated below are wider because the narrowness
+%! % bias was removed by expanding the probabilities of the percentiles using
+%! % Student's t-distribution
 %! stats = bootclust(x,1999,@mean,[0.025,0.975],[],true,1);
 %! if (isempty (regexp (which ('boot'), 'mex$')))
-%!   ## test boot m-file result
+%!   % test boot m-file result
 %!   assert (stats.original, 108.0833333333333, 1e-08);
 %!   assert (stats.bias, -2.842170943040401e-14, 1e-08);
 %!   assert (stats.std_error, 38.21311346451331, 1e-08);
@@ -796,22 +796,22 @@ end
 %!   assert (stats.CI_upper, 232.2854912518225, 1e-08);
 %! end
 %!
-%! ## Exact intervals based on an exponential model are 65.9 - 209.2
-%! ## (Example 2.11)
+%! % Exact intervals based on an exponential model are 65.9 - 209.2
+%! % (Example 2.11)
 
 %!test
-%! ## Spatial test data from Table 14.1 of Efron and Tibshirani (1993)
-%! ## An Introduction to the Bootstrap in Monographs on Statistics and Applied 
-%! ## Probability 57 (Springer)
+%! % Spatial test data from Table 14.1 of Efron and Tibshirani (1993)
+%! % An Introduction to the Bootstrap in Monographs on Statistics and Applied 
+%! % Probability 57 (Springer)
 %! A = [48 36 20 29 42 42 20 42 22 41 45 14 6 ...
 %!      0 33 28 34 4 32 24 47 41 24 26 30 41]';
 %!
-%! ## Nonparametric 90% equal-tailed percentile confidence intervals
-%! ## Balanced bootknife resampling
-%! ## Table 14.2 percentile intervals are 100.8 - 233.9
+%! % Nonparametric 90% equal-tailed percentile confidence intervals
+%! % Balanced bootknife resampling
+%! % Table 14.2 percentile intervals are 100.8 - 233.9
 %! stats = bootclust(A,1999,{@var,1},0.1,[],true,1);
 %! if (isempty (regexp (which ('boot'), 'mex$')))
-%!   ## test boot m-file result
+%!   % test boot m-file result
 %!   assert (stats.original, 171.534023668639, 1e-08);
 %!   assert (stats.bias, -7.305657266503118, 1e-08);
 %!   assert (stats.std_error, 43.17157379039285, 1e-08);
@@ -819,12 +819,12 @@ end
 %!   assert (stats.CI_upper, 237.1866652820803, 1e-08);
 %! end
 %!
-%! ## Nonparametric 90% BCa confidence intervals
-%! ## Balanced bootknife resampling
-%! ## Table 14.2 BCa intervals are 115.8 - 259.6
+%! % Nonparametric 90% BCa confidence intervals
+%! % Balanced bootknife resampling
+%! % Table 14.2 BCa intervals are 115.8 - 259.6
 %! stats = bootclust(A,1999,{@var,1},[0.05 0.95],[],true,1);
 %! if (isempty (regexp (which ('boot'), 'mex$')))
-%!   ## test boot m-file result
+%!   % test boot m-file result
 %!   assert (stats.original, 171.534023668639, 1e-08);
 %!   assert (stats.bias, -7.305657266503118, 1e-08);
 %!   assert (stats.std_error, 43.17157379039285, 1e-08);
@@ -832,25 +832,25 @@ end
 %!   assert (stats.CI_upper, 264.0328613673329, 1e-08);
 %! end
 %!
-%! ## Exact intervals based on normal theory are 118.4 - 305.2 (Table 14.2)
-%! ## Note that all of the bootknife intervals are slightly wider than the
-%! ## nonparametric intervals in Table 14.2 because the bootknife (rather than
-%! ## standard bootstrap) resampling used here reduces small sample bias
+%! % Exact intervals based on normal theory are 118.4 - 305.2 (Table 14.2)
+%! % Note that all of the bootknife intervals are slightly wider than the
+%! % nonparametric intervals in Table 14.2 because the bootknife (rather than
+%! % standard bootstrap) resampling used here reduces small sample bias
 
 %!test
-%! ## Law school data from Table 3.1 of Efron and Tibshirani (1993)
-%! ## An Introduction to the Bootstrap in Monographs on Statistics and Applied 
-%! ## Probability 57 (Springer)
+%! % Law school data from Table 3.1 of Efron and Tibshirani (1993)
+%! % An Introduction to the Bootstrap in Monographs on Statistics and Applied 
+%! % Probability 57 (Springer)
 %! LSAT = [576 635 558 578 666 580 555 661 651 605 653 575 545 572 594]';
 %! GPA = [3.39 3.3 2.81 3.03 3.44 3.07 3 3.43 ...
 %!        3.36 3.13 3.12 2.74 2.76 2.88 2.96]';
 %!
-%! ## Nonparametric 90% equal-tailed percentile confidence intervals
-%! ## Balanced bootstrap resampling
-%! ## Percentile intervals on page 266 are 0.524 - 0.928
+%! % Nonparametric 90% equal-tailed percentile confidence intervals
+%! % Balanced bootstrap resampling
+%! % Percentile intervals on page 266 are 0.524 - 0.928
 %! stats = bootclust({LSAT,GPA},1999,@cor,0.1,[],false,1);
 %! if (isempty (regexp (which ('boot'), 'mex$')))
-%!   ## test boot m-file result
+%!   % test boot m-file result
 %!   assert (stats.original, 0.7763744912894071, 1e-08);
 %!   assert (stats.bias, -0.007614791775856333, 1e-08);
 %!   assert (stats.std_error, 0.1355245146889644, 1e-08);
@@ -858,12 +858,12 @@ end
 %!   assert (stats.CI_upper, 0.9531054945982934, 1e-08);
 %! end
 %!
-%! ## Nonparametric 90% BCa confidence intervals
-%! ## Balanced bootstrap resampling
-%! ## BCa intervals on page 266 are 0.410 - 0.923
+%! % Nonparametric 90% BCa confidence intervals
+%! % Balanced bootstrap resampling
+%! % BCa intervals on page 266 are 0.410 - 0.923
 %! stats = bootclust({LSAT,GPA},1999,@cor,[0.05 0.95],[],false,1);
 %! if (isempty (regexp (which ('boot'), 'mex$')))
-%!   ## test boot m-file result
+%!   % test boot m-file result
 %!   assert (stats.original, 0.7763744912894071, 1e-08);
 %!   assert (stats.bias, -0.007614791775856333, 1e-08);
 %!   assert (stats.std_error, 0.1355245146889644, 1e-08);

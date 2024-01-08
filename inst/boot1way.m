@@ -920,15 +920,15 @@ end
 %!      1 2 3 4 5 6 7];
 %! p = boot1way (y(:),g(:),'ref',1,'nboot',[999,0],'DisplayOpt',false);
 %! if (isempty (regexp (which ('boot'), 'mex$')))
-%!   # test boot m-file result
+%!   % test boot m-file result
 %!   assert (min(p), 0.01570455476054196, 1e-06);
 %! end
 %! p = boot1way (y(:),g(:),'nboot',[999,0],'DisplayOpt',false);
 %! if (isempty (regexp (which ('boot'), 'mex$')))
-%!   # test boot m-file result
+%!   % test boot m-file result
 %!   assert (min(p), 0.05374259279858003, 1e-06);
 %! end
-%! # Result from anova1 is 0.0387
+%! % Result from anova1 is 0.0387
 
 %!test
 %! y = [54       43
@@ -945,15 +945,15 @@ end
 %!      'male' 'female'};
 %! p = boot1way (y(:),g(:),'ref','male','nboot',[999,0],'DisplayOpt',false);
 %! if (isempty (regexp (which ('boot'), 'mex$')))
-%!   # test boot m-file result
+%!   % test boot m-file result
 %!   assert (p, 0.281036161800208, 1e-06);
 %! end
 %! p = boot1way (y(:),g(:),'nboot',[999,0],'DisplayOpt',false);
 %! if (isempty (regexp (which ('boot'), 'mex$')))
-%!   # test boot m-file result
+%!   % test boot m-file result
 %!   assert (p, 0.281036161800208, 1e-06);
 %! end
-%! # Result from anova1 is 0.2613
+%! % Result from anova1 is 0.2613
 
 %!test
 %! y = [54  87  45
@@ -970,10 +970,10 @@ end
 %!       1   2   3];
 %! p = boot1way (y(:),g(:),'nboot',[999,0],'DisplayOpt',false);
 %! if (isempty (regexp (which ('boot'), 'mex$')))
-%!   # test boot m-file result
-%!   assert (min(p), 0.001, 1e-06); # truncated at 0.001
+%!   % test boot m-file result
+%!   assert (min(p), 0.001, 1e-06); % truncated at 0.001
 %! end
-%! # Result from anova1 is 4.162704768129188e-05
+%! % Result from anova1 is 4.162704768129188e-05
 
 %!test
 %! y = [54  87  45
@@ -991,7 +991,7 @@ end
 %! p = boot1way (y(:),g(:),'bootfun',@(y)std(y,1),'DisplayOpt',false);
 %! p = boot1way (y(:),g(:),'bootfun',{@std,1},'DisplayOpt',false);
 %! if (isempty (regexp (which ('boot'), 'mex$')))
-%!   # test boot m-file result
+%!   % test boot m-file result
 %!   assert (min(p), 0.4523926257950379, 1e-06);
 %! end
 

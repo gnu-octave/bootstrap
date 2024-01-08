@@ -523,13 +523,13 @@ end
 %! % Please be patient, the calculations will be completed soon...
 
 %!test
-%! ## Test if the mean is equal to a population value of 181.5 (one-tailed test)
+%! % Test if the mean is equal to a population value of 181.5 (one-tailed test)
 %!
-%! ## Input univariate dataset
+%! % Input univariate dataset
 %! H0 = 181.5;
 %! heights = [183, 192, 182, 183, 177, 185, 188, 188, 182, 185].';
 %!
-%! ## Compute test statistics and p-values
+%! % Compute test statistics and p-values
 %! [stats,bootstat] = bootwild(heights);
 %! stats = bootwild(heights-H0);
 %! stats = bootwild(heights-H0,ones(10,1));
@@ -550,7 +550,7 @@ end
 %! assert (stats.tstat, 2.413553960127389, 1e-06);
 %! assert (stats.pval, 0.04363142391272781, 1e-06);
 %! assert (stats.fpr, 0.2708502563156392, 1e-06);
-%! # ttest gives a p-value of 0.0478
+%! % ttest gives a p-value of 0.0478
 %! stats = bootwild(heights-H0,[],[],[],[0.025,0.975],1);
 %! assert (stats.original, 3.0, 1e-06);
 %! assert (stats.std_err, 1.242980289465605, 1e-06);
@@ -577,9 +577,9 @@ end
 %! assert (stats.fpr, 0.4186764774953166, 1e-06);
 
 %!test
-%! ## Test if the regression coefficients equal 0
+%! % Test if the regression coefficients equal 0
 %!
-%! ## Input bivariate dataset
+%! % Input bivariate dataset
 %! X = [ones(43,1),...
 %!     [01,02,03,04,05,06,07,08,09,10,11,...
 %!      12,13,14,15,16,17,18,19,20,21,22,...
@@ -590,7 +590,7 @@ end
 %!     168.0,170.0,178.0,182.0,180.0,183.0,178.0,182.0,188.0,175.0,179.0,...
 %!     183.0,192.0,182.0,183.0,177.0,185.0,188.0,188.0,182.0,185.0]';
 %!
-%! ## Compute test statistics and p-values
+%! % Compute test statistics and p-values
 %! [stats,bootstat] = bootwild(y,X);
 %! stats = bootwild(y,X);
 %! stats = bootwild(y,X,3);
@@ -609,7 +609,7 @@ end
 %! assert (stats.tstat(2), 2.305056797685863, 1e-06);
 %! assert (stats.pval(2), 0.05133180571394391, 1e-06);
 %! assert (stats.fpr(2), 0.2929561493533854, 1e-06);
-%! # fitlm gives a CI of [0.0333, 0.34753] and a p-value of 0.018743
+%! % fitlm gives a CI of [0.0333, 0.34753] and a p-value of 0.018743
 %! stats = bootwild(y,X,[],[],[0.025,0.975],1);
 %! assert (stats.original(2), 0.1904211996616223, 1e-06);
 %! assert (stats.std_err(2), 0.08261019852213342, 1e-06);

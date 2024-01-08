@@ -1241,13 +1241,13 @@ end
 %! %
 %! % x <- c(3, 5, 7, 18, 43, 85, 91, 98, 100, 130, 230, 487);
 %! %
-%! % library (bootstrap)  # Functions from Efron and Tibshirani (1993)
+%! % library (bootstrap)  % Functions from Efron and Tibshirani (1993)
 %! % set.seed(1);
 %! % ci1 <- boott (x, mean, nboott=19999, nbootsd=499, perc=c(.025,.975))
 %! % set.seed(1); 
 %! % ci2a <- bcanon (x, 19999, mean, alpha = c(0.025,0.975))
 %! %
-%! % library (resample)  # Functions from Hesterberg, Tim (2014)
+%! % library (resample)  % Functions from Hesterberg, Tim (2014)
 %! % bootout <- bootstrap (x, mean, R=19999, seed=1)
 %! % ci2b <- CI.bca (bootout, confidence=0.95, expand=FALSE)
 %! % ci3 <- CI.bca (bootout, confidence=0.95, expand=TRUE)
@@ -1346,18 +1346,18 @@ end
 %!
 %! % Calculations using the 'boot' and 'bootstrap' packages in R
 %! % 
-%! % library (boot)       # Functions from Davison and Hinkley (1997)
+%! % library (boot)       % Functions from Davison and Hinkley (1997)
 %! % A <- c(48,36,20,29,42,42,20,42,22,41,45,14,6, ...
 %! %        0,33,28,34,4,32,24,47,41,24,26,30,41);
 %! % n <- length(A)
 %! % var.fun <- function (d, i) { 
-%! %        # Function to compute the population variance
+%! %        % Function to compute the population variance
 %! %        n <- length (d); 
 %! %        return (var (d[i]) * (n - 1) / n) };
 %! % boot.fun <- function (d, i) {
-%! %        # Compute the estimate
+%! %        % Compute the estimate
 %! %        t <- var.fun (d, i);
-%! %        # Compute sampling variance of the estimate using Tukey's jackknife
+%! %        % Compute sampling variance of the estimate using Tukey's jackknife
 %! %        n <- length (d);
 %! %        U <- empinf (data=d[i], statistic=var.fun, type="jack", stype="i");
 %! %        var.t <- sum (U^2 / (n * (n - 1)));
@@ -1370,7 +1370,7 @@ end
 %! % ci4 <- boot.ci (var.boot, conf=0.90, type="bca")
 %! % ci5 <- boot.ci (var.boot, conf=0.90, type="stud")
 %! %
-%! % library (bootstrap)  # Functions from Efron and Tibshirani (1993)
+%! % library (bootstrap)  % Functions from Efron and Tibshirani (1993)
 %! % set.seed(1);
 %! % ci4a <- bcanon (A, 19999, var.fun, alpha=c(0.05,0.95))
 %! % set.seed(1); 
@@ -1452,8 +1452,8 @@ end
 %! % better by bootknife (rather than bootstrap) resampling. 
 
 %!test
-%! ## Test for errors when using different functionalities of bootknife
-%! ## 'bootknife:parallel' warning off in case parallel package is not loaded
+%! % Test for errors when using different functionalities of bootknife
+%! % 'bootknife:parallel' warning off in case parallel package is not loaded
 %! warning ('off', 'bootknife:parallel')
 %! try
 %!   y = randn (20,1); 
@@ -1508,20 +1508,20 @@ end
 %! warning ('on', 'bootknife:parallel')
 
 %!test
-%! ## Air conditioning failure times in Table 1.2 of Davison A.C. and
-%! ## Hinkley D.V (1997) Bootstrap Methods And Their Application. (Cambridge
-%! ## University Press)
+%! % Air conditioning failure times in Table 1.2 of Davison A.C. and
+%! % Hinkley D.V (1997) Bootstrap Methods And Their Application. (Cambridge
+%! % University Press)
 %! x = [3, 5, 7, 18, 43, 85, 91, 98, 100, 130, 230, 487]';
 %!
-%! ## Nonparametric 95% expanded percentile confidence intervals (equal-tailed)
-%! ## Example 5.4 percentile intervals are 43.9 - 192.1
-%! ## Note that the intervals calculated below are wider because the narrowness
-%! ## bias was removed by expanding the probabilities of the percentiles using
-%! ## Student's t-distribution
-%! boot (1, 1, false, 1); # Set random seed
+%! % Nonparametric 95% expanded percentile confidence intervals (equal-tailed)
+%! % Example 5.4 percentile intervals are 43.9 - 192.1
+%! % Note that the intervals calculated below are wider because the narrowness
+%! % bias was removed by expanding the probabilities of the percentiles using
+%! % Student's t-distribution
+%! boot (1, 1, false, 1); % Set random seed
 %! stats = bootknife(x,1999,@mean,0.05);
 %! if (isempty (regexp (which ('boot'), 'mex$')))
-%!   ## test boot m-file result
+%!   % test boot m-file result
 %!   assert (stats.original, 108.0833333333333, 1e-08);
 %!   assert (stats.bias, -2.842170943040401e-14, 1e-08);
 %!   assert (stats.std_error, 38.21311346451331, 1e-08);
@@ -1529,15 +1529,15 @@ end
 %!   assert (stats.CI_upper, 200.846030428085, 1e-08);
 %! end
 %!
-%! ## Nonparametric 95% expanded BCa confidence intervals
-%! ## Example 5.8 BCa intervals are 55.33 - 243.5
-%! ## Note that the intervals calculated below are wider because the narrowness
-%! ## bias was removed by expanding the probabilities of the percentiles using
-%! ## Student's t-distribution
-%! boot (1, 1, false, 1); # Set random seed
+%! % Nonparametric 95% expanded BCa confidence intervals
+%! % Example 5.8 BCa intervals are 55.33 - 243.5
+%! % Note that the intervals calculated below are wider because the narrowness
+%! % bias was removed by expanding the probabilities of the percentiles using
+%! % Student's t-distribution
+%! boot (1, 1, false, 1); % Set random seed
 %! stats = bootknife(x,1999,@mean,[0.025,0.975]);
 %! if (isempty (regexp (which ('boot'), 'mex$')))
-%!   ## test boot m-file result
+%!   % test boot m-file result
 %!   assert (stats.original, 108.0833333333333, 1e-08);
 %!   assert (stats.bias, -2.842170943040401e-14, 1e-08);
 %!   assert (stats.std_error, 38.21311346451331, 1e-08);
@@ -1545,22 +1545,22 @@ end
 %!   assert (stats.CI_upper, 232.2854912518225, 1e-08);
 %! end
 %!
-%! ## Exact intervals based on an exponential model are 65.9 - 209.2
-%! ## (Example 2.11)
+%! % Exact intervals based on an exponential model are 65.9 - 209.2
+%! % (Example 2.11)
 
 %!test
-%! ## Spatial test data from Table 14.1 of Efron and Tibshirani (1993)
-%! ## An Introduction to the Bootstrap in Monographs on Statistics and Applied 
-%! ## Probability 57 (Springer)
+%! % Spatial test data from Table 14.1 of Efron and Tibshirani (1993)
+%! % An Introduction to the Bootstrap in Monographs on Statistics and Applied 
+%! % Probability 57 (Springer)
 %! A = [48 36 20 29 42 42 20 42 22 41 45 14 6 ...
 %!      0 33 28 34 4 32 24 47 41 24 26 30 41]';
 %!
-%! ## Nonparametric 90% equal-tailed percentile confidence intervals
-%! ## Table 14.2 percentile intervals are 100.8 - 233.9
-%! boot (1, 1, false, 1); # Set random seed
+%! % Nonparametric 90% equal-tailed percentile confidence intervals
+%! % Table 14.2 percentile intervals are 100.8 - 233.9
+%! boot (1, 1, false, 1); % Set random seed
 %! stats = bootknife(A,1999,{@var,1},0.1);
 %! if (isempty (regexp (which ('boot'), 'mex$')))
-%!   ## test boot m-file result
+%!   % test boot m-file result
 %!   assert (stats.original, 171.534023668639, 1e-08);
 %!   assert (stats.bias, -7.305657266503118, 1e-08);
 %!   assert (stats.std_error, 43.17157379039285, 1e-08);
@@ -1568,12 +1568,12 @@ end
 %!   assert (stats.CI_upper, 237.1866652820803, 1e-08);
 %! end
 %!
-%! ## Nonparametric 90% BCa confidence intervals
-%! ## Table 14.2 BCa intervals are 115.8 - 259.6
-%! boot (1, 1, false, 1); # Set random seed
+%! % Nonparametric 90% BCa confidence intervals
+%! % Table 14.2 BCa intervals are 115.8 - 259.6
+%! boot (1, 1, false, 1); % Set random seed
 %! stats = bootknife(A,1999,{@var,1},[0.05 0.95]);
 %! if (isempty (regexp (which ('boot'), 'mex$')))
-%!   ## test boot m-file result
+%!   % test boot m-file result
 %!   assert (stats.original, 171.534023668639, 1e-08);
 %!   assert (stats.bias, -7.305657266503118, 1e-08);
 %!   assert (stats.std_error, 43.17157379039285, 1e-08);
@@ -1581,11 +1581,11 @@ end
 %!   assert (stats.CI_upper, 264.0328613673329, 1e-08);
 %! end
 %!
-%! ## Nonparametric 90% calibrated equal-tailed percentile confidence intervals
-%! boot (1, 1, false, 1); # Set random seed
+%! % Nonparametric 90% calibrated equal-tailed percentile confidence intervals
+%! boot (1, 1, false, 1); % Set random seed
 %! stats = bootknife(A,[1999,199],{@var,1},0.1);
 %! if (isempty (regexp (which ('boot'), 'mex$')))
-%!   ## test boot m-file result
+%!   % test boot m-file result
 %!   assert (stats.original, 171.534023668639, 1e-08);
 %!   assert (stats.bias, -8.09559197397769, 1e-08);
 %!   assert (stats.std_error, 46.23192443207778, 1e-08);
@@ -1593,11 +1593,11 @@ end
 %!   assert (stats.CI_upper, 255.5966823363611, 1e-08);
 %! end
 %!
-%! ## Nonparametric 90% calibrated percentile confidence intervals
-%! boot (1, 1, false, 1); # Set random seed
+%! % Nonparametric 90% calibrated percentile confidence intervals
+%! boot (1, 1, false, 1); % Set random seed
 %! stats = bootknife(A,[1999,199],{@var,1},[0.05,0.95]);
 %! if (isempty (regexp (which ('boot'), 'mex$')))
-%!   ## test boot m-file result
+%!   % test boot m-file result
 %!   assert (stats.original, 171.534023668639, 1e-08);
 %!   assert (stats.bias, -8.09559197397769, 1e-08);
 %!   assert (stats.std_error, 46.23192443207778, 1e-08);
@@ -1605,25 +1605,25 @@ end
 %!   assert (stats.CI_upper, 277.4147390170027, 1e-08);
 %! end
 %!
-%! ## Exact intervals based on normal theory are 118.4 - 305.2 (Table 14.2)
-%! ## Note that all of the bootknife intervals are slightly wider than the
-%! ## nonparametric intervals in Table 14.2 because the bootknife (rather than
-%! ## standard bootstrap) resampling used here reduces small sample bias
+%! % Exact intervals based on normal theory are 118.4 - 305.2 (Table 14.2)
+%! % Note that all of the bootknife intervals are slightly wider than the
+%! % nonparametric intervals in Table 14.2 because the bootknife (rather than
+%! % standard bootstrap) resampling used here reduces small sample bias
 
 %!test
-%! ## Law school data from Table 3.1 of Efron and Tibshirani (1993)
-%! ## An Introduction to the Bootstrap in Monographs on Statistics and Applied 
-%! ## Probability 57 (Springer)
+%! % Law school data from Table 3.1 of Efron and Tibshirani (1993)
+%! % An Introduction to the Bootstrap in Monographs on Statistics and Applied 
+%! % Probability 57 (Springer)
 %! LSAT = [576 635 558 578 666 580 555 661 651 605 653 575 545 572 594]';
 %! GPA = [3.39 3.3 2.81 3.03 3.44 3.07 3 3.43 ...
 %!        3.36 3.13 3.12 2.74 2.76 2.88 2.96]';
 %!
-%! ## Nonparametric 90% equal-tailed percentile confidence intervals
-%! ## Percentile intervals on page 266 are 0.524 - 0.928
-%! boot (1, 1, false, 1); # Set random seed
+%! % Nonparametric 90% equal-tailed percentile confidence intervals
+%! % Percentile intervals on page 266 are 0.524 - 0.928
+%! boot (1, 1, false, 1); % Set random seed
 %! stats = bootknife({LSAT,GPA},1999,@cor,0.1);
 %! if (isempty (regexp (which ('boot'), 'mex$')))
-%!   ## test boot m-file result
+%!   % test boot m-file result
 %!   assert (stats.original, 0.7763744912894071, 1e-08);
 %!   assert (stats.bias, -0.008329526543031429, 1e-08);
 %!   assert (stats.std_error, 0.1422804068655692, 1e-08);
@@ -1631,12 +1631,12 @@ end
 %!   assert (stats.CI_upper, 0.9586661175519952, 1e-08);
 %! end
 %!
-%! ## Nonparametric 90% BCa confidence intervals
-%! ## BCa intervals on page 266 are 0.410 - 0.923
-%! boot (1, 1, false, 1); # Set random seed
+%! % Nonparametric 90% BCa confidence intervals
+%! % BCa intervals on page 266 are 0.410 - 0.923
+%! boot (1, 1, false, 1); % Set random seed
 %! stats = bootknife({LSAT,GPA},1999,@cor,[0.05 0.95]);
 %! if (isempty (regexp (which ('boot'), 'mex$')))
-%!   ## test boot m-file result
+%!   % test boot m-file result
 %!   assert (stats.original, 0.7763744912894071, 1e-08);
 %!   assert (stats.bias, -0.008329526543031429, 1e-08);
 %!   assert (stats.std_error, 0.1422804068655692, 1e-08);
@@ -1644,11 +1644,11 @@ end
 %!   assert (stats.CI_upper, 0.9301552819706758, 1e-08);
 %! end
 %!
-%! ## Nonparametric 90% calibrated equal-tailed percentile confidence intervals
-%! boot (1, 1, false, 1); # Set random seed
+%! % Nonparametric 90% calibrated equal-tailed percentile confidence intervals
+%! boot (1, 1, false, 1); % Set random seed
 %! stats = bootknife({LSAT,GPA},[1999,499],@cor,0.1);
 %! if (isempty (regexp (which ('boot'), 'mex$')))
-%!   ## test boot m-file result
+%!   % test boot m-file result
 %!   assert (stats.original, 0.7763744912894071, 1e-08);
 %!   assert (stats.bias, -0.009735795559474125, 1e-08);
 %!   assert (stats.std_error, 0.1446016217318865, 1e-08);
@@ -1656,15 +1656,15 @@ end
 %!   assert (stats.CI_upper, 0.9783138564265896, 1e-08);
 %! end
 %!
-%! ## Nonparametric 90% calibrated percentile confidence intervals
-%! boot (1, 1, false, 1); # Set random seed
+%! % Nonparametric 90% calibrated percentile confidence intervals
+%! boot (1, 1, false, 1); % Set random seed
 %! stats = bootknife({LSAT,GPA},[1999,499],@cor,[0.05,0.95]);
 %! if (isempty (regexp (which ('boot'), 'mex$')))
-%!   ## test boot m-file result
+%!   % test boot m-file result
 %!   assert (stats.original, 0.7763744912894071, 1e-08);
 %!   assert (stats.bias, -0.009735795559474125, 1e-08);
 %!   assert (stats.std_error, 0.1446016217318865, 1e-08);
 %!   assert (stats.CI_lower, 0.2078720903008157, 1e-08);
 %!   assert (stats.CI_upper, 0.9419996961228243, 1e-08);
 %! end
-%! ## Exact intervals based on normal theory are 0.51 - 0.91
+%! % Exact intervals based on normal theory are 0.51 - 0.91

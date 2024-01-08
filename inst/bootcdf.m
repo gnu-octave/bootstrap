@@ -140,8 +140,8 @@ end
 
 %!test
 %! 
-%! ## Example 1 from: 
-%! ## brainder.org/2012/11/28/competition-ranking-and-empirical-distributions/
+%! % Example 1 from: 
+%! % brainder.org/2012/11/28/competition-ranking-and-empirical-distributions/
 %!
 %! y = [75; 76; 79; 80; 84; 85; 86; 88; 90; 94];
 %! [x, F, P] = bootcdf (y, false, 0);
@@ -152,8 +152,8 @@ end
 
 %!test
 %! 
-%! ## Example 2 from: 
-%! ## brainder.org/2012/11/28/competition-ranking-and-empirical-distributions/
+%! % Example 2 from: 
+%! % brainder.org/2012/11/28/competition-ranking-and-empirical-distributions/
 %!
 %! y = [81; 81; 82; 83; 83; 83; 84; 85; 85; 85];
 %! [x, F, P] = bootcdf (y, false, 0);

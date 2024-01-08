@@ -389,10 +389,10 @@ end
 
 %!test
 %!
-%! # Input univariate dataset
+%! % Input univariate dataset
 %! data = [48 36 20 29 42 42 20 42 22 41 45 14 6 ...
 %!         0 33 28 34 4 32 24 47 41 24 26 30 41]';
 %!
-%! # Compute 50 bootstrap statistics for the mean and calculate the bootstrap
-%! # standard arror
+%! % Compute 50 bootstrap statistics for the mean and calculate the bootstrap
+%! % standard arror
 %! bootstat = bootstrp (50, @mean, data);

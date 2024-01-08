@@ -525,7 +525,7 @@ end
 
 %!test
 %!
-%! ## Test various capabilities of randtest2
+%! % Test various capabilities of randtest2
 %! X = randn (3,1);
 %! Y = randn (3,1);
 %! pval1 = randtest2 (X, Y);

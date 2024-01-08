@@ -133,10 +133,10 @@ end
 
 %!test
 %!
-%! ## Simulate (log-normal) data
+%! % Simulate (log-normal) data
 %! randn ('seed', 1);
 %! Y = exp (randn (5, 999));
 %!
-%! ## 95% credible interval for the mean 
+%! % 95% credible interval for the mean 
 %! CI = credint (Y,0.95);          # Shortest probability interval
 %! CI = credint (Y,[0.025,0.975]); # Equal-tailed interval

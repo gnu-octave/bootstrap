@@ -487,12 +487,12 @@ end
 %! % Please be patient, the calculations will be completed soon...
 
 %!test
-%! ## Test calculations of statistics for the mean
+%! % Test calculations of statistics for the mean
 %!
-%! ## Input univariate dataset
+%! % Input univariate dataset
 %! heights = [183, 192, 182, 183, 177, 185, 188, 188, 182, 185].';
 %!
-%! ## 95% credible interval for the mean 
+%! % 95% credible interval for the mean 
 %! stats = bootbayes(heights);
 %! stats = bootbayes(repmat(heights,1,5));
 %! stats = bootbayes(heights,ones(10,1));
@@ -506,9 +506,9 @@ end
 %! [stats,bootstat] = bootbayes(heights);
 
 %!test
-%! ## Test calculations of statistics for linear regression
+%! % Test calculations of statistics for linear regression
 %!
-%! ## Input bivariate dataset
+%! % Input bivariate dataset
 %! X = [ones(43,1),...
 %!     [01,02,03,04,05,06,07,08,09,10,11,...
 %!      12,13,14,15,16,17,18,19,20,21,22,...
@@ -519,7 +519,7 @@ end
 %!     168.0,170.0,178.0,182.0,180.0,183.0,178.0,182.0,188.0,175.0,179.0,...
 %!     183.0,192.0,182.0,183.0,177.0,185.0,188.0,188.0,182.0,185.0]';
 %!
-%! ## 95% credible interval for the mean 
+%! % 95% credible interval for the mean 
 %! stats = bootbayes(y,X);
 %! stats = bootbayes(y,X,4);
 %! stats = bootbayes(y,X,[],1999);

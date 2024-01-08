@@ -164,7 +164,7 @@ function bootsam = boot (x, nboot, u, s, w)
         d = c;
       end
       d = cumsum (d);
-      j = sum (R(i) >= d ./ d(end)) + 1;
+      j = sum (R(i) >= d ./ d(n)) + 1;
       if (isvec) 
         bootsam (i, b) = x(j);
       else
@@ -209,54 +209,54 @@ function bootsam = boot (x, nboot, u, s, w)
 %! boot(6, 1, false)    % Sample 3
 
 %!test
-%! ## Test that random samples vary between calls to boot.
+%! % Test that random samples vary between calls to boot.
 %! I1 = boot (3, 20);
 %! I2 = boot (3, 20);
 %! assert (all (I1(:) == I2(:)), false);
 
 %!test
-%! ## Test that random seed gives identical resamples when LOO is false.
+%! % Test that random seed gives identical resamples when LOO is false.
 %! I1 = boot (3, 20, false, 1);
 %! I2 = boot (3, 20, false, 1);
 %! assert (all (I1(:) == I2(:)), true);
 
 %!test
-%! ## Test that random seed gives identical resamples when LOO is true.
+%! % Test that random seed gives identical resamples when LOO is true.
 %! I1 = boot (3, 20, true, 1);
 %! I2 = boot (3, 20, true, 1);
 %! assert (all (I1(:) == I2(:)), true);
 
 %!test
-%! ## Test that default setting for LOO is false.
+%! % Test that default setting for LOO is false.
 %! I1 = boot (3, 20, [], 1);
 %! I2 = boot (3, 20, false, 1);
 %! assert (all (I1(:) == I2(:)), true);
 
 %!test
-%! ## Test that resampling is balanced when LOO is false.
+%! % Test that resampling is balanced when LOO is false.
 %! I = boot (3, 20, false, 1);
 %! assert (sum (I(:) == 1), 20, 1e-03);
 %! assert (sum (I(:) == 2), 20, 1e-03);
 %! assert (sum (I(:) == 3), 20, 1e-03);
 
 %!test
-%! ## Test that resampling is balanced when LOO is true.
+%! % Test that resampling is balanced when LOO is true.
 %! I = boot (3, 20, true, 1);
 %! assert (sum (I(:) == 1), 20, 1e-03);
 %! assert (sum (I(:) == 2), 20, 1e-03);
 %! assert (sum (I(:) == 3), 20, 1e-03);
 
-%! ## Test for unbiased sampling (except for last sample).
-%! ## The exception is a requirement to maintain balance.
+%! % Test for unbiased sampling (except for last sample).
+%! % The exception is a requirement to maintain balance.
 %! I = boot (3, 20, true, 1);
 %! assert (all (diff (sort (I(1:end-1)))), false);
 
 %!test
-%! ## Test feature for changing resampling weights when LOO is false
+%! % Test feature for changing resampling weights when LOO is false
 %! I = boot (3, 20, false, 1, [30,30,0]);
 %! assert (any (I(:) == 3), false);
 
 %!test
-%! ## Test feature for changing resampling weights when LOO is true
+%! % Test feature for changing resampling weights when LOO is true
 %! I = boot (3, 20, true, 1, [30,30,0]);
 %! assert (any (I(:) == 3), false);
