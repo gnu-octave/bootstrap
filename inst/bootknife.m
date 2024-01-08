@@ -1141,18 +1141,18 @@ end
 %! ## regression with an ordinal reponse and a proportional odds model. The
 %! ## example is taken from https://uk.mathworks.com/help/stats/mnrfit.html
 %! 
-%! %>>>>>>>>>> This code block must be run first in Octave only >>>>>>>>>>>>
+%! ##>>>>>>>>>> This code block must be run first in Octave only >>>>>>>>>>>>
 %! try
 %!   pkg load statistics
 %!   load carbig
-%!   # Octave Statistics package does not currently have the mnrfit function, so
-%!   # we will use it's logistic_regression function for fitting ordinal models 
-%!   # instead.  
+%!   ## Octave Statistics package does not currently have the mnrfit function, so
+%!   ## we will use it's logistic_regression function for fitting ordinal models 
+%!   ## instead.  
 %!   function [B, DEV] = mnrfit (X, Y, varargin)
-%!     # Note that the logistic_regression function is only suitable when 
-%!     # the outcome is ordinal, so we would need to use append 'model', 
-%!     # 'ordinal' as a name-value pair in MATLAB when executing it's 
-%!     # mnrfit function (see below)
+%!     ## Note that the logistic_regression function is only suitable when 
+%!     ## the outcome is ordinal, so we would need to use append 'model', 
+%!     ## 'ordinal' as a name-value pair in MATLAB when executing it's 
+%!     ## mnrfit function (see below)
 %!     [INTERCEPT, SLOPE, DEV] = logistic_regression (Y - 1, X, false);
 %!     B = cat (1, INTERCEPT, SLOPE);
 %!   end
@@ -1162,21 +1162,21 @@ end
 %!   fprintf ('\nSkipping this demo...')
 %!   fprintf ('\nRequired feaures of the statistics package not found.\n\n');
 %! end
-%! %<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+%! ##<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 %!
 %! if (stats_pkg)
 %!
-%!   %>>>>>>>>>>>>>>>>>>>> This code block is the demo >>>>>>>>>>>>>>>>>>>>>>
+%!   ##>>>>>>>>>>>>>>>>>>> This code block is the demo >>>>>>>>>>>>>>>>>>>>>>
 %!
-%!   % Create the dataset
+%!   ## Create the dataset
 %!   load carbig
 %!   X = [Acceleration Displacement Horsepower Weight];
 %!
-%!   % The responses 1 - 4 correspond to the following classification:
-%!   % 1:    < 19 miles per gallon
-%!   % 2: 19 - 29 miles per gallon
-%!   % 3: 29 - 39 miles per gallon
-%!   % 4:   >= 39 miles per gallon
+%!   ## The responses 1 - 4 correspond to the following classification:
+%!   ## 1:    < 19 miles per gallon
+%!   ## 2: 19 - 29 miles per gallon
+%!   ## 3: 29 - 39 miles per gallon
+%!   ## 4:   >= 39 miles per gallon
 %!   miles = [1,1,1,1,1,1,1,1,1,1,NaN,NaN,NaN,NaN,NaN,1,1,NaN,1,1,2,2,1,2, ...
 %!            2,2,2,2,2,2,2,1,1,1,1,2,2,2,2,NaN,2,1,1,2,1,1,1,1,1,1,1,1,1, ...
 %!            2,2,1,2,2,3,3,3,3,2,2,2,2,2,2,2,1,1,1,1,1,1,1,1,1,2,1,1,1,1, ...
@@ -1192,21 +1192,21 @@ end
 %!            3,3,3,3,3,3,3,3,3,3,3,3,3,2,NaN,3,2,2,2,2,2,1,2,2,3,3,3,2,2, ...
 %!            2,3,3,3,3,3,3,3,3,3,3,3,2,3,2,2,3,3,2,2,4,3,2,3]';
 %!
-%!   % Bootsrap confidence intervals for each logistic regression coefficient
+%!   ## Bootsrap confidence intervals for each logistic regression coefficient
 %!   bootknife ({X, miles}, 1999, ...
 %!               @(X, miles) mnrfit (X, miles, 'model', 'ordinal'));
 %!
-%!   % Where the first three rows are the intercept terms, and the last 4 rows
-%!   % are the slope coefficients. For each predictor, the slope coefficient
-%!   % corresponds to how a unit change in the predictor impacts on the odds
-%!   % across the (ordered) catagories, where each log-odds is:
-%!   %
-%!   %       ln ((P below) / (P above))
-%!   %
-%!   % Therefore, a positive slope value indicates that a unit increase in the
-%!   % predictor increases the odds of running at fewer miles per gallon.
+%!   ## Where the first three rows are the intercept terms, and the last 4 rows
+%!   ## are the slope coefficients. For each predictor, the slope coefficient
+%!   ## corresponds to how a unit change in the predictor impacts on the odds
+%!   ## across the (ordered) catagories, where each log-odds is:
+%!   ##
+%!   ##       ln ((P below) / (P above))
+%!   ##
+%!   ## Therefore, a positive slope value indicates that a unit increase in the
+%!   ## predictor increases the odds of running at fewer miles per gallon.
 %!
-%!   %<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+%!   ##<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 %! 
 %! end
 
