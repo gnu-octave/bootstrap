@@ -1136,47 +1136,52 @@ end
 
 %!demo
 %! 
-%! ## We can also use bootstrap to calculate confidence intervals in multinomial
-%! ## classification problems, which we will illustrate below using multinomial 
-%! ## regression with an ordinal reponse and a proportional odds model. The
-%! ## example is taken from https://uk.mathworks.com/help/stats/mnrfit.html
+%! ## Calculating confidence intervals for the coefficients from logistic 
+%! ## regression using an example with an ordinal response from:
+%! ## https://uk.mathworks.com/help/stats/mnrfit.html
 %! 
-%! ##>>>>>>>>>> This code block must be run first in Octave only >>>>>>>>>>>>
+%! ##>>>>>>>>> This code block must be run first in Octave only >>>>>>>>>>>>
 %! try
 %!   pkg load statistics
 %!   load carbig
-%!   ## Octave Statistics package does not currently have the mnrfit function, so
-%!   ## we will use it's logistic_regression function for fitting ordinal models 
-%!   ## instead.  
-%!   function [B, DEV] = mnrfit (X, Y, varargin)
-%!     ## Note that the logistic_regression function is only suitable when 
-%!     ## the outcome is ordinal, so we would need to use append 'model', 
-%!     ## 'ordinal' as a name-value pair in MATLAB when executing it's 
-%!     ## mnrfit function (see below)
-%!     [INTERCEPT, SLOPE, DEV] = logistic_regression (Y - 1, X, false);
-%!     B = cat (1, INTERCEPT, SLOPE);
+%!   if (~ exist ('mnrfit', 'file'))
+%!     ## Octave Statistics package does not currently have the mnrfit function,
+%!     ## so we will use it's logistic_regression function for fitting ordinal
+%!     ## models instead. 
+%!     function [B, DEV] = mnrfit (X, Y, varargin)
+%!       ## Note that the if the outcome has more than two levels, the
+%!       ## logistic_regression function is only suitable when the outcome 
+%!       ## is ordinal, so we would need to use append 'model', 'ordinal'
+%!       ## as a name-value pair in MATLAB when executing it's mnrfit
+%!       ## function (see below)
+%!       [INTERCEPT, SLOPE, DEV] = logistic_regression (Y - 1, X, false);
+%!       B = cat (1, INTERCEPT, SLOPE);
+%!     end
 %!   end
 %!   stats_pkg = true;
 %! catch
 %!   stats_pkg = false;
 %!   fprintf ('\nSkipping this demo...')
-%!   fprintf ('\nRequired feaures of the statistics package not found.\n\n');
+%!   fprintf ('\nRequired features of the statistics package not found.\n\n');
 %! end
-%! ##<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+%! ##<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 %!
 %! if (stats_pkg)
 %!
 %!   ##>>>>>>>>>>>>>>>>>>> This code block is the demo >>>>>>>>>>>>>>>>>>>>>>
+%!
+%!   ## This demo requires the statistics package in Octave (equivalent to
+%!   ## the Statistics and Machine Learning Toolbox in Matlab)
 %!
 %!   ## Create the dataset
 %!   load carbig
 %!   X = [Acceleration Displacement Horsepower Weight];
 %!
 %!   ## The responses 1 - 4 correspond to the following classification:
-%!   ## 1:    < 19 miles per gallon
+%!   ## 1:  9 - 19 miles per gallon
 %!   ## 2: 19 - 29 miles per gallon
 %!   ## 3: 29 - 39 miles per gallon
-%!   ## 4:   >= 39 miles per gallon
+%!   ## 4: 39 - 49 miles per gallon
 %!   miles = [1,1,1,1,1,1,1,1,1,1,NaN,NaN,NaN,NaN,NaN,1,1,NaN,1,1,2,2,1,2, ...
 %!            2,2,2,2,2,2,2,1,1,1,1,2,2,2,2,NaN,2,1,1,2,1,1,1,1,1,1,1,1,1, ...
 %!            2,2,1,2,2,3,3,3,3,2,2,2,2,2,2,2,1,1,1,1,1,1,1,1,1,2,1,1,1,1, ...
@@ -1196,15 +1201,20 @@ end
 %!   bootknife ({X, miles}, 1999, ...
 %!               @(X, miles) mnrfit (X, miles, 'model', 'ordinal'));
 %!
-%!   ## Where the first three rows are the intercept terms, and the last 4 rows
+%!   ## Where the first 3 rows are the intercept terms, and the last 4 rows
 %!   ## are the slope coefficients. For each predictor, the slope coefficient
-%!   ## corresponds to how a unit change in the predictor impacts on the odds
-%!   ## across the (ordered) catagories, where each log-odds is:
+%!   ## corresponds to how a unit change in the predictor impacts on the odds,
+%!   ## which are proportional across the (ordered) catagories, where each
+%!   ## log-odds in each case is:
 %!   ##
-%!   ##       ln ((P below) / (P above))
+%!   ##       ln ( ( P[below] ) / ( P[above] ) )
 %!   ##
 %!   ## Therefore, a positive slope value indicates that a unit increase in the
 %!   ## predictor increases the odds of running at fewer miles per gallon.
+%!
+%!   ## Note that ordinal and multinomial logistic regression (appropriate
+%!   ## for ordinal and nominal responses respectively) would be equivalent
+%!   ## for any binary outcome
 %!
 %!   ##<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 %! 
