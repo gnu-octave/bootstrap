@@ -154,11 +154,11 @@
 <p>The following code</p>
 <pre class="example">
 
- ## Input univariate dataset
+ % Input univariate dataset
  data = [48 36 20 29 42 42 20 42 22 41 45 14 6 ...
          0 33 28 34 4 32 24 47 41 24 26 30 41].';
 
- ## 95% expanded BCa bootstrap confidence intervals for the mean
+ % 95% expanded BCa bootstrap confidence intervals for the mean
  bootclust (data, 1999, @mean);</pre>
 <p>Produces the following output</p>
 <pre class="example">Summary of nonparametric cluster bootstrap estimates of bias and precision
@@ -169,25 +169,25 @@ Bootstrap settings:
  Resampling method: Balanced, bootstrap cluster resampling 
  Number of resamples: 1999 
  Confidence interval (CI) type: Expanded bias-corrected and accelerated (BCa) 
- Nominal coverage (and the percentiles used): 95% (1.4%, 97.7%)
+ Nominal coverage (and the percentiles used): 95% (1.1%, 97.3%)
 
 Bootstrap Statistics: 
  original     bias         std_error    CI_lower     CI_upper  
- +29.65       -3.197e-14   +2.514       +23.91       +34.42</pre>
+ +29.65       +3.553e-15   +2.514       +23.66       +34.35</pre>
 </div>
 <h3>Demonstration 2</h3>
 <div class="demo">
 <p>The following code</p>
 <pre class="example">
 
- ## Input univariate dataset
+ % Input univariate dataset
  data = [48 36 20 29 42 42 20 42 22 41 45 14 6 ...
          0 33 28 34 4 32 24 47 41 24 26 30 41].';
  clustid = {'a';'a';'b';'b';'a';'c';'c';'d';'e';'e';'e';'f';'f'; ...
             'g';'g';'g';'h';'h';'i';'i';'j';'j';'k';'l';'m';'m'};
 
- ## 95% expanded BCa bootstrap confidence intervals for the mean with
- ## cluster resampling
+ % 95% expanded BCa bootstrap confidence intervals for the mean with
+ % cluster resampling
  bootclust (data, 1999, @mean, [0.025,0.975], clustid);</pre>
 <p>Produces the following output</p>
 <pre class="example">Summary of nonparametric cluster bootstrap estimates of bias and precision
@@ -198,23 +198,23 @@ Bootstrap settings:
  Resampling method: Balanced, bootstrap cluster resampling 
  Number of resamples: 1999 
  Confidence interval (CI) type: Expanded bias-corrected and accelerated (BCa) 
- Nominal coverage (and the percentiles used): 95% (1.3%, 99.0%)
+ Nominal coverage (and the percentiles used): 95% (1.1%, 98.8%)
 
 Bootstrap Statistics: 
  original     bias         std_error    CI_lower     CI_upper  
- +29.65       -0.03397     +2.855       +23.10       +36.14</pre>
+ +29.65       -0.05243     +2.947       +22.59       +35.90</pre>
 </div>
 <h3>Demonstration 3</h3>
 <div class="demo">
 <p>The following code</p>
 <pre class="example">
 
- ## Input univariate dataset
+ % Input univariate dataset
  data = [48 36 20 29 42 42 20 42 22 41 45 14 6 ...
          0 33 28 34 4 32 24 47 41 24 26 30 41].';
 
- ## 90% equal-tailed percentile bootstrap confidence intervals for
- ## the variance
+ % 90% equal-tailed percentile bootstrap confidence intervals for
+ % the variance
  bootclust (data, 1999, {@var, 1}, 0.1);</pre>
 <p>Produces the following output</p>
 <pre class="example">Summary of nonparametric cluster bootstrap estimates of bias and precision
@@ -229,21 +229,21 @@ Bootstrap settings:
 
 Bootstrap Statistics: 
  original     bias         std_error    CI_lower     CI_upper  
- +171.5       -6.778       +41.32       +96.51       +234.0</pre>
+ +171.5       -6.453       +42.73       +96.47       +237.0</pre>
 </div>
 <h3>Demonstration 4</h3>
 <div class="demo">
 <p>The following code</p>
 <pre class="example">
 
- ## Input univariate dataset
+ % Input univariate dataset
  data = [48 36 20 29 42 42 20 42 22 41 45 14 6 ...
          0 33 28 34 4 32 24 47 41 24 26 30 41].';
  clustid = {'a';'a';'b';'b';'a';'c';'c';'d';'e';'e';'e';'f';'f'; ...
             'g';'g';'g';'h';'h';'i';'i';'j';'j';'k';'l';'m';'m'};
 
- ## 90% equal-tailed percentile bootstrap confidence intervals for
- ## the variance
+ % 90% equal-tailed percentile bootstrap confidence intervals for
+ % the variance
  bootclust (data, 1999, {@var, 1}, 0.1, clustid);</pre>
 <p>Produces the following output</p>
 <pre class="example">Summary of nonparametric cluster bootstrap estimates of bias and precision
@@ -258,18 +258,18 @@ Bootstrap settings:
 
 Bootstrap Statistics: 
  original     bias         std_error    CI_lower     CI_upper  
- +171.5       -9.818       +33.48       +105.5       +215.6</pre>
+ +171.5       -9.464       +33.90       +104.1       +214.8</pre>
 </div>
 <h3>Demonstration 5</h3>
 <div class="demo">
 <p>The following code</p>
 <pre class="example">
 
- ## Input univariate dataset
+ % Input univariate dataset
  data = [48 36 20 29 42 42 20 42 22 41 45 14 6 ...
          0 33 28 34 4 32 24 47 41 24 26 30 41].';
 
- ## 90% BCa bootstrap confidence intervals for the variance
+ % 90% BCa bootstrap confidence intervals for the variance
  bootclust (data, 1999, {@var, 1}, [0.05 0.95]);</pre>
 <p>Produces the following output</p>
 <pre class="example">Summary of nonparametric cluster bootstrap estimates of bias and precision
@@ -280,24 +280,24 @@ Bootstrap settings:
  Resampling method: Balanced, bootstrap cluster resampling 
  Number of resamples: 1999 
  Confidence interval (CI) type: Bias-corrected and accelerated (BCa) 
- Nominal coverage (and the percentiles used): 90% (12.0%, 98.7%)
+ Nominal coverage (and the percentiles used): 90% (12.2%, 98.7%)
 
 Bootstrap Statistics: 
  original     bias         std_error    CI_lower     CI_upper  
- +171.5       -6.833       +41.90       +115.1       +261.9</pre>
+ +171.5       -6.800       +41.10       +115.4       +261.1</pre>
 </div>
 <h3>Demonstration 6</h3>
 <div class="demo">
 <p>The following code</p>
 <pre class="example">
 
- ## Input univariate dataset
+ % Input univariate dataset
  data = [48 36 20 29 42 42 20 42 22 41 45 14 6 ...
          0 33 28 34 4 32 24 47 41 24 26 30 41].';
  clustid = {'a';'a';'b';'b';'a';'c';'c';'d';'e';'e';'e';'f';'f'; ...
             'g';'g';'g';'h';'h';'i';'i';'j';'j';'k';'l';'m';'m'};
 
- ## 90% BCa bootstrap confidence intervals for the variance
+ % 90% BCa bootstrap confidence intervals for the variance
  bootclust (data, 1999, {@var, 1}, [0.05 0.95], clustid);</pre>
 <p>Produces the following output</p>
 <pre class="example">Summary of nonparametric cluster bootstrap estimates of bias and precision
@@ -308,21 +308,21 @@ Bootstrap settings:
  Resampling method: Balanced, bootstrap cluster resampling 
  Number of resamples: 1999 
  Confidence interval (CI) type: Bias-corrected and accelerated (BCa) 
- Nominal coverage (and the percentiles used): 90% (12.8%, 98.7%)
+ Nominal coverage (and the percentiles used): 90% (12.9%, 98.7%)
 
 Bootstrap Statistics: 
  original     bias         std_error    CI_lower     CI_upper  
- +171.5       -9.726       +33.28       +123.1       +228.8</pre>
+ +171.5       -9.876       +32.85       +123.2       +228.9</pre>
 </div>
 <h3>Demonstration 7</h3>
 <div class="demo">
 <p>The following code</p>
 <pre class="example">
 
- ## Input dataset
+ % Input dataset
  y = randn (20,1); x = randn (20,1); X = [ones(20,1), x];
 
- ## 90% BCa confidence interval for regression coefficients 
+ % 90% BCa confidence interval for regression coefficients 
  bootclust ({y,X}, 1999, @(y,X) X\y, [0.05 0.95]); % Could also use @regress</pre>
 <p>Produces the following output</p>
 <pre class="example">Summary of nonparametric cluster bootstrap estimates of bias and precision
@@ -337,19 +337,19 @@ Bootstrap settings:
 
 Bootstrap Statistics: 
  original     bias         std_error    CI_lower     CI_upper  
- +0.2164      +0.03162     +0.2372      -0.2505      +0.5444    
- +0.02405     +0.03589     +0.2652      -0.4380      +0.4111</pre>
+ +0.01658     -0.02123     +0.2032      -0.3300      +0.3262    
+ -0.2459      -0.002949    +0.1725      -0.5289      +0.03772</pre>
 </div>
 <h3>Demonstration 8</h3>
 <div class="demo">
 <p>The following code</p>
 <pre class="example">
 
- ## Input dataset
+ % Input dataset
  y = randn (20,1); x = randn (20,1); X = [ones(20,1), x];
  clustid = [1;1;1;1;2;2;2;3;3;3;3;4;4;4;4;4;5;5;5;6];
 
- ## 90% BCa confidence interval for regression coefficients 
+ % 90% BCa confidence interval for regression coefficients 
  bootclust ({y,X}, 1999, @(y,X) X\y, [0.05 0.95], clustid);</pre>
 <p>Produces the following output</p>
 <pre class="example">Summary of nonparametric cluster bootstrap estimates of bias and precision
@@ -364,24 +364,24 @@ Bootstrap settings:
 
 Bootstrap Statistics: 
  original     bias         std_error    CI_lower     CI_upper  
- -0.06313     -0.01992     +0.1748      -0.3865      +0.1868    
- -0.3765      +0.003190    +0.1941      -0.6577      -0.02047</pre>
+ -0.07271     -0.01387     +0.2734      -0.5017      +0.3980    
+ +0.1061      +0.09242     +0.1964      -0.2119      +0.3748</pre>
 </div>
 <h3>Demonstration 9</h3>
 <div class="demo">
 <p>The following code</p>
 <pre class="example">
 
- ## Input bivariate dataset
+ % Input bivariate dataset
  x = [576 635 558 578 666 580 555 661 651 605 653 575 545 572 594].';
  y = [3.39 3.3 2.81 3.03 3.44 3.07 3 3.43 ...
       3.36 3.13 3.12 2.74 2.76 2.88 2.96].';
  clustid = [1;1;3;1;1;2;2;2;2;3;1;3;3;3;2];
 
- ## 95% BCa bootstrap confidence intervals for the correlation coefficient
+ % 95% BCa bootstrap confidence intervals for the correlation coefficient
  bootclust ({x, y}, 1999, @cor, [], clustid);
 
- ## Please be patient, the calculations will be completed soon...</pre>
+ % Please be patient, the calculations will be completed soon...</pre>
 <p>Produces the following output</p>
 <pre class="example">Summary of nonparametric cluster bootstrap estimates of bias and precision
 ******************************************************************************
@@ -391,11 +391,11 @@ Bootstrap settings:
  Resampling method: Balanced, bootstrap cluster resampling 
  Number of resamples: 1999 
  Confidence interval (CI) type: Bias-corrected and accelerated (BCa) 
- Nominal coverage (and the percentiles used): 95% (2.1%, 97.1%)
+ Nominal coverage (and the percentiles used): 95% (1.6%, 96.5%)
 
 Bootstrap Statistics: 
  original     bias         std_error    CI_lower     CI_upper  
- +0.7764      -0.02447     +0.1423      +0.4174      +0.9981</pre>
+ +0.7764      -0.02425     +0.1437      +0.3909      +0.9902</pre>
 </div>
 
 <p>Package: <a href="../index.html">statistics-resampling</a></p>

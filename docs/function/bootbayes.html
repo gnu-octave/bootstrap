@@ -165,13 +165,13 @@
 <p>The following code</p>
 <pre class="example">
 
- ## Input univariate dataset
+ % Input univariate dataset
  heights = [183, 192, 182, 183, 177, 185, 188, 188, 182, 185].';
 
- ## 95% credible interval for the mean 
- bootbayes(heights);
+ % 95% credible interval for the mean 
+ bootbayes (heights);
 
- ## Please be patient, the calculations will be completed soon...</pre>
+ % Please be patient, the calculations will be completed soon...</pre>
 <p>Produces the following output</p>
 <pre class="example">Summary of Bayesian bootstrap estimates of bias and precision for linear models
 *******************************************************************************
@@ -186,14 +186,14 @@ Bootstrap settings:
 
 Posterior Statistics: 
  original     bias         median       stdev       CI_lower      CI_upper
- +184.5       +0.005727    +184.5       1.273       +182.2        +187.2</pre>
+ +184.5       +0.03166     +184.5       1.296       +182.0        +187.0</pre>
 </div>
 <h3>Demonstration 2</h3>
 <div class="demo">
 <p>The following code</p>
 <pre class="example">
 
- ## Input bivariate dataset
+ % Input bivariate dataset
  X = [ones(43,1),...
      [01,02,03,04,05,06,07,08,09,10,11,...
       12,13,14,15,16,17,18,19,20,21,22,...
@@ -204,10 +204,10 @@ Posterior Statistics:
      168.0,170.0,178.0,182.0,180.0,183.0,178.0,182.0,188.0,175.0,179.0,...
      183.0,192.0,182.0,183.0,177.0,185.0,188.0,188.0,182.0,185.0]';
 
- ## 95% credible interval for the regression coefficents
- bootbayes(y,X);
+ % 95% credible interval for the regression coefficents
+ bootbayes (y, X);
 
- ## Please be patient, the calculations will be completed soon...</pre>
+ % Please be patient, the calculations will be completed soon...</pre>
 <p>Produces the following output</p>
 <pre class="example">Summary of Bayesian bootstrap estimates of bias and precision for linear models
 *******************************************************************************
@@ -222,8 +222,8 @@ Bootstrap settings:
 
 Posterior Statistics: 
  original     bias         median       stdev       CI_lower      CI_upper
- +175.5       -0.09008     +175.4       2.407       +170.8        +180.3    
- +0.1904      +0.002195    +0.1946      0.07956     +0.02477      +0.3431</pre>
+ +175.5       -0.07101     +175.4       2.403       +170.6        +179.7    
+ +0.1904      +0.001505    +0.1921      0.07932     +0.04185      +0.3468</pre>
 </div>
 
 <p>Package: <a href="../index.html">statistics-resampling</a></p>
