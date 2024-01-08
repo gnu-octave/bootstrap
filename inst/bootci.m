@@ -425,111 +425,116 @@ end
 
 %!demo
 %!
-%! ## Input univariate dataset
+%! % Input univariate dataset
 %! data = [48 36 20 29 42 42 20 42 22 41 45 14 6 ...
 %!         0 33 28 34 4 32 24 47 41 24 26 30 41].';
 %!
-%! ## 95% BCa bootstrap confidence intervals for the mean
+%! % 95% BCa bootstrap confidence intervals for the mean
 %! ci = bootci (1999, @mean, data)
 
 %!demo
 %!
-%! ## Input univariate dataset
+%! % Input univariate dataset
 %! data = [48 36 20 29 42 42 20 42 22 41 45 14 6 ...
 %!         0 33 28 34 4 32 24 47 41 24 26 30 41].';
 %!
-%! ## 95% calibrated percentile bootstrap confidence intervals for the mean
+%! % 95% calibrated percentile bootstrap confidence intervals for the mean
 %! ci = bootci (1999, {@mean, data}, 'type', 'cal','nbootcal',199)
 %!
-%! ## Please be patient, the calculations will be completed soon...
+%! % Please be patient, the calculations will be completed soon...
 
 %!demo
 %!
-%! ## Input univariate dataset
+%! % Input univariate dataset
 %! data = [48 36 20 29 42 42 20 42 22 41 45 14 6 ...
 %!         0 33 28 34 4 32 24 47 41 24 26 30 41].';
 %!
-%! ## 95% calibrated percentile bootstrap confidence intervals for the median
-%! ## with smoothing
+%! % 95% calibrated percentile bootstrap confidence intervals for the median
+%! % with smoothing
 %! ci = bootci (1999, {@smoothmedian, data}, 'type', 'cal', 'nbootcal', 199)
 %!
-%! ## Please be patient, the calculations will be completed soon...
+%! % Please be patient, the calculations will be completed soon...
 
 %!demo
 %!
-%! ## Input univariate dataset
+%! % Input univariate dataset
 %! data = [48 36 20 29 42 42 20 42 22 41 45 14 6 ...
 %!         0 33 28 34 4 32 24 47 41 24 26 30 41].';
 %!
-%! ## 90% percentile bootstrap confidence intervals for the variance
+%! % 90% percentile bootstrap confidence intervals for the variance
 %! ci = bootci (1999, {{@var,1}, data}, 'type', 'per', 'alpha', 0.1)
 
 %!demo
 %!
-%! ## Input univariate dataset
+%! % Input univariate dataset
 %! data = [48 36 20 29 42 42 20 42 22 41 45 14 6 ...
 %!         0 33 28 34 4 32 24 47 41 24 26 30 41].';
 %!
-%! ## 90% BCa bootstrap confidence intervals for the variance
+%! % 90% BCa bootstrap confidence intervals for the variance
 %! ci = bootci (1999, {{@var,1}, data}, 'type', 'bca', 'alpha', 0.1)
 
 %!demo
 %!
-%! ## Input univariate dataset
+%! % Input univariate dataset
 %! data = [48 36 20 29 42 42 20 42 22 41 45 14 6 ...
 %!         0 33 28 34 4 32 24 47 41 24 26 30 41]';
 %!
-%! ## 90% Studentized bootstrap confidence intervals for the variance
+%! % 90% Studentized bootstrap confidence intervals for the variance
 %! ci = bootci (1999, {{@var,1}, data}, 'type', 'stud', ...
 %!                                              'nbootstd', 50, 'alpha', 0.1)
 %!
-%! ## Please be patient, the calculations will be completed soon...
+%! % Please be patient, the calculations will be completed soon...
 
 %!demo
 %!
-%! ## Input univariate dataset
+%! % Input univariate dataset
 %! data = [48 36 20 29 42 42 20 42 22 41 45 14 6 ...
 %!         0 33 28 34 4 32 24 47 41 24 26 30 41].';
 %!
-%! ## 90% calibrated percentile bootstrap confidence intervals for the variance
+%! % 90% calibrated percentile bootstrap confidence intervals for the variance
 %! ci = bootci (1999, {{@var,1}, data}, 'type', 'cal', 'nbootcal', ...
 %!              199, 'alpha', 0.1)
 %!
-%! ## Please be patient, the calculations will be completed soon...
+%! % Please be patient, the calculations will be completed soon...
 
 %!demo
 %!
-%! ## Input bivariate dataset
+%! % Input bivariate dataset
 %! x = [2.12,4.35,3.39,2.51,4.04,5.1,3.77,3.35,4.1,3.35, ...
 %!      4.15,3.56, 3.39,1.88,2.56,2.96,2.49,3.03,2.66,3].';
 %! y  = [2.47,4.61,5.26,3.02,6.36,5.93,3.93,4.09,4.88,3.81, ...
 %!       4.74,3.29,5.55,2.82,4.23,3.23,2.56,4.31,4.37,2.4].';
 %!
-%! ## 95% BCa bootstrap confidence intervals for the correlation coefficient
+%! % 95% BCa bootstrap confidence intervals for the correlation coefficient
 %! ci = bootci (1999, @cor, x, y)
 %!
-%! ## Please be patient, the calculations will be completed soon...
+%! % Please be patient, the calculations will be completed soon...
 
 %!demo
 %! 
-%! ## Calculating confidence intervals for the coefficients from logistic 
-%! ## regression using an example with an ordinal response from:
-%! ## https://uk.mathworks.com/help/stats/mnrfit.html
+%! % Calculating confidence intervals for the coefficients from logistic 
+%! % regression using an example with an ordinal response from:
+%! % https://uk.mathworks.com/help/stats/mnrfit.html
 %! 
-%! ##>>>>>>>>> This code block must be run first in Octave only >>>>>>>>>>>>
+%! %>>>>>>>>> This code block must be run first in Octave only >>>>>>>>>>>>
+%!
 %! try
 %!   pkg load statistics
 %!   load carbig
+%!   info = ver;
+%!   if ( str2num ({info.Version}{strcmp({info.Name},'statistics')}(1:3)) < 1.5)
+%!     error ('statistics package version must be > 1.5')
+%!   end
 %!   if (~ exist ('mnrfit', 'file'))
-%!     ## Octave Statistics package does not currently have the mnrfit function,
-%!     ## so we will use it's logistic_regression function for fitting ordinal
-%!     ## models instead. 
+%!     % Octave Statistics package does not currently have the mnrfit function,
+%!     % so we will use it's logistic_regression function for fitting ordinal
+%!     % models instead. 
 %!     function [B, DEV] = mnrfit (X, Y, varargin)
-%!       ## Note that the if the outcome has more than two levels, the
-%!       ## logistic_regression function is only suitable when the outcome 
-%!       ## is ordinal, so we would need to use append 'model', 'ordinal'
-%!       ## as a name-value pair in MATLAB when executing it's mnrfit
-%!       ## function (see below)
+%!       % Note that the if the outcome has more than two levels, the
+%!       % logistic_regression function is only suitable when the outcome 
+%!       % is ordinal, so we would need to use append 'model', 'ordinal'
+%!       % as a name-value pair in MATLAB when executing it's mnrfit
+%!       % function (see below)
 %!       [INTERCEPT, SLOPE, DEV] = logistic_regression (Y - 1, X, false);
 %!       B = cat (1, INTERCEPT, SLOPE);
 %!     end
@@ -540,24 +545,25 @@ end
 %!   fprintf ('\nSkipping this demo...')
 %!   fprintf ('\nRequired features of the statistics package not found.\n\n');
 %! end
-%! ##<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+%!
+%! %<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 %!
 %! if (stats_pkg)
 %!
-%!   ##>>>>>>>>>>>>>>>>>>> This code block is the demo >>>>>>>>>>>>>>>>>>>>>>
+%!   %>>>>>>>>>>>>>>>>>>> This code block is the demo >>>>>>>>>>>>>>>>>>>>>>
 %!
-%!   ## This demo requires the statistics package in Octave (equivalent to
-%!   ## the Statistics and Machine Learning Toolbox in Matlab)
+%!   % This demo requires the statistics package in Octave (equivalent to
+%!   % the Statistics and Machine Learning Toolbox in Matlab)
 %!
-%!   ## Create the dataset
+%!   % Create the dataset
 %!   load carbig
 %!   X = [Acceleration Displacement Horsepower Weight];
 %!
-%!   ## The responses 1 - 4 correspond to the following classification:
-%!   ## 1:  9 - 19 miles per gallon
-%!   ## 2: 19 - 29 miles per gallon
-%!   ## 3: 29 - 39 miles per gallon
-%!   ## 4: 39 - 49 miles per gallon
+%!   % The responses 1 - 4 correspond to the following classification:
+%!   % 1:  9 - 19 miles per gallon
+%!   % 2: 19 - 29 miles per gallon
+%!   % 3: 29 - 39 miles per gallon
+%!   % 4: 39 - 49 miles per gallon
 %!   miles = [1,1,1,1,1,1,1,1,1,1,NaN,NaN,NaN,NaN,NaN,1,1,NaN,1,1,2,2,1,2, ...
 %!            2,2,2,2,2,2,2,1,1,1,1,2,2,2,2,NaN,2,1,1,2,1,1,1,1,1,1,1,1,1, ...
 %!            2,2,1,2,2,3,3,3,3,2,2,2,2,2,2,2,1,1,1,1,1,1,1,1,1,2,1,1,1,1, ...
@@ -573,158 +579,159 @@ end
 %!            3,3,3,3,3,3,3,3,3,3,3,3,3,2,NaN,3,2,2,2,2,2,1,2,2,3,3,3,2,2, ...
 %!            2,3,3,3,3,3,3,3,3,3,3,3,2,3,2,2,3,3,2,2,4,3,2,3]';
 %!
-%!   ## Model coefficients from logistic regression
+%!   % Model coefficients from logistic regression
 %!   B = mnrfit (X, miles, 'model', 'ordinal');
 %!
-%!   ## Bootsrap confidence intervals for each logistic regression coefficient
+%!   % Bootsrap confidence intervals for each logistic regression coefficient
 %!   ci = bootci (1999, @(X, miles) mnrfit (X, miles, 'model', 'ordinal'), ...
 %!                X, miles);
 %!   [B, ci']
 %!
-%!   ## Where the first 3 rows are the intercept terms, and the last 4 rows
-%!   ## are the slope coefficients. For each predictor, the slope coefficient
-%!   ## corresponds to how a unit change in the predictor impacts on the odds,
-%!   ## which are proportional across the (ordered) catagories, where each
-%!   ## log-odds in each case is:
-%!   ##
-%!   ##       ln ( ( P[below] ) / ( P[above] ) )
-%!   ##
-%!   ## Therefore, a positive slope value indicates that a unit increase in the
-%!   ## predictor increases the odds of running at fewer miles per gallon.
+%!   % Where the first 3 rows are the intercept terms, and the last 4 rows
+%!   % are the slope coefficients. For each predictor, the slope coefficient
+%!   % corresponds to how a unit change in the predictor impacts on the odds,
+%!   % which are proportional across the (ordered) catagories, where each
+%!   % log-odds in each case is:
+%!   %
+%!   %       ln ( ( P[below] ) / ( P[above] ) )
+%!   %
+%!   % i.e. in mnrfit, the reference class is the higher of the two classes.
+%!   % Therefore, a positive slope value indicates that a unit increase in the
+%!   % predictor increases the odds of running at fewer miles per gallon.
 %!
-%!   ## Note that ordinal and multinomial logistic regression (appropriate
-%!   ## for ordinal and nominal responses respectively) would be equivalent
-%!   ## for any binary outcome
+%!   % Note that ordinal and multinomial logistic regression (appropriate
+%!   % for ordinal and nominal responses respectively) would be equivalent
+%!   % for any binary outcome
 %!
-%!   ##<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+%!   %<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 %! 
 %! end
 
 %!demo
 %!
-%! ## Spatial Test Data from Table 14.1 of Efron and Tibshirani (1993)
-%! ## An Introduction to the Bootstrap in Monographs on Statistics and Applied 
-%! ## Probability 57 (Springer)
+%! % Spatial Test Data from Table 14.1 of Efron and Tibshirani (1993)
+%! % An Introduction to the Bootstrap in Monographs on Statistics and Applied 
+%! % Probability 57 (Springer)
 %!
-%! ## AIM:
-%! ## To construct 90% nonparametric bootstrap confidence intervals for var(A,1)
-%! ## var(A,1) = 171.5
-%! ## Exact intervals based on Normal theory are [118.4, 305.2].
+%! % AIM:
+%! % To construct 90% nonparametric bootstrap confidence intervals for var(A,1)
+%! % var(A,1) = 171.5
+%! % Exact intervals based on Normal theory are [118.4, 305.2].
 %!
-%! ## Calculations using Matlab's 'Statistics and Machine Learning toolbox'
-%! ## (R2020b)
-%! ##
-%! ## A = [48 36 20 29 42 42 20 42 22 41 45 14 6 ...
-%! ##      0 33 28 34 4 32 24 47 41 24 26 30 41].';
-%! ## varfun = @(A) var(A, 1);
-%! ## rng('default'); % For reproducibility
-%! ## rng('default'); ci1 = bootci (19999,{varfun,A},'alpha',0.1,'type','norm');
-%! ## rng('default'); ci2 = bootci (19999,{varfun,A},'alpha',0.1,'type','per');
-%! ## rng('default'); ci4 = bootci (19999,{varfun,A},'alpha',0.1,'type','bca');
-%! ## rng('default'); ci5 = bootci (19999,{varfun,A},'alpha',0.1,'type','stud');
-%! ##
-%! ## Summary of results from Matlab's 'Statistics and Machine Learning toolbox'
-%! ## (R2020b)
-%! ##
-%! ## method             |   0.05 |   0.95 | length | shape |  
-%! ## -------------------|--------|--------|--------|-------|
-%! ## ci1 - normal       |  108.9 |  247.4 |  138.5 |  1.21 |
-%! ## ci2 - percentile   |   97.6 |  235.8 |  138.2 |  0.87 |
-%! ## ci4 - BCa          |  114.9 |  260.5 |  145.6 |  1.57 |*
-%! ## ci5 - bootstrap-t  |   46.7 |  232.5 |  185.8 |  0.49 |** 
-%! ## -------------------|--------|--------|--------|-------|
-%! ## parametric - exact |  118.4 |  305.2 |  186.8 |  2.52 |
-%! ##
-%! ## * Bug in the fx0 subfunction of MathWorks MATLAB bootci function
-%! ## ** Bug in the bootstud subfunction of MathWorks MATLAB bootci
+%! % Calculations using Matlab's 'Statistics and Machine Learning toolbox'
+%! % (R2020b)
+%! %
+%! % A = [48 36 20 29 42 42 20 42 22 41 45 14 6 ...
+%! %      0 33 28 34 4 32 24 47 41 24 26 30 41].';
+%! % varfun = @(A) var(A, 1);
+%! % rng('default'); % For reproducibility
+%! % rng('default'); ci1 = bootci (19999,{varfun,A},'alpha',0.1,'type','norm');
+%! % rng('default'); ci2 = bootci (19999,{varfun,A},'alpha',0.1,'type','per');
+%! % rng('default'); ci4 = bootci (19999,{varfun,A},'alpha',0.1,'type','bca');
+%! % rng('default'); ci5 = bootci (19999,{varfun,A},'alpha',0.1,'type','stud');
+%! %
+%! % Summary of results from Matlab's 'Statistics and Machine Learning toolbox'
+%! % (R2020b)
+%! %
+%! % method             |   0.05 |   0.95 | length | shape |  
+%! % -------------------|--------|--------|--------|-------|
+%! % ci1 - normal       |  108.9 |  247.4 |  138.5 |  1.21 |
+%! % ci2 - percentile   |   97.6 |  235.8 |  138.2 |  0.87 |
+%! % ci4 - BCa          |  114.9 |  260.5 |  145.6 |  1.57 |*
+%! % ci5 - bootstrap-t  |   46.7 |  232.5 |  185.8 |  0.49 |** 
+%! % -------------------|--------|--------|--------|-------|
+%! % parametric - exact |  118.4 |  305.2 |  186.8 |  2.52 |
+%! %
+%! % * Bug in the fx0 subfunction of MathWorks MATLAB bootci function
+%! % ** Bug in the bootstud subfunction of MathWorks MATLAB bootci
 %!
-%! ## Calculations using the 'boot' and 'bootstrap' packages in R
-%! ## 
-%! ## library (boot)       # Functions from Davison and Hinkley (1997)
-%! ## A <- c(48,36,20,29,42,42,20,42,22,41,45,14,6, ...
-%! ##         0,33,28,34,4,32,24,47,41,24,26,30,41);
-%! ## n <- length(A)
-%! ##  var.fun <- function (d, i) { 
-%! ##        # Function to compute the population variance
-%! ##        n <- length (d); 
-%! ##        return (var (d[i]) * (n - 1) / n) };
-%! ##  boot.fun <- function (d, i) {
-%! ##        # Compute the estimate
-%! ##        t <- var.fun (d, i);
-%! ##        # Compute sampling variance of the estimate using Tukey's jackknife
-%! ##        n <- length (d);
-%! ##        U <- empinf (data=d[i], statistic=var.fun, type="jack", stype="i");
-%! ##        var.t <- sum (U^2 / (n * (n - 1)));
-%! ##        return ( c(t, var.t) ) };
-%! ## set.seed(1)
-%! ## var.boot <- boot (data=A, statistic=boot.fun, R=19999, sim='balanced')
-%! ## ci1 <- boot.ci (var.boot, conf=0.90, type="norm")
-%! ## ci2 <- boot.ci (var.boot, conf=0.90, type="perc")
-%! ## ci3 <- boot.ci (var.boot, conf=0.90, type="basic")
-%! ## ci4 <- boot.ci (var.boot, conf=0.90, type="bca")
-%! ## ci5 <- boot.ci (var.boot, conf=0.90, type="stud")
-%! ##
-%! ## library (bootstrap)  # Functions from Efron and Tibshirani (1993)
-%! ## set.seed(1); 
-%! ## ci4a <- bcanon (A, 19999, var.fun, alpha=c(0.05,0.95))
-%! ## set.seed(1); 
-%! ## ci5a <- boott (A, var.fun, nboott=19999, nbootsd=499, perc=c(.05,.95))
-%! ##
-%! ## Summary of results from 'boot' and 'bootstrap' packages in R
-%! ##
-%! ## method             |   0.05 |   0.95 | length | shape |  
-%! ## -------------------|--------|--------|--------|-------|
-%! ## ci1  - normal      |  109.6 |  246.7 |  137.1 |  1.22 |
-%! ## ci2  - percentile  |   97.9 |  234.8 |  136.9 |  0.86 |
-%! ## ci3  - basic       |  108.3 |  245.1 |  136.8 |  1.16 |
-%! ## ci4  - BCa         |  116.0 |  260.7 |  144.7 |  1.60 |
-%! ## ci4a - BCa         |  115.8 |  260.6 |  144.8 |  1.60 |
-%! ## ci5  - bootstrap-t |  112.0 |  291.8 |  179.8 |  2.02 |
-%! ## ci5a - bootstrap-t |  116.1 |  290.9 |  174.8 |  2.16 |
-%! ## -------------------|--------|--------|--------|-------|
-%! ## parametric - exact |  118.4 |  305.2 |  186.8 |  2.52 |
+%! % Calculations using the 'boot' and 'bootstrap' packages in R
+%! % 
+%! % library (boot)       # Functions from Davison and Hinkley (1997)
+%! % A <- c(48,36,20,29,42,42,20,42,22,41,45,14,6, ...
+%! %         0,33,28,34,4,32,24,47,41,24,26,30,41);
+%! % n <- length(A)
+%! %  var.fun <- function (d, i) { 
+%! %        # Function to compute the population variance
+%! %        n <- length (d); 
+%! %        return (var (d[i]) * (n - 1) / n) };
+%! %  boot.fun <- function (d, i) {
+%! %        # Compute the estimate
+%! %        t <- var.fun (d, i);
+%! %        # Compute sampling variance of the estimate using Tukey's jackknife
+%! %        n <- length (d);
+%! %        U <- empinf (data=d[i], statistic=var.fun, type="jack", stype="i");
+%! %        var.t <- sum (U^2 / (n * (n - 1)));
+%! %        return ( c(t, var.t) ) };
+%! % set.seed(1)
+%! % var.boot <- boot (data=A, statistic=boot.fun, R=19999, sim='balanced')
+%! % ci1 <- boot.ci (var.boot, conf=0.90, type="norm")
+%! % ci2 <- boot.ci (var.boot, conf=0.90, type="perc")
+%! % ci3 <- boot.ci (var.boot, conf=0.90, type="basic")
+%! % ci4 <- boot.ci (var.boot, conf=0.90, type="bca")
+%! % ci5 <- boot.ci (var.boot, conf=0.90, type="stud")
+%! %
+%! % library (bootstrap)  # Functions from Efron and Tibshirani (1993)
+%! % set.seed(1); 
+%! % ci4a <- bcanon (A, 19999, var.fun, alpha=c(0.05,0.95))
+%! % set.seed(1); 
+%! % ci5a <- boott (A, var.fun, nboott=19999, nbootsd=499, perc=c(.05,.95))
+%! %
+%! % Summary of results from 'boot' and 'bootstrap' packages in R
+%! %
+%! % method             |   0.05 |   0.95 | length | shape |  
+%! % -------------------|--------|--------|--------|-------|
+%! % ci1  - normal      |  109.6 |  246.7 |  137.1 |  1.22 |
+%! % ci2  - percentile  |   97.9 |  234.8 |  136.9 |  0.86 |
+%! % ci3  - basic       |  108.3 |  245.1 |  136.8 |  1.16 |
+%! % ci4  - BCa         |  116.0 |  260.7 |  144.7 |  1.60 |
+%! % ci4a - BCa         |  115.8 |  260.6 |  144.8 |  1.60 |
+%! % ci5  - bootstrap-t |  112.0 |  291.8 |  179.8 |  2.02 |
+%! % ci5a - bootstrap-t |  116.1 |  290.9 |  174.8 |  2.16 |
+%! % -------------------|--------|--------|--------|-------|
+%! % parametric - exact |  118.4 |  305.2 |  186.8 |  2.52 |
 %! 
-%! ## Calculations using the 'statistics-resampling' package for Octave/Matlab
-%! ##
-%! ## A = [48 36 20 29 42 42 20 42 22 41 45 14 6 ...
-%! ##      0 33 28 34 4 32 24 47 41 24 26 30 41].';
-%! ## ci1 = bootci (19999,{{@var,1},A},'alpha',0.1,'type','norm','seed',1);
-%! ## ci2 = bootci (19999,{{@var,1},A},'alpha',0.1,'type','per','seed',1);
-%! ## ci3 = bootci (19999,{{@var,1},A},'alpha',0.1,'type','basic','seed',1);
-%! ## ci4 = bootci (19999,{{@var,1},A},'alpha',0.1,'type','bca','seed',1);
-%! ## ci5 = bootci (19999,{{@var,1},A},'alpha',0.1,'type','stud',...
-%! ##                                              'nbootstd',100,'seed',1);
-%! ## ci6 = bootci (19999,{{@var,1},A},'alpha',0.1,'type','cal', ...
-%! ##                                              'nbootcal',499,'seed',1);
-%! ##
-%! ## Summary of results from 'statistics-resampling' package for Octave/Matlab
-%! ##
-%! ## method             |   0.05 |   0.95 | length | shape |  
-%! ## -------------------|--------|--------|--------|-------|
-%! ## ci1 - normal       |  110.1 |  246.2 |  136.1 |  1.22 |
-%! ## ci2 - percentile   |   98.1 |  234.7 |  136.6 |  0.86 |
-%! ## ci3 - basic        |  108.4 |  245.0 |  136.1 |  1.17 |
-%! ## ci4 - BCa          |  116.1 |  259.3 |  143.2 |  1.59 |
-%! ## ci5 - bootstrap-t  |  114.0 |  290.3 |  176.3 |  2.07 |
-%! ## ci6 - calibrated   |  115.3 |  276.4 |  161.1 |  1.87 |
-%! ## -------------------|--------|--------|--------|-------|
-%! ## parametric - exact |  118.4 |  305.2 |  186.8 |  2.52 |
-%! ##
-%! ## Simulation results for constructing 90% confidence intervals for the
-%! ## variance of a population N(0,1) from 1000 random samples of size 26
-%! ## (analagous to the situation above). Simulation performed using the
-%! ## bootsim script with nboot of 1999.
-%! ##
-%! ## method               | coverage |  lower |  upper | length | shape |
-%! ## ---------------------|----------|--------|--------|--------|-------|
-%! ## normal               |    81.5% |   3.0% |  15.5% |   0.77 |  1.21 |
-%! ## percentile           |    81.5% |   0.9% |  17.6% |   0.76 |  0.91 |
-%! ## basic                |    81.1% |   2.5% |  16.4% |   0.78 |  1.09 |
-%! ## BCa                  |    84.2% |   5.4% |  10.4% |   0.86 |  1.82 |
-%! ## bootstrap-t          |    89.2% |   4.3% |   6.5% |   0.99 |  2.15 |
-%! ## calibrated           |    87.4% |   4.2% |   8.4% |   0.91 |  2.03 |
-%! ## ---------------------|----------|--------|--------|--------|-------|
-%! ## parametric - exact   |    90.8% |   3.7% |   5.5% |   0.99 |  2.52 |
+%! % Calculations using the 'statistics-resampling' package for Octave/Matlab
+%! %
+%! % A = [48 36 20 29 42 42 20 42 22 41 45 14 6 ...
+%! %      0 33 28 34 4 32 24 47 41 24 26 30 41].';
+%! % ci1 = bootci (19999,{{@var,1},A},'alpha',0.1,'type','norm','seed',1);
+%! % ci2 = bootci (19999,{{@var,1},A},'alpha',0.1,'type','per','seed',1);
+%! % ci3 = bootci (19999,{{@var,1},A},'alpha',0.1,'type','basic','seed',1);
+%! % ci4 = bootci (19999,{{@var,1},A},'alpha',0.1,'type','bca','seed',1);
+%! % ci5 = bootci (19999,{{@var,1},A},'alpha',0.1,'type','stud',...
+%! %                                              'nbootstd',100,'seed',1);
+%! % ci6 = bootci (19999,{{@var,1},A},'alpha',0.1,'type','cal', ...
+%! %                                              'nbootcal',499,'seed',1);
+%! %
+%! % Summary of results from 'statistics-resampling' package for Octave/Matlab
+%! %
+%! % method             |   0.05 |   0.95 | length | shape |  
+%! % -------------------|--------|--------|--------|-------|
+%! % ci1 - normal       |  110.1 |  246.2 |  136.1 |  1.22 |
+%! % ci2 - percentile   |   98.1 |  234.7 |  136.6 |  0.86 |
+%! % ci3 - basic        |  108.4 |  245.0 |  136.1 |  1.17 |
+%! % ci4 - BCa          |  116.1 |  259.3 |  143.2 |  1.59 |
+%! % ci5 - bootstrap-t  |  114.0 |  290.3 |  176.3 |  2.07 |
+%! % ci6 - calibrated   |  115.3 |  276.4 |  161.1 |  1.87 |
+%! % -------------------|--------|--------|--------|-------|
+%! % parametric - exact |  118.4 |  305.2 |  186.8 |  2.52 |
+%! %
+%! % Simulation results for constructing 90% confidence intervals for the
+%! % variance of a population N(0,1) from 1000 random samples of size 26
+%! % (analagous to the situation above). Simulation performed using the
+%! % bootsim script with nboot of 1999.
+%! %
+%! % method               | coverage |  lower |  upper | length | shape |
+%! % ---------------------|----------|--------|--------|--------|-------|
+%! % normal               |    81.5% |   3.0% |  15.5% |   0.77 |  1.21 |
+%! % percentile           |    81.5% |   0.9% |  17.6% |   0.76 |  0.91 |
+%! % basic                |    81.1% |   2.5% |  16.4% |   0.78 |  1.09 |
+%! % BCa                  |    84.2% |   5.4% |  10.4% |   0.86 |  1.82 |
+%! % bootstrap-t          |    89.2% |   4.3% |   6.5% |   0.99 |  2.15 |
+%! % calibrated           |    87.4% |   4.2% |   8.4% |   0.91 |  2.03 |
+%! % ---------------------|----------|--------|--------|--------|-------|
+%! % parametric - exact   |    90.8% |   3.7% |   5.5% |   0.99 |  2.52 |
 
 %!test
 %! ## Test for errors when using some different functionalities of bootci

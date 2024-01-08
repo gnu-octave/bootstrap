@@ -794,8 +794,7 @@ end
 
 %!demo
 %!
-%! ## EXAMPLE 1A: 
-%! ## ONE-WAY ANOVA WITH EQUAL SAMPLE SIZES: Treatment vs. Control (1)
+%! % ONE-WAY ANOVA WITH EQUAL SAMPLE SIZES: Treatment vs. Control (1)
 %!
 %! y = [111.39 110.21  89.21  76.64  95.35  90.97  62.78;
 %!      112.93  60.36  92.29  59.54  98.93  97.03  79.65;
@@ -808,12 +807,11 @@ end
 %!
 %! boot1way (y(:),g(:),'ref',1,'nboot',4999);
 %!
-%! ## Please be patient, the calculations will be completed soon...
+%! % Please be patient, the calculations will be completed soon...
 
 %!demo
 %!
-%! ## EXAMPLE 1B: 
-%! ## ROBUST ONE-WAY ANOVA WITH EQUAL SAMPLE SIZES: Treatment vs. Control (1)
+%! % ROBUST ONE-WAY ANOVA WITH EQUAL SAMPLE SIZES: Treatment vs. Control (1)
 %!
 %! y = [111.39 110.21  89.21  76.64  95.35  90.97  62.78;
 %!      112.93  60.36  92.29  59.54  98.93  97.03  79.65;
@@ -826,13 +824,12 @@ end
 %!
 %! boot1way (y(:), g(:), 'ref', 1, 'nboot', 4999, 'bootfun', 'robust');
 %!
-%! ## Please be patient, the calculations will be completed soon...
+%! % Please be patient, the calculations will be completed soon...
 
 %!demo
 %!
-%! ## EXAMPLE 2A:
-%! ## COMPARISON OF TWO INDEPENDENT GROUPS WITH UNEQUAL SAMPLE SIZES 
-%! ## (analagous to Student's t-test)
+%! % COMPARISON OF TWO INDEPENDENT GROUPS WITH UNEQUAL SAMPLE SIZES 
+%! % (analagous to Student's t-test)
 %!
 %! y =    [54       43
 %!         23       34
@@ -849,12 +846,11 @@ end
 %!
 %! boot1way (y(:), g(:), 'ref', 'male', 'nboot', 4999);
 %!
-%! ## Please be patient, the calculations will be completed soon...
+%! % Please be patient, the calculations will be completed soon...
 
 %!demo
 %!
-%! ## EXAMPLE 2B:
-%! ## ONE-WAY ANOVA WITH UNEQUAL SAMPLE SIZES: pairwise comparisons
+%! % ONE-WAY ANOVA WITH UNEQUAL SAMPLE SIZES: pairwise comparisons
 %!
 %! y = [54  87  45
 %!      23  98  39
@@ -871,12 +867,11 @@ end
 %!
 %! boot1way (y(:), g(:), 'nboot', 4999);
 %!
-%! ## Please be patient, the calculations will be completed soon...
+%! % Please be patient, the calculations will be completed soon...
 
 %!demo
 %!
-%! ## EXAMPLE 2C:
-%! ## COMPARE STANDARD DEVIATIONS BETWEEN 3 GROUPS: pairwise comparisons
+%! % COMPARE STANDARD DEVIATIONS BETWEEN 3 GROUPS: pairwise comparisons
 %!
 %! y = [54  87  45
 %!      23  98  39
@@ -894,19 +889,17 @@ end
 
 %!demo
 %!
-%! ## EXAMPLE 3:
-%! ## COMPARE CORRELATION COEFFICIENTS BETWEEN 2 DATA SETS
+%! % COMPARE CORRELATION COEFFICIENTS BETWEEN 2 DATA SETS
 %! Y = randn (20, 2); g = [zeros(10, 1); ones(10, 1)];
 %! func = @(M) cor (M(:,1), M(:,2));
 %!
 %! boot1way (Y, g, 'bootfun', func);
 %!
-%! ## Please be patient, the calculations will be completed soon...
+%! % Please be patient, the calculations will be completed soon...
 
 %!demo
 %!
-%! ## EXAMPLE 4:
-%! ## COMPARE SLOPES FROM LINEAR REGRESSION ON 2 DATA SETS
+%! % COMPARE SLOPES FROM LINEAR REGRESSION ON 2 DATA SETS
 %! y = randn (20, 1); x = randn (20, 1); X = [ones(20, 1), x];
 %! g = [zeros(10, 1); ones(10, 1)];
 %! func = @(M) subsref (M(:,2:end) \ M(:,1), ...
@@ -914,7 +907,7 @@ end
 %!
 %! boot1way ([y, X], g, 'bootfun', func);
 %!
-%! ## Please be patient, the calculations will be completed soon...
+%! % Please be patient, the calculations will be completed soon...
 
 %!test
 %! y = [111.39 110.21  89.21  76.64  95.35  90.97  62.78;

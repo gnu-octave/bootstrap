@@ -105,14 +105,14 @@ else
       mex -setup c++
     catch
       errflag = true;
-      err = lasterror();
+      err = lasterror ();
       disp(err.message);
     end
     try
       mex CXXFLAGS="$CXXFLAGS -std=c++11" -output ./inst/boot ./src/boot.cpp
     catch
       errflag = true;
-      err = lasterror();
+      err = lasterror ();
       disp (err.message);
       warning ('Could not compile boot.%s. Falling back to the (slower) boot.m file.',mexext)
     end

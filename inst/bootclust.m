@@ -622,96 +622,96 @@ end
 
 %!demo
 %!
-%! ## Input univariate dataset
+%! % Input univariate dataset
 %! data = [48 36 20 29 42 42 20 42 22 41 45 14 6 ...
 %!         0 33 28 34 4 32 24 47 41 24 26 30 41].';
 %!
-%! ## 95% expanded BCa bootstrap confidence intervals for the mean
+%! % 95% expanded BCa bootstrap confidence intervals for the mean
 %! bootclust (data, 1999, @mean);
 
 %!demo
 %!
-%! ## Input univariate dataset
+%! % Input univariate dataset
 %! data = [48 36 20 29 42 42 20 42 22 41 45 14 6 ...
 %!         0 33 28 34 4 32 24 47 41 24 26 30 41].';
 %! clustid = {'a';'a';'b';'b';'a';'c';'c';'d';'e';'e';'e';'f';'f'; ...
 %!            'g';'g';'g';'h';'h';'i';'i';'j';'j';'k';'l';'m';'m'};
 %!
-%! ## 95% expanded BCa bootstrap confidence intervals for the mean with
-%! ## cluster resampling
+%! % 95% expanded BCa bootstrap confidence intervals for the mean with
+%! % cluster resampling
 %! bootclust (data, 1999, @mean, [0.025,0.975], clustid);
 
 %!demo
 %!
-%! ## Input univariate dataset
+%! % Input univariate dataset
 %! data = [48 36 20 29 42 42 20 42 22 41 45 14 6 ...
 %!         0 33 28 34 4 32 24 47 41 24 26 30 41].';
 %!
-%! ## 90% equal-tailed percentile bootstrap confidence intervals for
-%! ## the variance
+%! % 90% equal-tailed percentile bootstrap confidence intervals for
+%! % the variance
 %! bootclust (data, 1999, {@var, 1}, 0.1);
 
 %!demo
 %!
-%! ## Input univariate dataset
+%! % Input univariate dataset
 %! data = [48 36 20 29 42 42 20 42 22 41 45 14 6 ...
 %!         0 33 28 34 4 32 24 47 41 24 26 30 41].';
 %! clustid = {'a';'a';'b';'b';'a';'c';'c';'d';'e';'e';'e';'f';'f'; ...
 %!            'g';'g';'g';'h';'h';'i';'i';'j';'j';'k';'l';'m';'m'};
 %!
-%! ## 90% equal-tailed percentile bootstrap confidence intervals for
-%! ## the variance
+%! % 90% equal-tailed percentile bootstrap confidence intervals for
+%! % the variance
 %! bootclust (data, 1999, {@var, 1}, 0.1, clustid);
 
 %!demo
 %!
-%! ## Input univariate dataset
+%! % Input univariate dataset
 %! data = [48 36 20 29 42 42 20 42 22 41 45 14 6 ...
 %!         0 33 28 34 4 32 24 47 41 24 26 30 41].';
 %!
-%! ## 90% BCa bootstrap confidence intervals for the variance
+%! % 90% BCa bootstrap confidence intervals for the variance
 %! bootclust (data, 1999, {@var, 1}, [0.05 0.95]);
 
 %!demo
 %!
-%! ## Input univariate dataset
+%! % Input univariate dataset
 %! data = [48 36 20 29 42 42 20 42 22 41 45 14 6 ...
 %!         0 33 28 34 4 32 24 47 41 24 26 30 41].';
 %! clustid = {'a';'a';'b';'b';'a';'c';'c';'d';'e';'e';'e';'f';'f'; ...
 %!            'g';'g';'g';'h';'h';'i';'i';'j';'j';'k';'l';'m';'m'};
 %!
-%! ## 90% BCa bootstrap confidence intervals for the variance
+%! % 90% BCa bootstrap confidence intervals for the variance
 %! bootclust (data, 1999, {@var, 1}, [0.05 0.95], clustid);
 
 %!demo
 %!
-%! ## Input dataset
+%! % Input dataset
 %! y = randn (20,1); x = randn (20,1); X = [ones(20,1), x];
 %!
-%! ## 90% BCa confidence interval for regression coefficients 
+%! % 90% BCa confidence interval for regression coefficients 
 %! bootclust ({y,X}, 1999, @(y,X) X\y, [0.05 0.95]); % Could also use @regress
 
 %!demo
 %!
-%! ## Input dataset
+%! % Input dataset
 %! y = randn (20,1); x = randn (20,1); X = [ones(20,1), x];
 %! clustid = [1;1;1;1;2;2;2;3;3;3;3;4;4;4;4;4;5;5;5;6];
 %!
-%! ## 90% BCa confidence interval for regression coefficients 
+%! % 90% BCa confidence interval for regression coefficients 
 %! bootclust ({y,X}, 1999, @(y,X) X\y, [0.05 0.95], clustid);
 
 %!demo
 %!
-%! ## Input bivariate dataset
+%! % Input bivariate dataset
 %! x = [576 635 558 578 666 580 555 661 651 605 653 575 545 572 594].';
 %! y = [3.39 3.3 2.81 3.03 3.44 3.07 3 3.43 ...
 %!      3.36 3.13 3.12 2.74 2.76 2.88 2.96].';
 %! clustid = [1;1;3;1;1;2;2;2;2;3;1;3;3;3;2];
 %!
-%! ## 95% BCa bootstrap confidence intervals for the correlation coefficient
+%! % 95% BCa bootstrap confidence intervals for the correlation coefficient
 %! bootclust ({x, y}, 1999, @cor, [], clustid);
 %!
-%! ## Please be patient, the calculations will be completed soon...
+%! % Please be patient, the calculations will be completed soon...
 
 %!test
 %! ## Test for errors when using different functionalities of bootclust

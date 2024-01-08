@@ -496,17 +496,17 @@ end
 
 %!demo
 %!
-%! ## Input univariate dataset
+%! % Input univariate dataset
 %! heights = [183, 192, 182, 183, 177, 185, 188, 188, 182, 185].';
 %!
-%! ## Test statistics and p-values (H0 = 0)
+%! % Test statistics and p-values (H0 = 0)
 %! bootwild(heights);
 %!
-%! ## Please be patient, the calculations will be completed soon...
+%! % Please be patient, the calculations will be completed soon...
 
 %!demo
 %!
-%! ## Input bivariate dataset
+%! % Input bivariate dataset
 %! X = [ones(43,1),...
 %!     [01,02,03,04,05,06,07,08,09,10,11,...
 %!      12,13,14,15,16,17,18,19,20,21,22,...
@@ -517,10 +517,10 @@ end
 %!     168.0,170.0,178.0,182.0,180.0,183.0,178.0,182.0,188.0,175.0,179.0,...
 %!     183.0,192.0,182.0,183.0,177.0,185.0,188.0,188.0,182.0,185.0]';
 %!
-%! ## Compute test statistics and p-values
+%! % Compute test statistics and p-values
 %! bootwild(y,X);
 %!
-%! ## Please be patient, the calculations will be completed soon...
+%! % Please be patient, the calculations will be completed soon...
 
 %!test
 %! ## Test if the mean is equal to a population value of 181.5 (one-tailed test)

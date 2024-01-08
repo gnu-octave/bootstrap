@@ -195,13 +195,14 @@ function bootsam = boot (x, nboot, u, s, w)
 %! boot(3, 20, false)    % Without setting random seed, BOOTSAM is different
 
 %!demo
+%!
 %! % Vector (X) as input; balanced resampling with replacement; setting weights
 %! x = [23; 44; 36];
 %! boot(x, 10, false, 1)            % equal weighting
 %! boot(x, 10, false, 1, [20;0;10]) % unequal weighting, no x(2) in BOOTSAM 
 
 %!demo
-%! 
+%!
 %! % N as input; resampling without replacement; 3 trials
 %! boot(6, 1, false, 1) % Sample 1; Set random seed for first sample only
 %! boot(6, 1, false)    % Sample 2

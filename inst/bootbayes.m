@@ -460,17 +460,17 @@ end
 
 %!demo
 %!
-%! ## Input univariate dataset
+%! % Input univariate dataset
 %! heights = [183, 192, 182, 183, 177, 185, 188, 188, 182, 185].';
 %!
-%! ## 95% credible interval for the mean 
+%! % 95% credible interval for the mean 
 %! bootbayes(heights);
 %!
-%! ## Please be patient, the calculations will be completed soon...
+%! % Please be patient, the calculations will be completed soon...
 
 %!demo
 %!
-%! ## Input bivariate dataset
+%! % Input bivariate dataset
 %! X = [ones(43,1),...
 %!     [01,02,03,04,05,06,07,08,09,10,11,...
 %!      12,13,14,15,16,17,18,19,20,21,22,...
@@ -481,10 +481,10 @@ end
 %!     168.0,170.0,178.0,182.0,180.0,183.0,178.0,182.0,188.0,175.0,179.0,...
 %!     183.0,192.0,182.0,183.0,177.0,185.0,188.0,188.0,182.0,185.0]';
 %!
-%! ## 95% credible interval for the regression coefficents
+%! % 95% credible interval for the regression coefficents
 %! bootbayes(y,X);
 %!
-%! ## Please be patient, the calculations will be completed soon...
+%! % Please be patient, the calculations will be completed soon...
 
 %!test
 %! ## Test calculations of statistics for the mean

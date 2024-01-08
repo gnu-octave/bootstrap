@@ -359,7 +359,7 @@ end
 
 %!demo
 %!
-%! # Stamp data example used in reference [1] in bootstrap R package
+%! % Stamp data example used in reference [1] in bootstrap R package
 %! x=[0.060;0.064;0.064;0.065;0.066;0.068;0.069;0.069;0.069;0.069;0.069; ...
 %!    0.069;0.069;0.070;0.070;0.070;0.070;0.070;0.070;0.070;0.070;0.070; ...
 %!    0.070;0.070;0.070;0.070;0.070;0.070;0.070;0.070;0.070;0.070;0.070; ...
@@ -407,8 +407,8 @@ end
 %! 
 %! [H1, P1, CRITVAL1] = bootmode(x,1,2000);
 %!
-%! # Repeat function call systematically increasing the number of modes (M) by 
-%! # 1, until the null hypothesis is accepted (i.e. H0 = 0)
+%! % Repeat function call systematically increasing the number of modes (M) by 
+%! % 1, until the null hypothesis is accepted (i.e. H0 = 0)
 %!
 %! [H2, P2, CRITVAL2] = bootmode(x,2,2000);
 %! 
@@ -418,11 +418,11 @@ end
 %! sprintf (cat (2, 'H2 is %u with p = %.3g so accept the null hypothesis', ...
 %!                  ' that there are 2 modes\n'), H2, P2)
 %! 
-%! # Please be patient, these calculations take a while...
+%! % Please be patient, these calculations take a while...
 
 %!test
 %!
-%! # Stamp data example used in reference [1] in bootstrap R package
+%! ## Stamp data example used in reference [1] in bootstrap R package
 %! x=[0.060;0.064;0.064;0.065;0.066;0.068;0.069;0.069;0.069;0.069;0.069; ...
 %!    0.069;0.069;0.070;0.070;0.070;0.070;0.070;0.070;0.070;0.070;0.070; ...
 %!    0.070;0.070;0.070;0.070;0.070;0.070;0.070;0.070;0.070;0.070;0.070; ...
