@@ -1122,7 +1122,6 @@ end
 %! ## 90% BCa confidence interval for regression coefficients 
 %! bootknife ({y,X}, 1999, @(y,X) X\y, [0.05 0.95]); % Could also use @regress
 
-
 %!demo
 %!
 %! ## Input bivariate dataset
@@ -1134,6 +1133,79 @@ end
 %! bootknife ({x, y}, 1999, @cor);
 %!
 %! ## Please be patient, the calculations will be completed soon...
+
+%!demo
+%! 
+%! ## We can also use bootstrap to calculate confidence intervals in multinomial
+%! ## classification problems, which we will illustrate below using multinomial 
+%! ## regression with an ordinal reponse and a proportional odds model. The
+%! ## example is taken from https://uk.mathworks.com/help/stats/mnrfit.html
+%! 
+%! %>>>>>>>>>> This code block must be run first in Octave only >>>>>>>>>>>>
+%! try
+%!   pkg load statistics
+%!   stats_pkg = true;
+%! catch
+%!   stats_pkg = false;
+%!   fprintf ('\nSkip this demo... it requires that the statistics package\n\n');
+%! end
+%! # Octave Statistics package does not currently have the mnrfit function, but
+%! # we can use it's logistic_regression for fitting ordinal models instead. 
+%! function [B,DEV] = mnrfit (X, Y, varargin)
+%!   # Note that the logistic_regression function is only suitable when 
+%!   # the outcome is ordinal, so we would need to use append 'model', 
+%!   # 'ordinal' as a name-value pair in MATLAB when executing it's 
+%!   # mnrfit function (see below)
+%!   [INTERCEPT, SLOPE, DEV] = logistic_regression (Y - 1, X, false);
+%!   B = cat (1, INTERCEPT, SLOPE);
+%! end
+%! %<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+%! 
+%! if (stats_pkg)
+%! 
+%!   %>>>>>>>>>>>>>>>>>>>> This code block is the demo >>>>>>>>>>>>>>>>>>>>>>
+%!
+%!   % Create the dataset
+%!   load carbig
+%!   X = [Acceleration Displacement Horsepower Weight];
+%!
+%!   % The responses 1 - 4 correspond to the following classification:
+%!   % 1:    < 19 miles per gallon
+%!   % 2: 19 - 29 miles per gallon
+%!   % 3: 29 - 39 miles per gallon
+%!   % 4:   >= 39 miles per gallon
+%!   miles = [1,1,1,1,1,1,1,1,1,1,NaN,NaN,NaN,NaN,NaN,1,1,NaN,1,1,2,2,1,2, ...
+%!            2,2,2,2,2,2,2,1,1,1,1,2,2,2,2,NaN,2,1,1,2,1,1,1,1,1,1,1,1,1, ...
+%!            2,2,1,2,2,3,3,3,3,2,2,2,2,2,2,2,1,1,1,1,1,1,1,1,1,2,1,1,1,1, ...
+%!            1,2,2,2,2,2,2,2,2,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,2,2,1,1,1, ...
+%!            1,1,2,2,2,1,2,2,2,1,1,3,2,2,2,1,2,2,1,2,2,2,1,3,2,3,2,1,1,1, ...
+%!            1,1,1,1,1,3,2,2,3,3,2,2,2,2,2,3,2,1,1,1,1,1,1,1,1,1,1,1,2,2, ...
+%!            1,3,2,2,2,2,2,2,1,3,2,2,2,2,2,3,2,2,2,2,2,1,1,1,1,2,2,2,2,3, ...
+%!            2,3,3,2,1,1,1,3,3,2,2,2,1,2,2,1,1,1,1,1,3,3,3,2,3,1,1,1,1,1, ...
+%!            2,2,1,1,1,1,1,3,2,2,2,3,3,3,3,2,2,2,4,3,3,4,3,2,2,2,2,2,2,2, ...
+%!            2,2,2,2,1,1,2,1,1,1,3,2,2,3,2,2,2,2,2,1,2,1,3,3,2,2,2,2,2,1, ...
+%!            1,1,1,1,1,2,1,3,3,3,2,2,2,2,2,3,3,3,3,2,2,2,3,4,3,3,3,2,2,2, ...
+%!            2,3,3,3,3,3,4,2,4,4,4,3,3,4,4,3,3,3,2,3,2,3,2,2,2,2,3,4,4,3, ...
+%!            3,3,3,3,3,3,3,3,3,3,3,3,3,2,NaN,3,2,2,2,2,2,1,2,2,3,3,3,2,2, ...
+%!            2,3,3,3,3,3,3,3,3,3,3,3,2,3,2,2,3,3,2,2,4,3,2,3]';
+%!
+%!   % Bootsrap confidence intervals for each logistic regression coefficient
+%!   bootknife ({X, miles}, 1999, ...
+%!               @(X, miles) mnrfit (X, miles, 'model', 'ordinal'));
+%!
+%!   % Where the first three rows are the intercept terms, and the last 4 rows
+%!   % are the slope coefficients. For each predictor, the slope coefficient
+%!   % corresponds to how a unit change in the predictor impacts on the odds
+%!   % across the (ordered) catagories, where each log-odds is:
+%!   %
+%!   %       ln ((P below) / (P above))
+%!   %
+%!   % Therefore, a positive slope value indicates that a unit increase in the
+%!   % predictor increases the odds of running at fewer miles per gallon.
+%!
+%!   %<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+%! 
+%! end
 
 %!demo
 %!
