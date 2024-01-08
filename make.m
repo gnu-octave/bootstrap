@@ -68,6 +68,11 @@ try
   end
 catch
   binary = false;
+  if (~ exist ('./install.m', 'file'))
+    % In case test of binary fails, we need to go back to the root directory of
+    % the package
+    cd ..
+  end
 end
 
 % Attemt to compile binaries from source code automatically if no suitable binaries can be found

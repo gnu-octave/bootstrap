@@ -1144,25 +1144,28 @@ end
 %! %>>>>>>>>>> This code block must be run first in Octave only >>>>>>>>>>>>
 %! try
 %!   pkg load statistics
+%!   load carbig
+%!   # Octave Statistics package does not currently have the mnrfit function, so
+%!   # we will use it's logistic_regression function for fitting ordinal models 
+%!   # instead.  
+%!   function [B, DEV] = mnrfit (X, Y, varargin)
+%!     # Note that the logistic_regression function is only suitable when 
+%!     # the outcome is ordinal, so we would need to use append 'model', 
+%!     # 'ordinal' as a name-value pair in MATLAB when executing it's 
+%!     # mnrfit function (see below)
+%!     [INTERCEPT, SLOPE, DEV] = logistic_regression (Y - 1, X, false);
+%!     B = cat (1, INTERCEPT, SLOPE);
+%!   end
 %!   stats_pkg = true;
 %! catch
 %!   stats_pkg = false;
-%!   fprintf ('\nSkip this demo... it requires that the statistics package\n\n');
-%! end
-%! # Octave Statistics package does not currently have the mnrfit function, but
-%! # we can use it's logistic_regression for fitting ordinal models instead. 
-%! function [B,DEV] = mnrfit (X, Y, varargin)
-%!   # Note that the logistic_regression function is only suitable when 
-%!   # the outcome is ordinal, so we would need to use append 'model', 
-%!   # 'ordinal' as a name-value pair in MATLAB when executing it's 
-%!   # mnrfit function (see below)
-%!   [INTERCEPT, SLOPE, DEV] = logistic_regression (Y - 1, X, false);
-%!   B = cat (1, INTERCEPT, SLOPE);
+%!   fprintf ('\nSkipping this demo...')
+%!   fprintf ('\nRequired feaures of the statistics package not found.\n\n');
 %! end
 %! %<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-%! 
+%!
 %! if (stats_pkg)
-%! 
+%!
 %!   %>>>>>>>>>>>>>>>>>>>> This code block is the demo >>>>>>>>>>>>>>>>>>>>>>
 %!
 %!   % Create the dataset
