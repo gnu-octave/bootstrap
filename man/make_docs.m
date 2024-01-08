@@ -15,6 +15,9 @@ pkg load generate_html
 pkg load statistics
 pkg load statistics-resampling
 
+% Set format for printing numbers
+format short g
+
 % Get options (use Octave-Forge as initial template then customise)
 myopt = get_html_options ("octave-forge");
 
