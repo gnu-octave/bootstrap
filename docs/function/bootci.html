@@ -3,7 +3,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
   <head>
   <meta http-equiv="content-type" content="text/html; charset=utf-8" />
-  <meta name="date" content="2024-01-07"/>
+  <meta name="date" content="2024-01-08"/>
   <meta name="generator" content="generate_html 0.3.3" />
   <meta name="author" content="Andrew Penn" />
   <meta name="description" content="A package for statistical analysis using resampling methods." />
@@ -183,8 +183,8 @@
 <p>Produces the following output</p>
 <pre class="example">ci =
 
-   23.825
-   34.411</pre>
+       23.825
+       34.411</pre>
 </div>
 <h3>Demonstration 2</h3>
 <div class="demo">
@@ -202,8 +202,8 @@
 <p>Produces the following output</p>
 <pre class="example">ci =
 
-   23.462
-   34.651</pre>
+       23.462
+       34.651</pre>
 </div>
 <h3>Demonstration 3</h3>
 <div class="demo">
@@ -222,8 +222,8 @@
 <p>Produces the following output</p>
 <pre class="example">ci =
 
-   24.811
-   36.698</pre>
+       24.811
+       36.698</pre>
 </div>
 <h3>Demonstration 4</h3>
 <div class="demo">
@@ -239,8 +239,8 @@
 <p>Produces the following output</p>
 <pre class="example">ci =
 
-   100.29
-   233.90</pre>
+       100.29
+        233.9</pre>
 </div>
 <h3>Demonstration 5</h3>
 <div class="demo">
@@ -256,8 +256,8 @@
 <p>Produces the following output</p>
 <pre class="example">ci =
 
-   116.40
-   265.89</pre>
+        116.4
+       265.89</pre>
 </div>
 <h3>Demonstration 6</h3>
 <div class="demo">
@@ -276,8 +276,8 @@
 <p>Produces the following output</p>
 <pre class="example">ci =
 
-   106.75
-   290.95</pre>
+       106.75
+       290.95</pre>
 </div>
 <h3>Demonstration 7</h3>
 <div class="demo">
@@ -296,8 +296,8 @@
 <p>Produces the following output</p>
 <pre class="example">ci =
 
-   115.81
-   278.35</pre>
+       115.81
+       278.35</pre>
 </div>
 <h3>Demonstration 8</h3>
 <div class="demo">
@@ -317,10 +317,102 @@
 <p>Produces the following output</p>
 <pre class="example">ci =
 
-   0.5167
-   0.8730</pre>
+      0.51674
+        0.873</pre>
 </div>
 <h3>Demonstration 9</h3>
+<div class="demo">
+<p>The following code</p>
+<pre class="example">
+ 
+ ## Calculating confidence intervals for the coefficients from multinomial 
+ ## regression with ordinal responses using the example from:
+ ## https://uk.mathworks.com/help/stats/mnrfit.html
+ 
+ ##>>>>>>>>> This code block must be run first in Octave only >>>>>>>>>>>>
+ try
+   pkg load statistics
+   load carbig
+   # Octave Statistics package does not currently have the mnrfit function, so
+   # we will use it's logistic_regression function for fitting ordinal models 
+   # instead. 
+   function [B, DEV] = mnrfit (X, Y, varargin)
+     # Note that the logistic_regression function is only suitable when 
+     # the outcome is ordinal, so we would need to use append 'model', 
+     # 'ordinal' as a name-value pair in MATLAB when executing it's 
+     # mnrfit function (see below)
+     [INTERCEPT, SLOPE, DEV] = logistic_regression (Y - 1, X, false);
+     B = cat (1, INTERCEPT, SLOPE);
+   end
+   stats_pkg = true;
+ catch
+   stats_pkg = false;
+   fprintf ('\nSkipping this demo...')
+   fprintf ('\nRequired feaures of the statistics package not found.\n\n');
+ end
+ ##<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
+ if (stats_pkg)
+
+   ##>>>>>>>>>>>>>>>>>>> This code block is the demo >>>>>>>>>>>>>>>>>>>>>>
+
+   ## Create the dataset
+   load carbig
+   X = [Acceleration Displacement Horsepower Weight];
+
+   ## The responses 1 - 4 correspond to the following classification:
+   ## 1:  9 - 19 miles per gallon
+   ## 2: 19 - 29 miles per gallon
+   ## 3: 29 - 39 miles per gallon
+   ## 4: 39 - 49 miles per gallon
+   miles = [1,1,1,1,1,1,1,1,1,1,NaN,NaN,NaN,NaN,NaN,1,1,NaN,1,1,2,2,1,2, ...
+            2,2,2,2,2,2,2,1,1,1,1,2,2,2,2,NaN,2,1,1,2,1,1,1,1,1,1,1,1,1, ...
+            2,2,1,2,2,3,3,3,3,2,2,2,2,2,2,2,1,1,1,1,1,1,1,1,1,2,1,1,1,1, ...
+            1,2,2,2,2,2,2,2,2,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,2,2,1,1,1, ...
+            1,1,2,2,2,1,2,2,2,1,1,3,2,2,2,1,2,2,1,2,2,2,1,3,2,3,2,1,1,1, ...
+            1,1,1,1,1,3,2,2,3,3,2,2,2,2,2,3,2,1,1,1,1,1,1,1,1,1,1,1,2,2, ...
+            1,3,2,2,2,2,2,2,1,3,2,2,2,2,2,3,2,2,2,2,2,1,1,1,1,2,2,2,2,3, ...
+            2,3,3,2,1,1,1,3,3,2,2,2,1,2,2,1,1,1,1,1,3,3,3,2,3,1,1,1,1,1, ...
+            2,2,1,1,1,1,1,3,2,2,2,3,3,3,3,2,2,2,4,3,3,4,3,2,2,2,2,2,2,2, ...
+            2,2,2,2,1,1,2,1,1,1,3,2,2,3,2,2,2,2,2,1,2,1,3,3,2,2,2,2,2,1, ...
+            1,1,1,1,1,2,1,3,3,3,2,2,2,2,2,3,3,3,3,2,2,2,3,4,3,3,3,2,2,2, ...
+            2,3,3,3,3,3,4,2,4,4,4,3,3,4,4,3,3,3,2,3,2,3,2,2,2,2,3,4,4,3, ...
+            3,3,3,3,3,3,3,3,3,3,3,3,3,2,NaN,3,2,2,2,2,2,1,2,2,3,3,3,2,2, ...
+            2,3,3,3,3,3,3,3,3,3,3,3,2,3,2,2,3,3,2,2,4,3,2,3]';
+
+   ## Model coefficients from logistic regression
+   B = mnrfit (X, miles, 'model', 'ordinal');
+
+   ## Bootsrap confidence intervals for each logistic regression coefficient
+   ci = bootci (1999, @(X, miles) mnrfit (X, miles, 'model', 'ordinal'), ...
+                X, miles);
+   [B, ci']
+
+   ## Where the first three rows are the intercept terms, and the last 4 rows
+   ## are the slope coefficients. For each predictor, the slope coefficient
+   ## corresponds to how a unit change in the predictor impacts on the odds
+   ## across the (ordered) catagories, where each log-odds is:
+   ##
+   ##       ln ((P below) / (P above))
+   ##
+   ## Therefore, a positive slope value indicates that a unit increase in the
+   ## predictor increases the odds of running at fewer miles per gallon.
+
+   ##<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+ 
+ end</pre>
+<p>Produces the following output</p>
+<pre class="example">ans =
+
+       -16.69      -20.526      -12.642
+      -11.721      -15.188      -8.0851
+      -8.0606      -11.299      -4.6596
+      0.10476    -0.062295      0.28823
+     0.010336     -0.00273     0.023016
+      0.06452     0.033493     0.094721
+    0.0016638   0.00019837    0.0031828</pre>
+</div>
+<h3>Demonstration 10</h3>
 <div class="demo">
 <p>The following code</p>
 <pre class="example">

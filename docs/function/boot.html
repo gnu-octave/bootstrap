@@ -3,7 +3,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
   <head>
   <meta http-equiv="content-type" content="text/html; charset=utf-8" />
-  <meta name="date" content="2024-01-07"/>
+  <meta name="date" content="2024-01-08"/>
   <meta name="generator" content="generate_html 0.3.3" />
   <meta name="author" content="Andrew Penn" />
   <meta name="description" content="A package for statistical analysis using resampling methods." />
@@ -115,9 +115,17 @@
 <p>Produces the following output</p>
 <pre class="example">ans =
 
-   2   2   3   3   1   1   2   2   3   2   2   3   3   1   3   2   1   2   3   1
-   2   3   3   2   1   1   1   2   3   3   3   1   1   2   3   3   2   1   1   2
-   3   2   3   3   2   2   2   1   3   3   1   1   1   1   2   1   2   1   3   1</pre>
+ Columns 1 through 12:
+
+            3            3            1            2            1            3            2            3            2            1            1            3
+            3            3            1            2            1            1            1            2            3            1            1            2
+            3            2            2            3            2            2            2            1            3            1            2            3
+
+ Columns 13 through 20:
+
+            2            1            3            3            2            2            2            3
+            1            2            3            3            1            1            3            1
+            2            3            2            1            1            1            3            2</pre>
 </div>
 <h3>Demonstration 2</h3>
 <div class="demo">
@@ -129,9 +137,17 @@
 <p>Produces the following output</p>
 <pre class="example">ans =
 
-   3   3   2   3   1   2   2   1   1   3   3   1   2   3   2   2   1   2   2   3
-   2   1   1   2   1   1   3   1   1   3   3   2   3   1   1   3   1   2   2   2
-   2   3   1   3   3   2   3   1   1   3   3   1   3   3   1   2   1   2   2   2</pre>
+ Columns 1 through 12:
+
+            3            3            1            3            3            2            2            1            1            2            1            1
+            2            1            2            3            3            2            3            3            1            3            1            1
+            3            3            1            2            1            2            2            1            1            2            3            2
+
+ Columns 13 through 20:
+
+            3            3            1            3            1            2            2            1
+            3            3            2            3            1            2            2            1
+            2            1            2            2            3            2            3            1</pre>
 </div>
 <h3>Demonstration 3</h3>
 <div class="demo">
@@ -145,21 +161,45 @@
 <p>Produces the following output</p>
 <pre class="example">ans =
 
-   3   3   3   3   1   2   3   3   1   1   2   2   1   2   2   2   1   2   1   1
-   3   1   2   2   3   1   3   1   2   2   3   3   2   3   3   3   3   1   1   2
-   3   2   3   1   3   1   1   1   3   1   2   3   2   1   2   2   2   1   2   1
+ Columns 1 through 12:
+
+            3            3            3            3            1            2            3            3            1            1            2            2
+            3            1            2            2            3            1            3            1            2            2            3            3
+            3            2            3            1            3            1            1            1            3            1            2            3
+
+ Columns 13 through 20:
+
+            1            2            2            2            1            2            1            1
+            2            3            3            3            3            1            1            2
+            2            1            2            2            2            1            2            1
 
 ans =
 
-   3   3   3   3   1   2   3   3   1   1   2   2   1   2   2   2   1   2   1   1
-   3   1   2   2   3   1   3   1   2   2   3   3   2   3   3   3   3   1   1   2
-   3   2   3   1   3   1   1   1   3   1   2   3   2   1   2   2   2   1   2   1
+ Columns 1 through 12:
+
+            3            3            3            3            1            2            3            3            1            1            2            2
+            3            1            2            2            3            1            3            1            2            2            3            3
+            3            2            3            1            3            1            1            1            3            1            2            3
+
+ Columns 13 through 20:
+
+            1            2            2            2            1            2            1            1
+            2            3            3            3            3            1            1            2
+            2            1            2            2            2            1            2            1
 
 ans =
 
-   3   2   2   3   2   3   1   2   2   3   1   2   3   1   2   3   2   3   2   3
-   1   3   1   1   2   3   3   3   1   2   1   1   2   1   3   1   1   3   3   2
-   1   3   3   1   1   1   2   3   2   2   2   1   2   3   3   1   1   2   2   1</pre>
+ Columns 1 through 12:
+
+            3            2            2            3            2            3            1            2            2            3            1            2
+            1            3            1            1            2            3            3            3            1            2            1            1
+            1            3            3            1            1            1            2            3            2            2            2            1
+
+ Columns 13 through 20:
+
+            3            1            2            3            2            3            2            3
+            2            1            3            1            1            3            3            2
+            2            3            3            1            1            2            2            1</pre>
 </div>
 <h3>Demonstration 4</h3>
 <div class="demo">
@@ -172,15 +212,15 @@ ans =
 <p>Produces the following output</p>
 <pre class="example">ans =
 
-   44   23   23   36   44   23   44   36   36   23
-   36   23   36   23   44   36   36   23   44   44
-   36   36   23   44   23   44   23   36   44   44
+           44           23           23           36           44           23           44           36           36           23
+           36           23           36           23           44           36           36           23           44           44
+           36           36           23           44           23           44           23           36           44           44
 
 ans =
 
-   23   23   23   36   23   23   23   36   36   23
-   36   23   36   23   23   36   36   23   23   23
-   36   36   23   23   23   23   23   36   23   23</pre>
+           23           23           23           36           23           23           23           36           36           23
+           36           23           36           23           23           36           36           23           23           23
+           36           36           23           23           23           23           23           36           23           23</pre>
 </div>
 <h3>Demonstration 5</h3>
 <div class="demo">
@@ -194,30 +234,30 @@ ans =
 <p>Produces the following output</p>
 <pre class="example">ans =
 
-   4
-   2
-   3
-   5
-   4
-   6
+            4
+            2
+            3
+            5
+            4
+            6
 
 ans =
 
-   4
-   3
-   4
-   6
-   6
-   2
+            4
+            3
+            4
+            6
+            6
+            2
 
 ans =
 
-   5
-   6
-   3
-   4
-   1
-   6</pre>
+            5
+            6
+            3
+            4
+            1
+            6</pre>
 </div>
 
 <p>Package: <a href="../index.html">statistics-resampling</a></p>

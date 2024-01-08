@@ -3,7 +3,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
   <head>
   <meta http-equiv="content-type" content="text/html; charset=utf-8" />
-  <meta name="date" content="2024-01-07"/>
+  <meta name="date" content="2024-01-08"/>
   <meta name="generator" content="generate_html 0.3.3" />
   <meta name="author" content="Andrew Penn" />
   <meta name="description" content="A package for statistical analysis using resampling methods." />
@@ -151,9 +151,9 @@
                            @(x, y) log (var (y) ./ var (x)))
 </pre>
 <p>Produces the following output</p>
-<pre class="example">pval = 0.3600
-pval = 0.2930
-pval = 0.3168</pre>
+<pre class="example">pval = 0.3562
+pval = 0.277
+pval = 0.30584</pre>
 </div>
 <h3>Demonstration 2</h3>
 <div class="demo">
@@ -181,9 +181,9 @@ pval = 0.3168</pre>
                            
 </pre>
 <p>Produces the following output</p>
-<pre class="example">pval = 0.1289
+<pre class="example">pval = 0.12891
 pval = 0.037109
-pval = 0.5117</pre>
+pval = 0.51172</pre>
 </div>
 <h3>Demonstration 3</h3>
 <div class="demo">
@@ -204,8 +204,8 @@ pval = 0.5117</pre>
  pval = randtest2 ([X GX], [Y GY], false, 5000)
 </pre>
 <p>Produces the following output</p>
-<pre class="example">pval = 6.2154e-04
-pval = 0.2000</pre>
+<pre class="example">pval = 0.0008
+pval =   0.2</pre>
 </div>
 <h3>Demonstration 4</h3>
 <div class="demo">
@@ -226,8 +226,8 @@ pval = 0.2000</pre>
  pval = randtest2 ([X GX], [Y GY], true, 5000)
 </pre>
 <p>Produces the following output</p>
-<pre class="example">pval = 1.6000e-03
-pval = 0.2500</pre>
+<pre class="example">pval = 0.0012
+pval =  0.25</pre>
 </div>
 
 <p>Package: <a href="../index.html">statistics-resampling</a></p>
