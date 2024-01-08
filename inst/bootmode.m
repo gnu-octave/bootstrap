@@ -405,12 +405,12 @@ end
 %!    0.115;0.115;0.117;0.119;0.119;0.119;0.119;0.120;0.120;0.120;0.121; ...
 %!    0.122;0.122;0.123;0.123;0.125;0.125;0.128; 0.129;0.129;0.129;0.130;0.131];
 %! 
-%! [H1, P1, CRITVAL1] = bootmode(x,1,2000);
+%! [H1, P1, CRITVAL1] = bootmode (x,1,2000);
 %!
 %! % Repeat function call systematically increasing the number of modes (M) by 
 %! % 1, until the null hypothesis is accepted (i.e. H0 = 0)
 %!
-%! [H2, P2, CRITVAL2] = bootmode(x,2,2000);
+%! [H2, P2, CRITVAL2] = bootmode (x,2,2000);
 %! 
 %! sprintf ('Summary of results:\n') 
 %! sprintf (cat (2, 'H1 is %u with p = %.3g so reject the null hypothesis', ...
@@ -468,7 +468,7 @@ end
 %!    0.115;0.115;0.117;0.119;0.119;0.119;0.119;0.120;0.120;0.120;0.121; ...
 %!    0.122;0.122;0.123;0.123;0.125;0.125;0.128; 0.129;0.129;0.129;0.130;0.131];
 %! 
-%! [H, P, CRITVAL] = bootmode(x,1,2000,'Gaussian');
+%! [H, P, CRITVAL] = bootmode (x,1,2000,'Gaussian');
 %! assert (H, true);
-%! [H, P, CRITVAL] = bootmode(x,2,2000,'Gaussian');
+%! [H, P, CRITVAL] = bootmode (x,2,2000,'Gaussian');
 %! assert (H, false);

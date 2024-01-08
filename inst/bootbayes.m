@@ -464,7 +464,7 @@ end
 %! heights = [183, 192, 182, 183, 177, 185, 188, 188, 182, 185].';
 %!
 %! % 95% credible interval for the mean 
-%! bootbayes(heights);
+%! bootbayes (heights);
 %!
 %! % Please be patient, the calculations will be completed soon...
 
@@ -482,7 +482,7 @@ end
 %!     183.0,192.0,182.0,183.0,177.0,185.0,188.0,188.0,182.0,185.0]';
 %!
 %! % 95% credible interval for the regression coefficents
-%! bootbayes(y,X);
+%! bootbayes (y, X);
 %!
 %! % Please be patient, the calculations will be completed soon...
 

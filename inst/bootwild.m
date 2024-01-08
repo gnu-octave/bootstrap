@@ -500,7 +500,7 @@ end
 %! heights = [183, 192, 182, 183, 177, 185, 188, 188, 182, 185].';
 %!
 %! % Test statistics and p-values (H0 = 0)
-%! bootwild(heights);
+%! bootwild (heights);
 %!
 %! % Please be patient, the calculations will be completed soon...
 
@@ -518,7 +518,7 @@ end
 %!     183.0,192.0,182.0,183.0,177.0,185.0,188.0,188.0,182.0,185.0]';
 %!
 %! % Compute test statistics and p-values
-%! bootwild(y,X);
+%! bootwild (y, X);
 %!
 %! % Please be patient, the calculations will be completed soon...
 
