@@ -55,8 +55,8 @@ cd ./tmp/statistics-resampling/function/
 for f in *.html; do sed -i '' -e "s/<pre>/<h2>$(echo "${f%.*}")<\/h2>\n<pre>/" $f; done
 cd ../../..
 
-# Add link targets to Demos
-for i in {1..20}; do sed -i '' -e 's/<h3>Demonstration '$i'/\n<h3><a name="'$i'">Demonstration '$i'<\/a>/' ./tmp/statistics-resampling/function/*.html; done
+# Add link targets to demos
+for i in {1..20}; do sed -i '' -e 's/<h3>Demonstration '$i'<\/h3></\n<h3><a name="'$i'">Demonstration '$i'<\/a><\/h3>/' ./tmp/statistics-resampling/function/*.html; done
 
 # Publish README markdown file as HTML and add header
 cd ..
