@@ -61,11 +61,11 @@ In Octave only, you can get a basic overview of the package and it's functions b
 
 Below are some links to some demonstrations on how to perform some commonly used statistical tests using the bootstrap or randomization functions from this package:  
   
- * [t-test to compare two independent samples (assuming equal variances)] (https://gnu-octave.github.io/statistics-resampling/function/boot1way.html#1)  
+ * [t-test to compare two independent samples (assuming equal variances)](https://gnu-octave.github.io/statistics-resampling/function/boot1way.html#1)  
 
- * [t-test to compare two independent samples (assuming equal variances but robust to outliers)] (https://gnu-octave.github.io/statistics-resampling/function/boot1way.html#2)  
+ * [t-test to compare two independent samples (assuming equal variances but robust to outliers)](https://gnu-octave.github.io/statistics-resampling/function/boot1way.html#2)  
 
- * [t-test to compare two independent samples (not assuming equal variances)] (https://gnu-octave.github.io/statistics-resampling/function/bootlm.html#1)  
+ * [t-test to compare two independent samples (not assuming equal variances)](https://gnu-octave.github.io/statistics-resampling/function/bootlm.html#1)  
 
  * [t-test to compare two paired or matching samples (robust to heteroscedasticity)](https://gnu-octave.github.io/statistics-resampling/function/bootlm.html#2)  
 
