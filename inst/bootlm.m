@@ -1947,10 +1947,19 @@ end
 %!          'al1','al1','al1','al1','al1','al1', ...
 %!          'al2','al2','al2','al2','al2','al2'}';
 %!
+%! % One-way ANOVA statistics
+%! [STATS, BOOTSTAT, AOVSTAT] = bootlm (strength, alloy, 'display', 'off', 
+%!                                      'varnames', 'alloy');
+%! fprintf ('ONE-WAY ANOVA SUMMARY\n')
+%! fprintf ('F(%u,%u) = %.2f, p = %.3g for the model: %s\n', ...
+%!            AOVSTAT.DF, AOVSTAT.DFE, AOVSTAT.F, ...
+%!            AOVSTAT.PVAL, AOVSTAT.MODEL{1});
+%!
 %! % 95% confidence intervals and p-values for the differences in mean strength
-%! % of three alloys (computed by wild bootstrap)
-%! STATS = bootlm (strength, alloy, 'display', 'on', 'varnames', 'alloy', ...
-%!                 'dim', 1, 'posthoc','pairwise');
+%! % of the three alloys (computed by wild bootstrap)
+%! STATS = bootlm (strength, alloy, 'display', 'on', 'varnames', 'alloy',  
+%!                                  'dim', 1, 'posthoc','pairwise', ...
+%!                                  'alpha', [.025, .975]);
 %!
 %! % 95% credible intervals for the estimated marginal means of the strengths
 %! % of each of the alloys (computed by Bayesian bootstrap)
@@ -1970,12 +1979,23 @@ end
 %! subject = [ 1  1  1;  2  2  2;  3  3  3;  4  4  4;  5  5  5; ...
 %!             6  6  6;  7  7  7;  8  8  8;  9  9  9; 10 10 10];
 %!
+%! % One-way repeated measures ANOVA statistics
+%! [STATS, BOOTSTAT, AOVSTAT] = bootlm (words(:), {subject(:), seconds(:)}, ...
+%!                                      'model', 'linear', 'display', 'off', ...
+%!                                      'varnames', {'subject', 'seconds'});
+%!
+%! fprintf ('ONE-WAY REPEATED MEASURES ANOVA SUMMARY\n')
+%! fprintf ('F(%u,%u) = %.2f, p = %.3g for the model: %s\n', ...
+%!            AOVSTAT.DF(2), AOVSTAT.DFE, AOVSTAT.F(2), ...
+%!            AOVSTAT.PVAL(2), AOVSTAT.MODEL{2});
+%!
 %! % 95% confidence intervals and p-values for the differences in mean number
 %! % of words recalled for the different times (using wild bootstrap).
 %! STATS = bootlm (words(:), {subject(:), seconds(:)}, ...
 %!                            'model', 'linear', 'display', 'on', ...
 %!                            'varnames', {'subject', 'seconds'}, ...
-%!                            'dim', 2, 'posthoc', 'pairwise');
+%!                            'dim', 2, 'posthoc', 'pairwise', ...
+%!                            'alpha', [.025, .975]);
 %!
 %! % 95% credible intervals for the estimated marginal means of the number of
 %! % words recalled for each time (computed using Bayesian bootstrap).

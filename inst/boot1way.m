@@ -794,6 +794,50 @@ end
 
 %!demo
 %!
+%! % COMPARISON OF TWO INDEPENDENT GROUPS WITH UNEQUAL SAMPLE SIZES 
+%! % (analagous to Student's t-test)
+%!
+%! y =    [54       43
+%!         23       34
+%!         45       65
+%!         54       77
+%!         45       46
+%!        NaN       65];
+%! g = {'male' 'female'
+%!      'male' 'female'
+%!      'male' 'female'
+%!      'male' 'female'
+%!      'male' 'female'
+%!      'male' 'female'};
+%!
+%! boot1way (y(:), g(:), 'ref', 'male', 'nboot', 4999);
+%!
+%! % Please be patient, the calculations will be completed soon...
+
+%!demo
+%!
+%! % COMPARISON OF TWO INDEPENDENT GROUPS WITH UNEQUAL SAMPLE SIZES 
+%! % (a robust version of Student's t-test)
+%!
+%! y =    [54       43
+%!         23       34
+%!         45       65
+%!         54       77
+%!         45       46
+%!        NaN       65];
+%! g = {'male' 'female'
+%!      'male' 'female'
+%!      'male' 'female'
+%!      'male' 'female'
+%!      'male' 'female'
+%!      'male' 'female'};
+%!
+%! boot1way (y(:), g(:), 'ref', 'male', 'nboot', 4999, 'bootfun', 'robust');
+%!
+%! % Please be patient, the calculations will be completed soon...
+
+%!demo
+%!
 %! % ONE-WAY ANOVA WITH EQUAL SAMPLE SIZES: Treatment vs. Control (1)
 %!
 %! y = [111.39 110.21  89.21  76.64  95.35  90.97  62.78;
@@ -823,28 +867,6 @@ end
 %!      1 2 3 4 5 6 7];
 %!
 %! boot1way (y(:), g(:), 'ref', 1, 'nboot', 4999, 'bootfun', 'robust');
-%!
-%! % Please be patient, the calculations will be completed soon...
-
-%!demo
-%!
-%! % COMPARISON OF TWO INDEPENDENT GROUPS WITH UNEQUAL SAMPLE SIZES 
-%! % (analagous to Student's t-test)
-%!
-%! y =    [54       43
-%!         23       34
-%!         45       65
-%!         54       77
-%!         45       46
-%!        NaN       65];
-%! g = {'male' 'female'
-%!      'male' 'female'
-%!      'male' 'female'
-%!      'male' 'female'
-%!      'male' 'female'
-%!      'male' 'female'};
-%!
-%! boot1way (y(:), g(:), 'ref', 'male', 'nboot', 4999);
 %!
 %! % Please be patient, the calculations will be completed soon...
 
