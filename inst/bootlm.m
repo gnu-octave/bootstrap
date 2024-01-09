@@ -2415,8 +2415,8 @@ end
 
 %!demo
 %!
-%! % Comparing analysis of nested design using ANOVA with clustered resampling.
-%! % Two factor nested model example from:
+%! % Analysis of nested one-way ANOVA design using clustered resampling.
+%! % Nested model example from:
 %! % https://www.southampton.ac.uk/~cpd/anovas/datasets/#Chapter2
 %!
 %! data = [4.5924 7.3809 21.322; -0.5488 9.2085 25.0426; ...
