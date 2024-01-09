@@ -59,7 +59,7 @@ In Octave only, you can get a basic overview of the package and it's functions b
 
 ### Quick start
 
-Below are some links to some demonstrations on how to perform some commonly used statistical tests using the bootstrap or randomization functions from this package:  
+Below are some links to some demonstrations on how to perform the equivalent of commonly used statistical tests using the bootstrap or randomization functions from this package:  
   
  * [t-test to compare two independent samples (assuming equal variances)](https://gnu-octave.github.io/statistics-resampling/function/boot1way.html#1)  
 
@@ -71,6 +71,8 @@ Below are some links to some demonstrations on how to perform some commonly used
 
  * [One-way ANOVA to compare more than two independent samples (robust to heteroscedasticity)](https://gnu-octave.github.io/statistics-resampling/function/bootlm.html#3)  
 
+ * [Nested one-way ANOVA to compare more than two independent samples (robust to heteroscedasticity and grouping of observations)](https://gnu-octave.github.io/statistics-resampling/function/bootlm.html#11)  
+ 
  * [Two-way factorial ANOVA (robust to heteroscedasticity)](https://gnu-octave.github.io/statistics-resampling/function/bootlm.html#6)  
 
  * [One-way ANCOVA (robust to heteroscedasticity)](https://gnu-octave.github.io/statistics-resampling/function/bootlm.html#7)  
