@@ -60,7 +60,7 @@ for i in {1..20}; do sed -i '' -e 's/<h3>Demonstration '$i'<\/h3>/\n<h3><a name=
 
 # Publish README markdown file as HTML and add header
 cd ..
-pandoc README.md -o ./man/tmp/statistics-resampling/tmp.html
+pandoc -o ./man/tmp/statistics-resampling/tmp.html -V colorlinks=true README.md 
 cat ./man/templates/header.html ./man/tmp/statistics-resampling/tmp.html > ./man/tmp/statistics-resampling/readme.html
 printf "</div>\n</body>\n</html>\n" >> ./man/tmp/statistics-resampling/readme.html
 rm ./man/tmp/statistics-resampling/tmp.html
