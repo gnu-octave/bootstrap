@@ -59,7 +59,7 @@ In Octave only, you can get a basic overview of the package and it's functions b
 
 ### Quick start
 
-Below are some links to demonstrations of how the bootstrap or randomization functions from this package can be used to perform robust versions of commonly used statistical tests:  
+Below are some links to demonstrations of how the bootstrap or randomization functions from this package can be used to perform variants of the commonly used statistical tests below, but without the Normality assumption:  
   
  * [t-test to compare two independent samples (assuming equal variances)](https://gnu-octave.github.io/statistics-resampling/function/boot1way.html#1)  
 
@@ -67,15 +67,15 @@ Below are some links to demonstrations of how the bootstrap or randomization fun
 
  * [t-test to compare two independent samples (not assuming equal variances)](https://gnu-octave.github.io/statistics-resampling/function/bootlm.html#1)  
 
- * [t-test to compare two paired or matching samples (robust to heteroscedasticity)](https://gnu-octave.github.io/statistics-resampling/function/bootlm.html#2)  
+ * [t-test to compare two paired or matching samples (also robust to heteroscedasticity)](https://gnu-octave.github.io/statistics-resampling/function/bootlm.html#2)  
 
- * [One-way ANOVA to compare more than two independent samples (robust to heteroscedasticity)](https://gnu-octave.github.io/statistics-resampling/function/bootlm.html#3)  
+ * [One-way ANOVA to compare more than two independent samples (also robust to heteroscedasticity)](https://gnu-octave.github.io/statistics-resampling/function/bootlm.html#3)  
 
- * [Nested one-way ANOVA to compare more than two independent samples (robust to heteroscedasticity and grouping of observations)](https://gnu-octave.github.io/statistics-resampling/function/bootlm.html#11)  
+ * [Nested one-way ANOVA to compare more than two independent samples (also robust to heteroscedasticity and grouping of observations)](https://gnu-octave.github.io/statistics-resampling/function/bootlm.html#11)  
  
- * [Two-way factorial ANOVA (robust to heteroscedasticity)](https://gnu-octave.github.io/statistics-resampling/function/bootlm.html#6)  
+ * [Two-way factorial ANOVA (also robust to heteroscedasticity)](https://gnu-octave.github.io/statistics-resampling/function/bootlm.html#6)  
 
- * [One-way ANCOVA (robust to heteroscedasticity)](https://gnu-octave.github.io/statistics-resampling/function/bootlm.html#7)  
+ * [One-way ANCOVA (also robust to heteroscedasticity)](https://gnu-octave.github.io/statistics-resampling/function/bootlm.html#7)  
   
 ### Issues
 
