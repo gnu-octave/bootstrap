@@ -56,6 +56,24 @@ All help and demos are documented on the ['Function Reference'](https://gnu-octa
 Function help can also be requested directly from the Octave/MATLAB command prompt, by typing `help function-name` - substituting in the actual function name.
   
 In Octave only, you can get a basic overview of the package and it's functions by typing: `pkg describe -verbose statistics-resampling`, or request demonstrations of function usage by typing `demo function-name`. Users can also request help with using functions and programming in Octave at the [discourse group](https://octave.discourse.group/c/help/6).  
+
+### Quick start
+
+Below are some links to some demonstrations on how to perform some commonly used statistical tests using the bootstrap or randomization functions from this package:  
+  
+ * [t-test to compare two independent samples (assuming equal variances)] (https://gnu-octave.github.io/statistics-resampling/function/boot1way.html#1)  
+
+ * [t-test to compare two independent samples (assuming equal variances but robust to outliers)] (https://gnu-octave.github.io/statistics-resampling/function/boot1way.html#2)  
+
+ * [t-test to compare two independent samples (not assuming equal variances)] (https://gnu-octave.github.io/statistics-resampling/function/bootlm.html#1)  
+
+ * [t-test to compare two paired or matching samples (robust to heteroscedasticity)](https://gnu-octave.github.io/statistics-resampling/function/bootlm.html#2)  
+
+ * [One-way ANOVA to compare more than two independent samples (robust to heteroscedasticity)](https://gnu-octave.github.io/statistics-resampling/function/bootlm.html#3)  
+
+ * [Two-way factorial ANOVA (robust to heteroscedasticity)](https://gnu-octave.github.io/statistics-resampling/function/bootlm.html#6)  
+
+ * [One-way ANCOVA (robust to heteroscedasticity)](https://gnu-octave.github.io/statistics-resampling/function/bootlm.html#7)  
   
 ### Issues
 
