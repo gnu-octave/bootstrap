@@ -1,0 +1,167 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+ "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+  <head>
+  <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+  <meta name="date" content="2024-01-02"/>
+  <meta name="generator" content="generate_html 0.3.3" />
+  <meta name="author" content="Andrew Penn" />
+  <meta name="description" content="A package for statistical analysis using resampling methods." />
+  <meta name="keywords" lang="en" content="GNU Octave Packages, MATLAB Toolbox" />
+  <title>The statistics-resampling package manual</title>
+  <link rel="stylesheet" type="text/css" href="./site-files/manual.css" />
+  <script src="./site-files/fixed.js" type="text/javascript"></script>
+  <script src="./site-files/javascript.js" type="text/javascript"></script>
+  <link rel="shortcut icon" href="./site-files/favicon.ico" />
+  </head>
+  <body onload="javascript:fix_top_menu (); javascript:show_left_menu ();">
+  <script type="text/javascript"> write_top_menu (); </script>
+  <script type="text/javascript"> write_docs_left_menu (); </script>
+<div id="doccontent">
+
+<h2 id="read-me">Read me</h2>
+<h3 id="package-maintainer">Package maintainer</h3>
+<p>Andrew Penn (andy.c.penn@gmail.com)</p>
+<h3 id="package-contributors">Package contributors</h3>
+<p>Andrew Penn<br />
+(More contributors are welcome!)</p>
+<h3 id="citations">Citations</h3>
+<p>If you use this package, please include the following
+citation(s):</p>
+<ul>
+<li>Penn, Andrew Charles. (2020). Resampling methods for small samples
+or samples with complex dependence structures. <em>Zenodo</em>. <a
+href="https://doi.org/10.5281/zenodo.3992392">https://doi.org/10.5281/zenodo.3992392</a></li>
+</ul>
+<p>(Note that package versions 5.4.3 and below were named the
+‘statistics-bootstrap’ package. The ‘statistics-resampling’ package is a
+more developed version of the older <a
+href="https://github.com/acp29/iboot">‘iboot’</a> package).</p>
+<h3 id="description">Description</h3>
+<p>The statistics-resampling package is an Octave package and Matlab
+toolbox that can be used to overcome a wide variety of statistics
+problems using non-parametric resampling methods. In particular, the
+functions included can be used to estimate bias, uncertainty (standard
+errors and confidence intervals), prediction error, and test hypotheses
+(<em>p</em>-values). Variations of the resampling methods are included
+that improve the accuracy of the statistics for small samples and
+samples with complex dependence structures.</p>
+<h3 id="requirements-and-dependencies">Requirements and
+dependencies</h3>
+<p>Core functions in this package are known to be compatible with
+versions of Octave 4.4.0+ and Matlab R2007a 7.4.0+. Some features of
+this package have specific dependencies:</p>
+<ul>
+<li>All parallel computing options require either the parallel package
+(in Octave) or the Parallel Computing Matlab Toolbox (in Matlab).<br />
+</li>
+<li>The optional jackknife functionality in <code>boot1way</code>
+requires the Statistics package (in Octave) or the Statistics and
+Machine Learning Toolbox (in Matlab).</li>
+</ul>
+<h3 id="installation">Installation</h3>
+<p>To install (or test) the statistics-resampling package at a location
+of your choice, follow these steps:</p>
+<ul>
+<li>Download the latest package release from <a
+href="https://github.com/gnu-octave/statistics-resampling/releases/">here</a>.
+Extract (not just browse) the contents of the compressed file (.zip or
+.tar.gz), and move the package directory to the desired location.</li>
+<li>Open Octave or Matlab (command prompt).</li>
+<li>Change directory (cd) into the package folder. (The directory
+contains a file called ‘make.m’ and ‘install.m’, among others)</li>
+<li>Type <code>make</code> to compile the MEX files from source (or use
+the precompiled binaries if available. If suitable precompiled binaries
+are not available for your platform, then Matlab/Octave will need access
+to a C++11 compiler. Note that if you skip the make step, then the
+package functions will still work, but some will run slower. This step
+is interactive so check the command window.)</li>
+<li>Type <code>install</code>. The package will load now (and
+automatically in the future) when you start Octave/Matlab.</li>
+</ul>
+<p>If you want or need to uninstall the package/toolbox, change
+directory (cd) into the package folder and type uninstall.</p>
+<p>Alternatively, users of more recent versions of Octave can install
+the package automatically with the following command:</p>
+<p><code>pkg install "https://github.com/gnu-octave/statistics-resampling/archive/refs/heads/master.zip"</code></p>
+<p>The package can be loaded on demand in Octave with the following
+commmand:</p>
+<p><code>pkg load statistics-resampling</code></p>
+<p>MATLAB users can conveniently install the package functions as a
+toolbox by double-clicking the ‘statistics-resampling.mltbx’ file in the
+matlab subdirectory. The toolbox installed in this way can be disabled
+or uninstalled via MATLAB’s Add-On manager. Currently, MEX files are
+included with the toolbox installation for Windows (32- or 64-bit),
+MacOS (Intel 64-bit) and Linux (64-bit). Without the MEX files, all
+functionality of the package is available, but some of the functions run
+slower.</p>
+<p>N.B. The package does not yet include any MEX files (for Octave or
+Matlab) precompiled for macOS with Apple silicon processors, since the
+package developers do not have access to this computer platform. If you
+used this package on macOS with an Apple silicon processor (M1-3 chip),
+please consider contacting the package maintainer to contribute the MEX
+files to this project.</p>
+<h3 id="usage">Usage</h3>
+<p>All help and demos are documented on the <a
+href="https://gnu-octave.github.io/statistics-resampling/function_reference">‘Function
+Reference’</a> page in the <a
+href="https://gnu-octave.github.io/statistics-resampling/">manual</a>.
+If you do not see the navigation pane on the manual web pages, please
+enable javascript in your browser.</p>
+<p>Function help can also be requested directly from the Octave/MATLAB
+command prompt, by typing <code>help function-name</code> - substituting
+in the actual function name.</p>
+<p>In Octave only, you can get a basic overview of the package and it’s
+functions by typing:
+<code>pkg describe -verbose statistics-resampling</code>, or request
+demonstrations of function usage by typing
+<code>demo function-name</code>. Users can also request help with using
+functions and programming in Octave at the <a
+href="https://octave.discourse.group/c/help/6">discourse group</a>.</p>
+<h3 id="quick-start">Quick start</h3>
+<p>Below are some links to some demonstrations on how to perform the
+equivalent of commonly used statistical tests using the bootstrap or
+randomization functions from this package:</p>
+<ul>
+<li><p><a
+href="https://gnu-octave.github.io/statistics-resampling/function/boot1way.html#1">t-test
+to compare two independent samples (assuming equal
+variances)</a></p></li>
+<li><p><a
+href="https://gnu-octave.github.io/statistics-resampling/function/boot1way.html#2">t-test
+to compare two independent samples (assuming equal variances but robust
+to outliers)</a></p></li>
+<li><p><a
+href="https://gnu-octave.github.io/statistics-resampling/function/bootlm.html#1">t-test
+to compare two independent samples (not assuming equal
+variances)</a></p></li>
+<li><p><a
+href="https://gnu-octave.github.io/statistics-resampling/function/bootlm.html#2">t-test
+to compare two paired or matching samples (robust to
+heteroscedasticity)</a></p></li>
+<li><p><a
+href="https://gnu-octave.github.io/statistics-resampling/function/bootlm.html#3">One-way
+ANOVA to compare more than two independent samples (robust to
+heteroscedasticity)</a></p></li>
+<li><p><a
+href="https://gnu-octave.github.io/statistics-resampling/function/bootlm.html#11">Nested
+one-way ANOVA to compare more than two independent samples (robust to
+heteroscedasticity and grouping of observations)</a></p></li>
+<li><p><a
+href="https://gnu-octave.github.io/statistics-resampling/function/bootlm.html#6">Two-way
+factorial ANOVA (robust to heteroscedasticity)</a></p></li>
+<li><p><a
+href="https://gnu-octave.github.io/statistics-resampling/function/bootlm.html#7">One-way
+ANCOVA (robust to heteroscedasticity)</a></p></li>
+</ul>
+<h3 id="issues">Issues</h3>
+<p>If you find bugs or have any suggestions, please raise an issue on
+GitHub <a
+href="https://github.com/gnu-octave/statistics-resampling/issues">here</a>.
+Please, make sure that when reporting a bug you provide as much
+information as possible for other users to be able to replicate it.</p>
+<p>Package: <a
+href="https://gnu-octave.github.io/statistics-resampling/">statistics-resampling</a></p>
+</div>
+</body>
+</html>
