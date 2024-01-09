@@ -59,7 +59,7 @@ In Octave only, you can get a basic overview of the package and it's functions b
 
 ### Quick start
 
-Below are some links to demonstrations of how the bootstrap or randomization functions from this package can be used to perform variants of the commonly used statistical tests listed below, but without the Normality assumption:  
+Below are some links to demonstrations of how the bootstrap or randomization functions from this package can be used to perform variants of commonly used statistical tests, but without the Normality assumption:  
   
  * [t-test to compare two independent samples (assuming equal variances)](https://gnu-octave.github.io/statistics-resampling/function/boot1way.html#1)  
 
