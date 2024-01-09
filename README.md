@@ -1,7 +1,3 @@
----
-colorlinks: true
----
-
 ## Read me
 
 ### Package maintainer
