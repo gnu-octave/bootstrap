@@ -161,7 +161,118 @@
   You should have received a copy of the GNU General Public License
   along with this program.  If not, see http://www.gnu.org/licenses/
 </pre>
-<h3>Demonstration 1</h3>
+
+<h3><a name="1">Demonstration 1</a></h3>
+<div class="demo">
+<p>The following code</p>
+<pre class="example">
+
+ % COMPARISON OF TWO INDEPENDENT GROUPS WITH UNEQUAL SAMPLE SIZES 
+ % (analagous to Student's t-test)
+
+ y =    [54       43
+         23       34
+         45       65
+         54       77
+         45       46
+        NaN       65];
+ g = {'male' 'female'
+      'male' 'female'
+      'male' 'female'
+      'male' 'female'
+      'male' 'female'
+      'male' 'female'};
+
+ boot1way (y(:), g(:), 'ref', 'male', 'nboot', 4999);
+
+ % Please be patient, the calculations will be completed soon...</pre>
+<p>Produces the following output</p>
+<pre class="example">Summary of bootstrap multiple comparison tests in a one-way layout
+*****************************************************************************
+Bootstrap settings: 
+ Function: mean
+ Bootstrap resampling method: Balanced, bootstrap resampling
+ Number of bootstrap resamples: 4999 
+ Method for estimating standard errors: Calculated without resampling
+ Multiple comparison method: Single-step maxT procedure based on Dunnett 
+ Reference group used for comparisons: 2 (male) 
+
+-----------------------------------------------------------------------------
+| Comparison |     Test # |      Ref # | Difference |          t |        p |
+|------------|------------|------------|------------|------------|----------|
+|          1 |          1 |          2 |     +10.80 |      +1.20 |     .255 |
+
+-----------------------------------------------------------------------------
+|    GROUP # |                                       GROUP label |        N |
+|------------|---------------------------------------------------|----------|
+|          1 |                                            female |        6 |
+|          2 |                                              male |        5 |</pre>
+<p>and the following figure</p>
+<p><table class="images">
+<tr>
+<th class="images">Figure 1</th>
+</tr><tr>
+<td class="images"><img src="images/boot1way_101.png" class="demo"/></td>
+</tr></table>
+</p>
+</div>
+
+<h3><a name="2">Demonstration 2</a></h3>
+<div class="demo">
+<p>The following code</p>
+<pre class="example">
+
+ % COMPARISON OF TWO INDEPENDENT GROUPS WITH UNEQUAL SAMPLE SIZES 
+ % (a robust version of Student's t-test)
+
+ y =    [54       43
+         23       34
+         45       65
+         54       77
+         45       46
+        NaN       65];
+ g = {'male' 'female'
+      'male' 'female'
+      'male' 'female'
+      'male' 'female'
+      'male' 'female'
+      'male' 'female'};
+
+ boot1way (y(:), g(:), 'ref', 'male', 'nboot', 4999, 'bootfun', 'robust');
+
+ % Please be patient, the calculations will be completed soon...</pre>
+<p>Produces the following output</p>
+<pre class="example">Summary of bootstrap multiple comparison tests in a one-way layout
+*****************************************************************************
+Bootstrap settings: 
+ Function: robust
+ Bootstrap resampling method: Balanced, bootstrap resampling
+ Number of bootstrap resamples: 4999 
+ Method for estimating standard errors: Leave-one-out jackknife
+ Multiple comparison method: Single-step maxT procedure based on Dunnett 
+ Reference group used for comparisons: 2 (male) 
+
+-----------------------------------------------------------------------------
+| Comparison |     Test # |      Ref # | Difference |          t |        p |
+|------------|------------|------------|------------|------------|----------|
+|          1 |          1 |          2 |     +8.721 |      +0.77 |     .438 |
+
+-----------------------------------------------------------------------------
+|    GROUP # |                                       GROUP label |        N |
+|------------|---------------------------------------------------|----------|
+|          1 |                                            female |        6 |
+|          2 |                                              male |        5 |</pre>
+<p>and the following figure</p>
+<p><table class="images">
+<tr>
+<th class="images">Figure 1</th>
+</tr><tr>
+<td class="images"><img src="images/boot1way_201.png" class="demo"/></td>
+</tr></table>
+</p>
+</div>
+
+<h3><a name="3">Demonstration 3</a></h3>
 <div class="demo">
 <p>The following code</p>
 <pre class="example">
@@ -216,11 +327,12 @@ Bootstrap settings:
 <tr>
 <th class="images">Figure 1</th>
 </tr><tr>
-<td class="images"><img src="images/boot1way_101.png" class="demo"/></td>
+<td class="images"><img src="images/boot1way_301.png" class="demo"/></td>
 </tr></table>
 </p>
 </div>
-<h3>Demonstration 2</h3>
+
+<h3><a name="4">Demonstration 4</a></h3>
 <div class="demo">
 <p>The following code</p>
 <pre class="example">
@@ -275,65 +387,12 @@ Bootstrap settings:
 <tr>
 <th class="images">Figure 1</th>
 </tr><tr>
-<td class="images"><img src="images/boot1way_201.png" class="demo"/></td>
+<td class="images"><img src="images/boot1way_401.png" class="demo"/></td>
 </tr></table>
 </p>
 </div>
-<h3>Demonstration 3</h3>
-<div class="demo">
-<p>The following code</p>
-<pre class="example">
 
- % COMPARISON OF TWO INDEPENDENT GROUPS WITH UNEQUAL SAMPLE SIZES 
- % (analagous to Student's t-test)
-
- y =    [54       43
-         23       34
-         45       65
-         54       77
-         45       46
-        NaN       65];
- g = {'male' 'female'
-      'male' 'female'
-      'male' 'female'
-      'male' 'female'
-      'male' 'female'
-      'male' 'female'};
-
- boot1way (y(:), g(:), 'ref', 'male', 'nboot', 4999);
-
- % Please be patient, the calculations will be completed soon...</pre>
-<p>Produces the following output</p>
-<pre class="example">Summary of bootstrap multiple comparison tests in a one-way layout
-*****************************************************************************
-Bootstrap settings: 
- Function: mean
- Bootstrap resampling method: Balanced, bootstrap resampling
- Number of bootstrap resamples: 4999 
- Method for estimating standard errors: Calculated without resampling
- Multiple comparison method: Single-step maxT procedure based on Dunnett 
- Reference group used for comparisons: 2 (male) 
-
------------------------------------------------------------------------------
-| Comparison |     Test # |      Ref # | Difference |          t |        p |
-|------------|------------|------------|------------|------------|----------|
-|          1 |          1 |          2 |     +10.80 |      +1.20 |     .255 |
-
------------------------------------------------------------------------------
-|    GROUP # |                                       GROUP label |        N |
-|------------|---------------------------------------------------|----------|
-|          1 |                                            female |        6 |
-|          2 |                                              male |        5 |</pre>
-<p>and the following figure</p>
-<p><table class="images">
-<tr>
-<th class="images">Figure 1</th>
-</tr><tr>
-<td class="images"><img src="images/boot1way_301.png" class="demo"/></td>
-</tr></table>
-</p>
-</div>
-<h3>Demonstration 4</h3>
+<h3><a name="5">Demonstration 5</a></h3>
 <div class="demo">
 <p>The following code</p>
 <pre class="example">
@@ -384,11 +443,12 @@ Bootstrap settings:
 <tr>
 <th class="images">Figure 1</th>
 </tr><tr>
-<td class="images"><img src="images/boot1way_401.png" class="demo"/></td>
+<td class="images"><img src="images/boot1way_501.png" class="demo"/></td>
 </tr></table>
 </p>
 </div>
-<h3>Demonstration 5</h3>
+
+<h3><a name="6">Demonstration 6</a></h3>
 <div class="demo">
 <p>The following code</p>
 <pre class="example">
@@ -437,11 +497,12 @@ Bootstrap settings:
 <tr>
 <th class="images">Figure 1</th>
 </tr><tr>
-<td class="images"><img src="images/boot1way_501.png" class="demo"/></td>
+<td class="images"><img src="images/boot1way_601.png" class="demo"/></td>
 </tr></table>
 </p>
 </div>
-<h3>Demonstration 6</h3>
+
+<h3><a name="7">Demonstration 7</a></h3>
 <div class="demo">
 <p>The following code</p>
 <pre class="example">
@@ -467,7 +528,7 @@ Bootstrap settings:
 -----------------------------------------------------------------------------
 | Comparison |     Test # |      Ref # | Difference |          t |        p |
 |------------|------------|------------|------------|------------|----------|
-|          1 |          2 |          1 |    +0.8099 |      +1.65 |     .161 |
+|          1 |          2 |          1 |    -0.2285 |      -0.44 |     .637 |
 
 -----------------------------------------------------------------------------
 |    GROUP # |                                       GROUP label |        N |
@@ -479,11 +540,12 @@ Bootstrap settings:
 <tr>
 <th class="images">Figure 1</th>
 </tr><tr>
-<td class="images"><img src="images/boot1way_601.png" class="demo"/></td>
+<td class="images"><img src="images/boot1way_701.png" class="demo"/></td>
 </tr></table>
 </p>
 </div>
-<h3>Demonstration 7</h3>
+
+<h3><a name="8">Demonstration 8</a></h3>
 <div class="demo">
 <p>The following code</p>
 <pre class="example">
@@ -511,7 +573,7 @@ Bootstrap settings:
 -----------------------------------------------------------------------------
 | Comparison |     Test # |      Ref # | Difference |          t |        p |
 |------------|------------|------------|------------|------------|----------|
-|          1 |          2 |          1 |    +0.5970 |      +1.41 |     .117 |
+|          1 |          2 |          1 |    -0.8303 |      -1.01 |     .192 |
 
 -----------------------------------------------------------------------------
 |    GROUP # |                                       GROUP label |        N |
@@ -523,7 +585,7 @@ Bootstrap settings:
 <tr>
 <th class="images">Figure 1</th>
 </tr><tr>
-<td class="images"><img src="images/boot1way_701.png" class="demo"/></td>
+<td class="images"><img src="images/boot1way_801.png" class="demo"/></td>
 </tr></table>
 </p>
 </div>
