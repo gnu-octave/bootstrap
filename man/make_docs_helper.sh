@@ -53,8 +53,10 @@ sed -i '' -e  's/<h2>/<h3>/g' ./tmp/statistics-resampling/function/*.html
 sed -i '' -e  's/<\/h2>/<\/h3>/g' ./tmp/statistics-resampling/function/*.html
 cd ./tmp/statistics-resampling/function/
 for f in *.html; do sed -i '' -e "s/<pre>/<h2>$(echo "${f%.*}")<\/h2>\n<pre>/" $f; done
-for i in {1..20}; do sed -i '' -e 's/<h3>Demonstration '$i'/\n<h3><a name="'$i'">Demonstration '$i'<\/a>/' ./tmp/statistics-resampling/function/*.html; done
 cd ../../..
+
+# Add link targets to Demos
+for i in {1..20}; do sed -i '' -e 's/<h3>Demonstration '$i'/\n<h3><a name="'$i'">Demonstration '$i'<\/a>/' ./tmp/statistics-resampling/function/*.html; done
 
 # Publish README markdown file as HTML and add header
 cd ..

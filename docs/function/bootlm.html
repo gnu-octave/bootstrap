@@ -450,7 +450,8 @@
   You should have received a copy of the GNU General Public License
   along with this program.  If not, see http://www.gnu.org/licenses/
 </pre>
-<h3>Demonstration 1</h3>
+
+<h3><a name="1">Demonstration 1</a></h3>
 <div class="demo">
 <p>The following code</p>
 <pre class="example">
@@ -502,7 +503,8 @@ female                                 +55.00      +42.56      +67.82          6
 </tr></table>
 </p>
 </div>
-<h3>Demonstration 2</h3>
+
+<h3><a name="2">Demonstration 2</a></h3>
 <div class="demo">
 <p>The following code</p>
 <pre class="example">
@@ -559,7 +561,8 @@ after                                  +6.020      +5.577      +6.478          5
 </tr></table>
 </p>
 </div>
-<h3>Demonstration 3</h3>
+
+<h3><a name="3">Demonstration 3</a></h3>
 <div class="demo">
 <p>The following code</p>
 <pre class="example">
@@ -573,17 +576,29 @@ after                                  +6.020      +5.577      +6.478          5
           'al1','al1','al1','al1','al1','al1', ...
           'al2','al2','al2','al2','al2','al2'}';
 
+ % One-way ANOVA statistics
+ [STATS, BOOTSTAT, AOVSTAT] = bootlm (strength, alloy, 'display', 'off', 
+                                      'varnames', 'alloy');
+ fprintf ('ONE-WAY ANOVA SUMMARY\n')
+ fprintf ('F(%u,%u) = %.2f, p = %.3g for the model: %s\n', ...
+            AOVSTAT.DF, AOVSTAT.DFE, AOVSTAT.F, ...
+            AOVSTAT.PVAL, AOVSTAT.MODEL{1});
+
  % 95% confidence intervals and p-values for the differences in mean strength
- % of three alloys (computed by wild bootstrap)
- STATS = bootlm (strength, alloy, 'display', 'on', 'varnames', 'alloy', ...
-                 'dim', 1, 'posthoc','pairwise');
+ % of the three alloys (computed by wild bootstrap)
+ STATS = bootlm (strength, alloy, 'display', 'on', 'varnames', 'alloy',  
+                                  'dim', 1, 'posthoc','pairwise', ...
+                                  'alpha', [.025, .975]);
 
  % 95% credible intervals for the estimated marginal means of the strengths
  % of each of the alloys (computed by Bayesian bootstrap)
  STATS = bootlm (strength, alloy, 'display', 'on', 'varnames', 'alloy', ...
                  'dim', 1, 'method','bayesian', 'prior', 'auto');</pre>
 <p>Produces the following output</p>
-<pre class="example">MODEL FORMULA (based on Wilkinson's notation):
+<pre class="example">ONE-WAY ANOVA SUMMARY
+F(2,17) = 15.40, p = 0.0001 for the model: strength ~ 1 + alloy
+
+MODEL FORMULA (based on Wilkinson's notation):
 
 strength ~ 1 + alloy
 
@@ -591,9 +606,9 @@ MODEL POSTHOC COMPARISONS
 
 name                                   mean        CI_lower    CI_upper    p-adj
 --------------------------------------------------------------------------------
-st - al1                               +7.000      +3.868      +10.13      <.001
-st - al2                               +5.000      +2.542      +7.458      <.001
-al1 - al2                              -2.000      -4.870      +0.8703      .170
+st - al1                               +7.000      +3.909      +10.15      <.001
+st - al2                               +5.000      +2.552      +7.448      <.001
+al1 - al2                              -2.000      -4.903      +0.8577      .164
 
 
 MODEL FORMULA (based on Wilkinson's notation):
@@ -604,9 +619,9 @@ MODEL ESTIMATED MARGINAL MEANS
 
 name                                   mean        CI_lower    CI_upper        N
 --------------------------------------------------------------------------------
-st                                     +84.00      +82.09      +85.68          8
-al1                                    +77.00      +74.93      +79.40          6
-al2                                    +79.00      +77.72      +80.44          6</pre>
+st                                     +84.00      +82.11      +85.69          8
+al1                                    +77.00      +74.85      +79.29          6
+al2                                    +79.00      +77.78      +80.52          6</pre>
 <p>and the following figure</p>
 <p><table class="images">
 <tr>
@@ -616,7 +631,8 @@ al2                                    +79.00      +77.72      +80.44          6
 </tr></table>
 </p>
 </div>
-<h3>Demonstration 4</h3>
+
+<h3><a name="4">Demonstration 4</a></h3>
 <div class="demo">
 <p>The following code</p>
 <pre class="example">
@@ -632,12 +648,23 @@ al2                                    +79.00      +77.72      +80.44          6
  subject = [ 1  1  1;  2  2  2;  3  3  3;  4  4  4;  5  5  5; ...
              6  6  6;  7  7  7;  8  8  8;  9  9  9; 10 10 10];
 
+ % One-way repeated measures ANOVA statistics
+ [STATS, BOOTSTAT, AOVSTAT] = bootlm (words(:), {subject(:), seconds(:)}, ...
+                                      'model', 'linear', 'display', 'off', ...
+                                      'varnames', {'subject', 'seconds'});
+
+ fprintf ('ONE-WAY REPEATED MEASURES ANOVA SUMMARY\n')
+ fprintf ('F(%u,%u) = %.2f, p = %.3g for the model: %s\n', ...
+            AOVSTAT.DF(2), AOVSTAT.DFE, AOVSTAT.F(2), ...
+            AOVSTAT.PVAL(2), AOVSTAT.MODEL{2});
+
  % 95% confidence intervals and p-values for the differences in mean number
  % of words recalled for the different times (using wild bootstrap).
  STATS = bootlm (words(:), {subject(:), seconds(:)}, ...
                             'model', 'linear', 'display', 'on', ...
                             'varnames', {'subject', 'seconds'}, ...
-                            'dim', 2, 'posthoc', 'pairwise');
+                            'dim', 2, 'posthoc', 'pairwise', ...
+                            'alpha', [.025, .975]);
 
  % 95% credible intervals for the estimated marginal means of the number of
  % words recalled for each time (computed using Bayesian bootstrap).
@@ -646,7 +673,10 @@ al2                                    +79.00      +77.72      +80.44          6
                             'varnames', {'subject', 'seconds'}, ...
                             'dim', 2, 'method', 'bayesian', 'prior', 'auto');</pre>
 <p>Produces the following output</p>
-<pre class="example">MODEL FORMULA (based on Wilkinson's notation):
+<pre class="example">ONE-WAY REPEATED MEASURES ANOVA SUMMARY
+F(2,18) = 42.51, p = 0.0001 for the model: Y ~ 1 + subject + seconds
+
+MODEL FORMULA (based on Wilkinson's notation):
 
 Y ~ 1 + subject + seconds
 
@@ -654,9 +684,9 @@ MODEL POSTHOC COMPARISONS
 
 name                                   mean        CI_lower    CI_upper    p-adj
 --------------------------------------------------------------------------------
-1 - 2                                  -2.000      -2.738      -1.262      <.001
-1 - 5                                  -3.200      -3.848      -2.552      <.001
-2 - 5                                  -1.200      -2.087      -0.3132      .012
+1 - 2                                  -2.000      -2.712      -1.269      <.001
+1 - 5                                  -3.200      -3.852      -2.550      <.001
+2 - 5                                  -1.200      -2.080      -0.3513      .012
 
 
 MODEL FORMULA (based on Wilkinson's notation):
@@ -667,9 +697,9 @@ MODEL ESTIMATED MARGINAL MEANS
 
 name                                   mean        CI_lower    CI_upper        N
 --------------------------------------------------------------------------------
-1                                      +11.00      +10.63      +11.34         10
-2                                      +13.00      +12.51      +13.47         10
-5                                      +14.20      +13.77      +14.65         10</pre>
+1                                      +11.00      +10.64      +11.35         10
+2                                      +13.00      +12.53      +13.50         10
+5                                      +14.20      +13.73      +14.63         10</pre>
 <p>and the following figure</p>
 <p><table class="images">
 <tr>
@@ -679,7 +709,8 @@ name                                   mean        CI_lower    CI_upper        N
 </tr></table>
 </p>
 </div>
-<h3>Demonstration 5</h3>
+
+<h3><a name="5">Demonstration 5</a></h3>
 <div class="demo">
 <p>The following code</p>
 <pre class="example">
@@ -740,12 +771,12 @@ MODEL COEFFICIENTS
 
 name                                   coeff       CI_lower    CI_upper    p-val
 --------------------------------------------------------------------------------
-(Intercept)                            +5.667      +4.794      +6.539      <.001
-brands_1                               -1.333      -1.898      -0.7691      .011
-brands_2                               -2.167      -3.123      -1.210      <.001
-popper_1                               +1.167      +0.5958     +1.738       .016
-brands:popper_1                        -0.3333     -1.074      +0.4077      .338
-brands:popper_2                        -0.1667     -1.260      +0.9266      .726
+(Intercept)                            +5.667      +4.795      +6.538      <.001
+brands_1                               -1.333      -1.898      -0.7685      .011
+brands_2                               -2.167      -3.121      -1.212      <.001
+popper_1                               +1.167      +0.5990     +1.734       .018
+brands:popper_1                        -0.3333     -1.084      +0.4169      .332
+brands:popper_2                        -0.1667     -1.258      +0.9251      .737
 
 
 MODEL FORMULA (based on Wilkinson's notation):
@@ -756,9 +787,9 @@ MODEL POSTHOC COMPARISONS
 
 name                                   mean        CI_lower    CI_upper    p-adj
 --------------------------------------------------------------------------------
-Gourmet - National                     +1.500      +1.131      +1.869      <.001
-Gourmet - Generic                      +2.250      +1.710      +2.790      <.001
-National - Generic                     +0.7500     +0.1981     +1.302       .011
+Gourmet - National                     +1.500      +1.125      +1.875      <.001
+Gourmet - Generic                      +2.250      +1.708      +2.792      <.001
+National - Generic                     +0.7500     +0.2102     +1.290       .009
 
 
 MODEL FORMULA (based on Wilkinson's notation):
@@ -769,9 +800,9 @@ MODEL ESTIMATED MARGINAL MEANS
 
 name                                   mean        CI_lower    CI_upper        N
 --------------------------------------------------------------------------------
-Gourmet                                +6.250      +6.066      +6.444          6
-National                               +4.750      +4.563      +4.937          6
-Generic                                +4.000      +3.681      +4.316          6
+Gourmet                                +6.250      +6.069      +6.445          6
+National                               +4.750      +4.551      +4.930          6
+Generic                                +4.000      +3.689      +4.327          6
 
 
 MODEL FORMULA (based on Wilkinson's notation):
@@ -782,7 +813,7 @@ MODEL POSTHOC COMPARISONS
 
 name                                   mean        CI_lower    CI_upper    p-adj
 --------------------------------------------------------------------------------
-oil - air                              -1.000      -1.384      -0.6160     <.001
+oil - air                              -1.000      -1.383      -0.6175     <.001
 
 
 MODEL FORMULA (based on Wilkinson's notation):
@@ -793,8 +824,8 @@ MODEL ESTIMATED MARGINAL MEANS
 
 name                                   mean        CI_lower    CI_upper        N
 --------------------------------------------------------------------------------
-oil                                    +4.500      +4.316      +4.691          9
-air                                    +5.500      +5.309      +5.679          9</pre>
+oil                                    +4.500      +4.310      +4.684          9
+air                                    +5.500      +5.318      +5.687          9</pre>
 <p>and the following figure</p>
 <p><table class="images">
 <tr>
@@ -804,7 +835,8 @@ air                                    +5.500      +5.309      +5.679          9
 </tr></table>
 </p>
 </div>
-<h3>Demonstration 6</h3>
+
+<h3><a name="6">Demonstration 6</a></h3>
 <div class="demo">
 <p>The following code</p>
 <pre class="example">
@@ -1003,7 +1035,8 @@ F(1,19) = 101.13, p = 0.0001 for the model: salary ~ 1 + gender + degree (degree
 </tr></table>
 </p>
 </div>
-<h3>Demonstration 7</h3>
+
+<h3><a name="7">Demonstration 7</a></h3>
 <div class="demo">
 <p>The following code</p>
 <pre class="example">
@@ -1129,7 +1162,8 @@ niv                                    +68.34      +67.61      +69.17         17
 </tr></table>
 </p>
 </div>
-<h3>Demonstration 8</h3>
+
+<h3><a name="8">Demonstration 8</a></h3>
 <div class="demo">
 <p>The following code</p>
 <pre class="example">
@@ -1272,7 +1306,8 @@ name                                   mean        CI_lower    CI_upper        N
 </tr></table>
 </p>
 </div>
-<h3>Demonstration 9</h3>
+
+<h3><a name="9">Demonstration 9</a></h3>
 <div class="demo">
 <p>The following code</p>
 <pre class="example">
@@ -1405,7 +1440,8 @@ hi, no                                 +83.02      +79.72      +86.48         10
 </tr></table>
 </p>
 </div>
-<h3>Demonstration 10</h3>
+
+<h3><a name="1">Demonstration 1</a>0</h3>
 <div class="demo">
 <p>The following code</p>
 <pre class="example">
@@ -1472,13 +1508,14 @@ name                                   mean        CI_lower    CI_upper        N
 </tr></table>
 </p>
 </div>
-<h3>Demonstration 11</h3>
+
+<h3><a name="1">Demonstration 1</a>1</h3>
 <div class="demo">
 <p>The following code</p>
 <pre class="example">
 
- % Comparing analysis of nested design using ANOVA with clustered resampling.
- % Two factor nested model example from:
+ % Analysis of nested one-way ANOVA design using clustered resampling.
+ % Nested model example from:
  % https://www.southampton.ac.uk/~cpd/anovas/datasets/#Chapter2
 
  data = [4.5924 7.3809 21.322; -0.5488 9.2085 25.0426; ...
@@ -1523,7 +1560,8 @@ F(2,21) = 17.08, p = 0.018 for the model: Y ~ 1 + X1</pre>
 </tr></table>
 </p>
 </div>
-<h3>Demonstration 12</h3>
+
+<h3><a name="1">Demonstration 1</a>2</h3>
 <div class="demo">
 <p>The following code</p>
 <pre class="example">
@@ -1579,7 +1617,8 @@ PREDICTION ERROR of the FULL MODEL = 2.86</pre>
 </tr></table>
 </p>
 </div>
-<h3>Demonstration 13</h3>
+
+<h3><a name="1">Demonstration 1</a>3</h3>
 <div class="demo">
 <p>The following code</p>
 <pre class="example">
