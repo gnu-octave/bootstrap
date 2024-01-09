@@ -3,7 +3,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
   <head>
   <meta http-equiv="content-type" content="text/html; charset=utf-8" />
-  <meta name="date" content="2024-01-08"/>
+  <meta name="date" content="2024-01-09"/>
   <meta name="generator" content="generate_html 0.3.3" />
   <meta name="author" content="Andrew Penn" />
   <meta name="description" content="A package for statistical analysis using resampling methods." />
@@ -222,11 +222,11 @@ Bootstrap settings:
  Number of resamples (outer): 1999 
  Number of resamples (inner): 0 
  Confidence interval (CI) type: Expanded bias-corrected and accelerated (BCa) 
- Nominal coverage (and the percentiles used): 95% (1.2%, 97.0%)
+ Nominal coverage (and the percentiles used): 95% (1.3%, 97.2%)
 
 Bootstrap Statistics: 
  original     bias         std_error    CI_lower     CI_upper  
- +29.65       +0.000       +2.617       +23.16       +34.38</pre>
+ +29.65       -2.487e-14   +2.631       +23.62       +34.52</pre>
 </div>
 <h3>Demonstration 2</h3>
 <div class="demo">
@@ -251,11 +251,11 @@ Bootstrap settings:
  Number of resamples (outer): 1999 
  Number of resamples (inner): 199 
  Confidence interval (CI) type: Calibrated percentile
- Nominal coverage (and the percentiles used): 95% (1.3%, 97.4%)
+ Nominal coverage (and the percentiles used): 95% (1.0%, 97.5%)
 
 Bootstrap Statistics: 
  original     bias         std_error    CI_lower     CI_upper  
- +29.65       -9.948e-14   +2.694       +23.40       +34.47</pre>
+ +29.65       -1.918e-13   +2.656       +22.74       +34.70</pre>
 </div>
 <h3>Demonstration 3</h3>
 <div class="demo">
@@ -281,11 +281,11 @@ Bootstrap settings:
  Number of resamples (outer): 1999 
  Number of resamples (inner): 199 
  Confidence interval (CI) type: Calibrated percentile
- Nominal coverage (and the percentiles used): 95% (1.9%, 97.3%)
+ Nominal coverage (and the percentiles used): 95% (2.6%, 97.4%)
 
 Bootstrap Statistics: 
  original     bias         std_error    CI_lower     CI_upper  
- +30.86       -0.02125     +3.072       +24.30       +36.93</pre>
+ +30.86       +0.004329    +2.965       +24.96       +36.89</pre>
 </div>
 <h3>Demonstration 4</h3>
 <div class="demo">
@@ -313,7 +313,7 @@ Bootstrap settings:
 
 Bootstrap Statistics: 
  original     bias         std_error    CI_lower     CI_upper  
- +171.5       -6.566       +42.18       +97.13       +235.9</pre>
+ +171.5       -6.727       +42.78       +95.60       +237.7</pre>
 </div>
 <h3>Demonstration 5</h3>
 <div class="demo">
@@ -336,11 +336,11 @@ Bootstrap settings:
  Number of resamples (outer): 1999 
  Number of resamples (inner): 0 
  Confidence interval (CI) type: Bias-corrected and accelerated (BCa) 
- Nominal coverage (and the percentiles used): 90% (11.4%, 98.5%)
+ Nominal coverage (and the percentiles used): 90% (11.9%, 98.7%)
 
 Bootstrap Statistics: 
  original     bias         std_error    CI_lower     CI_upper  
- +171.5       -6.673       +42.16       +112.9       +255.5</pre>
+ +171.5       -6.774       +43.12       +113.1       +265.5</pre>
 </div>
 <h3>Demonstration 6</h3>
 <div class="demo">
@@ -366,11 +366,11 @@ Bootstrap settings:
  Number of resamples (outer): 1999 
  Number of resamples (inner): 199 
  Confidence interval (CI) type: Calibrated percentile (equal-tailed)
- Nominal coverage (and the percentiles used): 90% (2.4%, 97.6%)
+ Nominal coverage (and the percentiles used): 90% (2.0%, 98.0%)
 
 Bootstrap Statistics: 
  original     bias         std_error    CI_lower     CI_upper  
- +171.5       -7.484       +43.15       +86.54       +249.2</pre>
+ +171.5       -7.252       +45.49       +77.68       +253.3</pre>
 </div>
 <h3>Demonstration 7</h3>
 <div class="demo">
@@ -395,11 +395,11 @@ Bootstrap settings:
  Number of resamples (outer): 1999 
  Number of resamples (inner): 199 
  Confidence interval (CI) type: Calibrated percentile
- Nominal coverage (and the percentiles used): 90% (11.2%, 99.4%)
+ Nominal coverage (and the percentiles used): 90% (10.9%, 99.5%)
 
 Bootstrap Statistics: 
  original     bias         std_error    CI_lower     CI_upper  
- +171.5       -7.238       +46.48       +112.2       +274.3</pre>
+ +171.5       -7.194       +45.63       +110.9       +284.6</pre>
 </div>
 <h3>Demonstration 8</h3>
 <div class="demo">
@@ -425,8 +425,8 @@ Bootstrap settings:
 
 Bootstrap Statistics: 
  original     bias         std_error    CI_lower     CI_upper  
- +0.04178     -0.004920    +0.2227      -0.3313      +0.3933    
- -0.07522     -0.003103    +0.1416      -0.3371      +0.1291</pre>
+ +0.03405     -0.03436     +0.3499      -0.4601      +0.6968    
+ -0.1881      +0.01739     +0.2984      -0.6768      +0.2800</pre>
 </div>
 <h3>Demonstration 9</h3>
 <div class="demo">
@@ -456,7 +456,7 @@ Bootstrap settings:
 
 Bootstrap Statistics: 
  original     bias         std_error    CI_lower     CI_upper  
- +0.7764      -0.004729    +0.1386      +0.3191      +0.9531</pre>
+ +0.7764      -0.008751    +0.1434      +0.3075      +0.9528</pre>
 </div>
 <h3>Demonstration 10</h3>
 <div class="demo">
@@ -567,13 +567,13 @@ Bootstrap settings:
 
 Bootstrap Statistics: 
  original     bias         std_error    CI_lower     CI_upper  
- -16.69       -0.5173      +2.132       -20.46       -12.62     
- -11.72       -0.3624      +1.869       -15.04       -7.914     
- -8.061       -0.2634      +1.761       -11.28       -4.540     
- +0.1048      +0.005527    +0.09053     -0.07227     +0.2799    
- +0.01034     +0.0007151   +0.006584    -0.002616    +0.02307   
- +0.06452     +0.002392    +0.01661     +0.03127     +0.09507   
- +0.001664    +2.962e-06   +0.0007398   +0.0002144   +0.003082</pre>
+ -16.69       -0.5187      +2.152       -20.62       -12.47     
+ -11.72       -0.3650      +1.902       -15.28       -7.935     
+ -8.061       -0.2653      +1.788       -11.46       -4.432     
+ +0.1048      +0.005657    +0.09219     -0.08434     +0.2904    
+ +0.01034     +0.0006513   +0.006525    -0.002216    +0.02301   
+ +0.06452     +0.002338    +0.01680     +0.03349     +0.09761   
+ +0.001664    +7.991e-06   +0.0007325   +0.0001584   +0.003121</pre>
 </div>
 <h3>Demonstration 11</h3>
 <div class="demo">
