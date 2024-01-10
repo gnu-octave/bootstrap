@@ -1154,11 +1154,11 @@ end
 %!     % so we will use it's logistic_regression function for fitting ordinal
 %!     % models instead. 
 %!     function [B, DEV] = mnrfit (X, Y, varargin)
-%!       % Note that the if the outcome has more than two levels, the
-%!       % logistic_regression function is only suitable when the outcome 
-%!       % is ordinal, so we would need to use append 'model', 'ordinal'
-%!       % as a name-value pair in MATLAB when executing it's mnrfit
-%!       % function (see below)
+%!       % Note that if the outcome has more than two levels, the
+%!       % logistic_regression function is only suitable when the
+%!       % outcome is ordinal, so we would need to use append 'model',
+%!       % 'ordinal' as a name-value pair in MATLAB when executing
+%!       % it's mnrfit function (see below)
 %!       [INTERCEPT, SLOPE, DEV] = logistic_regression (Y - 1, X, false);
 %!       B = cat (1, INTERCEPT, SLOPE);
 %!     end
