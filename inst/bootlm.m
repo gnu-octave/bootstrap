@@ -1,6 +1,7 @@
 % Uses bootstrap to calculate confidence intervals (and p-values) for the
-% regression coefficients from a linear model and perform N-way ANOVA.
+% regression coefficients from a linear model and performs N-way ANOVA.
 %
+% -- Function File: bootlm (Y, X)
 % -- Function File: bootlm (Y, GROUP)
 % -- Function File: bootlm (Y, GROUP, ..., NAME, VALUE)
 % -- Function File: bootlm (Y, GROUP, ..., 'dim', DIM)
@@ -36,13 +37,25 @@
 %     be assumed.
 %
 %        Usage of this function is very similar to that of 'anovan'. Data (Y)
-%     is a single vector y with groups specified by a corresponding matrix or
-%     cell array of group labels GROUP, where each column of GROUP has the same
-%     number of rows as Y. For example, if 'Y = [1.1;1.2]; GROUP = [1,2,1; 
-%     1,5,2];' then observation 1.1 was measured under conditions 1,2,1 and
-%     observation 1.2 was measured under conditions 1,5,2. If the GROUP provided
-%     is empty, then the linear model is fit with just the intercept (i.e. no
-%     predictors).
+%     is a numeric variable, and the predictor(s) are specified in GROUP (a.k.a.
+%     X), which can be a vector, matrix, or cell array. For a single predictor,
+%     GROUP can be a vector of numbers, logical values or characters, or a cell
+%     array of numbers, logical values or character strings, with the same
+%     number of elements (n) as Y. For K predictors, GROUP can be either a
+%     1-by-K, where each column corresponds to a predictor as defined above,
+%     an n-by-K cell array, or an n-by-K array of numbers or characters. If
+%     Y, or the definitions of each predictor in GROUP, are not column vectors,
+%     then they will be transposed or reshaped to be column vectors. Please the
+%     demonstrations in the manual for examples:
+%
+%     https://gnu-octave.github.io/statistics-resampling/function/bootlm.html
+%
+%     Note that if GROUP is defined as a design matrix X, containing (one or
+%     more) continuous predictors only, a constant term (intercept) should
+%     not be included in X - one is automatically added to the model. For models
+%     containing any categorical predictors, the 'bootlm' function creates the
+%     design matrix for you. If you have already constructed a design matrix,
+%     consider using the functions 'bootwild' and 'bootbayes' instead.
 %
 %     'bootlm' can take a number of optional parameters as name-value
 %     pairs.
@@ -121,7 +134,8 @@
 %                  For block or cluster bootstrap, N corresponds to the number
 %                  of blocks or clusters (i.e. the number of independent
 %                  sampling units).
-%                       The 'auto' setting is recommended but is only available
+%
+%                  The 'auto' setting is recommended but is only available
 %                  for Bayesian bootstrap of the estimated marginal means and
 %                  for the posthoc tests (not the regression coefficients).
 %
@@ -308,18 +322,24 @@
 %       <> When DIM is specified, POSTHOC comparisons along DIM can be one of
 %          the following:
 %
-%             o 'none' (default) : No posthoc comparisons are performed. The
-%               statistics returned are for the estimated marginal means.
+%             o empty or 'none' (default) : No posthoc comparisons are performed.
+%               The statistics returned are for the estimated marginal means.
 %
 %             o 'pairwise' : Pairwise comparisons are performed.
 %
 %             o 'trt_vs_ctrl' : Treatment vs. Control comparisons are performed.
-%                Control corresponds to the level(s) of the predictor(s) listed
-%                within the first row of STATS when POSTHOC is set to 'none'.
+%               Control corresponds to the level(s) of the predictor(s) listed
+%               within the first row of STATS when POSTHOC is set to 'none'.
 %
 %             o {'trt_vs_ctrl', k} : Treatment vs. Control comparisons are
-%                performed. The control is group number k as returned when
-%                POSTHOC is set to 'none'.
+%               performed. The control is group number k as returned when
+%               POSTHOC is set to 'none'.
+%
+%             o a two-column numeric matrix defining each pair of comparisons,
+%               where each number in the matrix corresponds to the row number
+%               of the estimated-marginal means as listed for the same value(s)
+%               of DIM and when POSTHOC is set to 'none'. The comparison
+%               corresponds to the row-wise differences: column 1 - column 2.
 %
 %          All of the posthoc comparisons use the Holm-Bonferroni procedure to
 %          control the type I error rate. The confidence intervals are not
@@ -385,9 +405,10 @@
 %       model. Computations of the statistics in AOVSTAT are compatible with
 %       the 'clustid' and 'blocksz' options.
 %
-%       ** See demo 6 for an example of how to obtain results for ANOVA using
+%       ** See demo 7 for an example of how to obtain results for ANOVA using
 %          type II sums-of-squares, which test hypotheses that give results
-%          invariant to the order of the predictors.
+%          invariant to the order of the predictors, regardless of whether
+%          sample sizes are equal or not.
 %
 %     '[STATS, BOOTSTAT, AOVSTAT, PRED_ERR] = bootlm (...)' also computes
 %     refined bootstrap estimates of prediction error* and returns the derived
@@ -512,7 +533,7 @@ function [STATS, BOOTSTAT, AOVSTAT, PRED_ERR] = bootlm (Y, GROUP, varargin)
         case {'clustid', 'blocksz'}
           DEP = value;
         case {'dim', 'dimension'}
-          DIM = value(:)';
+          DIM = sort (value(:)');
         case {'posthoc', 'posttest'}
           POSTHOC = value;
         case 'nboot'
@@ -546,13 +567,12 @@ function [STATS, BOOTSTAT, AOVSTAT, PRED_ERR] = bootlm (Y, GROUP, varargin)
     end
 
     % Accomodate for different formats for GROUP
-    % GROUP can be a matrix of numeric identifiers of a cell arrays
-    % of strings or numeric identifiers
-    K = size (GROUP, 2); % number of predictors
     n = numel (Y);       % total number of observations
-    if (size (Y, 1) ~= n)
-      error ('bootlm: for ''bootlm (Y, GROUP)'', Y must be a vector')
+    if ((size (GROUP, 2) == n) && (size (GROUP, 1) ~= n))
+      GROUP = GROUP.';
     end
+    K = size (GROUP, 2); % number of predictors
+    Y = Y(:);            % columnate Y; Y(:) is equivalent to reshape (Y, [],1)
     if (numel (unique (CONTINUOUS)) > K)
       error (cat (2, 'bootlm: the number of predictors assigned as', ...
                      ' continuous cannot exceed the number of', ...
@@ -564,35 +584,50 @@ function [STATS, BOOTSTAT, AOVSTAT, PRED_ERR] = bootlm (Y, GROUP, varargin)
     end
     cont_vec = false (1, K);
     cont_vec(CONTINUOUS) = true;
-    GROUPID = zeros (n, K);
-    if (iscell (GROUP))
-      if (size (GROUP, 1) == 1)
-        tmp = cell (n, K);
-        for j = 1:K
-          if (isnumeric (GROUP{j}))
-            [jnk, jnk, GROUPID(:,j)] = unique_stable ([GROUP{:,j}]);
-            if (ismember (j, CONTINUOUS))
-              tmp(:,j) = num2cell (GROUP{j});
+    switch (class (GROUP))
+      case 'cell'
+        if (size (GROUP, 1) == 1)
+          % Convert to n-by-K cell array
+          tmp = cell (n, K);
+          for j = 1:K
+            if (iscell (GROUP{:,j}))
+              tmp(:,j) = reshape (GROUP{:,j}, [], 1);
             else
-              tmp(:,j) = cellstr (num2str (GROUP{j}));
+              if (ismember (j, CONTINUOUS))
+                tmp(:,j) = num2cell (reshape (GROUP{:,j}, [], 1));
+              else
+                tmp(:,j) = cellstr (num2str (reshape (GROUP{:,j}, [], 1)));
+              end
             end
-          else
-            [jnk, jnk, GROUPID(:,j)] = unique_stable (GROUP{:,j});
-            if (ismember (j, CONTINUOUS))
-              error ('bootlm: continuous predictors must be a numeric datatype')
-            end
-            tmp(:,j) = GROUP{j};
           end
+          GROUP = tmp;
         end
-        GROUP = tmp;
-      end
+      case 'char'
+        GROUP = num2cell (GROUP);
+      otherwise
+        if (all (GROUP(:,1) == 1))
+          error (cat (2, 'bootlm: A constant term (intercept) should not', ... 
+                         ' be included in X - one is added automatically'))
+        end
     end
     if (~ isempty (GROUP))
       if (size (GROUP,1) ~= n)
-        error (cat (2, 'bootlm: GROUP must be a matrix with the same', ...
-                       ' number of rows as Y'))
+        error (cat (2, 'bootlm: Inconsistent number of observations', ...
+                       ' in Y and GROUP'))
       end
     end
+
+    % Create unique numeric group identifiers for levels of categorical
+    % and extract levels of each categorical predictor
+    GROUPID = zeros (n, K);
+    levels = cell (K, 1);
+    for j = 1:K
+      if (~ ismember (j, CONTINUOUS))
+        [levels{j}, jnk, GROUPID(:,j), GROUP(:,j)] = unique_stable (GROUP(:,j));
+      end
+    end
+
+    % Evaluate predictor names in VARNAMES (if provided)
     if (~ isempty (VARNAMES))
       if (iscell (VARNAMES))
         if (all (cellfun (@ischar, VARNAMES)))
@@ -699,9 +734,6 @@ function [STATS, BOOTSTAT, AOVSTAT, PRED_ERR] = bootlm (Y, GROUP, varargin)
       GROUP(excl,:) = [];
     end
     Y(excl) = [];
-    if (size (Y, 1) == 1)
-      Y = Y.';         % If Y is a row vector, make it a column vector
-    end
     n = numel (Y);     % Recalculate total number of observations
 
     % Evaluate model type input argument and create terms matrix if not provided
@@ -770,15 +802,15 @@ function [STATS, BOOTSTAT, AOVSTAT, PRED_ERR] = bootlm (Y, GROUP, varargin)
       TERMS = logical (MODELTYPE);
     end
     % Evaluate terms matrix
-    Ng = sum (TERMS, 2);
+    Ng = sum (TERMS, 2); % No. of predictors involved in each model term
     if (any (diff (Ng) < 0))
       error (cat (2, 'bootlm: the model terms matrix must list main', ...
                      ' effects above/before interactions'))
     end
     % Evaluate terms
-    Nm = sum (Ng == 1);
-    Nx = sum (Ng > 1);
-    Nt = Nm + Nx;
+    Nm = K;              % No. of main effects is the number of predictors
+    Nx = sum (Ng > 1);   % No. of terms that are interactions
+    Nt = Nm + Nx;        % No. of terms is no. of main effects + interactions
     if (any (any (TERMS(1:Nm,:), 1) ~= any (TERMS, 1)))
       error (cat (2, 'bootlm: all predictors involved in interactions', ...
                      ' must have a main effect'))
@@ -807,8 +839,8 @@ function [STATS, BOOTSTAT, AOVSTAT, PRED_ERR] = bootlm (Y, GROUP, varargin)
 
     % Create design matrix
     [X, grpnames, nlevels, df, coeffnames, gid, CONTRASTS, ...
-     center_continuous] = mDesignMatrix (GROUP, TERMS, ...
-     CONTINUOUS, CONTRASTS, VARNAMES, n, Nm, Nx, Ng, cont_vec);
+     center_continuous] = mDesignMatrix (GROUP, TERMS, CONTINUOUS, ...
+     CONTRASTS, VARNAMES, n, Nm, Nx, Ng, cont_vec, levels);
     dft = n - 1;
     dfe = dft - sum (df);
     if (dfe < 1)
@@ -816,7 +848,7 @@ function [STATS, BOOTSTAT, AOVSTAT, PRED_ERR] = bootlm (Y, GROUP, varargin)
                      ' the specified model'))
     end
 
-    % If applicable, create hypothesis matrix, names and compute sample sizes
+    % If applicable, create hypothesis matrix
     if (isempty (DIM))
       L = 1;
     else
@@ -839,16 +871,17 @@ function [STATS, BOOTSTAT, AOVSTAT, PRED_ERR] = bootlm (Y, GROUP, varargin)
     TERMNAMES = arrayfun (@(i) sprintf (':%s', VARNAMES{TERMS(i,:)}), ...
                                         (1:Nt), 'UniformOutput', false);
     formula = cell (Nt, 1);
+    Y_name = inputname (1);
+    if isempty (Y_name)
+      formula{1} = 'Y ~ 1';
+    else
+      formula{1} = sprintf ('%s ~ 1', Y_name);
+    end
     for i = 1:Nt
       if (i > 1)
         formula{i} = sprintf ('%s + %s', formula{i-1}, TERMNAMES{i}(2:end));
       else 
-        Y_name = inputname (1);
-        if isempty (Y_name)
-          formula{1} = sprintf ('Y ~ 1 + %s', TERMNAMES{1}(2:end));
-        else
-          formula{1} = sprintf ('%s ~ 1 + %s', Y_name, TERMNAMES{1}(2:end));
-        end
+        formula{1} = sprintf ('%s + %s', formula{1}, TERMNAMES{1}(2:end));
       end
     end
 
@@ -916,7 +949,7 @@ function [STATS, BOOTSTAT, AOVSTAT, PRED_ERR] = bootlm (Y, GROUP, varargin)
           STATS.fpr = [];
           STATS.N = N;
         otherwise
-          error (cat (2, 'bootlm: unrecignised bootstrap method. Use', ...
+          error (cat (2, 'bootlm: unrecognised bootstrap method. Use', ...
                          ' ''wild'' or bayesian''.'))
       end
 
@@ -944,6 +977,12 @@ function [STATS, BOOTSTAT, AOVSTAT, PRED_ERR] = bootlm (Y, GROUP, varargin)
       if (any (nlevels(DIM) < 2))
           error (cat (2, 'bootlm: DIM must specify only categorical', ...
                          ' factors with 2 or more degrees of freedom.'))
+      end
+      dim_vec = zeros (1, Nm); dim_vec(DIM) = 1;
+      if (~ any (cell2mat (cellfun (@(i) all (i == dim_vec), ...
+            num2cell (TERMS, 2), 'UniformOutput', false))))
+          error (cat (2, 'The combination of predictors in DIM must exist', ...
+                         ' as an interaction term in the model'))
       end
 
       % Create names for estimated marginal means
@@ -976,9 +1015,10 @@ function [STATS, BOOTSTAT, AOVSTAT, PRED_ERR] = bootlm (Y, GROUP, varargin)
       end
 
       switch (lower (POSTHOC))
-        case 'none'
+        case {'none', [], ''}
 
-          % Model estimated marginal means
+          % The model estimated marginal means
+          pairs = [];
           switch (lower (METHOD))
             case 'wild'
               [STATS, BOOTSTAT] = bootwild (Y, X, DEP, NBOOT, ALPHA, SEED, ...
@@ -1004,7 +1044,7 @@ function [STATS, BOOTSTAT, AOVSTAT, PRED_ERR] = bootlm (Y, GROUP, varargin)
                       parfor i = 1:Np
                         [STATS{i}, BOOTSTAT{i}] =  bootbayes (Y, X, DEP, ...
                                          NBOOT, fliplr (1 - ALPHA), ...
-                                         PRIOR(i), SEED, L(:, i), ISOCTAVE)
+                                         PRIOR(i), SEED, L(:, i), ISOCTAVE);
                       end
                     end
                   else
@@ -1037,23 +1077,33 @@ function [STATS, BOOTSTAT, AOVSTAT, PRED_ERR] = bootlm (Y, GROUP, varargin)
         otherwise
 
           % Model posthoc comparisons
-          if (iscell (POSTHOC))
-            if (strcmp (POSTHOC{1}, 'trt.vs.ctrl'))
-              POSTHOC{1} = 'trt_vs_ctrl';
-            elseif (~ strcmp (POSTHOC{1}, 'trt_vs_ctrl'))
-              error (cat (2, 'bootlm: REF can only be used to specify a', ...\
-                             ' control group for ''trt_vs_ctrl'''))
-            end
-            [L, pairs] = feval (POSTHOC{1}, L, POSTHOC{2:end});
-            POSTHOC = POSTHOC{1};
-          else
-            if (strcmp (POSTHOC, 'trt.vs.ctrl'))
-              POSTHOC = 'trt_vs_ctrl';
-            elseif (~ ismember (POSTHOC, {'pairwise', 'trt_vs_ctrl'}))
-              error (cat (2, 'bootlm: available options for POSTHOC are', ...
-                             ' ''pairwise'' and ''trt_vs_ctrl'''))
-            end
-            [L, pairs] = feval (POSTHOC, L);
+          switch (class (POSTHOC))
+            case 'cell'
+              if (strcmp (POSTHOC{1}, 'trt.vs.ctrl'))
+                POSTHOC{1} = 'trt_vs_ctrl';
+              elseif (~ strcmp (POSTHOC{1}, 'trt_vs_ctrl'))
+                error (cat (2, 'bootlm: REF can only be used to specify a', ...\
+                               ' control group for ''trt_vs_ctrl'''))
+              end
+              pairs = feval (POSTHOC{1}, L, POSTHOC{2:end});
+              L = make_test_matrix (L, pairs);
+              POSTHOC = POSTHOC{1};
+            case 'char'
+              if (strcmp (POSTHOC, 'trt.vs.ctrl'))
+                POSTHOC = 'trt_vs_ctrl';
+              elseif (~ ismember (POSTHOC, {'pairwise', 'trt_vs_ctrl'}))
+                error (cat (2, 'bootlm: available options for POSTHOC are', ...
+                               ' ''pairwise'' and ''trt_vs_ctrl'''))
+              end
+              pairs = feval (POSTHOC, L);
+              L = make_test_matrix (L, pairs);
+            otherwise
+              pairs = unique_stable (POSTHOC, 'rows');
+              if (size (pairs, 2) > 2)
+                error (cat (2, 'bootlm: pairs matrix defining posthoc', ...
+                               ' comparisons must have exactly two columns'))
+              end
+              L = make_test_matrix (L, pairs);
           end
           switch (lower (METHOD))
             case 'wild'
@@ -1086,7 +1136,7 @@ function [STATS, BOOTSTAT, AOVSTAT, PRED_ERR] = bootlm (Y, GROUP, varargin)
                       parfor i = 1:size (L, 2)
                         [STATS{i}, BOOTSTAT{i}] =  bootbayes (Y, X, DEP, ...
                                          NBOOT, fliplr (1 - ALPHA), ...
-                                         PRIOR(i), SEED, L(:, i), ISOCTAVE)
+                                         PRIOR(i), SEED, L(:, i), ISOCTAVE);
                       end
                     end
                   else
@@ -1159,13 +1209,13 @@ function [STATS, BOOTSTAT, AOVSTAT, PRED_ERR] = bootlm (Y, GROUP, varargin)
                            '------------------------------------\n'));
         else
           switch (lower (POSTHOC))
-            case 'none'
+            case {'none',[]}
               fprintf ('\nMODEL ESTIMATED MARGINAL MEANS\n\n');
               fprintf (cat (2, 'name                                   ', ...
                                'mean        CI_lower    CI_upper        N\n'));
               fprintf (cat (2, '---------------------------------------', ...
                                '-----------------------------------------\n'));
-            case {'pairwise', 'trt_vs_ctrl'}
+            otherwise
               fprintf ('\nMODEL POSTHOC COMPARISONS\n\n');
               fprintf (cat (2, 'name                                   ', ...
                                'mean        CI_lower    CI_upper    p-adj\n'));
@@ -1174,8 +1224,7 @@ function [STATS, BOOTSTAT, AOVSTAT, PRED_ERR] = bootlm (Y, GROUP, varargin)
           end
         end
         for j = 1:size (NAMES, 1)
-          if ( (isempty (DIM)) || (ismember (lower (POSTHOC), ...
-                                             {'pairwise', 'trt_vs_ctrl'})) )
+          if ((isempty (DIM)) || ~ isempty (pairs))
             fprintf ('%-37s  %#-+10.4g  %#-+10.4g  %#-+10.4g', ...
                      NAMES{j}(1:min(end,37)), STATS.estimate(j), ...
                      STATS.CI_lower(j), STATS.CI_upper(j));
@@ -1303,11 +1352,10 @@ end
 %--------------------------------------------------------------------------
 
 function  [X, levels, nlevels, df, coeffnames, gid, CONTRASTS, ...
-           center_continuous] = mDesignMatrix (GROUP, TERMS, ...
-           CONTINUOUS, CONTRASTS, VARNAMES, n, Nm, Nx, Ng, cont_vec)
+           center_continuous] = mDesignMatrix (GROUP, TERMS, CONTINUOUS, ...
+           CONTRASTS, VARNAMES, n, Nm, Nx, Ng, cont_vec, levels)
 
   % EVALUATE PREDICTOR LEVELS
-  levels = cell (Nm, 1);
   gid = zeros (n, Nm);
   nlevels = zeros (Nm, 1);
   df = zeros (Nm + Nx, 1);
@@ -1328,7 +1376,6 @@ function  [X, levels, nlevels, df, coeffnames, gid, CONTRASTS, ...
     else
 
       % CATEGORICAL PREDICTOR
-      levels{j} = unique_stable (GROUP(:,j));
       if isnumeric (levels{j})
         levels{j} = num2cell (levels{j});
       end
@@ -1580,7 +1627,7 @@ end
 
 % BUILT IN POSTHOC HYPOTHESIS TEST FUNCTIONS
 
-function [L, pairs] = pairwise (L_EMM)
+function pairs = pairwise (L_EMM)
 
   % Get number of group members from the hypothesis matrix used 
   % to generate estimated marginal means
@@ -1589,29 +1636,16 @@ function [L, pairs] = pairwise (L_EMM)
   % Create pairs matrix for pairwise comparisons
   gid = (1:Ng)';  % Create numeric group ID
   A = ones (Ng, 1) * gid';
-  B = tril (gid * ones(1, Ng),-1);
+  B = tril (gid * ones(1, Ng), -1);
   pairs = [A(:), B(:)];
   ridx = (pairs(:, 2) == 0);
   pairs(ridx, :) = [];
-
-  % Calculate hypothesis matrix for pairwise comparisons from the
-  % estimated marginal means
-  Np = size (pairs, 1);
-  L_PWC = zeros (Np, Ng);
-  for j = 1:Np
-    L_PWC(j, pairs(j,:)) = [1,-1];
-  end
-  
-  % Create hypothesis matrix to generate pairwise comparisons directly
-  % from the regression coefficients. Note that the contrasts used to
-  % fit the original model must sum to zero
-  L = (L_PWC * L_EMM')';
 
 end
 
 %--------------------------------------------------------------------------
 
-function [L, pairs] = trt_vs_ctrl (L_EMM, REF)
+function pairs = trt_vs_ctrl (L_EMM, REF)
 
   if (nargin < 2)
     REF = 1;
@@ -1630,18 +1664,22 @@ function [L, pairs] = trt_vs_ctrl (L_EMM, REF)
   pairs(:,1) = gid(gid ~= REF);
   pairs(:,2) = REF;
 
-  % Calculate hypothesis matrix for pairwise comparisons from the
-  % estimated marginal means
-  Np = size (pairs, 1);
-  L_PWC = zeros (Np, Ng);
-  for j = 1:Np
-    L_PWC(j, pairs(j,:)) = [1,-1];
-  end
-  
-  % Create hypothesis matrix to generate pairwise comparisons directly
+end
+
+%--------------------------------------------------------------------------
+
+function L = make_test_matrix (L_EMM, pairs)
+
+  % Create hypothesis matrix to compute posthoc comparisons directly
   % from the regression coefficients. Note that the contrasts used to
   % fit the original model must sum to zero
-  L = (L_PWC * L_EMM')';
+  Ng = size (unique (L_EMM','rows'), 1);
+  Np = size (pairs, 1);
+  L_COMP = zeros (Np, Ng);
+  for j = 1:Np
+    L_COMP(j, pairs(j,:)) = [1,-1];
+  end
+  L = (L_COMP * L_EMM')';
 
 end
 
@@ -1692,7 +1730,7 @@ end
 
 % FUNCTION THAT RETURNS UNIQUE VALUES IN THE ORDER THAT THEY FIRST APPEAR
 
-function [U, IA, IC] = unique_stable (A, varargin)
+function [U, IA, IC, A] = unique_stable (A, varargin)
 
   % Subfunction used for backwards compatibility
 
@@ -1707,6 +1745,19 @@ function [U, IA, IC] = unique_stable (A, varargin)
   % Flatten A to a column vector if 'rows' option is not specified
   if (~ ismember ('rows', varargin))
     A = A(:);
+  end
+
+  % Accomodate for more complex input
+  switch (class (A))
+    case 'logical'
+      % Convert array of logical values to doubles
+      A = double (A);
+    case 'cell'
+      % Convert cell array of logical or numeric identifies to cell array of
+      % strings
+      if (~ all (cellfun (@ischar, A)))
+        A = cellstr (cellfun (@num2str, A));
+      end
   end
 
   % Obtain sorted unique values
@@ -1796,7 +1847,7 @@ function AOVSTAT = bootanova (Y, X, DF, DFE, DEP, NBOOT, ALPHA, SEED, ...
       parfor j = 1:Nt + 1
         [jnk, BOOTSTAT{j}, BOOTSSE{j}] = bootwild (RESID{end}, ...
                                      X(:, 1:sum (DF(1:j))), DEP, NBOOT,...
-                                     ALPHA, SEED, [], ISOCTAVE)
+                                     ALPHA, SEED, [], ISOCTAVE);
       end
     end
   else
@@ -1862,7 +1913,7 @@ function PRED_ERR = booterr (Y, X, DF, n, DEP, NBOOT, ALPHA, SEED, ...
       parfor j = 1:Nt + 1
         [jnk, jnk, BOOTRSS{j}, BOOTFIT{j}] = bootwild (Y, ...
                                          X(:, 1:sum (DF(1:j))), DEP, NBOOT, ...
-                                         ALPHA, SEED, [], ISOCTAVE)
+                                         ALPHA, SEED, [], ISOCTAVE);
                                      
       end
     end
@@ -2056,6 +2107,53 @@ end
 
 %!demo
 %!
+%! % Balanced two-way design (2x2). The data represents a study on the
+%! % effects of gender and alcohol alcohol consumption on attractiveness,
+%! % in Field (2004).
+%!
+%! % Perform factorial two-way ANOVA
+%! gender = {'f' 'f' 'f' 'f' 'f' 'f' 'f' 'f' 'm' 'm' 'm' 'm' 'm' 'm' 'm' 'm' ...
+%!           'f' 'f' 'f' 'f' 'f' 'f' 'f' 'f' 'm' 'm' 'm' 'm' 'm' 'm' 'm' 'm' ...
+%!           'f' 'f' 'f' 'f' 'f' 'f' 'f' 'f' 'm' 'm' 'm' 'm' 'm' 'm' 'm' 'm'}';
+%! pints = [0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 ...
+%!          4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4]';
+%! score = [65 70 60 60 60 55 60 55 50 55 80 65 70 75 75 65 70 65 60 70 65 ...
+%!          60 60 50 45 60 85 65 70 70 80 60 55 65 70 55 55 60 50 50 30 30 ...
+%!          30 55 35 20 45 40]';
+%!
+%! [STATS, BOOTSTAT, AOVSTAT] = bootlm (score, {gender, pints}, 'model', ...
+%!                             'full', 'display', 'off', 'varnames', ...
+%!                             {'gender', 'score'}, 'seed', 1);
+%!
+%! fprintf ('ANOVA SUMMARY\n')
+%! for i = 1:numel(AOVSTAT.F)
+%!   fprintf ('F(%u,%u) = %.2f, p = %.3g for the model: %s\n', ...
+%!            AOVSTAT.DF(i), AOVSTAT.DFE, AOVSTAT.F(i), ...
+%!            AOVSTAT.PVAL(i), AOVSTAT.MODEL{i});
+%! end
+%!
+%! % There is a significant interaction so we shall get estimated marginal means
+%! % for all combinations of levels of both predictors
+%! STATS = bootlm (score, {gender, pints}, 'model', 'full', 'display', 'on', ...
+%!                 'varnames', {'gender', 'score'}, 'seed', 1, ...
+%!                 'dim', [1, 2], 'method', 'bayesian','prior', 'auto');
+%!
+%! % Perform posthoc tests comparing the effect of gender on the attractiveness
+%! % score for each amount of alcohol consumed
+%! STATS = bootlm (score, {gender, pints}, 'model', 'full', 'display', 'on', ...
+%!                 'varnames', {'gender', 'score'}, 'seed', 1, ...
+%!                 'dim', [1, 2], 'posthoc', [1 2; 3 4; 5 6], ...
+%!                 'alpha', [0.025, 0.975]);
+%!
+%! % Perform posthoc tests comparing the effect of drinking different amounts of
+%! % on the attractiveness score at each levels of gender
+%! STATS = bootlm (score, {gender, pints}, 'model', 'full', 'display', 'on', ...
+%!                 'varnames', {'gender', 'score'}, 'seed', 1, ...
+%!                 'dim', [1, 2], 'posthoc', [1 3; 3 5; 1 5; 2 4; 4 6; 2 6], ...
+%!                 'alpha', [0.025, 0.975]);
+
+%!demo
+%!
 %! % Unbalanced two-way design (2x2). The data is from a study on the effects
 %! % of gender and a college degree on starting salaries of a sample of company
 %! % employees, in Maxwell, Delaney and Kelly (2018): Chapter 7, Table 15. The
@@ -2065,7 +2163,8 @@ end
 %!           25 29 27 19 18 21 20 21 22 19]';
 %! gender = {'f' 'f' 'f' 'f' 'f' 'f' 'f' 'f' 'f' 'f' 'f' 'f'...
 %!           'm' 'm' 'm' 'm' 'm' 'm' 'm' 'm' 'm' 'm'}';
-%! degree = [1 1 1 1 1 1 1 1 0 0 0 0 1 1 1 0 0 0 0 0 0 0]';
+%! degree = [true true true true true true true true false false false false ...
+%!           true true true false false false false false false false]';
 %!
 %! % ANOVA (including the main effect of gender averaged over all levels of
 %! % degree). In this order, the variability in salary only attributed to
@@ -2184,6 +2283,23 @@ end
 %! % Error               51.175      19      2.6934
 %! % Total               323.86      21
 
+%!demo
+%!
+%! % Simple linear regression. The data represents salaries of employees and
+%! % their years of experience, modified from Allena Venkata. The salaries are
+%! % in units of 1000 dollars per annum.
+%!
+%! years = [1.20 1.40 1.60 2.10 2.30 3.00 3.10 3.30 3.30 3.80 4.00 4.10 ...
+%!               4.10 4.20 4.60 5.00 5.20 5.40 6.00 6.10 6.90 7.20 8.00 8.30 ...
+%!               8.80 9.10 9.60 9.70 10.40 10.60]';
+%! salary = [39 46 38 44 40 57 60 54 64 57 63 56 57 57 61 68 66 83 81 94 92 ...
+%!           98 101 114 109 106 117 113 122 122]';
+%!
+%! STATS = bootlm (salary, years, 'model', 'linear', 'continuous', 1, ...
+%!                 'display', 'on', 'varnames', 'years');
+%! 
+%! % We can see that from the intercept that starting starting salary is $24.8 K
+%! % and that the increase in salary per year of experience is $9.5 K.
 
 %!demo
 %!
@@ -2888,7 +3004,7 @@ end
 
 %!test
 %!
-%! % One-way design.
+%! % One-way design
 %!
 %! g = [1, 1, 1, 1, 1, 1, 1, 1, ...
 %!      2, 2, 2, 2, 2, 2, 2, 2, ...
