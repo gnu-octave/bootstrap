@@ -1,14 +1,14 @@
 <deployment-project plugin="plugin.toolbox" plugin-version="1.0">
-  <configuration build-checksum="152137846" file="/Users/andrewcpenn/Library/Mobile Documents/com~apple~CloudDocs/GitHub/statistics-resampling/matlab/statistics-resampling.prj" location="/Users/andrewcpenn/Library/Mobile Documents/com~apple~CloudDocs/GitHub/statistics-resampling/matlab" name="statistics-resampling" target="target.toolbox" target-name="Package Toolbox">
+  <configuration build-checksum="2451036051" file="Y:\Documents\GitHub\statistics-resampling\matlab\statistics-resampling.prj" location="Y:\Documents\GitHub\statistics-resampling\matlab" name="statistics-resampling" target="target.toolbox" target-name="Package Toolbox">
     <param.appname>statistics-resampling</param.appname>
     <param.authnamewatermark>Andrew Penn</param.authnamewatermark>
     <param.email>andy.c.penn@gmail.com</param.email>
-    <param.company>University of Sussex</param.company>
+    <param.company>University of Sussex, UK</param.company>
     <param.summary>Statistical analysis using resampling methods</param.summary>
     <param.description>The statistics-resampling package is an Octave package and Matlab toolbox that can be used to overcome a wide variety of statistics problems using non-parametric resampling methods. In particular, the functions included can be used to estimate bias, uncertainty (standard errors and confidence intervals), prediction error, and test hypotheses (p-values). Variations of the resampling methods are included that improve the accuracy of the statistics for small samples and samples with complex dependence structures.</param.description>
-    <param.screenshot>/Users/andrewcpenn/Library/Mobile Documents/com~apple~CloudDocs/GitHub/statistics-resampling/doc/icon.png</param.screenshot>
-    <param.version>5.5.4</param.version>
-    <param.output>${PROJECT_ROOT}/statistics-resampling.mltbx</param.output>
+    <param.screenshot>Y:\Documents\GitHub\statistics-resampling\doc\icon.png</param.screenshot>
+    <param.version>5.5.5</param.version>
+    <param.output>${PROJECT_ROOT}\statistics-resampling.mltbx</param.output>
     <param.products.name />
     <param.products.id />
     <param.products.version />
@@ -33,120 +33,83 @@
 % All files matching a pattern in all subfolders of the toolbox folder:
 % **/*.bak
 %</param.exclude.filters>
-    <param.exclude.pcodedmfiles>true</param.exclude.pcodedmfiles>
-    <param.examples />
+    <param.examples>&lt;?xml version="1.0" encoding="utf-8"?&gt;
+&lt;examples/&gt;</param.examples>
     <param.demosxml />
     <param.apps />
-    <param.registered.apps />
     <param.docs />
-    <param.getting.started.guide />
-    <param.matlabpath.excludes />
-    <param.javaclasspath.excludes />
-    <param.exported.on.package>false</param.exported.on.package>
-    <param.required.addons />
-    <param.matlab.project.id />
-    <param.matlab.project.name />
-    <param.release.start />
-    <param.release.end />
-    <param.release.current.only>false</param.release.current.only>
-    <param.compatiblity.windows>true</param.compatiblity.windows>
-    <param.compatiblity.macos>true</param.compatiblity.macos>
-    <param.compatiblity.linux>true</param.compatiblity.linux>
-    <param.compatiblity.matlabonline>true</param.compatiblity.matlabonline>
-    <param.installation.map />
-    <param.additional.sw.names />
-    <param.additional.sw.licenses />
-    <param.additional.sw.win.url />
-    <param.additional.sw.mac.url />
-    <param.additional.sw.linux.url />
     <unset>
       <param.output />
       <param.products.name />
       <param.products.id />
       <param.products.version />
       <param.platforms />
-      <param.exclude.pcodedmfiles />
-      <param.examples />
       <param.demosxml />
       <param.apps />
-      <param.registered.apps />
       <param.docs />
-      <param.getting.started.guide />
-      <param.matlabpath.excludes />
-      <param.javaclasspath.excludes />
-      <param.exported.on.package />
-      <param.required.addons />
-      <param.matlab.project.id />
-      <param.matlab.project.name />
-      <param.release.start />
-      <param.release.end />
-      <param.release.current.only />
-      <param.compatiblity.windows />
-      <param.compatiblity.macos />
-      <param.compatiblity.linux />
-      <param.compatiblity.matlabonline />
-      <param.installation.map />
-      <param.additional.sw.names />
-      <param.additional.sw.licenses />
-      <param.additional.sw.win.url />
-      <param.additional.sw.mac.url />
-      <param.additional.sw.linux.url />
     </unset>
     <fileset.rootdir>
-      <file>/Users/andrewcpenn/Library/Mobile Documents/com~apple~CloudDocs/GitHub/statistics-resampling/inst</file>
+      <file>Y:\Documents\GitHub\statistics-resampling\inst</file>
     </fileset.rootdir>
     <fileset.rootfiles>
-      <file>/Users/andrewcpenn/Library/Mobile Documents/com~apple~CloudDocs/GitHub/statistics-resampling/inst/boot.m</file>
-      <file>/Users/andrewcpenn/Library/Mobile Documents/com~apple~CloudDocs/GitHub/statistics-resampling/inst/boot.mexa64</file>
-      <file>/Users/andrewcpenn/Library/Mobile Documents/com~apple~CloudDocs/GitHub/statistics-resampling/inst/boot.mexmaci64</file>
-      <file>/Users/andrewcpenn/Library/Mobile Documents/com~apple~CloudDocs/GitHub/statistics-resampling/inst/boot.mexw32</file>
-      <file>/Users/andrewcpenn/Library/Mobile Documents/com~apple~CloudDocs/GitHub/statistics-resampling/inst/boot.mexw64</file>
-      <file>/Users/andrewcpenn/Library/Mobile Documents/com~apple~CloudDocs/GitHub/statistics-resampling/inst/boot1way.m</file>
-      <file>/Users/andrewcpenn/Library/Mobile Documents/com~apple~CloudDocs/GitHub/statistics-resampling/inst/bootbayes.m</file>
-      <file>/Users/andrewcpenn/Library/Mobile Documents/com~apple~CloudDocs/GitHub/statistics-resampling/inst/bootcdf.m</file>
-      <file>/Users/andrewcpenn/Library/Mobile Documents/com~apple~CloudDocs/GitHub/statistics-resampling/inst/bootci.m</file>
-      <file>/Users/andrewcpenn/Library/Mobile Documents/com~apple~CloudDocs/GitHub/statistics-resampling/inst/bootclust.m</file>
-      <file>/Users/andrewcpenn/Library/Mobile Documents/com~apple~CloudDocs/GitHub/statistics-resampling/inst/bootknife.m</file>
-      <file>/Users/andrewcpenn/Library/Mobile Documents/com~apple~CloudDocs/GitHub/statistics-resampling/inst/bootlm.m</file>
-      <file>/Users/andrewcpenn/Library/Mobile Documents/com~apple~CloudDocs/GitHub/statistics-resampling/inst/bootmode.m</file>
-      <file>/Users/andrewcpenn/Library/Mobile Documents/com~apple~CloudDocs/GitHub/statistics-resampling/inst/bootstrp.m</file>
-      <file>/Users/andrewcpenn/Library/Mobile Documents/com~apple~CloudDocs/GitHub/statistics-resampling/inst/bootwild.m</file>
-      <file>/Users/andrewcpenn/Library/Mobile Documents/com~apple~CloudDocs/GitHub/statistics-resampling/inst/cor.m</file>
-      <file>/Users/andrewcpenn/Library/Mobile Documents/com~apple~CloudDocs/GitHub/statistics-resampling/inst/credint.m</file>
-      <file>/Users/andrewcpenn/Library/Mobile Documents/com~apple~CloudDocs/GitHub/statistics-resampling/inst/deffcalc.m</file>
-      <file>/Users/andrewcpenn/Library/Mobile Documents/com~apple~CloudDocs/GitHub/statistics-resampling/inst/randtest2.m</file>
-      <file>/Users/andrewcpenn/Library/Mobile Documents/com~apple~CloudDocs/GitHub/statistics-resampling/inst/sampszcalc.m</file>
-      <file>/Users/andrewcpenn/Library/Mobile Documents/com~apple~CloudDocs/GitHub/statistics-resampling/inst/smoothmad.m</file>
-      <file>/Users/andrewcpenn/Library/Mobile Documents/com~apple~CloudDocs/GitHub/statistics-resampling/inst/smoothmedian.m</file>
-      <file>/Users/andrewcpenn/Library/Mobile Documents/com~apple~CloudDocs/GitHub/statistics-resampling/inst/smoothmedian.mexa64</file>
-      <file>/Users/andrewcpenn/Library/Mobile Documents/com~apple~CloudDocs/GitHub/statistics-resampling/inst/smoothmedian.mexmaci64</file>
-      <file>/Users/andrewcpenn/Library/Mobile Documents/com~apple~CloudDocs/GitHub/statistics-resampling/inst/smoothmedian.mexw32</file>
-      <file>/Users/andrewcpenn/Library/Mobile Documents/com~apple~CloudDocs/GitHub/statistics-resampling/inst/smoothmedian.mexw64</file>
+      <file>Y:\Documents\GitHub\statistics-resampling\inst\boot.m</file>
+      <file>Y:\Documents\GitHub\statistics-resampling\inst\boot.mexa64</file>
+      <file>Y:\Documents\GitHub\statistics-resampling\inst\boot.mexmaci64</file>
+      <file>Y:\Documents\GitHub\statistics-resampling\inst\boot.mexw32</file>
+      <file>Y:\Documents\GitHub\statistics-resampling\inst\boot.mexw64</file>
+      <file>Y:\Documents\GitHub\statistics-resampling\inst\boot1way.m</file>
+      <file>Y:\Documents\GitHub\statistics-resampling\inst\bootbayes.m</file>
+      <file>Y:\Documents\GitHub\statistics-resampling\inst\bootcdf.m</file>
+      <file>Y:\Documents\GitHub\statistics-resampling\inst\bootci.m</file>
+      <file>Y:\Documents\GitHub\statistics-resampling\inst\bootclust.m</file>
+      <file>Y:\Documents\GitHub\statistics-resampling\inst\bootknife.m</file>
+      <file>Y:\Documents\GitHub\statistics-resampling\inst\bootlm.m</file>
+      <file>Y:\Documents\GitHub\statistics-resampling\inst\bootmode.m</file>
+      <file>Y:\Documents\GitHub\statistics-resampling\inst\bootstrp.m</file>
+      <file>Y:\Documents\GitHub\statistics-resampling\inst\bootwild.m</file>
+      <file>Y:\Documents\GitHub\statistics-resampling\inst\cor.m</file>
+      <file>Y:\Documents\GitHub\statistics-resampling\inst\credint.m</file>
+      <file>Y:\Documents\GitHub\statistics-resampling\inst\deffcalc.m</file>
+      <file>Y:\Documents\GitHub\statistics-resampling\inst\randtest2.m</file>
+      <file>Y:\Documents\GitHub\statistics-resampling\inst\sampszcalc.m</file>
+      <file>Y:\Documents\GitHub\statistics-resampling\inst\smoothmad.m</file>
+      <file>Y:\Documents\GitHub\statistics-resampling\inst\smoothmedian.m</file>
+      <file>Y:\Documents\GitHub\statistics-resampling\inst\smoothmedian.mexa64</file>
+      <file>Y:\Documents\GitHub\statistics-resampling\inst\smoothmedian.mexmaci64</file>
+      <file>Y:\Documents\GitHub\statistics-resampling\inst\smoothmedian.mexw32</file>
+      <file>Y:\Documents\GitHub\statistics-resampling\inst\smoothmedian.mexw64</file>
     </fileset.rootfiles>
     <fileset.depfun.included />
     <fileset.depfun.excluded />
     <fileset.package />
     <build-deliverables>
-      <file location="${PROJECT_ROOT}" name="statistics-resampling.mltbx" optional="false">/Users/andrewcpenn/Library/Mobile Documents/com~apple~CloudDocs/GitHub/statistics-resampling/matlab/statistics-resampling.mltbx</file>
+      <file location="Y:\Documents\GitHub\statistics-resampling\matlab" name="statistics-resampling.mltbx" optional="false">Y:\Documents\GitHub\statistics-resampling\matlab\statistics-resampling.mltbx</file>
     </build-deliverables>
     <workflow />
     <matlab>
-      <root>/Applications/MATLAB_R2023b.app</root>
-      <toolboxes />
+      <root>C:\Program Files (x86)\MATLAB\R2015b</root>
+      <toolboxes>
+        <toolbox name="matlabcoder" />
+      </toolboxes>
+      <toolbox>
+        <matlabcoder>
+          <enabled>true</enabled>
+        </matlabcoder>
+      </toolbox>
     </matlab>
     <platform>
-      <unix>true</unix>
-      <mac>true</mac>
-      <windows>false</windows>
+      <unix>false</unix>
+      <mac>false</mac>
+      <windows>true</windows>
       <win2k>false</win2k>
       <winxp>false</winxp>
       <vista>false</vista>
       <linux>false</linux>
       <solaris>false</solaris>
-      <osver>14.2.1</osver>
-      <os32>false</os32>
-      <os64>true</os64>
-      <arch>maci64</arch>
+      <osver>6.2</osver>
+      <os32>true</os32>
+      <os64>false</os64>
+      <arch>win32</arch>
       <matlab>true</matlab>
     </platform>
   </configuration>

@@ -1129,11 +1129,11 @@ function [STATS, BOOTSTAT, AOVSTAT, PRED_ERR] = bootlm (Y, GROUP, varargin)
                     if (ISOCTAVE)
                       [STATS, BOOTSTAT] = pararrayfun (inf, @(i) bootbayes ( ...
                                 Y, X, DEP, NBOOT, fliplr (1 - ALPHA), ...
-                                PRIOR(i), SEED, L(:, i), ISOCTAVE), (1:size (L, 2))', ...
+                                PRIOR(i), SEED, L(:, i), ISOCTAVE), (1:Np)', ...
                                 'UniformOutput', false);
                     else
-                      STATS = cell (size (L, 2), 1); BOOTSTAT = cell (size (L, 2), 1);
-                      parfor i = 1:size (L, 2)
+                      STATS = cell (Np, 1); BOOTSTAT = cell (Np, 1);
+                      parfor i = 1:Np
                         [STATS{i}, BOOTSTAT{i}] =  bootbayes (Y, X, DEP, ...
                                          NBOOT, fliplr (1 - ALPHA), ...
                                          PRIOR(i), SEED, L(:, i), ISOCTAVE);
@@ -1142,7 +1142,7 @@ function [STATS, BOOTSTAT, AOVSTAT, PRED_ERR] = bootlm (Y, GROUP, varargin)
                   else
                     [STATS, BOOTSTAT] = arrayfun (@(i) bootbayes (Y, X, ...
                            DEP, NBOOT, fliplr (1 - ALPHA), PRIOR(i), SEED, ...
-                           L(:, i), ISOCTAVE), (1:size (L, 2))', 'UniformOutput', false);
+                           L(:, i), ISOCTAVE), (1:Np)', 'UniformOutput', false);
                   end
                   STATS = flatten_struct (cell2mat (STATS));
                   BOOTSTAT = cell2mat (BOOTSTAT);
@@ -2298,8 +2298,8 @@ end
 %! STATS = bootlm (salary, years, 'model', 'linear', 'continuous', 1, ...
 %!                 'display', 'on', 'varnames', 'years');
 %! 
-%! % We can see that from the intercept that starting starting salary is $24.8 K
-%! % and that the increase in salary per year of experience is $9.5 K.
+%! % We can see from the intercept that the starting starting salary is $24.8 K
+%! % and that salary increase per year of experience is $9.5 K.
 
 %!demo
 %!
