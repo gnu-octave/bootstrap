@@ -73,11 +73,13 @@ Below are some links to demonstrations of how the bootstrap or randomization fun
 
  * [t-test to compare two independent samples](https://gnu-octave.github.io/statistics-resampling/function/bootlm.html#1) (but also robust to heteroscedasticity, i.e. unequal variance)  
 
+ * Nested t-test to compare two independent samples. (See example listed below for nested one-way ANOVA)   
+ 
  * [t-test to compare two paired or matching samples](https://gnu-octave.github.io/statistics-resampling/function/bootlm.html#2)
 
  * [One-way ANOVA to compare more than two independent samples](https://gnu-octave.github.io/statistics-resampling/function/bootlm.html#3) (but also robust to heteroscedasticity)  
 
- * [Nested one-way ANOVA to compare more than two independent samples](https://gnu-octave.github.io/statistics-resampling/function/bootlm.html#11) (but also robust to heteroscedasticity and grouping of observations)    
+ * [Nested one-way ANOVA to compare more than two independent samples](https://gnu-octave.github.io/statistics-resampling/function/bootlm.html#13) (but also robust to heteroscedasticity and grouping of observations)    
  
  * [Balanced two-way factorial ANOVA](https://gnu-octave.github.io/statistics-resampling/function/bootlm.html#6) (but also robust to heteroscedasticity)  
 

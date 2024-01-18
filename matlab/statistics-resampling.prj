@@ -53,10 +53,6 @@
     </fileset.rootdir>
     <fileset.rootfiles>
       <file>Y:\Documents\GitHub\statistics-resampling\inst\boot.m</file>
-      <file>Y:\Documents\GitHub\statistics-resampling\inst\boot.mexa64</file>
-      <file>Y:\Documents\GitHub\statistics-resampling\inst\boot.mexmaci64</file>
-      <file>Y:\Documents\GitHub\statistics-resampling\inst\boot.mexw32</file>
-      <file>Y:\Documents\GitHub\statistics-resampling\inst\boot.mexw64</file>
       <file>Y:\Documents\GitHub\statistics-resampling\inst\boot1way.m</file>
       <file>Y:\Documents\GitHub\statistics-resampling\inst\bootbayes.m</file>
       <file>Y:\Documents\GitHub\statistics-resampling\inst\bootcdf.m</file>
@@ -74,10 +70,6 @@
       <file>Y:\Documents\GitHub\statistics-resampling\inst\sampszcalc.m</file>
       <file>Y:\Documents\GitHub\statistics-resampling\inst\smoothmad.m</file>
       <file>Y:\Documents\GitHub\statistics-resampling\inst\smoothmedian.m</file>
-      <file>Y:\Documents\GitHub\statistics-resampling\inst\smoothmedian.mexa64</file>
-      <file>Y:\Documents\GitHub\statistics-resampling\inst\smoothmedian.mexmaci64</file>
-      <file>Y:\Documents\GitHub\statistics-resampling\inst\smoothmedian.mexw32</file>
-      <file>Y:\Documents\GitHub\statistics-resampling\inst\smoothmedian.mexw64</file>
     </fileset.rootfiles>
     <fileset.depfun.included />
     <fileset.depfun.excluded />

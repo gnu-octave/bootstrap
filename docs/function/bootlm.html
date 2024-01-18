@@ -3,7 +3,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
   <head>
   <meta http-equiv="content-type" content="text/html; charset=utf-8" />
-  <meta name="date" content="2024-01-10"/>
+  <meta name="date" content="2024-01-18"/>
   <meta name="generator" content="generate_html 0.3.3" />
   <meta name="author" content="Andrew Penn" />
   <meta name="description" content="A package for statistical analysis using resampling methods." />
@@ -21,8 +21,9 @@
 
 <h2>bootlm</h2>
 <pre> Uses bootstrap to calculate confidence intervals (and p-values) for the
- regression coefficients from a linear model and perform N-way ANOVA.
+ regression coefficients from a linear model and performs N-way ANOVA.
 
+ -- Function File: bootlm (Y, X)
  -- Function File: bootlm (Y, GROUP)
  -- Function File: bootlm (Y, GROUP, ..., NAME, VALUE)
  -- Function File: bootlm (Y, GROUP, ..., 'dim', DIM)
@@ -58,13 +59,25 @@
      be assumed.
 
         Usage of this function is very similar to that of 'anovan'. Data (Y)
-     is a single vector y with groups specified by a corresponding matrix or
-     cell array of group labels GROUP, where each column of GROUP has the same
-     number of rows as Y. For example, if 'Y = [1.1;1.2]; GROUP = [1,2,1; 
-     1,5,2];' then observation 1.1 was measured under conditions 1,2,1 and
-     observation 1.2 was measured under conditions 1,5,2. If the GROUP provided
-     is empty, then the linear model is fit with just the intercept (i.e. no
-     predictors).
+     is a numeric variable, and the predictor(s) are specified in GROUP (a.k.a.
+     X), which can be a vector, matrix, or cell array. For a single predictor,
+     GROUP can be a vector of numbers, logical values or characters, or a cell
+     array of numbers, logical values or character strings, with the same
+     number of elements (n) as Y. For K predictors, GROUP can be either a
+     1-by-K, where each column corresponds to a predictor as defined above,
+     an n-by-K cell array, or an n-by-K array of numbers or characters. If
+     Y, or the definitions of each predictor in GROUP, are not column vectors,
+     then they will be transposed or reshaped to be column vectors. Please the
+     demonstrations in the manual for examples:
+
+     https://gnu-octave.github.io/statistics-resampling/function/bootlm.html
+
+     Note that if GROUP is defined as a design matrix X, containing (one or
+     more) continuous predictors only, a constant term (intercept) should
+     not be included in X - one is automatically added to the model. For models
+     containing any categorical predictors, the 'bootlm' function creates the
+     design matrix for you. If you have already constructed a design matrix,
+     consider using the functions 'bootwild' and 'bootbayes' instead.
 
      'bootlm' can take a number of optional parameters as name-value
      pairs.
@@ -143,7 +156,8 @@
                   For block or cluster bootstrap, N corresponds to the number
                   of blocks or clusters (i.e. the number of independent
                   sampling units).
-                       The 'auto' setting is recommended but is only available
+
+                  The 'auto' setting is recommended but is only available
                   for Bayesian bootstrap of the estimated marginal means and
                   for the posthoc tests (not the regression coefficients).
 
@@ -330,18 +344,24 @@
        <> When DIM is specified, POSTHOC comparisons along DIM can be one of
           the following:
 
-             o 'none' (default) : No posthoc comparisons are performed. The
-               statistics returned are for the estimated marginal means.
+             o empty or 'none' (default) : No posthoc comparisons are performed.
+               The statistics returned are for the estimated marginal means.
 
              o 'pairwise' : Pairwise comparisons are performed.
 
              o 'trt_vs_ctrl' : Treatment vs. Control comparisons are performed.
-                Control corresponds to the level(s) of the predictor(s) listed
-                within the first row of STATS when POSTHOC is set to 'none'.
+               Control corresponds to the level(s) of the predictor(s) listed
+               within the first row of STATS when POSTHOC is set to 'none'.
 
              o {'trt_vs_ctrl', k} : Treatment vs. Control comparisons are
-                performed. The control is group number k as returned when
-                POSTHOC is set to 'none'.
+               performed. The control is group number k as returned when
+               POSTHOC is set to 'none'.
+
+             o a two-column numeric matrix defining each pair of comparisons,
+               where each number in the matrix corresponds to the row number
+               of the estimated-marginal means as listed for the same value(s)
+               of DIM and when POSTHOC is set to 'none'. The comparison
+               corresponds to the row-wise differences: column 1 - column 2.
 
           All of the posthoc comparisons use the Holm-Bonferroni procedure to
           control the type I error rate. The confidence intervals are not
@@ -407,9 +427,10 @@
        model. Computations of the statistics in AOVSTAT are compatible with
        the 'clustid' and 'blocksz' options.
 
-       ** See demo 6 for an example of how to obtain results for ANOVA using
+       ** See demo 7 for an example of how to obtain results for ANOVA using
           type II sums-of-squares, which test hypotheses that give results
-          invariant to the order of the predictors.
+          invariant to the order of the predictors, regardless of whether
+          sample sizes are equal or not.
 
      '[STATS, BOOTSTAT, AOVSTAT, PRED_ERR] = bootlm (...)' also computes
      refined bootstrap estimates of prediction error* and returns the derived
@@ -481,7 +502,7 @@ MODEL POSTHOC COMPARISONS
 
 name                                   mean        CI_lower    CI_upper    p-adj
 --------------------------------------------------------------------------------
-female - male                          +10.80      -9.003      +30.60       .247
+female - male                          +10.80      -8.648      +30.25       .246
 
 
 MODEL FORMULA (based on Wilkinson's notation):
@@ -492,8 +513,8 @@ MODEL ESTIMATED MARGINAL MEANS
 
 name                                   mean        CI_lower    CI_upper        N
 --------------------------------------------------------------------------------
-male                                   +44.20      +32.57      +53.65          5
-female                                 +55.00      +42.30      +67.91          6</pre>
+male                                   +44.20      +32.40      +53.30          5
+female                                 +55.00      +42.57      +68.05          6</pre>
 <p>and the following figure</p>
 <p><table class="images">
 <tr>
@@ -539,7 +560,7 @@ MODEL POSTHOC COMPARISONS
 
 name                                   mean        CI_lower    CI_upper    p-adj
 --------------------------------------------------------------------------------
-after - before                         +1.460      +0.6653     +2.255       .003
+after - before                         +1.460      +0.6622     +2.258       .002
 
 
 MODEL FORMULA (based on Wilkinson's notation):
@@ -550,8 +571,8 @@ MODEL ESTIMATED MARGINAL MEANS
 
 name                                   mean        CI_lower    CI_upper        N
 --------------------------------------------------------------------------------
-before                                 +4.560      +4.093      +4.994          5
-after                                  +6.020      +5.578      +6.467          5</pre>
+before                                 +4.560      +4.107      +4.994          5
+after                                  +6.020      +5.580      +6.460          5</pre>
 <p>and the following figure</p>
 <p><table class="images">
 <tr>
@@ -606,9 +627,9 @@ MODEL POSTHOC COMPARISONS
 
 name                                   mean        CI_lower    CI_upper    p-adj
 --------------------------------------------------------------------------------
-st - al1                               +7.000      +3.830      +10.10      <.001
-st - al2                               +5.000      +2.576      +7.468      <.001
-al1 - al2                              -2.000      -4.871      +0.8738      .173
+st - al1                               +7.000      +3.912      +10.14      <.001
+st - al2                               +5.000      +2.511      +7.429       .001
+al1 - al2                              -2.000      -4.870      +0.8620      .168
 
 
 MODEL FORMULA (based on Wilkinson's notation):
@@ -619,9 +640,9 @@ MODEL ESTIMATED MARGINAL MEANS
 
 name                                   mean        CI_lower    CI_upper        N
 --------------------------------------------------------------------------------
-st                                     +84.00      +82.07      +85.65          8
-al1                                    +77.00      +75.04      +79.45          6
-al2                                    +79.00      +77.63      +80.40          6</pre>
+st                                     +84.00      +82.12      +85.68          8
+al1                                    +77.00      +74.95      +79.46          6
+al2                                    +79.00      +77.73      +80.45          6</pre>
 <p>and the following figure</p>
 <p><table class="images">
 <tr>
@@ -684,9 +705,9 @@ MODEL POSTHOC COMPARISONS
 
 name                                   mean        CI_lower    CI_upper    p-adj
 --------------------------------------------------------------------------------
-1 - 2                                  -2.000      -2.728      -1.272      <.001
-1 - 5                                  -3.200      -3.867      -2.551      <.001
-2 - 5                                  -1.200      -2.112      -0.3128      .012
+1 - 2                                  -2.000      -2.741      -1.263      <.001
+1 - 5                                  -3.200      -3.844      -2.539      <.001
+2 - 5                                  -1.200      -2.074      -0.3211      .015
 
 
 MODEL FORMULA (based on Wilkinson's notation):
@@ -697,9 +718,9 @@ MODEL ESTIMATED MARGINAL MEANS
 
 name                                   mean        CI_lower    CI_upper        N
 --------------------------------------------------------------------------------
-1                                      +11.00      +10.64      +11.36         10
-2                                      +13.00      +12.52      +13.47         10
-5                                      +14.20      +13.76      +14.64         10</pre>
+1                                      +11.00      +10.65      +11.36         10
+2                                      +13.00      +12.52      +13.49         10
+5                                      +14.20      +13.77      +14.66         10</pre>
 <p>and the following figure</p>
 <p><table class="images">
 <tr>
@@ -771,12 +792,12 @@ MODEL COEFFICIENTS
 
 name                                   coeff       CI_lower    CI_upper    p-val
 --------------------------------------------------------------------------------
-(Intercept)                            +5.667      +4.794      +6.540      <.001
-brands_1                               -1.333      -1.894      -0.7723      .011
-brands_2                               -2.167      -3.102      -1.231      <.001
-popper_1                               +1.167      +0.6066     +1.727       .017
-brands:popper_1                        -0.3333     -1.066      +0.3989      .328
-brands:popper_2                        -0.1667     -1.264      +0.9308      .725
+(Intercept)                            +5.667      +4.788      +6.545      <.001
+brands_1                               -1.333      -1.904      -0.7627      .013
+brands_2                               -2.167      -3.124      -1.210      <.001
+popper_1                               +1.167      +0.5966     +1.737       .018
+brands:popper_1                        -0.3333     -1.077      +0.4108      .335
+brands:popper_2                        -0.1667     -1.270      +0.9365      .731
 
 
 MODEL FORMULA (based on Wilkinson's notation):
@@ -787,9 +808,9 @@ MODEL POSTHOC COMPARISONS
 
 name                                   mean        CI_lower    CI_upper    p-adj
 --------------------------------------------------------------------------------
-Gourmet - National                     +1.500      +1.124      +1.876      <.001
-Gourmet - Generic                      +2.250      +1.699      +2.801      <.001
-National - Generic                     +0.7500     +0.2003     +1.300       .010
+Gourmet - National                     +1.500      +1.127      +1.873      <.001
+Gourmet - Generic                      +2.250      +1.710      +2.790      <.001
+National - Generic                     +0.7500     +0.1986     +1.301       .011
 
 
 MODEL FORMULA (based on Wilkinson's notation):
@@ -800,9 +821,9 @@ MODEL ESTIMATED MARGINAL MEANS
 
 name                                   mean        CI_lower    CI_upper        N
 --------------------------------------------------------------------------------
-Gourmet                                +6.250      +6.064      +6.441          6
-National                               +4.750      +4.558      +4.938          6
-Generic                                +4.000      +3.657      +4.305          6
+Gourmet                                +6.250      +6.061      +6.438          6
+National                               +4.750      +4.554      +4.937          6
+Generic                                +4.000      +3.688      +4.332          6
 
 
 MODEL FORMULA (based on Wilkinson's notation):
@@ -813,7 +834,7 @@ MODEL POSTHOC COMPARISONS
 
 name                                   mean        CI_lower    CI_upper    p-adj
 --------------------------------------------------------------------------------
-oil - air                              -1.000      -1.384      -0.6161     <.001
+oil - air                              -1.000      -1.388      -0.6119     <.001
 
 
 MODEL FORMULA (based on Wilkinson's notation):
@@ -824,8 +845,8 @@ MODEL ESTIMATED MARGINAL MEANS
 
 name                                   mean        CI_lower    CI_upper        N
 --------------------------------------------------------------------------------
-oil                                    +4.500      +4.319      +4.693          9
-air                                    +5.500      +5.327      +5.693          9</pre>
+oil                                    +4.500      +4.317      +4.685          9
+air                                    +5.500      +5.315      +5.684          9</pre>
 <p>and the following figure</p>
 <p><table class="images">
 <tr>
@@ -841,6 +862,114 @@ air                                    +5.500      +5.327      +5.693          9
 <p>The following code</p>
 <pre class="example">
 
+ % Balanced two-way design (2x2). The data represents a study on the
+ % effects of gender and alcohol alcohol consumption on attractiveness,
+ % in Field (2004).
+
+ % Perform factorial two-way ANOVA
+ gender = {'f' 'f' 'f' 'f' 'f' 'f' 'f' 'f' 'm' 'm' 'm' 'm' 'm' 'm' 'm' 'm' ...
+           'f' 'f' 'f' 'f' 'f' 'f' 'f' 'f' 'm' 'm' 'm' 'm' 'm' 'm' 'm' 'm' ...
+           'f' 'f' 'f' 'f' 'f' 'f' 'f' 'f' 'm' 'm' 'm' 'm' 'm' 'm' 'm' 'm'}';
+ pints = [0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 ...
+          4 4 4 4 4 4 4 4 4 4 4 4 4 4 4 4]';
+ score = [65 70 60 60 60 55 60 55 50 55 80 65 70 75 75 65 70 65 60 70 65 ...
+          60 60 50 45 60 85 65 70 70 80 60 55 65 70 55 55 60 50 50 30 30 ...
+          30 55 35 20 45 40]';
+
+ [STATS, BOOTSTAT, AOVSTAT] = bootlm (score, {gender, pints}, 'model', ...
+                             'full', 'display', 'off', 'varnames', ...
+                             {'gender', 'score'}, 'seed', 1);
+
+ fprintf ('ANOVA SUMMARY\n')
+ for i = 1:numel(AOVSTAT.F)
+   fprintf ('F(%u,%u) = %.2f, p = %.3g for the model: %s\n', ...
+            AOVSTAT.DF(i), AOVSTAT.DFE, AOVSTAT.F(i), ...
+            AOVSTAT.PVAL(i), AOVSTAT.MODEL{i});
+ end
+
+ % There is a significant interaction so we shall get estimated marginal means
+ % for all combinations of levels of both predictors
+ STATS = bootlm (score, {gender, pints}, 'model', 'full', 'display', 'on', ...
+                 'varnames', {'gender', 'score'}, 'seed', 1, ...
+                 'dim', [1, 2], 'method', 'bayesian','prior', 'auto');
+
+ % Perform posthoc tests comparing the effect of gender on the attractiveness
+ % score for each amount of alcohol consumed
+ STATS = bootlm (score, {gender, pints}, 'model', 'full', 'display', 'on', ...
+                 'varnames', {'gender', 'score'}, 'seed', 1, ...
+                 'dim', [1, 2], 'posthoc', [1 2; 3 4; 5 6], ...
+                 'alpha', [0.025, 0.975]);
+
+ % Perform posthoc tests comparing the effect of drinking different amounts of
+ % on the attractiveness score at each levels of gender
+ STATS = bootlm (score, {gender, pints}, 'model', 'full', 'display', 'on', ...
+                 'varnames', {'gender', 'score'}, 'seed', 1, ...
+                 'dim', [1, 2], 'posthoc', [1 3; 3 5; 1 5; 2 4; 4 6; 2 6], ...
+                 'alpha', [0.025, 0.975]);</pre>
+<p>Produces the following output</p>
+<pre class="example">ANOVA SUMMARY
+F(1,42) = 2.03, p = 0.162 for the model: score ~ 1 + gender
+F(2,42) = 20.07, p = 0.0001 for the model: score ~ 1 + gender + score
+F(2,42) = 11.91, p = 0.0001 for the model: score ~ 1 + gender + score + gender:score
+
+MODEL FORMULA (based on Wilkinson's notation):
+
+score ~ 1 + gender + score + gender:score
+
+MODEL ESTIMATED MARGINAL MEANS
+
+name                                   mean        CI_lower    CI_upper        N
+--------------------------------------------------------------------------------
+f, 0                                   +60.62      +57.41      +64.31          8
+m, 0                                   +66.87      +59.70      +73.74          8
+f, 2                                   +62.50      +57.82      +66.98          8
+m, 2                                   +66.87      +57.88      +75.75          8
+f, 4                                   +57.50      +53.03      +62.83          8
+m, 4                                   +35.62      +28.28      +43.40          8
+
+
+MODEL FORMULA (based on Wilkinson's notation):
+
+score ~ 1 + gender + score + gender:score
+
+MODEL POSTHOC COMPARISONS
+
+name                                   mean        CI_lower    CI_upper    p-adj
+--------------------------------------------------------------------------------
+f, 0 - m, 0                            -6.250      -15.29      +2.670       .291
+f, 2 - m, 2                            -4.375      -15.22      +6.147       .398
+f, 4 - m, 4                            +21.88      +12.20      +31.81      <.001
+
+
+MODEL FORMULA (based on Wilkinson's notation):
+
+score ~ 1 + gender + score + gender:score
+
+MODEL POSTHOC COMPARISONS
+
+name                                   mean        CI_lower    CI_upper    p-adj
+--------------------------------------------------------------------------------
+f, 0 - f, 2                            -1.875      -8.048      +4.133      1.000
+f, 2 - f, 4                            +5.000      -2.170      +12.04       .638
+f, 0 - f, 4                            +3.125      -3.402      +9.507       .966
+m, 0 - m, 2                            -3.553e-15  -12.03      +11.70      1.000
+m, 2 - m, 4                            +31.25      +19.02      +43.41      <.001
+m, 0 - m, 4                            +31.25      +20.03      +41.98      <.001</pre>
+<p>and the following figure</p>
+<p><table class="images">
+<tr>
+<th class="images">Figure 1</th>
+</tr><tr>
+<td class="images"><img src="images/bootlm_601.png" class="demo"/></td>
+</tr></table>
+</p>
+</div>
+
+<h3><a name="7">Demonstration 7</a></h3>
+<div class="demo">
+<p>The following code</p>
+<pre class="example">
+
  % Unbalanced two-way design (2x2). The data is from a study on the effects
  % of gender and a college degree on starting salaries of a sample of company
  % employees, in Maxwell, Delaney and Kelly (2018): Chapter 7, Table 15. The
@@ -850,7 +979,8 @@ air                                    +5.500      +5.327      +5.693          9
            25 29 27 19 18 21 20 21 22 19]';
  gender = {'f' 'f' 'f' 'f' 'f' 'f' 'f' 'f' 'f' 'f' 'f' 'f'...
            'm' 'm' 'm' 'm' 'm' 'm' 'm' 'm' 'm' 'm'}';
- degree = [1 1 1 1 1 1 1 1 0 0 0 0 1 1 1 0 0 0 0 0 0 0]';
+ degree = [true true true true true true true true false false false false ...
+           true true true false false false false false false false]';
 
  % ANOVA (including the main effect of gender averaged over all levels of
  % degree). In this order, the variability in salary only attributed to
@@ -1031,12 +1161,53 @@ F(1,19) = 101.13, p = 0.0001 for the model: salary ~ 1 + gender + degree (degree
 <tr>
 <th class="images">Figure 1</th>
 </tr><tr>
-<td class="images"><img src="images/bootlm_601.png" class="demo"/></td>
+<td class="images"><img src="images/bootlm_701.png" class="demo"/></td>
 </tr></table>
 </p>
 </div>
 
-<h3><a name="7">Demonstration 7</a></h3>
+<h3><a name="8">Demonstration 8</a></h3>
+<div class="demo">
+<p>The following code</p>
+<pre class="example">
+
+ % Simple linear regression. The data represents salaries of employees and
+ % their years of experience, modified from Allena Venkata. The salaries are
+ % in units of 1000 dollars per annum.
+
+ years = [1.20 1.40 1.60 2.10 2.30 3.00 3.10 3.30 3.30 3.80 4.00 4.10 ...
+               4.10 4.20 4.60 5.00 5.20 5.40 6.00 6.10 6.90 7.20 8.00 8.30 ...
+               8.80 9.10 9.60 9.70 10.40 10.60]';
+ salary = [39 46 38 44 40 57 60 54 64 57 63 56 57 57 61 68 66 83 81 94 92 ...
+           98 101 114 109 106 117 113 122 122]';
+
+ STATS = bootlm (salary, years, 'model', 'linear', 'continuous', 1, ...
+                 'display', 'on', 'varnames', 'years');
+ 
+ % We can see from the intercept that the starting starting salary is $24.8 K
+ % and that salary increase per year of experience is $9.5 K.</pre>
+<p>Produces the following output</p>
+<pre class="example">MODEL FORMULA (based on Wilkinson's notation):
+
+salary ~ 1 + years
+
+MODEL COEFFICIENTS
+
+name                                   coeff       CI_lower    CI_upper    p-val
+--------------------------------------------------------------------------------
+(Intercept)                            +24.78      +20.44      +29.13      <.001
+years                                  +9.455      +8.843      +10.07      <.001</pre>
+<p>and the following figure</p>
+<p><table class="images">
+<tr>
+<th class="images">Figure 1</th>
+</tr><tr>
+<td class="images"><img src="images/bootlm_801.png" class="demo"/></td>
+</tr></table>
+</p>
+</div>
+
+<h3><a name="9">Demonstration 9</a></h3>
 <div class="demo">
 <p>The following code</p>
 <pre class="example">
@@ -1158,12 +1329,12 @@ niv                                    +68.34      +67.61      +69.17         17
 <tr>
 <th class="images">Figure 1</th>
 </tr><tr>
-<td class="images"><img src="images/bootlm_701.png" class="demo"/></td>
+<td class="images"><img src="images/bootlm_901.png" class="demo"/></td>
 </tr></table>
 </p>
 </div>
 
-<h3><a name="8">Demonstration 8</a></h3>
+<h3><a name="10">Demonstration 10</a></h3>
 <div class="demo">
 <p>The following code</p>
 <pre class="example">
@@ -1302,12 +1473,12 @@ name                                   mean        CI_lower    CI_upper        N
 <tr>
 <th class="images">Figure 1</th>
 </tr><tr>
-<td class="images"><img src="images/bootlm_801.png" class="demo"/></td>
+<td class="images"><img src="images/bootlm_1001.png" class="demo"/></td>
 </tr></table>
 </p>
 </div>
 
-<h3><a name="9">Demonstration 9</a></h3>
+<h3><a name="11">Demonstration 11</a></h3>
 <div class="demo">
 <p>The following code</p>
 <pre class="example">
@@ -1436,12 +1607,12 @@ hi, no                                 +83.02      +79.72      +86.48         10
 <tr>
 <th class="images">Figure 1</th>
 </tr><tr>
-<td class="images"><img src="images/bootlm_901.png" class="demo"/></td>
+<td class="images"><img src="images/bootlm_1101.png" class="demo"/></td>
 </tr></table>
 </p>
 </div>
 
-<h3><a name="10">Demonstration 10</a></h3>
+<h3><a name="12">Demonstration 12</a></h3>
 <div class="demo">
 <p>The following code</p>
 <pre class="example">
@@ -1504,12 +1675,12 @@ name                                   mean        CI_lower    CI_upper        N
 <tr>
 <th class="images">Figure 1</th>
 </tr><tr>
-<td class="images"><img src="images/bootlm_1001.png" class="demo"/></td>
+<td class="images"><img src="images/bootlm_1201.png" class="demo"/></td>
 </tr></table>
 </p>
 </div>
 
-<h3><a name="11">Demonstration 11</a></h3>
+<h3><a name="13">Demonstration 13</a></h3>
 <div class="demo">
 <p>The following code</p>
 <pre class="example">
@@ -1556,12 +1727,12 @@ F(2,21) = 17.08, p = 0.018 for the model: Y ~ 1 + X1</pre>
 <tr>
 <th class="images">Figure 1</th>
 </tr><tr>
-<td class="images"><img src="images/bootlm_1101.png" class="demo"/></td>
+<td class="images"><img src="images/bootlm_1301.png" class="demo"/></td>
 </tr></table>
 </p>
 </div>
 
-<h3><a name="12">Demonstration 12</a></h3>
+<h3><a name="14">Demonstration 14</a></h3>
 <div class="demo">
 <p>The following code</p>
 <pre class="example">
@@ -1613,12 +1784,12 @@ PREDICTION ERROR of the FULL MODEL = 2.86</pre>
 <tr>
 <th class="images">Figure 1</th>
 </tr><tr>
-<td class="images"><img src="images/bootlm_1201.png" class="demo"/></td>
+<td class="images"><img src="images/bootlm_1401.png" class="demo"/></td>
 </tr></table>
 </p>
 </div>
 
-<h3><a name="13">Demonstration 13</a></h3>
+<h3><a name="15">Demonstration 15</a></h3>
 <div class="demo">
 <p>The following code</p>
 <pre class="example">

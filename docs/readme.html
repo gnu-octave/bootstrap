@@ -61,7 +61,8 @@ Machine Learning Toolbox (in Matlab).</li>
 </ul>
 <h3 id="installation">Installation</h3>
 <p>To install (or test) the statistics-resampling package at a location
-of your choice, follow these steps:</p>
+of your choice for either <strong>Matlab or Octave</strong>, follow
+these steps:</p>
 <ul>
 <li>Download the latest package release from <a
 href="https://github.com/gnu-octave/statistics-resampling/releases/">here</a>.
@@ -79,22 +80,26 @@ is interactive so check the command window.)</li>
 <li>Type <code>install</code>. The package will load now (and
 automatically in the future) when you start Octave/Matlab.</li>
 </ul>
-<p>If you want or need to uninstall the package/toolbox, change
-directory (cd) into the package folder and type uninstall.</p>
-<p>Alternatively, users of more recent versions of Octave can install
-the package automatically with the following command:</p>
+<p>If you want or need to uninstall the package, change directory (cd)
+into the package folder and type uninstall.</p>
+<p>Alternatively, <strong>Octave</strong> users can install the latest
+release of the package just like any other Octave package by typing:</p>
+<p><code>pkg install -forge statistics-resampling</code></p>
+<p>Or for the most recent developmental version of the package:</p>
 <p><code>pkg install "https://github.com/gnu-octave/statistics-resampling/archive/refs/heads/master.zip"</code></p>
-<p>The package can be loaded on demand in Octave with the following
+<p>The package can then be loaded on demand in Octave with the following
 commmand:</p>
 <p><code>pkg load statistics-resampling</code></p>
-<p>MATLAB users can conveniently install the package functions as a
-toolbox by double-clicking the ‘statistics-resampling.mltbx’ file in the
-matlab subdirectory. The toolbox installed in this way can be disabled
-or uninstalled via MATLAB’s Add-On manager. Currently, MEX files are
-included with the toolbox installation for Windows (32- or 64-bit),
-MacOS (Intel 64-bit) and Linux (64-bit). Without the MEX files, all
-functionality of the package is available, but some of the functions run
-slower.</p>
+<p>(Note that this isn’t necessary if you used the local installation
+instructions first described in this section)</p>
+<p>Alternatively, <strong>MATLAB</strong> users can conveniently install
+the package functions as a toolbox by double-clicking the
+‘statistics-resampling.mltbx’ file in the matlab subdirectory. The
+toolbox installed in this way can be disabled or uninstalled via
+MATLAB’s Add-On manager. Currently, MEX files are included with the
+toolbox installation for Windows (32- or 64-bit), MacOS (Intel 64-bit)
+and Linux (64-bit). Without the MEX files, all functionality of the
+package is available, but some of the functions run slower.</p>
 <p>N.B. The package does not yet include any MEX files (for Octave or
 Matlab) precompiled for macOS with Apple silicon processors, since the
 package developers do not have access to this computer platform. If you
@@ -139,6 +144,8 @@ also robust to outliers)</p></li>
 href="https://gnu-octave.github.io/statistics-resampling/function/bootlm.html#1">t-test
 to compare two independent samples</a> (but also robust to
 heteroscedasticity, i.e. unequal variance)</p></li>
+<li><p>Nested t-test to compare two independent samples. (See example
+listed below for nested one-way ANOVA)</p></li>
 <li><p><a
 href="https://gnu-octave.github.io/statistics-resampling/function/bootlm.html#2">t-test
 to compare two paired or matching samples</a></p></li>
@@ -147,14 +154,22 @@ href="https://gnu-octave.github.io/statistics-resampling/function/bootlm.html#3"
 ANOVA to compare more than two independent samples</a> (but also robust
 to heteroscedasticity)</p></li>
 <li><p><a
-href="https://gnu-octave.github.io/statistics-resampling/function/bootlm.html#11">Nested
+href="https://gnu-octave.github.io/statistics-resampling/function/bootlm.html#13">Nested
 one-way ANOVA to compare more than two independent samples</a> (but also
 robust to heteroscedasticity and grouping of observations)</p></li>
 <li><p><a
-href="https://gnu-octave.github.io/statistics-resampling/function/bootlm.html#6">Two-way
-factorial ANOVA</a> (but also robust to heteroscedasticity)</p></li>
+href="https://gnu-octave.github.io/statistics-resampling/function/bootlm.html#6">Balanced
+two-way factorial ANOVA</a> (but also robust to
+heteroscedasticity)</p></li>
 <li><p><a
-href="https://gnu-octave.github.io/statistics-resampling/function/bootlm.html#7">One-way
+href="https://gnu-octave.github.io/statistics-resampling/function/bootlm.html#7">Unbalanced
+two-way factorial ANOVA</a> (but also robust to
+heteroscedasticity)</p></li>
+<li><p><a
+href="https://gnu-octave.github.io/statistics-resampling/function/bootlm.html#8">Simple
+linear regression</a> (but also robust to heteroscedasticity)</p></li>
+<li><p><a
+href="https://gnu-octave.github.io/statistics-resampling/function/bootlm.html#9">One-way
 ANCOVA</a> (but also robust to heteroscedasticity)</p></li>
 </ul>
 <h3 id="issues">Issues</h3>
