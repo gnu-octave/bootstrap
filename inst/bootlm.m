@@ -545,7 +545,7 @@ function [STATS, BOOTSTAT, AOVSTAT, PRED_ERR] = bootlm (Y, GROUP, varargin)
         case 'seed'
           SEED = value;
         otherwise
-          error (sprintf ('bootlm: parameter %s is not supported', name))
+          error ('bootlm: parameter %s is not supported', name)
       end
     end
 
@@ -681,8 +681,7 @@ function [STATS, BOOTSTAT, AOVSTAT, PRED_ERR] = bootlm (Y, GROUP, varargin)
             % Check whether all the columns sum to 0
             if (any (abs (sum (CONTRASTS{i})) > eps ('single')))
               contr_sum_to_zero (i) = false;
-              warning (sprintf ( ...
-              'Note that the CONTRASTS for predictor %u do not sum to zero', i))
+              warning ('Note that the CONTRASTS for predictor %u do not sum to zero', i)
             else
               contr_sum_to_zero (i) = true;
             end
@@ -690,8 +689,7 @@ function [STATS, BOOTSTAT, AOVSTAT, PRED_ERR] = bootlm (Y, GROUP, varargin)
             if (any (abs (reshape (cov2corr (cov (CONTRASTS{i})) - ...
                                      eye (size (CONTRASTS{i}, 2)), [], 1)) ...
                                      > eps ('single')))
-              warning (sprintf ( ...
-              'Note that the CONTRASTS for predictor %u are not orthogonal', i))
+              warning ('Note that the CONTRASTS for predictor %u are not orthogonal', i)
             end
           else
             if (~ ismember (lower (CONTRASTS{i}), ...
@@ -715,8 +713,7 @@ function [STATS, BOOTSTAT, AOVSTAT, PRED_ERR] = bootlm (Y, GROUP, varargin)
     if (~ isempty (DIM))
       for i = 1:K
         if (~ contr_sum_to_zero (i))
-          warning (sprintf ( ...
-                    'CONTRASTS for predictor %u have been set to ''anova''', i))
+          warning ('CONTRASTS for predictor %u have been set to ''anova''', i)
         end
       end
       CONTRASTS(~ contr_sum_to_zero) = {'anova'};
@@ -1332,7 +1329,7 @@ function [STATS, BOOTSTAT, AOVSTAT, PRED_ERR] = bootlm (Y, GROUP, varargin)
         plot (ax4_xlim, ones (1, 2), 'k--');
         hold off;
         arrayfun (@(i) text (DI(i), D(DI(i)), ...
-                             sprintf ('  %u', DI(i))), [1:min(nk,n)]);
+                             sprintf ('  %u', DI(i))), 1:min(nk,n));
         xlim (ax4_xlim); ylim (ax4_ylim);
 
         set (findall ( gcf, '-property', 'FontSize'), 'FontSize', 7)
@@ -1486,7 +1483,7 @@ function  [X, levels, nlevels, df, coeffnames, gid, CONTRASTS, ...
       df(Nm+i) = prod (df(I-1));
       termcols(1+Nm+i) = prod (df(I-1) + 1);
       tmp = ones (n,1);
-      for j = 1:numel(I);
+      for j = 1:numel(I)
         tmp = num2cell (tmp, 1);
         for k = 1:numel(tmp)
           tmp{k} = bsxfun (@times, tmp{k}, X{I(j)});

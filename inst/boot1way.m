@@ -259,7 +259,7 @@ function [pval, c, stats, Q] = boot1way (data, group, varargin)
   end
   if ((nboot(2) == 0) && (~ strcmp (func2str (bootfun), 'mean')))
     if (~ exist ('jackknife','file'))
-      if (ISOCTAVE); 
+      if (ISOCTAVE)
         warning ('boot1way:jackfail', cat (2, '''jackknife'' function from', ...
                  ' statistics package not found. nboot(2) set to 100.'))
       else
@@ -434,7 +434,7 @@ function [pval, c, stats, Q] = boot1way (data, group, varargin)
         theta(j) = mean (data(g == gk(j), :));
         % Quick analytical calculation for the standard error of the mean
         SE(j) = std (data(g == gk(j), :), 0) / sqrt (nk(j));
-        if (j == 1); se_method = 'Calculated without resampling'; end;
+        if (j == 1); se_method = 'Calculated without resampling'; end
       else
         theta(j) = bootfun (data(g == gk(j), :));
         % If requested, compute unbiased estimates of the standard error using
@@ -442,7 +442,7 @@ function [pval, c, stats, Q] = boot1way (data, group, varargin)
         jackstat = jackknife (bootfun, data(g == gk(j), :));
         SE(j) = sqrt ((nk(j) - 1) / nk(j) * ...
                 sum (((mean (jackstat) - jackstat)).^2));
-        if (j == 1); se_method = 'Leave-one-out jackknife'; end;
+        if (j == 1); se_method = 'Leave-one-out jackknife'; end
       end
     else
       % Compute unbiased estimate of the standard error by balanced bootknife
@@ -453,7 +453,7 @@ function [pval, c, stats, Q] = boot1way (data, group, varargin)
       bootout = bootknife (data(g == gk(j), :), [nboot(2), 0], bootfun, ...
                            NaN, [], 0, [], [], ISOCTAVE, false, true);
       SE(j) = bootout.std_error;
-      if (j==1); se_method = 'Balanced, bootknife resampling'; end;
+      if (j==1); se_method = 'Balanced, bootknife resampling'; end
     end
     Var(j) = ((nk(j) - 1) / (N - k)) * SE(j)^2;
   end
