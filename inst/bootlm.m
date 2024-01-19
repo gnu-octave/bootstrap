@@ -617,6 +617,21 @@ function [STATS, BOOTSTAT, AOVSTAT, PRED_ERR] = bootlm (Y, GROUP, varargin)
       end
     end
 
+    % Remove NaN or non-finite observations in y or any continuous predictors
+    % NaN is not tolerated in grouping variables for categorical predictors
+    if (isempty (GROUP))
+      excl = any ([isnan(Y), isinf(Y)], 2);
+    else
+      XC = GROUP(:,CONTINUOUS);
+      if iscell(XC)
+        XC = cell2mat (XC);
+      end
+      excl = any ([isnan(Y), isinf(Y), any(isnan(XC),2), any(isinf(XC),2)], 2);
+      GROUP(excl,:) = [];
+    end
+    Y(excl) = [];
+    n = numel (Y);     % Recalculate total number of observations
+
     % Create unique numeric group identifiers for levels of categorical
     % and extract levels of each categorical predictor
     GROUPID = zeros (n, K);
@@ -718,20 +733,6 @@ function [STATS, BOOTSTAT, AOVSTAT, PRED_ERR] = bootlm (Y, GROUP, varargin)
       end
       CONTRASTS(~ contr_sum_to_zero) = {'anova'};
     end
-
-    % Remove NaN or non-finite observations
-    if (isempty (GROUP))
-      excl = any ([isnan(Y), isinf(Y)], 2);
-    else
-      XC = GROUP(:,CONTINUOUS);
-      if iscell(XC)
-        XC = cell2mat (XC);
-      end
-      excl = any ([isnan(Y), isinf(Y), any(isnan(XC),2), any(isinf(XC),2)], 2);
-      GROUP(excl,:) = [];
-    end
-    Y(excl) = [];
-    n = numel (Y);     % Recalculate total number of observations
 
     % Evaluate model type input argument and create terms matrix if not provided
     msg = cat (2, 'bootlm: the number of columns in the term definitions', ...
