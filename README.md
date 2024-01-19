@@ -52,6 +52,8 @@ To install (or test) the statistics-resampling package at a location of your cho
   (Note that this isn't necessary if you used the local installation instructions first described in this section)
  
  Alternatively, **MATLAB** users can conveniently install the package functions as a toolbox by double-clicking the 'statistics-resampling.mltbx' file in the matlab subdirectory. The toolbox installed in this way can be disabled or uninstalled via MATLAB's Add-On manager. Currently, MEX files are included with the toolbox installation for Windows (32- or 64-bit), MacOS (Intel 64-bit) and Linux (64-bit). Without the MEX files, all functionality of the package is available, but some of the functions run slower.  
+   
+ [![You could also use this package in MATLAB Online](https://www.mathworks.com/images/responsive/global/open-in-matlab-online.svg)](https://matlab.mathworks.com/open/github/v1?repo=gnu-octave/statistics-resampling&file=README.md)
  
  N.B. The package does not yet include any MEX files (for Octave or Matlab) precompiled for macOS with Apple silicon processors, since the package developers do not have access to this computer platform. If you used this package on macOS with an Apple silicon processor (M1-3 chip), please consider contacting the package maintainer to contribute the MEX files to this project.  
   
