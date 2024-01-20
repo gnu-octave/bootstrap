@@ -45,8 +45,9 @@
 %     1-by-K, where each column corresponds to a predictor as defined above,
 %     an n-by-K cell array, or an n-by-K array of numbers or characters. If
 %     Y, or the definitions of each predictor in GROUP, are not column vectors,
-%     then they will be transposed or reshaped to be column vectors. Please the
-%     demonstrations in the manual for examples:
+%     then they will be transposed or reshaped to be column vectors. Rows of
+%     data whose outcome (Y) or value of any predictor is NaN or Inf are
+%     excluded. Please demonstrations in the manual for examples:
 %
 %     https://gnu-octave.github.io/statistics-resampling/function/bootlm.html
 %
@@ -617,16 +618,16 @@ function [STATS, BOOTSTAT, AOVSTAT, PRED_ERR] = bootlm (Y, GROUP, varargin)
       end
     end
 
-    % Remove NaN or non-finite observations in y or any continuous predictors
-    % NaN is not tolerated in grouping variables for categorical predictors
+    % Remove rows of data whose outcome or value of any predictor is NaN or Inf
     if (isempty (GROUP))
       excl = any ([isnan(Y), isinf(Y)], 2);
     else
-      XC = GROUP(:,CONTINUOUS);
-      if iscell(XC)
-        XC = cell2mat (XC);
+      if iscell(GROUP)
+        excl = any ([cellfun(@(x) all(isnan(x) || isinf(x)), GROUP), ...
+                     isnan(Y), isinf(Y)], 2);
+      else
+        excl = any ([isnan(Y), isinf(Y), isnan(GROUP), isinf(GROUP)], 2);
       end
-      excl = any ([isnan(Y), isinf(Y), any(isnan(XC),2), any(isinf(XC),2)], 2);
       GROUP(excl,:) = [];
     end
     Y(excl) = [];
