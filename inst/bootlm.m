@@ -7,6 +7,7 @@
 % -- Function File: bootlm (Y, GROUP, ..., 'dim', DIM)
 % -- Function File: bootlm (Y, GROUP, ..., 'continuous', CONTINUOUS)
 % -- Function File: bootlm (Y, GROUP, ..., 'model', MODELTYPE)
+% -- Function File: bootlm (Y, GROUP, ..., 'standardize', STANDARDIZE)
 % -- Function File: bootlm (Y, GROUP, ..., 'varnames', VARNAMES)
 % -- Function File: bootlm (Y, GROUP, ..., 'method', METHOD)
 % -- Function File: bootlm (Y, GROUP, ..., 'method', 'bayesian', 'prior', PRIOR)
@@ -96,6 +97,13 @@
 %
 %               -- Example:
 %               A two-way design with interaction would be: [1 0; 0 1; 1 1]
+%
+%     '[...] = bootlm (Y, GROUP, ..., 'standardize', STANDARDIZE)'
+%
+%       <> STANDARDIZE can be either 'off' (or false, default) or 'on' (or true)
+%          and controls whether the outcome and any continuous predictors in the
+%          model should be standardized (i.e. converted to standard scores)
+%          before model fitting.
 %
 %     '[...] = bootlm (Y, GROUP, ..., 'method', METHOD)'
 %
@@ -498,6 +506,7 @@ function [STATS, BOOTSTAT, AOVSTAT, PRED_ERR] = bootlm (Y, GROUP, varargin)
     SEED = rand ('seed');
     DEP = [];
     POSTHOC = 'none';
+    STANDARDIZE = false;
     METHOD = 'wild';
     PRIOR = 1;
     L = [];
@@ -537,6 +546,8 @@ function [STATS, BOOTSTAT, AOVSTAT, PRED_ERR] = bootlm (Y, GROUP, varargin)
           DIM = sort (value(:)');
         case {'posthoc', 'posttest'}
           POSTHOC = value;
+        case {'standardize','standardise'}
+          STANDARDIZE = value;
         case 'nboot'
           NBOOT = value;
         case 'method'
@@ -836,6 +847,36 @@ function [STATS, BOOTSTAT, AOVSTAT, PRED_ERR] = bootlm (Y, GROUP, varargin)
       end
     end
 
+    % If requested, standardize the continuous predictors and the outcome
+    switch (class (STANDARDIZE))
+      case 'char'
+        if (ismember (lower (STANDARDIZE), {'on','yes'}))
+          STANDARDIZE = true;
+        elseif (ismember (lower (STANDARDIZE), {'off','no'}))
+          STANDARDIZE = false;
+        else
+          error ('bootlm: unrecognised value for ''standardize'' input argument')
+        end
+      case 'logical'
+        % Do nothing
+      otherwise
+        STANDARDIZE = logical (STANDARDIZE);
+    end
+    if STANDARDIZE
+      for j = 1:K
+        if cont_vec(j)
+          if iscell (GROUP(:,j))
+            tmp = cell2mat (GROUP(:,j));
+            GROUP(:,CONTINUOUS) = num2cell ((tmp - mean (tmp)) / std (tmp));
+          else
+            tmp = GROUP(:,j);
+            GROUP(:,CONTINUOUS) = (tmp - mean (tmp)) / std (tmp);
+          end
+        end
+      end
+      Y = (Y - mean (Y)) / std (Y);
+    end
+
     % Create design matrix
     [X, grpnames, nlevels, df, coeffnames, gid, CONTRASTS, ...
      center_continuous] = mDesignMatrix (GROUP, TERMS, CONTINUOUS, ...
@@ -1075,7 +1116,7 @@ function [STATS, BOOTSTAT, AOVSTAT, PRED_ERR] = bootlm (Y, GROUP, varargin)
 
         otherwise
 
-          % Model posthoc comparisons
+          % The model posthoc comparisons
           switch (class (POSTHOC))
             case 'cell'
               if (strcmp (POSTHOC{1}, 'trt.vs.ctrl'))
@@ -1104,6 +1145,7 @@ function [STATS, BOOTSTAT, AOVSTAT, PRED_ERR] = bootlm (Y, GROUP, varargin)
               end
               L = make_test_matrix (L, pairs);
           end
+          Np = size (pairs, 1);  % Update the number of parameters
           switch (lower (METHOD))
             case 'wild'
               [STATS, BOOTSTAT] = bootwild (Y, X, DEP, NBOOT, ALPHA, SEED, ...
