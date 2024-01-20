@@ -14,7 +14,7 @@
 %     vector with the same number of rows as x.
 %
 %     'MAD = smoothmad (X, GROUP, CONSTANT)' sets the CONSTANT to scale
-%     the value of the MAD. (Default is 1.41.)
+%     the value of the MAD. (Default is 1.41).
 %
 %  smoothmad (version 2023.05.02)
 %  Author: Andrew Charles Penn
@@ -85,8 +85,7 @@ function PMAD = smoothmad (x, group, constant)
     M(k,:) = smoothmedian (x(I,:));
 
     % Calculate the smoothed median absolute deviation of the data group
-    MAD(k,:) = smoothmedian (abs (x(I, :) - ones (nk(k), 1) * ...
-                                                  M(k, :))) * constant;
+    MAD(k,:) = smoothmedian (abs (x(I, :) - M(k, :))) * constant;
 
     % Begin pooling the smoothed median absolute deviations
     PMAD = PMAD + (nk(k) - 1) * MAD(k, :).^2;
