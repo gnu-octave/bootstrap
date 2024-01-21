@@ -100,12 +100,12 @@
 %
 %     '[...] = bootlm (Y, GROUP, ..., 'standardize', STANDARDIZE)'
 %
-%       <> STANDARDIZE can be either 'off' (or false, default) or 'on' (or true)
-%          and controls whether the outcome and any continuous predictors in the
-%          model should be standardized (i.e. converted to standard scores)
-%          before model fitting to give standardized regression coefficients.
-%          Please see documentation below for the 'posthoc' input argument to
-%          read about further consequences of turning on 'standardize'.
+%       <> STANDARDIZE can be either 'off' (or false, default) or 'on' (or true),
+%          which controls whether the outcome and any continuous predictors in
+%          the model should be converted to standard scores) before model
+%          fitting to give standardized regression coefficients. Please see the
+%          documentation relating to the 'posthoc' input argument to read about
+%          further consequences of turning on 'standardize'.
 %
 %     '[...] = bootlm (Y, GROUP, ..., 'method', METHOD)'
 %
@@ -355,10 +355,14 @@
 %          All of the posthoc comparisons use the Holm-Bonferroni procedure
 %          to control the type I error rate, but the confidence intervals are
 %          not adjusted for multiple comparisons. If the 'standardize' input
-%          argument is turned on, the estimates, confidence intervals and
+%          argument set to 'on', the estimates, confidence intervals and
 %          bootstrap statistics for the comparisons are converted to estimates
-%          of Cohen's d standardized effect sizes having accounted for other
-%          predictors in the model.
+%          of Cohen's d standardized effect sizes. Cohen's d here is calculated
+%          from the residual standard deviation, which is estimated from the
+%          bootstrap standard errors and the sample sizes. As such, the effect
+%          sizes calculated exclude variability attributed to other predictors
+%          in the model. To avoid small sample bias inflating effect sizes for
+%          posthoc comparisons, use the 'bayesian' method with an 'auto' prior.
 %
 %     '[...] = bootlm (Y, GROUP, ..., 'seed', SEED)' initialises the Mersenne
 %     Twister random number generator using an integer SEED value so that
@@ -932,6 +936,9 @@ function [STATS, BOOTSTAT, AOVSTAT, PRED_ERR] = bootlm (Y, GROUP, varargin)
     end
 
     % Evaluate the dependence structure
+    % Accounting for dependence in this way only affects the confidence
+    % intervals, not the original estimates. Possibly a bit biaised when
+    % sample sizes are very unequal (?).
     if (isempty (DEP))
       IC = (1:n)';
       IA = IC;
@@ -1211,7 +1218,8 @@ function [STATS, BOOTSTAT, AOVSTAT, PRED_ERR] = bootlm (Y, GROUP, varargin)
           STATS.N = sum (N_pairs, 2);
 
           % If requested, estimate Cohen's d standardized effect sizes having
-          % accounted for other predictors in the model.
+          % accounted for other predictors in the model. These are possibly a
+          % bit biaised when sample sizes are very unequal (?).
           if STANDARDIZE
             pSE = std (BOOTSTAT, 0, 2);
             pSD = pSE ./ sqrt (sum (1./ N_pairs, 2));
