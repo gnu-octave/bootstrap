@@ -103,7 +103,9 @@
 %       <> STANDARDIZE can be either 'off' (or false, default) or 'on' (or true)
 %          and controls whether the outcome and any continuous predictors in the
 %          model should be standardized (i.e. converted to standard scores)
-%          before model fitting.
+%          before model fitting to give standardized regression coefficients.
+%          Please see documentation below for the 'posthoc' input argument to
+%          read about further consequences of turning on 'standardize'.
 %
 %     '[...] = bootlm (Y, GROUP, ..., 'method', METHOD)'
 %
@@ -350,9 +352,13 @@
 %               of DIM and when POSTHOC is set to 'none'. The comparison
 %               corresponds to the row-wise differences: column 1 - column 2.
 %
-%          All of the posthoc comparisons use the Holm-Bonferroni procedure to
-%          control the type I error rate. The confidence intervals are not
-%          adjusted for multiple comparisons.
+%          All of the posthoc comparisons use the Holm-Bonferroni procedure
+%          to control the type I error rate, but the confidence intervals are
+%          not adjusted for multiple comparisons. If the 'standardize' input
+%          argument is turned on, the estimates, confidence intervals and
+%          bootstrap statistics for the comparisons are converted to estimates
+%          of Cohen's d standardized effect sizes having accounted for other
+%          predictors in the model.
 %
 %     '[...] = bootlm (Y, GROUP, ..., 'seed', SEED)' initialises the Mersenne
 %     Twister random number generator using an integer SEED value so that
@@ -1201,7 +1207,19 @@ function [STATS, BOOTSTAT, AOVSTAT, PRED_ERR] = bootlm (Y, GROUP, varargin)
           end
 
           % Add sample sizes to the output structure
-          STATS.N = sum (N_dim(pairs')', 2);
+          N_pairs = N_dim(pairs')';
+          STATS.N = sum (N_pairs, 2);
+
+          % If requested, estimate Cohen's d standardized effect sizes having
+          % accounted for other predictors in the model.
+          if STANDARDIZE
+            pSE = std (BOOTSTAT, 0, 2);
+            pSD = pSE ./ sqrt (sum (1./ N_pairs, 2));
+            STATS.original = STATS.original ./ pSD;
+            STATS.CI_lower = STATS.CI_lower ./ pSD;
+            STATS.CI_upper = STATS.CI_upper ./ pSD;
+            BOOTSTAT = bsxfun (@rdivide, BOOTSTAT, pSD); 
+          end
 
           % Create names of posthoc comparisons and assign to the output
           STATS.name = arrayfun (@(i) sprintf ('%s - %s', ... 
