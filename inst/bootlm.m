@@ -1237,7 +1237,7 @@ function [STATS, BOOTSTAT, AOVSTAT, PRED_ERR] = bootlm (Y, GROUP, varargin)
             %     SED = sqrt ( SE1.^2 + SE2.^2 )
             %
             % The usual formula to convert standard error of the difference
-            % to a pooled standard deviation of the difference is:
+            % to a standard deviation of the difference is:
             %
             %     pSD = SED ./ sqrt (sum (1./ N_pairs, 2))
             %
@@ -1245,13 +1245,13 @@ function [STATS, BOOTSTAT, AOVSTAT, PRED_ERR] = bootlm (Y, GROUP, varargin)
             %
             %     pSD = SED ./ sqrt (2 ./ harmmean (N_pairs, 2))
             %
-            % However, if our aim is to obtain a pooled standard deviation that
-            % approximates the square root of the (unweighted) mean of the
-            % sample standard deviations, then the above estimate of the
-            % standard deviation of the difference will be biased when sample
-            % sizes and variances are unequal. Solutions to reduce this bias are
-            % either to replace the harmonic mean function with the smaller of
-            % the two sample sizes:
+            % However, if our aim is to obtain an estimate for the square root
+            % of the non-pooled average of both variance estimates (Welch, 1938;
+            % Delacre et al. 2021) then the above estimate of the standard
+            % deviation of the difference will be biased when sample sizes and
+            % variances are unequal. Solutions to reduce this bias are either
+            % to replace the harmonic mean function with the smaller of the two
+            % sample sizes:
             %
             %     pSD = SED ./ sqrt (2 ./ min (N_pairs, [], 2))
             %
@@ -2094,6 +2094,20 @@ end
 %!                            'model', 'linear', 'display', 'on', ...
 %!                            'varnames', {'subject','treatment'}, ...
 %!                            'dim', 2, 'posthoc','trt_vs_ctrl');
+%!
+%! % Standardized effect size (Cohen's d) with 95% credible intervals and 
+%! % total sample size for the difference in mean score before and after
+%! % treatment (computed by bayesian bootstrap). In this particular case,
+%! % we have opted for an estimate of the classic Cohen's d by refitting
+%! % the model as a between subjects design.
+%! STATS = bootlm (score(:), treatment(:), 'standardize', true, ...
+%!                            'model', 'linear', 'display', 'on', ...
+%!                            'varnames', 'treatment',  ...
+%!                            'dim', 1, 'posthoc','trt_vs_ctrl', ...
+%!                            'method', 'bayesian', 'prior', 'auto');
+%!
+%! fprintf ('Cohen''s d [95%% CI] = %.2f [%.2f, %.2f] (N = %u)\n\n', ...
+%!          STATS.estimate, STATS.CI_lower, STATS.CI_upper, STATS.N)
 %!
 %! % 95% credible intervals for the estimated marginal means of the scores
 %! % before and after treatment (computed by Bayesian bootstrap)
