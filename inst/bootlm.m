@@ -351,6 +351,7 @@
 %               of the estimated-marginal means as listed for the same value(s)
 %               of DIM and when POSTHOC is set to 'none'. The comparison
 %               corresponds to the row-wise differences: column 1 - column 2.
+%               See demo 6 for an example.
 %
 %          All of the posthoc comparisons use the Holm-Bonferroni procedure
 %          to control the type I error rate, but the confidence intervals are
@@ -2060,6 +2061,16 @@ end
 %! % between males and females (computed by wild bootstrap)
 %! STATS = bootlm (score, gender, 'display', 'on', 'varnames', 'gender', ...
 %!                 'dim', 1, 'posthoc','trt_vs_ctrl');
+%!
+%! % Standardized effect size (Cohen's d) with 95% credible intervals and 
+%! % total sample size for the difference in mean score between males and
+%! % females (computed by bayesian bootstrap)
+%! STATS = bootlm (score, gender, 'display', 'on', 'varnames', 'gender', ...
+%!                 'dim', 1, 'posthoc','trt_vs_ctrl', 'standardize', true, ...
+%!                 'method', 'bayesian', 'prior', 'auto');
+%!
+%! fprintf ('Cohen''s d [95%% CI] = %.2f [%.2f, %.2f] (N = %u)\n\n', ...
+%!          STATS.estimate, STATS.CI_lower, STATS.CI_upper, STATS.N)
 %!
 %! % 95% credible intervals for the estimated marginal means of the scores by
 %! % males and females (computed by Bayesian bootstrap)
