@@ -3,7 +3,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
   <head>
   <meta http-equiv="content-type" content="text/html; charset=utf-8" />
-  <meta name="date" content="2024-01-20"/>
+  <meta name="date" content="2024-01-22"/>
   <meta name="generator" content="generate_html 0.3.3" />
   <meta name="author" content="Andrew Penn" />
   <meta name="description" content="A package for statistical analysis using resampling methods." />
@@ -29,6 +29,7 @@
  -- Function File: bootlm (Y, GROUP, ..., 'dim', DIM)
  -- Function File: bootlm (Y, GROUP, ..., 'continuous', CONTINUOUS)
  -- Function File: bootlm (Y, GROUP, ..., 'model', MODELTYPE)
+ -- Function File: bootlm (Y, GROUP, ..., 'standardize', STANDARDIZE)
  -- Function File: bootlm (Y, GROUP, ..., 'varnames', VARNAMES)
  -- Function File: bootlm (Y, GROUP, ..., 'method', METHOD)
  -- Function File: bootlm (Y, GROUP, ..., 'method', 'bayesian', 'prior', PRIOR)
@@ -118,6 +119,15 @@
 
                -- Example:
                A two-way design with interaction would be: [1 0; 0 1; 1 1]
+
+     '[...] = bootlm (Y, GROUP, ..., 'standardize', STANDARDIZE)'
+
+       <> STANDARDIZE can be either 'off' (or false, default) or 'on' (or true),
+          which controls whether the outcome and any continuous predictors in
+          the model should be converted to standard scores) before model
+          fitting to give standardized regression coefficients. Please see the
+          documentation relating to the 'posthoc' input argument to read about
+          further consequences of turning on 'standardize'.
 
      '[...] = bootlm (Y, GROUP, ..., 'method', METHOD)'
 
@@ -364,9 +374,17 @@
                of DIM and when POSTHOC is set to 'none'. The comparison
                corresponds to the row-wise differences: column 1 - column 2.
 
-          All of the posthoc comparisons use the Holm-Bonferroni procedure to
-          control the type I error rate. The confidence intervals are not
-          adjusted for multiple comparisons.
+          All of the posthoc comparisons use the Holm-Bonferroni procedure
+          to control the type I error rate, but the confidence intervals are
+          not adjusted for multiple comparisons. If the 'standardize' input
+          argument set to 'on', the estimates, confidence intervals and
+          bootstrap statistics for the comparisons are converted to estimates
+          of Cohen's d standardized effect sizes. Cohen's d here is calculated
+          from the residual standard deviation, which is estimated from the
+          bootstrap standard errors and the sample sizes. As such, the effect
+          sizes calculated exclude variability attributed to other predictors
+          in the model. To avoid small sample bias inflating effect sizes for
+          posthoc comparisons, use the 'bayesian' method with an 'auto' prior.
 
      '[...] = bootlm (Y, GROUP, ..., 'seed', SEED)' initialises the Mersenne
      Twister random number generator using an integer SEED value so that
@@ -503,7 +521,7 @@ MODEL POSTHOC COMPARISONS
 
 name                                   mean        CI_lower    CI_upper    p-adj
 --------------------------------------------------------------------------------
-female - male                          +10.80      -8.515      +30.12       .243
+female - male                          +10.80      -8.650      +30.25       .243
 
 
 MODEL FORMULA (based on Wilkinson's notation):
@@ -514,8 +532,8 @@ MODEL ESTIMATED MARGINAL MEANS
 
 name                                   mean        CI_lower    CI_upper        N
 --------------------------------------------------------------------------------
-male                                   +44.20      +32.57      +53.53          5
-female                                 +55.00      +41.68      +67.14          6</pre>
+male                                   +44.20      +32.51      +53.02          5
+female                                 +55.00      +42.56      +67.82          6</pre>
 <p>and the following figure</p>
 <p><table class="images">
 <tr>
@@ -561,7 +579,7 @@ MODEL POSTHOC COMPARISONS
 
 name                                   mean        CI_lower    CI_upper    p-adj
 --------------------------------------------------------------------------------
-after - before                         +1.460      +0.6492     +2.271       .003
+after - before                         +1.460      +0.6513     +2.269       .002
 
 
 MODEL FORMULA (based on Wilkinson's notation):
@@ -572,8 +590,8 @@ MODEL ESTIMATED MARGINAL MEANS
 
 name                                   mean        CI_lower    CI_upper        N
 --------------------------------------------------------------------------------
-before                                 +4.560      +4.106      +5.006          5
-after                                  +6.020      +5.582      +6.478          5</pre>
+before                                 +4.560      +4.108      +5.000          5
+after                                  +6.020      +5.577      +6.478          5</pre>
 <p>and the following figure</p>
 <p><table class="images">
 <tr>
@@ -628,9 +646,9 @@ MODEL POSTHOC COMPARISONS
 
 name                                   mean        CI_lower    CI_upper    p-adj
 --------------------------------------------------------------------------------
-st - al1                               +7.000      +3.870      +10.19      <.001
-st - al2                               +5.000      +2.594      +7.430       .001
-al1 - al2                              -2.000      -4.924      +0.9135      .175
+st - al1                               +7.000      +3.909      +10.15      <.001
+st - al2                               +5.000      +2.552      +7.448      <.001
+al1 - al2                              -2.000      -4.903      +0.8577      .164
 
 
 MODEL FORMULA (based on Wilkinson's notation):
@@ -641,9 +659,9 @@ MODEL ESTIMATED MARGINAL MEANS
 
 name                                   mean        CI_lower    CI_upper        N
 --------------------------------------------------------------------------------
-st                                     +84.00      +82.24      +85.74          8
-al1                                    +77.00      +74.93      +79.43          6
-al2                                    +79.00      +77.76      +80.48          6</pre>
+st                                     +84.00      +82.11      +85.69          8
+al1                                    +77.00      +74.85      +79.29          6
+al2                                    +79.00      +77.78      +80.52          6</pre>
 <p>and the following figure</p>
 <p><table class="images">
 <tr>
@@ -706,9 +724,9 @@ MODEL POSTHOC COMPARISONS
 
 name                                   mean        CI_lower    CI_upper    p-adj
 --------------------------------------------------------------------------------
-1 - 2                                  -2.000      -2.737      -1.278      <.001
-1 - 5                                  -3.200      -3.860      -2.539      <.001
-2 - 5                                  -1.200      -2.088      -0.3196      .015
+1 - 2                                  -2.000      -2.712      -1.269      <.001
+1 - 5                                  -3.200      -3.852      -2.550      <.001
+2 - 5                                  -1.200      -2.080      -0.3513      .012
 
 
 MODEL FORMULA (based on Wilkinson's notation):
@@ -719,9 +737,9 @@ MODEL ESTIMATED MARGINAL MEANS
 
 name                                   mean        CI_lower    CI_upper        N
 --------------------------------------------------------------------------------
-1                                      +11.00      +10.62      +11.34         10
-2                                      +13.00      +12.52      +13.47         10
-5                                      +14.20      +13.75      +14.64         10</pre>
+1                                      +11.00      +10.64      +11.35         10
+2                                      +13.00      +12.53      +13.50         10
+5                                      +14.20      +13.73      +14.63         10</pre>
 <p>and the following figure</p>
 <p><table class="images">
 <tr>
@@ -793,12 +811,12 @@ MODEL COEFFICIENTS
 
 name                                   coeff       CI_lower    CI_upper    p-val
 --------------------------------------------------------------------------------
-(Intercept)                            +5.667      +4.789      +6.544      <.001
-brands_1                               -1.333      -1.888      -0.7789      .009
-brands_2                               -2.167      -3.115      -1.219      <.001
-popper_1                               +1.167      +0.6113     +1.722       .017
-brands:popper_1                        -0.3333     -1.062      +0.3949      .332
-brands:popper_2                        -0.1667     -1.262      +0.9288      .721
+(Intercept)                            +5.667      +4.795      +6.538      <.001
+brands_1                               -1.333      -1.898      -0.7685      .011
+brands_2                               -2.167      -3.121      -1.212      <.001
+popper_1                               +1.167      +0.5990     +1.734       .018
+brands:popper_1                        -0.3333     -1.084      +0.4169      .332
+brands:popper_2                        -0.1667     -1.258      +0.9251      .737
 
 
 MODEL FORMULA (based on Wilkinson's notation):
@@ -809,9 +827,9 @@ MODEL POSTHOC COMPARISONS
 
 name                                   mean        CI_lower    CI_upper    p-adj
 --------------------------------------------------------------------------------
-Gourmet - National                     +1.500      +1.132      +1.868      <.001
-Gourmet - Generic                      +2.250      +1.717      +2.783      <.001
-National - Generic                     +0.7500     +0.1945     +1.306       .010
+Gourmet - National                     +1.500      +1.125      +1.875      <.001
+Gourmet - Generic                      +2.250      +1.708      +2.792      <.001
+National - Generic                     +0.7500     +0.2102     +1.290       .009
 
 
 MODEL FORMULA (based on Wilkinson's notation):
@@ -822,9 +840,9 @@ MODEL ESTIMATED MARGINAL MEANS
 
 name                                   mean        CI_lower    CI_upper        N
 --------------------------------------------------------------------------------
-Gourmet                                +6.250      +6.057      +6.435          6
-National                               +4.750      +4.560      +4.940          6
-Generic                                +4.000      +3.678      +4.324          6
+Gourmet                                +6.250      +6.069      +6.445          6
+National                               +4.750      +4.551      +4.930          6
+Generic                                +4.000      +3.689      +4.327          6
 
 
 MODEL FORMULA (based on Wilkinson's notation):
@@ -835,7 +853,7 @@ MODEL POSTHOC COMPARISONS
 
 name                                   mean        CI_lower    CI_upper    p-adj
 --------------------------------------------------------------------------------
-oil - air                              -1.000      -1.387      -0.6130     <.001
+oil - air                              -1.000      -1.383      -0.6175     <.001
 
 
 MODEL FORMULA (based on Wilkinson's notation):
@@ -846,7 +864,7 @@ MODEL ESTIMATED MARGINAL MEANS
 
 name                                   mean        CI_lower    CI_upper        N
 --------------------------------------------------------------------------------
-oil                                    +4.500      +4.312      +4.680          9
+oil                                    +4.500      +4.310      +4.684          9
 air                                    +5.500      +5.318      +5.687          9</pre>
 <p>and the following figure</p>
 <p><table class="images">

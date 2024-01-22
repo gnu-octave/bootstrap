@@ -1225,10 +1225,13 @@ function [STATS, BOOTSTAT, AOVSTAT, PRED_ERR] = bootlm (Y, GROUP, varargin)
             % each comparison using the bootstrap standard error (rather than
             % calculate it directly from the samples) because this will allow
             % us to only include residual variance in the computations (e.g.
-            % after accounting for covariates or nuisance variables). The
-            % bootstrap standard error of the difference here approximates the
-            % denominator of Welch's t-test, which is a suitable t-test when
-            % sample sizes and variances are unequal:
+            % after accounting for covariates or nuisance variables) and having
+            % considered any dependence structure using clustered resampling.
+            %
+            % In the case where the errors in the model are treated as
+            % independent, our bootstrap standard error of the difference
+            % approximates the denominator of Welch's t-test, which is a
+            % suitable t-test when sample sizes and variances are unequal:
             %
             %     SED = sqrt ( SE1.^2 + SE2.^2 )
             %
