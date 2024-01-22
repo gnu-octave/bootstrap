@@ -1218,8 +1218,7 @@ function [STATS, BOOTSTAT, AOVSTAT, PRED_ERR] = bootlm (Y, GROUP, varargin)
           STATS.N = sum (N_pairs, 2);
 
           % If requested, estimate Cohen's d standardized effect sizes having
-          % accounted for other predictors in the model. These are possibly a
-          % bit biaised when sample sizes are very unequal (?).
+          % accounted for other predictors in the model.
           if STANDARDIZE
             pSE = std (BOOTSTAT, 0, 2);
             pSD = pSE ./ sqrt (sum (1./ N_pairs, 2));
