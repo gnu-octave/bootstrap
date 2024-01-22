@@ -1220,8 +1220,43 @@ function [STATS, BOOTSTAT, AOVSTAT, PRED_ERR] = bootlm (Y, GROUP, varargin)
           % If requested, estimate Cohen's d standardized effect sizes having
           % accounted for other predictors in the model.
           if STANDARDIZE
-            pSE = std (BOOTSTAT, 0, 2);
-            pSD = pSE ./ sqrt (sum (1./ N_pairs, 2));
+            SED = std (BOOTSTAT, 0, 2);
+            % We would like to estimate standard deviation of the difference for
+            % each comparison using the bootstrap standard error (rather than
+            % calculate it directly from the samples) because this will allow
+            % us to only include residual variance in the computations (e.g.
+            % after accounting for covariates or nuisance variables). The
+            % bootstrap standard error of the difference here approximates the
+            % denominator of Welch's t-test, which is a suitable t-test when
+            % sample sizes and variances are unequal:
+            %
+            %     SED = sqrt ( SE1.^2 + SE2.^2 )
+            %
+            % The usual formula to convert standard error of the difference
+            % to a pooled standard deviation of the difference is:
+            %
+            %     pSD = SED ./ sqrt (sum (1./ N_pairs, 2))
+            %
+            % And this calculation is equivalent to:
+            %
+            %     pSD = SED ./ sqrt (2 ./ harmmean (N_pairs, 2))
+            %
+            % However, if our aim is to obtain a pooled standard deviation that
+            % approximates the square root of the (unweighted) mean of the
+            % sample standard deviations, then the above estimate of the
+            % standard deviation of the difference will be biased when sample
+            % sizes and variances are unequal. Solutions to reduce this bias are
+            % either to replace the harmonic mean function with the smaller of
+            % the two sample sizes:
+            %
+            %     pSD = SED ./ sqrt (2 ./ min (N_pairs, [], 2))
+            %
+            % Or better, replace it with the weighted harmonic mean, where the
+            % weight for each sample size is the size of the other sample in
+            % the comparison:
+            weighted_harmmean = @(x, w, d) sum (w, d) ./ sum (w ./ x, d);
+            pSD = SED ./ sqrt (2 ./ ...
+                         weighted_harmmean (N_pairs, fliplr (N_pairs), 2));
             STATS.original = STATS.original ./ pSD;
             STATS.CI_lower = STATS.CI_lower ./ pSD;
             STATS.CI_upper = STATS.CI_upper ./ pSD;
