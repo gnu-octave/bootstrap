@@ -318,13 +318,11 @@ function [stats, bootstat, bootsse, bootfit] = bootwild (y, X, ...
   % intervals and p-values following both guidelines described in Hall and
   % Wilson (1991) Biometrics, 47(2), 757-762
   T = bsxfun (@minus, bootstat, original) ./ bootse;
-  if (any (isnan (T)))
-    error ('bootwild: the studentized bootstrap statistics contain NaN values')
-  end
+  unstable = any (or (isinf (T), isnan (T)), 2);
   ci = nan (p, 2);
   pval = nan (p, 1);
   for j = 1:p
-    if ( ~ isnan (std_err(j)) )
+    if ( (~ isnan (std_err(j))) && (~ unstable(j)) )
       [x, F, P] = bootcdf (abs (T(j,:)), true, 1);
       if (abs (t(j)) < x(1))
         pval(j) = interp1 (x, P, abs (t(j)), 'linear', 1);
@@ -333,15 +331,15 @@ function [stats, bootstat, bootsse, bootfit] = bootwild (y, X, ...
       end
       switch nalpha
         case 1
-          ci(j,1) = original(j) - std_err(j) * ...
+          ci(j, 1) = original(j) - std_err(j) * ...
                                   interp1 (F, x, 1 - alpha, 'linear', max (x));
-          ci(j,2) = original(j) + std_err(j) * ...
+          ci(j, 2) = original(j) + std_err(j) * ...
                                   interp1 (F, x, 1 - alpha, 'linear', max (x));
         case 2
           [x, F] = bootcdf (T(j,:), true, 1);
-          ci(j,1) = original(j) - std_err(j) * ...
+          ci(j, 1) = original(j) - std_err(j) * ...
                                   interp1 (F, x, alpha(2), 'linear', max (x));
-          ci(j,2) = original(j) - std_err(j) * ...
+          ci(j, 2) = original(j) - std_err(j) * ...
                                   interp1 (F, x, alpha(1), 'linear', min (x));
       end
     end
