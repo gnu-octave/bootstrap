@@ -122,9 +122,13 @@ function CI = credint (Y, PROB)
       % chosen
       width = Y(j, (gap + 1):nboot) - Y(j, 1:(nboot - gap));
       index = find (width == min (width))';
-      best_index = index (dsearchn (index, 0.5 * (1 - PROB) * (nboot + 1)));
-      if (~ isnan (PROB))
-        CI(j, :) = Y(j, [best_index, best_index + gap]);
+      if (isempty (index))
+        CI(j, :) = NaN;
+      else
+        best_index = index (dsearchn (index, 0.5 * (1 - PROB) * (nboot + 1)));
+        if (~ isnan (PROB))
+          CI(j, :) = Y(j, [best_index, best_index + gap]);
+        end
       end
     end
   end
