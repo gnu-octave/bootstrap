@@ -96,6 +96,10 @@
 %
 %         std (BOOTSTAT, 1, 2) ~ std (Y, 1) == std (Y, 0) / sqrt (N) 
 %
+%     Note that in this particular case, intervals will be computed using
+%     the standard deviation of the posterior distribution and quantiles
+%     from a standard normal distribution.
+%
 %     'bootbayes (Y, X, ..., NBOOT, PROB, PRIOR, SEED)' initialises the
 %     Mersenne Twister random number generator using an integer SEED value so
 %     that 'bootbayes' results are reproducible.
@@ -173,7 +177,15 @@ function [stats, bootstat] = bootbayes (Y, X, dep, nboot, prob, prior, seed, ...
   % Evaluate the design matrix
   if ( (nargin < 2) || (isempty (X)) )
     X = ones (n, 1);
+  elseif (size (X, 1) ~= n)
+    error ('bootbayes: X must have the same number of rows as y')
   end
+
+  % Remove rows of the data whose outcome or value of any predictor is NaN or Inf
+  excl = any ([isnan([Y, X]), isinf([Y, X])], 2);
+  Y(excl, :) = [];
+  X(excl, :) = [];
+  n = n - sum (excl);
 
   % Calculate the number of parameters
   k = size (X, 2);
@@ -202,6 +214,17 @@ function [stats, bootstat] = bootbayes (Y, X, dep, nboot, prob, prior, seed, ...
     end
   end
 
+  % Check for missing data
+  if (any (any ([isnan(X), isinf(X)], 2)))
+    error ('bootbayes: elements of X cannot not be NaN or Inf')
+  end
+  if (~ intercept_only)
+    if (any (any ([isnan(Y), isinf(Y)], 2)))
+      error (cat (2, 'bootbayes: elements of y cannot be NaN or Inf if the', ... 
+                     ' model is not an intercept-only model'))
+    end
+  end
+
   % Evaluate cluster IDs or block size
   if ( (nargin > 2) && (~ isempty (dep)) )
     if (isscalar (dep))
@@ -214,6 +237,7 @@ function [stats, bootstat] = bootbayes (Y, X, dep, nboot, prob, prior, seed, ...
       method = 'block ';
     else
       % Prepare for cluster Bayesian bootstrap
+      dep(excl) = [];
       clustid = dep;
       if ( any (size (clustid) ~= [n, 1]) )
         error (cat (2, 'bootbayes: CLUSTID must be a column vector with', ...
@@ -360,7 +384,19 @@ function [stats, bootstat] = bootbayes (Y, X, dep, nboot, prob, prior, seed, ...
   bias = mean (bootstat, 2) - original;
 
   % Compute credible intervals
-  ci = credint (bootstat, prob);
+  if (prior > 0)
+    ci = credint (bootstat, prob);
+  else
+    stdnorminv = @(p) sqrt (2) * erfinv (2 * p - 1);
+    switch nprob
+      case 1
+        z = stdnorminv (1 - (1 - prob) / 2);
+        ci = original + std (bootstat, 1 , 2) * z * [-1, 1];
+      case 2
+        z = stdnorminv (prob);
+        ci = original + std (bootstat, 1 , 2) * stdnorminv (prob);
+    end
+  end
 
   % Prepare output arguments
   stats = struct;
