@@ -149,6 +149,10 @@
 %                  The 'auto' setting is recommended but is only available
 %                  for Bayesian bootstrap of the estimated marginal means and
 %                  for the posthoc tests (not the regression coefficients).
+%                  Note that in the case where PRIOR is set to 0, credible
+%                  intervals will be computed using the standard deviation of
+%                  the posterior distribution and quantiles from a standard
+%                  normal distribution.
 %
 %               The default value of PRIOR is the scalar: 1, which corresponds
 %               to Bayes rule: a uniform (or flat) Dirichlet distribution
@@ -292,9 +296,11 @@
 %       <> Specifies a vector or cell array of numbers or strings respectively
 %          to be used as cluster labels or identifiers. Rows of the data with
 %          the same CLUSTID value are treated as clusters with dependent errors.
-%          If empty (default), no clustered resampling is performed and all
-%          errors are treated as independent. The standard errors computed are
-%          cluster robust.
+%          If CLUSTID is a row vector or a two dimensional array or matrix, then
+%          it will be transposed or reshaped to be a column vectors. If empty
+%          (default), no clustered resampling is performed and all errors are
+%          treated as independent. The standard errors computed are cluster-
+%          robust standard errors. 
 %
 %     '[...] = bootlm (Y, GROUP, ..., 'blocksz', BLOCKSZ)'
 %
@@ -589,13 +595,16 @@ function [STATS, BOOTSTAT, AOVSTAT, PRED_ERR] = bootlm (Y, GROUP, varargin)
                      ' parameter must be numeric'))
     end
 
+    % Columnate Y and DEP (Note that Y(:) is equivalent to reshape (Y, [], 1))
+    Y = Y(:);
+    DEP = DEP(:);
+
     % Accomodate for different formats for GROUP
     n = numel (Y);       % total number of observations
     if ((size (GROUP, 2) == n) && (size (GROUP, 1) ~= n))
       GROUP = GROUP.';
     end
     K = size (GROUP, 2); % number of predictors
-    Y = Y(:);            % columnate Y; Y(:) is equivalent to reshape (Y, [],1)
     if (numel (unique (CONTINUOUS)) > K)
       error (cat (2, 'bootlm: the number of predictors assigned as', ...
                      ' continuous cannot exceed the number of', ...
@@ -653,6 +662,9 @@ function [STATS, BOOTSTAT, AOVSTAT, PRED_ERR] = bootlm (Y, GROUP, varargin)
       GROUP(excl,:) = [];
     end
     Y(excl) = [];
+    if ((~ isempty(DEP)) && (~ isscalar(DEP)))
+      DEP(excl) = [];
+    end
     n = numel (Y);     % Recalculate total number of observations
 
     % Create unique numeric group identifiers for levels of categorical
@@ -2098,9 +2110,13 @@ end
 %! % Standardized effect size (Cohen's d) with 95% credible intervals and 
 %! % total sample size for the difference in mean score before and after
 %! % treatment (computed by bayesian bootstrap). In this particular case,
-%! % we have opted for an estimate of the classic Cohen's d by refitting
-%! % the model as a between subjects design.
-%! STATS = bootlm (score, treatment, 'standardize', true, 'model', 'linear', ...
+%! % rather than the full model, we have opted for an estimate of the classic
+%! % Cohen's d by refitting the model as a between-subjects design. (It is
+%! % possible to get the standardized effect size from the full model instead,
+%! % but this does change the interpretation of the effect size - ensure that
+%! % your methods are properly documented with reports of standardized effect
+%! % sizes)
+%! STATS = bootlm (score, {treatment}, 'standardize', true, 'model', 'linear', ...
 %!                            'display', 'on', 'varnames', 'treatment',  ...
 %!                            'dim', 1, 'posthoc','trt_vs_ctrl', ...
 %!                            'method', 'bayesian', 'prior', 'auto');
@@ -2672,13 +2688,24 @@ end
 %! group = {'A' 'B' 'C'; 'A' 'B' 'C'; 'A' 'B' 'C'; 'A' 'B' 'C'; ...
 %!          'A' 'B' 'C'; 'A' 'B' 'C'; 'A' 'B' 'C'; 'A' 'B' 'C'};
 %!
-%! [STATS, BOOTSTAT, AOVSTAT] = bootlm (data, group, 'seed', 1, ...
-%!                                      'clustid', clustid);
+%! [STATS, BOOTSTAT, AOVSTAT] = bootlm (data, {group}, 'clustid', clustid, ...
+%!                                      'seed', 1, 'display', 'off');
 %! 
 %! fprintf ('ANOVA SUMMARY\n')
 %! fprintf ('F(%u,%u) = %.2f, p = %.3g for the model: %s\n', ...
 %!            AOVSTAT.DF(1), AOVSTAT.DFE, AOVSTAT.F(1), ...
 %!            AOVSTAT.PVAL(1), AOVSTAT.MODEL{1});
+%!
+%! % Note that with only two clusters per factor wild bootstrap will give very
+%! % unstable confidence intervals, but we can instead use Bayesian bootstrap
+%! % with the 'auto' prior to get credible intervals for the group comparisons.
+%! STATS = bootlm (data, {group}, 'clustid', clustid, 'display', 'on', ...
+%!                                'dim', 1, 'posthoc', 'pairwise', ...
+%!                                'method', 'bayesian', 'prior', 'auto');
+%!
+%! % And similarly for the estimated marginal means.
+%! STATS = bootlm (data, {group}, 'clustid', clustid, 'display', 'on', ...
+%!                      'dim', 1, 'method', 'bayesian', 'prior', 'auto');
 
 %!demo
 %!
@@ -3196,12 +3223,12 @@ end
 %! group = {'A' 'B' 'C'; 'A' 'B' 'C'; 'A' 'B' 'C'; 'A' 'B' 'C'; ...
 %!          'A' 'B' 'C'; 'A' 'B' 'C'; 'A' 'B' 'C'; 'A' 'B' 'C'};
 %!
-%! [stats, bootstat, aovstat] = bootlm (data, group, 'seed', 1, ...
-%!                                     'clustid', clustid(:), 'display', 'off');
+%! [stats, bootstat, aovstat] = bootlm (data, {group}, 'seed', 1, ...
+%!                                     'clustid', clustid, 'display', 'off');
 %! 
 %! assert (aovstat.PVAL, 0.01795384863848686, 1e-09);
 %!
-%! [stats, bootstat, aovstat] = bootlm (data, group, 'seed', 1, ...
+%! [stats, bootstat, aovstat] = bootlm (data, {group}, 'seed', 1, ...
 %!                                      'display', 'off');
 %! 
 %! assert (aovstat.PVAL, 0.001343607345983057, 1e-09);
