@@ -995,13 +995,13 @@ function [STATS, BOOTSTAT, AOVSTAT, PRED_ERR] = bootlm (Y, GROUP, varargin)
           STATS.prior = [];
           if (nargout > 2)
             % Perform ANOVA
-            AOVSTAT = bootanova (Y, X, cat (1, 1, df), dfe, DEP, NBOOT, ALPHA, ...
+            AOVSTAT = bootanova (Y, X, cat (1, 1, df), dfe, DEP, NBOOT, NaN, ...
                                  SEED, ISOCTAVE, PARALLEL);
             AOVSTAT.MODEL = formula;
           end
           if (nargout > 3)
             % Estimate prediction errors
-            PRED_ERR = booterr (Y, X, cat (1, 1, df), n, DEP, NBOOT, ALPHA, ...
+            PRED_ERR = booterr (Y, X, cat (1, 1, df), n, DEP, NBOOT, NaN, ...
                                  SEED, ISOCTAVE, PARALLEL);
             PRED_ERR.MODEL = cat (1, {sprintf('%s ~ 1',Y_name)}, formula);
           end

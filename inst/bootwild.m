@@ -321,26 +321,28 @@ function [stats, bootstat, bootsse, bootfit] = bootwild (y, X, ...
   unstable = any (or (lt (bootse, eps), isnan (T)), 2);
   ci = nan (p, 2);
   pval = nan (p, 1);
-  for j = 1:p
-    [x, F, P] = bootcdf (abs (T(j,:)), true, 1);
-    if (abs (t(j)) < x(1))
-      pval(j) = interp1 (x, P, abs (t(j)), 'linear', 1);
-    else
-      pval(j) = interp1 (x, P, abs (t(j)), 'linear', res_lim);
-    end
-    if ( (~ isnan (std_err(j))) && (~ unstable(j)) )
-      switch nalpha
-        case 1
-          ci(j, 1) = original(j) - std_err(j) * ...
-                                  interp1 (F, x, 1 - alpha, 'linear', max (x));
-          ci(j, 2) = original(j) + std_err(j) * ...
-                                  interp1 (F, x, 1 - alpha, 'linear', max (x));
-        case 2
-          [x, F] = bootcdf (T(j,:), true, 1);
-          ci(j, 1) = original(j) - std_err(j) * ...
-                                  interp1 (F, x, alpha(2), 'linear', max (x));
-          ci(j, 2) = original(j) - std_err(j) * ...
-                                  interp1 (F, x, alpha(1), 'linear', min (x));
+  if (any (~ isnan (alpha)))
+    for j = 1:p
+      [x, F, P] = bootcdf (abs (T(j,:)), true, 1);
+      if (abs (t(j)) < x(1))
+        pval(j) = interp1 (x, P, abs (t(j)), 'linear', 1);
+      else
+        pval(j) = interp1 (x, P, abs (t(j)), 'linear', res_lim);
+      end
+      if ( (~ isnan (std_err(j))) && (~ unstable(j)) )
+        switch nalpha
+          case 1
+            ci(j, 1) = original(j) - std_err(j) * ...
+                                    interp1 (F, x, 1 - alpha, 'linear', max (x));
+            ci(j, 2) = original(j) + std_err(j) * ...
+                                    interp1 (F, x, 1 - alpha, 'linear', max (x));
+          case 2
+            [x, F] = bootcdf (T(j,:), true, 1);
+            ci(j, 1) = original(j) - std_err(j) * ...
+                                    interp1 (F, x, alpha(2), 'linear', max (x));
+            ci(j, 2) = original(j) - std_err(j) * ...
+                                    interp1 (F, x, alpha(1), 'linear', min (x));
+        end
       end
     end
   end
