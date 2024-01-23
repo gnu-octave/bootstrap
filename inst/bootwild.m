@@ -163,10 +163,36 @@ function [stats, bootstat, bootsse, bootfit] = bootwild (y, X, ...
   % Evaluate the design matrix
   if ( (nargin < 2) || (isempty (X)) )
     X = ones (n, 1);
+  elseif (size (X, 1) ~= n)
+    error ('bootwild: X must have the same number of rows as y')
   end
 
-  % Calculate number of parameters
-  p = size (X, 2);
+  % Remove rows of the data whose outcome or value of any predictor is NaN or Inf
+  excl = any ([isnan([y, X]), isinf([y, X])], 2);
+  y(excl) = [];
+  X(excl, :) = [];
+  n = n - sum (excl);
+
+  % Calculate the number of parameters
+  k = size (X, 2);
+  if ((k == 1) && (all (X == 1)) )
+    p = 1;
+    L = 1;
+  else
+    % Evaluate hypothesis matrix (L)
+    if ( (nargin < 8) || isempty (L) )
+      % If L is not provided, set L to 1
+      L = 1;
+      p = k;
+    else
+      % Calculate the number of parameters
+      [m, p] = size (L);
+      if (m ~= k)
+        error (cat (2, 'bootwild: the number rows in L must be the same', ...
+                       ' as the number of columns in X'))
+      end
+    end
+  end
 
   % Evaluate cluster IDs or block size
   if ( (nargin > 2) && (~ isempty (dep)) )
@@ -180,6 +206,7 @@ function [stats, bootstat, bootsse, bootfit] = bootwild (y, X, ...
       method = 'block ';
     else
       % Prepare for wild cluster bootstrap
+      dep(excl) = [];
       clustid = dep;
       if (bsxfun (@ne, size (clustid), sz))
         error ('bootwild: clustid must be the same size as y')
@@ -248,14 +275,6 @@ function [stats, bootstat, bootsse, bootfit] = bootwild (y, X, ...
   % Set random seed
   if ( (nargin > 5) && (~ isempty (seed)) )
     rand ('seed', seed);
-  end
-
-  % Set Hypothesis matrix (L)
-  if ( (nargin < 7) || (isempty (L)) )
-    L = 1;
-  else
-    % Calculate number of parameters
-    p = size (L, 2);
   end
 
   % Compute unscaled covariance matrix
@@ -380,6 +399,7 @@ function S = lmfit (X, y, ucov, clusters, L, ISOCTAVE)
     meat = sum (cat (3, Sigma{:}), 3);
   end
   vcov = ucov * meat * ucov;
+  S = struct; 
   if ( (nargin < 4) || isempty (L) )
     S.b = b;
     S.se = sqrt (max (diag (vcov), 0));
