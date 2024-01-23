@@ -1,5 +1,5 @@
 <deployment-project plugin="plugin.toolbox" plugin-version="1.0">
-  <configuration build-checksum="125699317" file="Z:\Macintosh HD\Users\andrewcpenn\Documents\GitHub\statistics-resampling\matlab\statistics-resampling.prj" location="Z:\Macintosh HD\Users\andrewcpenn\Documents\GitHub\statistics-resampling\matlab" name="statistics-resampling" target="target.toolbox" target-name="Package Toolbox">
+  <configuration build-checksum="543235347" file="Z:\Macintosh HD\Users\andrewcpenn\Documents\GitHub\statistics-resampling\matlab\statistics-resampling.prj" location="Z:\Macintosh HD\Users\andrewcpenn\Documents\GitHub\statistics-resampling\matlab" name="statistics-resampling" target="target.toolbox" target-name="Package Toolbox">
     <param.appname>statistics-resampling</param.appname>
     <param.authnamewatermark>Andrew Penn</param.authnamewatermark>
     <param.email>andy.c.penn@gmail.com</param.email>
@@ -54,6 +54,7 @@
     <fileset.rootfiles>
       <file>Z:\Macintosh HD\Users\andrewcpenn\Documents\GitHub\statistics-resampling\inst\boot.m</file>
       <file>Z:\Macintosh HD\Users\andrewcpenn\Documents\GitHub\statistics-resampling\inst\boot.mexa64</file>
+      <file>Z:\Macintosh HD\Users\andrewcpenn\Documents\GitHub\statistics-resampling\inst\boot.mexmaca64</file>
       <file>Z:\Macintosh HD\Users\andrewcpenn\Documents\GitHub\statistics-resampling\inst\boot.mexmaci64</file>
       <file>Z:\Macintosh HD\Users\andrewcpenn\Documents\GitHub\statistics-resampling\inst\boot.mexw32</file>
       <file>Z:\Macintosh HD\Users\andrewcpenn\Documents\GitHub\statistics-resampling\inst\boot.mexw64</file>
@@ -75,6 +76,7 @@
       <file>Z:\Macintosh HD\Users\andrewcpenn\Documents\GitHub\statistics-resampling\inst\smoothmad.m</file>
       <file>Z:\Macintosh HD\Users\andrewcpenn\Documents\GitHub\statistics-resampling\inst\smoothmedian.m</file>
       <file>Z:\Macintosh HD\Users\andrewcpenn\Documents\GitHub\statistics-resampling\inst\smoothmedian.mexa64</file>
+      <file>Z:\Macintosh HD\Users\andrewcpenn\Documents\GitHub\statistics-resampling\inst\smoothmedian.mexmaca64</file>
       <file>Z:\Macintosh HD\Users\andrewcpenn\Documents\GitHub\statistics-resampling\inst\smoothmedian.mexmaci64</file>
       <file>Z:\Macintosh HD\Users\andrewcpenn\Documents\GitHub\statistics-resampling\inst\smoothmedian.mexw32</file>
       <file>Z:\Macintosh HD\Users\andrewcpenn\Documents\GitHub\statistics-resampling\inst\smoothmedian.mexw64</file>
