@@ -318,17 +318,17 @@ function [stats, bootstat, bootsse, bootfit] = bootwild (y, X, ...
   % intervals and p-values following both guidelines described in Hall and
   % Wilson (1991) Biometrics, 47(2), 757-762
   T = bsxfun (@minus, bootstat, original) ./ bootse;
-  unstable = any (or (isinf (T), isnan (T)), 2);
+  unstable = any (or (lt (bootse, eps), isnan (T)), 2);
   ci = nan (p, 2);
   pval = nan (p, 1);
   for j = 1:p
+    [x, F, P] = bootcdf (abs (T(j,:)), true, 1);
+    if (abs (t(j)) < x(1))
+      pval(j) = interp1 (x, P, abs (t(j)), 'linear', 1);
+    else
+      pval(j) = interp1 (x, P, abs (t(j)), 'linear', res_lim);
+    end
     if ( (~ isnan (std_err(j))) && (~ unstable(j)) )
-      [x, F, P] = bootcdf (abs (T(j,:)), true, 1);
-      if (abs (t(j)) < x(1))
-        pval(j) = interp1 (x, P, abs (t(j)), 'linear', 1);
-      else
-        pval(j) = interp1 (x, P, abs (t(j)), 'linear', res_lim);
-      end
       switch nalpha
         case 1
           ci(j, 1) = original(j) - std_err(j) * ...
