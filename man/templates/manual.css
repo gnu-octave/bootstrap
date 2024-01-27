@@ -30,8 +30,8 @@ div.menu {
 	/*background: #ea9024;*/ /* Puke yellow */
 	/*background: #729fcf;*/ /* light blue */
 	/*background: white;*/
-    background: black;
-	color: black;
+    background: #212529;
+	color: #212529;
 	width: 100%;
 	/* position: fixed;*/
 	position: absolute;
@@ -50,7 +50,7 @@ table.menu {
     padding-left: 0.5em;
     padding-right: 0em;
     padding-top: 0.5em;
-    padding-bottom: 0em;
+    padding-bottom: 0.25em;
     color: white;
     background-color: inherit;
 }
@@ -59,16 +59,16 @@ td.menu {
 }
 a.menu {
 	text-decoration: none;
-	color: black;
+	color: #212529;
 	background-color: inherit;
 	font-size: 80%;
 }
 a.menu:visited {
-    color: black;
+    color: #212529;
     background-color: inherit;
 }
 a.menu:link {
-    color: black;
+    color: #212529;
     background-color: inherit;
 }
 a.menu:hover {
@@ -79,7 +79,7 @@ big.menu {
   font-size: 150%;
   letter-spacing: 0.04em;
   line-height: 1.2em;
-  font-weight: bold;
+  font-weight: normal;
 }
 small.menu {
     font-style: italic;
@@ -91,7 +91,7 @@ small.menu {
 /* Regular elements */
 body {
   background: white;
-  color: black;
+  color: #212529;
   font-family: sans-serif;
   font-weight: normal;
   font-size: medium;
@@ -106,13 +106,13 @@ body {
 a:link {
   background-color: inherit;
   /*color: #4e9a06;*/
-  color: black;
+  color: #212529;
 }
 
 a:visited {
   background-color: inherit;
   /*color: #73d216;*/
-  color: black;
+  color: #212529;
 }
 
 /* Layout of packages page */
@@ -129,7 +129,7 @@ h3.package_name {
 
 div#nav {
   background: white;
-  color: black;
+  color: #212529;
   float: left;
   font-family: sans-serif;
   font-size: 0.8em;
@@ -147,7 +147,7 @@ div#nav a {
   display: block;
   padding: 0.2em 0.5em 0.2em 0.5em ;
   text-decoration: none;
-  color: black;
+  color: #212529;
 }
 
 div#nav a:hover {
@@ -162,7 +162,7 @@ div#nav div#currentnav {
   display: block;
   padding: 0.2em 0.5em 0.2em 0.5em ;
   text-decoration: none;
-  color: black;
+  color: #212529;
   text-align: right;
 }
 
@@ -171,7 +171,7 @@ div#nav div#currentnav {
 div#nav2 {
   float: right;
   background-color: #73d216;
-  color: black;
+  color: #212529;
   padding: 3px;
 }
 
@@ -244,13 +244,13 @@ h2.flash {
   letter-spacing: 0.1em;
   line-height: 1.2em;
   font-weight: bold;
-  color: black;
+  color: #212529;
   background-color: inherit;
 }
 div.flash {
-    border: solid 3px black;
+    border: solid 3px #212529;
     width: 70%;
-    color: black;
+    color: #212529;
     background: #fcaf3e; /* Orange */
     padding: 0.3em;
 }
@@ -320,7 +320,7 @@ code {
   border: 1px solid;
   border-color: #babdb6;
   background-color: #d3d7cf;
-  color: black;
+  color: #212529;
 }
 */
 
@@ -348,12 +348,12 @@ div.package {
   border: 1px solid;
   border-color: #babdb6;
   padding: 0.2em 0.2em 0;
-  color: black;
+  color: #212529;
 }
 
 a.package_head_link {
   background-color: inherit;
-  color: black;
+  color: #212529;
   text-decoration: none;
 }
 
@@ -364,7 +364,7 @@ table.package {
 
 p.package_link a {
   background-color: inherit;
-  color: black;
+  color: #212529;
   text-decoration: none;
 }
 
@@ -383,7 +383,7 @@ dt {
 #left-menu {
   display: none;
 
-  color: black;
+  color: #212529;
   border: none;
   position: fixed;
   /*position: absolute;*/
@@ -472,7 +472,7 @@ DIV.tabs A:hover
 DIV.tabs A:link, DIV.tabs A:visited,
 DIV.tabs A:active, DIV.tabs A:hover
 {
-       color: black;
+       color: #212529;
        background-color: inherit;
 }
 
@@ -523,7 +523,7 @@ DIV.tabs LI#current SPAN
    background-position: 0% -150px;
    padding-bottom   : 5px;
    background       : #eeeeec;
-   color	    : black;
+   color	    : #212529;
 }
 
 DIV.nav
@@ -692,7 +692,7 @@ A.package_group {
 }
 
 DIV.package_display A.package_link, DIV.package_display A.download_link, DIV.package_display A.repository_link {
-    color: black;
+    color: #212529;
     font-weight: bold;
     font-size: 80%;
     display: inline-block;
@@ -722,7 +722,7 @@ DIV.package_display A.repository_link {
 h4.notice {
   font-weight: normal;
   font-size: 100%;
-  color: black;
+  color: #212529;
   font-style: italic;
 }
 
