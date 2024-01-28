@@ -92,8 +92,9 @@
 %     containing the sum-of-squared error for the fit on each bootstrap 
 %     resample.
 %
-%     '[STATS, BOOTSTAT, BOOTSSE, BOOTFIT] = bootwild (...)  also returns a
-%     matrix containing the fitted values for each bootstrap resample.
+%     '[STATS, BOOTSTAT, BOOTSSE, BOOTFIT] = bootwild (...)  also returns an
+%     N-by-NBOOT matrix containing the N fitted values for each of the NBOOT
+%     bootstrap resamples.
 %
 %  Bibliography:
 %  [1] Wu (1986). Jackknife, bootstrap and other resampling methods in
