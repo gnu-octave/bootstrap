@@ -692,7 +692,7 @@ A.package_group {
 }
 
 DIV.package_display A.package_link, DIV.package_display A.download_link, DIV.package_display A.repository_link {
-    color: black;
+    color: #212529;
     font-weight: bold;
     font-size: 80%;
     display: inline-block;

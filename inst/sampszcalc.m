@@ -232,6 +232,30 @@ end
 %!
 %! n = sampszcalc ('r', 0.5)
 
+%!demo
+%!
+%! % Sample size calculation for nested two-sample test using the design effect
+%! % from a pilot experiment. 
+%! % See also the help documentation for functions bootlm and deffcalc.
+%! score = [21, 26, 33, 22, 18, 25, 26, 24, 21, 25, 35, 28, 32, 36, 38, ...
+%!          26, 34, 27, 38, 44, 34, 45, 38, 31, 41, 34, 35, 38, 46]';
+%! method = {'A','A','A','A','A','A','A','A','A','A','A','A','A','A','A', ...
+%!           'B','B','B','B','B','B','B','B','B','B','B','B','B','B'}';
+%! room = [1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, ...
+%!         1, 1, 1, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3]';
+%!
+%! [STATS, BOOTSTAT] = bootlm (score, {method}, 'clustid', room, ...
+%!                             'seed', 1, 'display', 'off', 'dim', 1, ...
+%!                             'posthoc', 'trt_vs_ctrl');
+%!
+%! [STATS_SRS, BOOTSTAT_SRS] = bootlm (score, {method}, 'clustid', [], ...
+%!                             'seed', 1, 'display', 'off', 'dim', 1, ...
+%!                             'posthoc', 'trt_vs_ctrl');
+%!
+%! DEFF = deffcalc (BOOTSTAT, BOOTSTAT_SRS)
+%!
+%! ns = sampszcalc ('t2', 'large', 0.80, 0.05, 2, DEFF)
+
 %!test
 %! % The difference between a sample mean from a zero constant (one sample
 %! % test) or the difference between two dependent means (matched pair).
@@ -327,3 +351,4 @@ end
 %! assert (nm, 85, 1);
 %! nl = sampszcalc ('r', 'large');
 %! assert (nl, 30, 1);
+
