@@ -34,8 +34,8 @@
 %          - p-val: two-tailed p-value(s) for the parameter(s) being equal to 0
 %        By default, confidence intervals and Null Hypothesis Significance Tests
 %     (NHSTs) for the regression coefficients (H0 = 0) are calculated by wild
-%     bootstrap-t and so are robust when normality and homoscedasticity cannot
-%     be assumed.
+%     bootstrap-t and are robust when normality and homoscedasticity cannot be
+%     assumed.
 %
 %        Usage of this function is very similar to that of 'anovan'. Data (Y)
 %     is a numeric variable, and the predictor(s) are specified in GROUP (a.k.a.
@@ -48,7 +48,8 @@
 %     Y, or the definitions of each predictor in GROUP, are not column vectors,
 %     then they will be transposed or reshaped to be column vectors. Rows of
 %     data whose outcome (Y) or value of any predictor is NaN or Inf are
-%     excluded. Please demonstrations in the manual for examples:
+%     excluded. For examples of function usage, please see demonstrations in
+%     the manual at:
 %
 %     https://gnu-octave.github.io/statistics-resampling/function/bootlm.html
 %
