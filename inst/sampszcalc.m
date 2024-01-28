@@ -252,9 +252,11 @@ end
 %!                             'seed', 1, 'display', 'off', 'dim', 1, ...
 %!                             'posthoc', 'trt_vs_ctrl');
 %!
+%! n = sampszcalc ('t2', 'large', 0.80, 0.05, 2)
+%!
 %! DEFF = deffcalc (BOOTSTAT, BOOTSTAT_SRS)
 %!
-%! ns = sampszcalc ('t2', 'large', 0.80, 0.05, 2, DEFF)
+%! n_corrected = sampszcalc ('t2', 'large', 0.80, 0.05, 2, DEFF)
 
 %!test
 %! % The difference between a sample mean from a zero constant (one sample

@@ -12,6 +12,7 @@
 % -- Function File: STATS = bootwild (y, ...)
 % -- Function File: [STATS, BOOTSTAT] = bootwild (y, ...)
 % -- Function File: [STATS, BOOTSTAT, BOOTSSE] = bootwild (y, ...)
+% -- Function File: [STATS, BOOTSTAT, BOOTSSE, BOOTFIT] = bootwild (y, ...)
 %
 %     'bootwild (y)' performs a null hypothesis significance test for the
 %     mean of y being equal to 0. This function implements wild bootstrap-t
@@ -90,6 +91,9 @@
 %     '[STATS, BOOTSTAT, BOOTSSE] = bootwild (...)  also returns a vector
 %     containing the sum-of-squared error for the fit on each bootstrap 
 %     resample.
+%
+%     '[STATS, BOOTSTAT, BOOTSSE, BOOTFIT] = bootwild (...)  also returns a
+%     matrix containing the fitted values for each bootstrap resample.
 %
 %  Bibliography:
 %  [1] Wu (1986). Jackknife, bootstrap and other resampling methods in
