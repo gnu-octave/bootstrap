@@ -3,7 +3,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
   <head>
   <meta http-equiv="content-type" content="text/html; charset=utf-8" />
-  <meta name="date" content="2024-01-24"/>
+  <meta name="date" content="2024-01-28"/>
   <meta name="generator" content="generate_html 0.3.3" />
   <meta name="author" content="Andrew Penn" />
   <meta name="description" content="A package for statistical analysis using resampling methods." />
@@ -34,6 +34,7 @@
  -- Function File: STATS = bootwild (y, ...)
  -- Function File: [STATS, BOOTSTAT] = bootwild (y, ...)
  -- Function File: [STATS, BOOTSTAT, BOOTSSE] = bootwild (y, ...)
+ -- Function File: [STATS, BOOTSTAT, BOOTSSE, BOOTFIT] = bootwild (y, ...)
 
      'bootwild (y)' performs a null hypothesis significance test for the
      mean of y being equal to 0. This function implements wild bootstrap-t
@@ -112,6 +113,10 @@
      '[STATS, BOOTSTAT, BOOTSSE] = bootwild (...)  also returns a vector
      containing the sum-of-squared error for the fit on each bootstrap 
      resample.
+
+     '[STATS, BOOTSTAT, BOOTSSE, BOOTFIT] = bootwild (...)  also returns an
+     N-by-NBOOT matrix containing the N fitted values for each of the NBOOT
+     bootstrap resamples.
 
   Bibliography:
   [1] Wu (1986). Jackknife, bootstrap and other resampling methods in
@@ -213,8 +218,8 @@ Bootstrap settings:
 
 Test Statistics: 
  original     std_err      CI_lower     CI_upper     t-stat      p-val     FPR
- +175.5       +2.502       +169.8       +181.2       +70.1       <.001    .010
- +0.1904      +0.08261     +0.003534    +0.3773      +2.31        .047    .280</pre>
+ +175.5       +2.502       +169.7       +181.3       +70.1       <.001    .010
+ +0.1904      +0.08261     +0.006448    +0.3744      +2.31        .044    .273</pre>
 </div>
 
 <p>Package: <a href="../index.html">statistics-resampling</a></p>
