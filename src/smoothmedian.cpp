@@ -66,7 +66,7 @@
 
 
 #include "mex.h"         // for mex functions
-#include <vector>        // for vectpr function
+#include <vector>        // for vector function
 #include <cmath>         // for pow function
 #include <algorithm>     // for nth_element function
 using namespace std;
