@@ -3,7 +3,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
   <head>
   <meta http-equiv="content-type" content="text/html; charset=utf-8" />
-  <meta name="date" content="2024-01-30"/>
+  <meta name="date" content="2024-01-31"/>
   <meta name="generator" content="generate_html 0.3.3" />
   <meta name="author" content="Andrew Penn" />
   <meta name="description" content="A package for statistical analysis using resampling methods." />
@@ -171,7 +171,8 @@
 <pre class="example">
 
  % Sample size calculation for nested two-sample test using the design effect
- % from a pilot experiment. 
+ % from a pilot experiment. N below corresponds to the number of independent
+ % sampling units (i.e. clusters).
  % See also the help documentation for functions bootlm and deffcalc.
  score = [21, 26, 33, 22, 18, 25, 26, 24, 21, 25, 35, 28, 32, 36, 38, ...
           26, 34, 27, 38, 44, 34, 45, 38, 31, 41, 34, 35, 38, 46]';
@@ -180,23 +181,34 @@
  room = [1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, ...
          1, 1, 1, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3]';
 
+ [STATS_STD] = bootlm (score, {method}, 'clustid', room, ...
+                             'seed', 1, 'display', 'off', 'dim', 1, ...
+                             'posthoc', 'trt_vs_ctrl', ...
+                             'method', 'bayesian', 'prior', 'auto', ...
+                             'standardize', true);
+
  [STATS, BOOTSTAT] = bootlm (score, {method}, 'clustid', room, ...
                              'seed', 1, 'display', 'off', 'dim', 1, ...
-                             'posthoc', 'trt_vs_ctrl');
+                             'posthoc', 'trt_vs_ctrl', ...
+                             'method', 'bayesian', 'prior', 'auto');
 
  [STATS_SRS, BOOTSTAT_SRS] = bootlm (score, {method}, 'clustid', [], ...
                              'seed', 1, 'display', 'off', 'dim', 1, ...
-                             'posthoc', 'trt_vs_ctrl');
+                             'posthoc', 'trt_vs_ctrl', ...
+                             'method', 'bayesian', 'prior', 'auto');
 
- n = sampszcalc ('t2', 'large', 0.80, 0.05, 2)
+ fprintf('Cohen''s d = %.2f\n', STATS_STD.estimate)
+
+ N = sampszcalc ('t2', STATS_STD.estimate, 0.80, 0.05, 2)
 
  DEFF = deffcalc (BOOTSTAT, BOOTSTAT_SRS)
 
- n_corrected = sampszcalc ('t2', 'large', 0.80, 0.05, 2, DEFF)</pre>
+ N_corrected = sampszcalc ('t2', STATS_STD.estimate, 0.80, 0.05, 2, DEFF)</pre>
 <p>Produces the following output</p>
-<pre class="example">n =    26
-DEFF = 2.5556
-n_corrected =    66</pre>
+<pre class="example">Cohen's d = 1.72
+N =     7
+DEFF = 3.5527
+N_corrected =    23</pre>
 </div>
 
 <p>Package: <a href="../index.html">statistics-resampling</a></p>
