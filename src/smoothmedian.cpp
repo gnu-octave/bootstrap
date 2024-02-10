@@ -193,22 +193,22 @@ void mexFunction (int nlhs, mxArray* plhs[],
         // Set stopping criteria (if Tol is not already specified)
         if ( nrhs < 3 || mxIsEmpty (prhs[2]) ) {
             Tol = range * 1e-4; 
-        }  
+        }
 
         // Start iterations
         for ( int Iter = 0; Iter <= MaxIter ; Iter++ ) {
-            
+
             // Break from iterations if the distance between the bracket bounds 
             // < Tol since the smoothed median will be equal to the median 
             if ( range <= Tol ) {
                 break;
-            }   
+            }
 
             // Calculate derivatives of the objective function for Newton-Raphson method
             //S = 0;
             T = 0;
             U = 0;
-            for ( int j = 0; j < l ; j++ ) {        
+            for ( int j = 0; j < l ; j++ ) {
                 for ( int i = 0; i < j ; i++ ) {
                     D = pow (xvec[i] - M[k], 2) + pow (xvec [j] - M[k], 2);
                     R = sqrt (D);
@@ -227,7 +227,7 @@ void mexFunction (int nlhs, mxArray* plhs[],
             step = T / U;
 
             // Evaluate convergence
-            if ( abs (step) <= Tol ) { 
+            if ( abs (step) <= Tol ) {
                 break; // Break from optimization when converged to tolerance 
             } else {
                 // Update bracket bounds for Bisection method
@@ -257,11 +257,11 @@ void mexFunction (int nlhs, mxArray* plhs[],
                     mexPrintf ("warning: Root finding failed to reach tolerance for row %d \n", k+1);
                 }
             }
-            
+
         }
 
         // Clear the temporary vector for the next cycle of the loop
-        xvec.clear(); 
+        xvec.clear();
     }
 
     return;
