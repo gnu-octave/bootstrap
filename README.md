@@ -16,7 +16,7 @@ If you use this package, please include the following citation(s):
 
 ### Description
 
-The statistics-resampling package is an Octave package and Matlab toolbox that can be used to overcome a wide variety of statistics problems using non-parametric resampling methods. In particular, the functions included can be used to estimate bias, uncertainty (standard errors and confidence intervals), prediction error, and test hypotheses (*p*-values). Variations of the resampling methods are included that improve the accuracy of the statistics for small samples and samples with complex dependence structures. 
+The statistics-resampling package is an Octave package and Matlab toolbox that can be used to perform a wide variety of statistics tasks using non-parametric resampling methods. In particular, the functions included can be used to estimate bias, uncertainty (standard errors and confidence intervals), prediction error, and calculate *p*-values for null hypothesis significance tests. Variations of the resampling methods are included that improve the accuracy of the statistics for small samples and samples with complex dependence structures. 
 
 ### Requirements and dependencies
 
