@@ -76,10 +76,11 @@
 %                          has already been started. 
 %        o 'nproc':        nproc sets the number of parallel processes
 %
-%     'PVAL = boot1way (DATA, GROUP, ...)' returns the p-value(s) from the 
-%     (multiple) comparison test(s). Note that the p-value returned will be
+%     'PVAL = boot1way (DATA, GROUP, ...)' returns the p-value(s) for the 
+%     (multiple) two-tailed test(s). Note that the p-value(s) returned are
+%     already adjusted to control the family-wise, type I error rate and 
 %     truncated at the resolution limit determined by the number of bootstrap
-%     replicates, specifically 1/NBOOT(1). 
+%     replicates, specifically 1/NBOOT(1)  
 %
 %     '[PVAL, C] = boot1way (DATA, GROUP, ...)' also returns a 9 column matrix
 %     that summarises multiple comparison test results. The columns of C are:

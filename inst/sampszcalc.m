@@ -329,7 +329,7 @@ end
 %! assert (nl, 13, 1);
 
 %!test
-%! % The difference between two independent proportions (two sample test).
+%! % The difference between two independent proportions (two-sample test).
 %! % Required sample sizes for small, medium and large effects with power, 
 %! % alpha and the number of tails at 0.8, 0.05 and 2 respectively (defaults)
 %! % The standardized effect size corresponds to Cohen's h
