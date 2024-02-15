@@ -437,15 +437,17 @@
 %       model. Computations of the statistics in AOVSTAT are compatible with
 %       the 'clustid' and 'blocksz' options.
 %
-%       The bootlm function only fits linear models. While any type of predictor,
-%       be it a fixed effect or nuisance random effect, can be included in the
-%       model as a main effect, the p-values (and confidence intervals) returned
-%       are only meaningful for the main effects and interactions involving just
-%       fixed effects. Also, the p-values for ANOVA tests, and p-values and
-%       confidence intervals for parameter estimates in a linear model, can
-%       account for nested data structures by cluster bootstrap resampling
-%       using the 'clustid' option, as an alternative approach to fitting a
-%       mixed (multilevel) model.
+%       The bootlm function fits linear models and treats all model predictors
+%       as fixed effects during ANOVA tests. While any type of predictor, be it
+%       a fixed effect or nuisance random effect, can be included in the model
+%       as a main effect, any p-values returned are only meaningful for the main
+%       effects and interactions that involve just fixed effects. This can be
+%       useful to account for any variance attributed to nuisance random effects
+%       for more powerful tests of fixed effects, like in tests for the fixed
+%       effect(s) in a within-subjects design or randomized block design. The
+%       bootlm function can also be used to compute p-values for ANOVA with
+%       nested data structures by cluster bootstrap resampling (see the
+%       'clustid' option).
 %
 %       ** See demo 7 for an example of how to obtain results for ANOVA using
 %          type II sums-of-squares, which test hypotheses that give results
