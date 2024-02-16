@@ -3,7 +3,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
   <head>
   <meta http-equiv="content-type" content="text/html; charset=utf-8" />
-  <meta name="date" content="2024-02-10"/>
+  <meta name="date" content="2024-02-16"/>
   <meta name="generator" content="generate_html 0.3.3" />
   <meta name="author" content="Andrew Penn" />
   <meta name="description" content="A package for statistical analysis using resampling methods." />
@@ -98,10 +98,11 @@
                           has already been started. 
         o 'nproc':        nproc sets the number of parallel processes
 
-     'PVAL = boot1way (DATA, GROUP, ...)' returns the p-value(s) from the 
-     (multiple) comparison test(s). Note that the p-value returned will be
+     'PVAL = boot1way (DATA, GROUP, ...)' returns the p-value(s) for the 
+     (multiple) two-tailed test(s). Note that the p-value(s) returned are
+     already adjusted to control the family-wise, type I error rate and 
      truncated at the resolution limit determined by the number of bootstrap
-     replicates, specifically 1/NBOOT(1). 
+     replicates, specifically 1/NBOOT(1)  
 
      '[PVAL, C] = boot1way (DATA, GROUP, ...)' also returns a 9 column matrix
      that summarises multiple comparison test results. The columns of C are:
@@ -528,7 +529,7 @@ Bootstrap settings:
 -----------------------------------------------------------------------------
 | Comparison |     Test # |      Ref # | Difference |          t |        p |
 |------------|------------|------------|------------|------------|----------|
-|          1 |          2 |          1 |    -0.5462 |      -1.14 |     .286 |
+|          1 |          2 |          1 |   -0.03715 |      -0.09 |     .890 |
 
 -----------------------------------------------------------------------------
 |    GROUP # |                                       GROUP label |        N |
@@ -573,7 +574,7 @@ Bootstrap settings:
 -----------------------------------------------------------------------------
 | Comparison |     Test # |      Ref # | Difference |          t |        p |
 |------------|------------|------------|------------|------------|----------|
-|          1 |          2 |          1 |    -0.2579 |      -0.34 |     .595 |
+|          1 |          2 |          1 |    -0.4850 |      -0.82 |     .268 |
 
 -----------------------------------------------------------------------------
 |    GROUP # |                                       GROUP label |        N |

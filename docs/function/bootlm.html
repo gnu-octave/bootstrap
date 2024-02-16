@@ -3,7 +3,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
   <head>
   <meta http-equiv="content-type" content="text/html; charset=utf-8" />
-  <meta name="date" content="2024-02-10"/>
+  <meta name="date" content="2024-02-16"/>
   <meta name="generator" content="generate_html 0.3.3" />
   <meta name="author" content="Andrew Penn" />
   <meta name="description" content="A package for statistical analysis using resampling methods." />
@@ -458,6 +458,16 @@
        bootstrap is achieved by wild bootstrap of the residuals from the full
        model. Computations of the statistics in AOVSTAT are compatible with
        the 'clustid' and 'blocksz' options.
+
+       The bootlm function treats all model predictors as fixed effects during
+       ANOVA tests. While any type of predictor, be it a fixed effect or
+       nuisance random effect, can be included in the model as a main effect,
+       any p-values returned are only meaningful for the main effects and
+       interactions that involve just fixed effects - same goes for the
+       p-values and confidence intervals for the associated regression
+       coefficients. Note also that the bootlm function can be used to compute
+       p-values for ANOVA with nested data structures by cluster bootstrap
+       resampling (see the 'clustid' option).
 
        ** See demo 7 for an example of how to obtain results for ANOVA using
           type II sums-of-squares, which test hypotheses that give results
