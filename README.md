@@ -107,7 +107,7 @@ Below are links to demonstrations of how the bootstrap or randomization function
   
 ### Issues
 
-If you find bugs or have any suggestions, please raise an issue on GitHub [here](https://github.com/gnu-octave/statistics-resampling/issues). If you have any problems with the Binder for statistics-resampling online, please raise an issue on GitHub [here](https://github.com/acpennlab/statistics-resampling-online/issues).Please, make sure that when reporting a bug you provide as much information as possible for other users to be able to replicate it.   
+If you find bugs or have any suggestions, please raise an issue on GitHub [here](https://github.com/gnu-octave/statistics-resampling/issues). If you have any problems with Binder for statistics-resampling online, please raise an issue on GitHub [here](https://github.com/acpennlab/statistics-resampling-online/issues). Please make sure that, when reporting a bug, you provide as much information as possible for other users to be able to replicate it.   
   
 Package: [statistics-resampling](https://gnu-octave.github.io/statistics-resampling/)  
 
