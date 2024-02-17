@@ -24,7 +24,7 @@ Try out the statistics-resampling package online in Matlab [![Open in MATLAB Onl
   
 (Collaborative) student projects in GNU Octave can use the statistics-resampling package at [Octave-Online](https://octave-online.net/). Doing so requires users to download the latest release of the Source code (tar.gz) from [here](https://github.com/gnu-octave/statistics-resampling/releases) and follow steps 2-5 of these [instructions](https://octaveonline.uservoice.com/knowledgebase/articles/1078840-installing-custom-packages).
 
-Users who prefer Jupyter and have a workflow that is collaborative and/or crosses over multiple programming languages may find it more convenient to use the statistics-resampling package at [COCALC](https://cocalc.com/). The approach described above (for Octave-Online) also applies to installing the statistics-resampling package via a Jupyter Notebook with an Octave kernel at COCALC.  
+Users who prefer Jupyter and have a workflow that is collaborative and/or crosses over multiple programming languages may find it more convenient to install and use the statistics-resampling package at [COCALC](https://cocalc.com/). The approach described above (for Octave-Online) also applies to installing the statistics-resampling package via a Jupyter Notebook with an Octave kernel at COCALC.  
   
 Follow the links in the 'Quick start' section below to obtain some examples of data and code to try out with the package.  
  
