@@ -20,9 +20,9 @@ The statistics-resampling package is an Octave package and Matlab toolbox that c
   
 ### Using the statistics-resampling package online
   
-Try out the statistics-resampling package online in Matlab [![Open in MATLAB Online](https://www.mathworks.com/images/responsive/global/open-in-matlab-online.svg)](https://matlab.mathworks.com/open/github/v1?repo=gnu-octave/statistics-resampling&file=README.md) or in a Jupyter Notebook with an Octave kernel [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/acpennlab/statistics-resampling-online/master?labpath=statistics-resampling.ipynb). 
+Try out the statistics-resampling package online in Matlab [![Open in MATLAB Online](https://www.mathworks.com/images/responsive/global/open-in-matlab-online.svg)](https://matlab.mathworks.com/open/github/v1?repo=gnu-octave/statistics-resampling&file=README.md) or in a Jupyter Notebook with an Octave kernel [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/acpennlab/statistics-resampling-online/master?labpath=statistics-resampling.ipynb). Note that the first time you use statistics-resampling online in Octave with Binder it will take a few minutes to build a docker image.
   
-Note that the first time you use statistics-resampling online in Octave with Binder it will take a few minutes to build a docker image.  
+Student projects can also use the statistics-resampling package in [Octave-Online](https://octave-online.net/). Doing so requires users to download the latest release of the Source code (tar.gz) from [here](https://github.com/gnu-octave/statistics-resampling/releases) and follow steps 2-5 of these [instructions](https://octaveonline.uservoice.com/knowledgebase/articles/1078840-installing-custom-packages).  
   
 Follow the links in the 'Quick start' section below to obtain some examples of data and code to try out with the package.  
  
