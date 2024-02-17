@@ -1,6 +1,6 @@
 # Octave on mybinder.org
 
-[![Binder](https://mybinder.org/badge.svg)](https://mybinder.org/v2/gh/gnu-octave/statistics-resampling/master?filepath=jupyter/index.ipynb)
+[![Binder](https://mybinder.org/badge.svg)](https://mybinder.org/v2/gh/gnu-octave/statistics-resampling/master?labpath=jupyter%2Findex.ipynb)
 
 An example of using Octave on [mybinder.org](https://mybinder.org/).
 
