@@ -58,9 +58,10 @@ cd ../../..
 # Add link targets to demos
 for i in {1..20}; do sed -i '' -e 's/<h3>Demonstration '$i'<\/h3>/\n<h3><a name="'$i'">Demonstration '$i'<\/a><\/h3>/' ./tmp/statistics-resampling/function/*.html; done
 
-# Publish README markdown file as HTML and add header
+# Publish README markdown file as HTML and add header to integrate it into the online manual
 cd ..
-pandoc -o ./man/tmp/statistics-resampling/tmp.html -V colorlinks=true README.md 
+pandoc -o ./man/tmp/statistics-resampling/tmp.html -V colorlinks=true README.md
+cp ./man/tmp/statistics-resampling/tmp.html README.html
 cat ./man/templates/header.html ./man/tmp/statistics-resampling/tmp.html > ./man/tmp/statistics-resampling/readme.html
 printf "</div>\n</body>\n</html>\n" >> ./man/tmp/statistics-resampling/readme.html
 rm ./man/tmp/statistics-resampling/tmp.html
