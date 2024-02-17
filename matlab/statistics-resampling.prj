@@ -1,13 +1,13 @@
 <deployment-project plugin="plugin.toolbox" plugin-version="1.0">
-  <configuration build-checksum="1929471052" file="Z:\Macintosh HD\Users\andrewcpenn\Documents\GitHub\statistics-resampling\matlab\statistics-resampling.prj" location="Z:\Macintosh HD\Users\andrewcpenn\Documents\GitHub\statistics-resampling\matlab" name="statistics-resampling" target="target.toolbox" target-name="Package Toolbox">
+  <configuration build-checksum="3001033176" file="Z:\Macintosh HD\Users\andrewcpenn\Documents\GitHub\statistics-resampling\matlab\statistics-resampling.prj" location="Z:\Macintosh HD\Users\andrewcpenn\Documents\GitHub\statistics-resampling\matlab" name="statistics-resampling" target="target.toolbox" target-name="Package Toolbox">
     <param.appname>statistics-resampling</param.appname>
     <param.authnamewatermark>Andrew Penn</param.authnamewatermark>
     <param.email>andy.c.penn@gmail.com</param.email>
     <param.company>University of Sussex, UK</param.company>
     <param.summary>Statistical analysis using resampling methods</param.summary>
-    <param.description>The statistics-resampling package is an Octave package and Matlab toolbox that can be used to overcome a wide variety of statistics problems using non-parametric resampling methods. In particular, the functions included can be used to estimate bias, uncertainty (standard errors and confidence intervals), prediction error, and test hypotheses (p-values). Variations of the resampling methods are included that improve the accuracy of the statistics for small samples and samples with complex dependence structures.</param.description>
+    <param.description>The statistics-resampling package is an Octave package and Matlab toolbox that can be used to perform a wide variety of statistics tasks using non-parametric resampling methods. In particular, the functions included can be used to estimate bias, uncertainty (standard errors and confidence intervals), prediction error, and calculate p-values for null hypothesis significance tests. Variations of the resampling methods are included that improve the accuracy of the statistics for small samples and samples with complex dependence structures.</param.description>
     <param.screenshot>Y:\Documents\GitHub\statistics-resampling\doc\icon.png</param.screenshot>
-    <param.version>5.5.6</param.version>
+    <param.version>5.5.7</param.version>
     <param.output>${PROJECT_ROOT}\statistics-resampling.mltbx</param.output>
     <param.products.name />
     <param.products.id />
@@ -71,6 +71,7 @@
       <file>Z:\Macintosh HD\Users\andrewcpenn\Documents\GitHub\statistics-resampling\inst\cor.m</file>
       <file>Z:\Macintosh HD\Users\andrewcpenn\Documents\GitHub\statistics-resampling\inst\credint.m</file>
       <file>Z:\Macintosh HD\Users\andrewcpenn\Documents\GitHub\statistics-resampling\inst\deffcalc.m</file>
+      <file>Z:\Macintosh HD\Users\andrewcpenn\Documents\GitHub\statistics-resampling\inst\demo_data.csv</file>
       <file>Z:\Macintosh HD\Users\andrewcpenn\Documents\GitHub\statistics-resampling\inst\randtest2.m</file>
       <file>Z:\Macintosh HD\Users\andrewcpenn\Documents\GitHub\statistics-resampling\inst\sampszcalc.m</file>
       <file>Z:\Macintosh HD\Users\andrewcpenn\Documents\GitHub\statistics-resampling\inst\smoothmad.m</file>
