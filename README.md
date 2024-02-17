@@ -25,6 +25,15 @@ Core functions in this package are known to be compatible with versions of Octav
  * All parallel computing options require either the parallel package (in Octave) or the Parallel Computing Matlab Toolbox (in Matlab).  
  * The optional jackknife functionality in `boot1way` requires the Statistics package (in Octave) or the Statistics and Machine Learning Toolbox (in Matlab).  
  
+  
+### Running the statistics-resampling package online
+
+You can try out the statistics-resampling package online:
+
+ [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/acpennlab/statistics-resampling/master?labpath=statistics-resampling.ipynb)
+ (Note that the first time you load access statistics-resampling online with Binder it will take a few minutes to build a docker image, but subsequent access to statistics-resampling online will only take a few of seconds.)
+ [![Open in MATLAB Online](https://www.mathworks.com/images/responsive/global/open-in-matlab-online.svg)](https://matlab.mathworks.com/open/github/v1?repo=gnu-octave/statistics-resampling&file=README.md)
+ 
 ### Installation
  
 To install (or test) the statistics-resampling package at a location of your choice for either **Matlab or Octave**, follow these steps: 
@@ -50,14 +59,9 @@ The package can then be loaded on demand in Octave with the following commmand:
  `pkg load statistics-resampling`  
  
   (Note that this isn't necessary if you used the local installation instructions first described in this section)
-  
-*TIP: Integrate use of the statistics-resampling package into your analysis workflow along with other programming languages (e.g. Python, R or Julia etc.) using [Jupyter Lab with an Octave kernel](https://jupyter.org/try).*  
- 
+   
 Alternatively, **MATLAB** users can conveniently install the package functions as a toolbox by double-clicking the 'statistics-resampling.mltbx' file in the matlab subdirectory. The toolbox installed in this way can be disabled or uninstalled via MATLAB's Add-On manager. MEX files are included with the toolbox installation for Windows (32- or 64-bit), MacOS (Intel or Apple Silicon 64-bit) and Linux (64-bit). 
   
- [![Open in MATLAB Online](https://www.mathworks.com/images/responsive/global/open-in-matlab-online.svg)](https://matlab.mathworks.com/open/github/v1?repo=gnu-octave/statistics-resampling&file=README.md)
-  
-
 ### Usage
 
 All help and demos are documented on the ['Function Reference'](https://gnu-octave.github.io/statistics-resampling/function_reference) page in the [manual](https://gnu-octave.github.io/statistics-resampling/). If you do not see the navigation pane on the manual web pages, please enable javascript in your browser. If you need further help with using any of the functions in this package, please post your questions on the [discussions page](https://github.com/gnu-octave/statistics-resampling/discussions).  
@@ -65,6 +69,8 @@ All help and demos are documented on the ['Function Reference'](https://gnu-octa
 Function help can also be requested directly from the Octave/MATLAB command prompt, by typing `help function-name` - substituting in the actual function name.
   
 In Octave only, you can get a basic overview of the package and it's functions by typing: `pkg describe -verbose statistics-resampling`, or request demonstrations of function usage by typing `demo function-name`. Users can also request help with using functions and programming in Octave at the [discourse group](https://octave.discourse.group/c/help/6).  
+
+*TIP: Integrate use of the statistics-resampling package into your analysis workflow along with other programming languages (e.g. Python, R or Julia etc.) using [Jupyter Lab with an Octave kernel](https://jupyter.org/try).*  
 
 ### Quick start
 
