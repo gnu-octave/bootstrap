@@ -69,7 +69,7 @@ Function help can also be requested directly from the Octave/MATLAB command prom
   
 In Octave only, you can get a basic overview of the package and it's functions by typing: `pkg describe -verbose statistics-resampling`, or request demonstrations of function usage by typing `demo function-name`. Users can also request help with using functions and programming in Octave at the [discourse group](https://octave.discourse.group/c/help/6).  
 
-*TIPS: Document and publish your analysis using statistics-resampling functions in a Jupyter Notebook (with an Octave kernel) by forking and customizing the [statistics-resampling-online GitHub repository](https://github.com/acpennlab/statistics-resampling-online). With [Jupyter Lab](https://jupyter.org/try), you can also integrate use of the statistics-resampling package into your analysis workflow along with other programming languages (e.g. Python, R or Julia etc.) by installing and configuring different kernels.*  
+*TIPS: Document and publish your analysis project using statistics-resampling functions in a Jupyter Notebook (with an Octave kernel) by forking and customizing the [statistics-resampling-online GitHub repository](https://github.com/acpennlab/statistics-resampling-online). With [Jupyter Lab](https://jupyter.org/try), you can also integrate use of the statistics-resampling package into your analysis workflow along with other programming languages (e.g. Python, R or Julia etc.) by installing and configuring different kernels.*  
 
 ### Quick start
 
