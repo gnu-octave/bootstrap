@@ -16,24 +16,23 @@ If you use this package, please include the following citation(s):
 
 ### Description
 
-The statistics-resampling package is an Octave package and Matlab toolbox that can be used to perform a wide variety of statistics tasks using non-parametric resampling methods. In particular, the functions included can be used to estimate bias, uncertainty (standard errors and confidence intervals), prediction error, and calculate *p*-values for null hypothesis significance tests. Variations of the resampling methods are included that improve the accuracy of the statistics for small samples and samples with complex dependence structures. 
-
-### Requirements and dependencies
-
-Core functions in this package are known to be compatible with versions of Octave 4.4.0+ and Matlab R2007a 7.4.0+. Some features of this package have specific dependencies:
-
- * All parallel computing options require either the parallel package (in Octave) or the Parallel Computing Matlab Toolbox (in Matlab).  
- * The optional jackknife functionality in `boot1way` requires the Statistics package (in Octave) or the Statistics and Machine Learning Toolbox (in Matlab).  
- 
+The statistics-resampling package is an Octave package and Matlab toolbox that can be used to perform a wide variety of statistics tasks using non-parametric resampling methods. In particular, the functions included can be used to estimate bias, uncertainty (standard errors and confidence intervals), prediction error, and calculate *p*-values for null hypothesis significance tests. Variations of the resampling methods are included that improve the accuracy of the statistics for small samples and samples with complex dependence structures.  
   
-### Running the statistics-resampling package online
-
+### Using the statistics-resampling package online
+  
 Try out the statistics-resampling package online in Matlab [![Open in MATLAB Online](https://www.mathworks.com/images/responsive/global/open-in-matlab-online.svg)](https://matlab.mathworks.com/open/github/v1?repo=gnu-octave/statistics-resampling&file=README.md) or in a Jupyter Notebook with an Octave kernel [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/acpennlab/statistics-resampling-online/master?labpath=statistics-resampling.ipynb). 
   
 Note that the first time you use statistics-resampling online in Octave with Binder it will take a few minutes to build a docker image.  
   
 Follow the links in the 'Quick start' section below to obtain some examples of data and code to try out with the package.  
  
+### Requirements and dependencies
+  
+Core functions in this package are known to be compatible with versions of Octave 4.4.0+ and Matlab R2007a 7.4.0+. Some features of this package have specific dependencies:
+
+ * All parallel computing options require either the parallel package (in Octave) or the Parallel Computing Matlab Toolbox (in Matlab).  
+ * The optional jackknife functionality in `boot1way` requires the Statistics package (in Octave) or the Statistics and Machine Learning Toolbox (in Matlab).  
+
 ### Installation
  
 To install (or test) the statistics-resampling package in your computer at a location of your choice, for either **Matlab or Octave**, follow these steps: 
