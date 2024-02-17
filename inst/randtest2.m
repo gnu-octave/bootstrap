@@ -525,8 +525,8 @@ end
 %!demo
 %!
 %! % Load example data from CSV file
-%! data = csvread('demo_data.csv');
-%! trt = data(:,1); % 0 = no treatment; 1 = treatment
+%! data = csvread ('demo_data.csv');
+%! trt = data(:,1); % Predictor: 0 = no treatment; 1 = treatment
 %! grp = data(:,2); % Cluster IDs
 %! val = data(:,3); % Values measured of the outcome
 %! X = val(trt==0); GX = grp(trt==0);
