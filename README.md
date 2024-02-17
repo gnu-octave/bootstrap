@@ -101,10 +101,14 @@ Below are links to demonstrations of how the bootstrap or randomization function
  
  * [Randomization or permutation tests to compare the distributions of two independent or paired/matching samples](https://gnu-octave.github.io/statistics-resampling/function/randtest2.html#1)  
  
+ * [Randomization or permutation tests to compare the distributions of two independent samples with clustered observations](https://gnu-octave.github.io/statistics-resampling/function/randtest2.html#5) 
+ 
  * [Statistically evaluate the number of modes (i.e. peaks) in a distribution](https://gnu-octave.github.io/statistics-resampling/function/bootmode.html#1)  
  
  * [Correcting sample size calculations for a two-sample test with nested design](https://gnu-octave.github.io/statistics-resampling/function/sampszcalc.html#6)  
   
+For an example of how to import your own data (in long format) from a CSV file, see this [demonstration](https://gnu-octave.github.io/statistics-resampling/function/randtest2.html#5)
+ 
 ### Issues
 
 If you find bugs or have any suggestions, please raise an issue on GitHub [here](https://github.com/gnu-octave/statistics-resampling/issues). If you have any problems specifically with Binder for statistics-resampling online, please raise an issue on GitHub [here](https://github.com/acpennlab/statistics-resampling-online/issues). Please make sure that, when reporting a bug, you provide as much information as possible for other users to be able to replicate it.   
