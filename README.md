@@ -36,7 +36,7 @@ Follow the links in the 'Quick start' section below to obtain some examples of d
  
 ### Installation
  
-To install (or test) the statistics-resampling package at a location of your choice for either **Matlab or Octave**, follow these steps: 
+To install (or test) the statistics-resampling package in your computer at a location of your choice, for either **Matlab or Octave**, follow these steps: 
  
  * Download the latest package release from [here](https://github.com/gnu-octave/statistics-resampling/releases/). Extract (not just browse) the contents of the compressed file (.zip or .tar.gz), and move the package directory to the desired location.
  * Open Octave or Matlab (command prompt).
