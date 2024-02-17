@@ -30,9 +30,9 @@ Core functions in this package are known to be compatible with versions of Octav
 
 You can try out the statistics-resampling package online:
 
- [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/acpennlab/statistics-resampling/master?labpath=statistics-resampling.ipynb)
- (Note that the first time you load access statistics-resampling online with Binder it will take a few minutes to build a docker image, but subsequent access to statistics-resampling online will only take a few of seconds.)
- [![Open in MATLAB Online](https://www.mathworks.com/images/responsive/global/open-in-matlab-online.svg)](https://matlab.mathworks.com/open/github/v1?repo=gnu-octave/statistics-resampling&file=README.md)
+ [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/acpennlab/statistics-resampling/master?labpath=statistics-resampling.ipynb)  
+ (Note that the first time you load access statistics-resampling online with Binder it will take a few minutes to build a docker image, but subsequent access to statistics-resampling online will only take a few of seconds.)  
+ [![Open in MATLAB Online](https://www.mathworks.com/images/responsive/global/open-in-matlab-online.svg)](https://matlab.mathworks.com/open/github/v1?repo=gnu-octave/statistics-resampling&file=README.md)  
  
 ### Installation
  
