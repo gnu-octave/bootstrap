@@ -28,7 +28,7 @@ Core functions in this package are known to be compatible with versions of Octav
   
 ### Running the statistics-resampling package online
 
-You can try out the statistics-resampling package online: 
+You can try out the statistics-resampling package online either in [Matlab](https://matlab.mathworks.com/open/github/v1?repo=gnu-octave/statistics-resampling&file=README.md) or in [Octave](https://mybinder.org/v2/gh/acpennlab/statistics-resampling/master?labpath=statistics-resampling.ipynb) 
  
  [![Open in MATLAB Online](https://www.mathworks.com/images/responsive/global/open-in-matlab-online.svg)](https://matlab.mathworks.com/open/github/v1?repo=gnu-octave/statistics-resampling&file=README.md)  
  
