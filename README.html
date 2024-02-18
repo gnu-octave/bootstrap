@@ -27,16 +27,16 @@ methods are included that improve the accuracy of the statistics for
 small samples and samples with complex dependence structures.</p>
 <h3 id="using-the-statistics-resampling-package-online">Using the
 statistics-resampling package online</h3>
-<p>Try out the statistics-resampling package online in Matlab <a
-href="https://matlab.mathworks.com/open/github/v1?repo=gnu-octave/statistics-resampling&amp;file=README.md"><img
-src="https://www.mathworks.com/images/responsive/global/open-in-matlab-online.svg"
-alt="Open in MATLAB Online" /></a> or in a Jupyter Notebook with an
-Octave kernel <a
+<p>Try out the statistics-resampling package in your browser at <a
+href="https://mybinder.org/v2/gh/acpennlab/statistics-resampling-online/master?labpath=statistics-resampling.ipynb">statistics-resampling-online</a>
+<a
 href="https://mybinder.org/v2/gh/acpennlab/statistics-resampling-online/master?labpath=statistics-resampling.ipynb"><img
-src="https://mybinder.org/badge_logo.svg" alt="Binder" /></a>. Note that
-the first time you use statistics-resampling online in Octave with
-Binder it will take a few minutes to build a docker image.</p>
-<p>(Collaborative) student projects in GNU Octave can use the
+src="https://mybinder.org/badge_logo.svg" alt="Binder" /></a>: a
+ready-to-go implementation of statistics-resampling a Jupyter Notebook
+with an Octave kernel. <em>Note that the first time you use
+statistics-resampling online in Octave with Binder you can expect it to
+take a few minutes to build a docker image.</em></p>
+<p>Collaborative student projects in GNU Octave can use the
 statistics-resampling package at <a
 href="https://octave-online.net/">Octave-Online</a>. Doing so requires
 users to download the latest release of the Source code (tar.gz) from <a
@@ -49,6 +49,15 @@ convenient to install and use the statistics-resampling package at <a
 href="https://cocalc.com/">COCALC</a>. The approach described above (for
 Octave-Online) also applies to installing the statistics-resampling
 package via a Jupyter Notebook with an Octave kernel at COCALC.</p>
+<p>Alternatively, if you have an account with MATLAB you can try out the
+statistics-resampling package at <a
+href="https://matlab.mathworks.com/open/github/v1?repo=gnu-octave/statistics-resampling&amp;file=README.md">Matlab-Online</a>
+<a
+href="https://matlab.mathworks.com/open/github/v1?repo=gnu-octave/statistics-resampling&amp;file=README.md"><img
+src="https://www.mathworks.com/images/responsive/global/open-in-matlab-online.svg"
+alt="Open in MATLAB Online" /></a> by either following the local
+installation instructions below, or by adding the <em>toolbox</em> (not
+collection) version of the package via Apps &gt;&gt; Get More Apps.</p>
 <p>Follow the links in the ‘Quick start’ section below to obtain some
 examples of data and code to try out with the package.</p>
 <h3 id="requirements-and-dependencies">Requirements and
@@ -57,16 +66,24 @@ dependencies</h3>
 installing and running the statistics-resampling package offline.
 Installation of the statistics-resampling package has some software
 requirements. The core functions in this package require, and are known
-to be compatible with, GNU Octave (version &gt;= 4.4.0) and Matlab
-(version &gt;= R2007a 7.4.0). Some optional features of this package
-have further dependencies:</p>
+to be compatible with, <a href="https://octave.org/">GNU Octave</a>
+(version &gt;= 4.4.0) and <a
+href="https://uk.mathworks.com/products/matlab.html">Matlab</a> (version
+&gt;= R2007a 7.4.0). Some optional features of this package have further
+dependencies:</p>
 <ul>
-<li>All parallel computing options require either the parallel package
-(in Octave) or the Parallel Computing Matlab Toolbox (in Matlab).<br />
+<li>All parallel computing options require either the <a
+href="https://gnu-octave.github.io/packages/parallel/">parallel
+package</a> (in Octave) or the <a
+href="https://uk.mathworks.com/products/parallel-computing.html">Parallel
+Computing Matlab Toolbox</a> (in Matlab).<br />
 </li>
 <li>The optional jackknife functionality in <code>boot1way</code>
-requires the Statistics package (in Octave) or the Statistics and
-Machine Learning Toolbox (in Matlab).</li>
+requires the <a
+href="https://gnu-octave.github.io/packages/statistics/">statistics
+package</a> (in Octave) or the <a
+href="https://uk.mathworks.com/products/statistics.html">Statistics and
+Machine Learning Toolbox</a> (in Matlab).</li>
 </ul>
 <h3 id="installation">Installation</h3>
 <p>To install (or test) the statistics-resampling package in your
