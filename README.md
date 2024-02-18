@@ -32,10 +32,10 @@ Follow the links in the 'Quick start' section below to obtain some examples of d
  
 ### Requirements and dependencies
   
-Users with greater computational demands may want to consider installing and running the statistics-resampling package offline. Installation of the statistics-resampling package has some software requirements. The core functions in this package require, and are known to be compatible with, GNU Octave (version >= 4.4.0) and Matlab (version >= R2007a 7.4.0). Some optional features of this package have further dependencies:
+Users with greater computational demands may want to consider installing and running the statistics-resampling package offline. Installation of the statistics-resampling package has some software requirements. The core functions in this package require, and are known to be compatible with, [GNU Octave](https://octave.org/) (version >= 4.4.0) and [Matlab](https://uk.mathworks.com/products/matlab.html) (version >= R2007a 7.4.0). Some optional features of this package have further dependencies:
 
- * All parallel computing options require either the parallel package (in Octave) or the Parallel Computing Matlab Toolbox (in Matlab).  
- * The optional jackknife functionality in `boot1way` requires the Statistics package (in Octave) or the Statistics and Machine Learning Toolbox (in Matlab).  
+ * All parallel computing options require either the [parallel package](https://gnu-octave.github.io/packages/parallel/) (in Octave) or the [Parallel Computing Matlab Toolbox](https://uk.mathworks.com/products/parallel-computing.html) (in Matlab).  
+ * The optional jackknife functionality in `boot1way` requires the [statistics package](https://gnu-octave.github.io/packages/statistics/) (in Octave) or the [Statistics and Machine Learning Toolbox](https://uk.mathworks.com/products/statistics.html) (in Matlab).  
 
 ### Installation
  
