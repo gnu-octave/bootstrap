@@ -480,13 +480,13 @@ end
 %! pval = randtest2 (A, B, true, 5000)
 %!
 %! % Randomization test comparing the difference in means between two
-%! % independent samples (assuming i.i.d and exchangeability) 
+%! % paired or matching samples (assuming i.i.d and exchangeability) 
 %! pval = randtest2 (A, B, true, 5000, @(A, B) mean (A) - mean (B))
 %!
 %! % Randomization test comparing the ratio of variances between two
 %! % paired or matching samples (assuming i.i.d and exchangeability). (Note
 %! % that the log transformation is necessary to make the p-value two-tailed)
-%! pval = randtest2 (A, B,  true, 5000, @(A, B) log (var (A) ./ var (B)))
+%! pval = randtest2 (A, B, true, 5000, @(A, B) log (var (A) ./ var (B)))
 %!                           
 %!
 
