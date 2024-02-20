@@ -111,7 +111,7 @@ Below are links to demonstrations of how the bootstrap or randomization function
  
  * [Correcting sample size calculations for a two-sample test with nested design](https://gnu-octave.github.io/statistics-resampling/function/sampszcalc.html#6)  
   
-For examples of how to import (larger) data sets from a human-readable text file, like a tab-separated-value (TSV) and comma-separated-value (CSV) file, see the examples in the JupyterLab Notebook at [statistics-resampling-online](https://mybinder.org/v2/gh/acpennlab/statistics-resampling-online/master?labpath=statistics-resampling.ipynb) [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/acpennlab/statistics-resampling-online/master?labpath=statistics-resampling.ipynb) and the last demonstration listed on [this page](https://gnu-octave.github.io/statistics-resampling/function/randtest2.html#5)
+For examples of how to import data sets from a human-readable text file, like a tab-separated-value (TSV) and comma-separated-value (CSV) file, see the examples in the JupyterLab Notebook at [statistics-resampling-online](https://mybinder.org/v2/gh/acpennlab/statistics-resampling-online/master?labpath=statistics-resampling.ipynb) [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/acpennlab/statistics-resampling-online/master?labpath=statistics-resampling.ipynb) and the last demonstration listed on [this page](https://gnu-octave.github.io/statistics-resampling/function/randtest2.html#5)
  
 ### Issues
 
