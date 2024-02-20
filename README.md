@@ -20,7 +20,7 @@ The statistics-resampling package is an Octave package and Matlab toolbox that c
   
 ### Using the statistics-resampling package online
   
-Try out the statistics-resampling package in your browser at [statistics-resampling-online](https://mybinder.org/v2/gh/acpennlab/statistics-resampling-online/master?labpath=statistics-resampling.ipynb) [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/acpennlab/statistics-resampling-online/master?labpath=statistics-resampling.ipynb): a ready-to-go implementation of statistics-resampling a Jupyter Notebook with an Octave kernel. *Note that the first time you use statistics-resampling online in Octave with Binder you can expect it to take a few minutes to build a docker image.*
+Try out the statistics-resampling package in your browser at [statistics-resampling-online](https://mybinder.org/v2/gh/acpennlab/statistics-resampling-online/master?labpath=statistics-resampling.ipynb) [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/acpennlab/statistics-resampling-online/master?labpath=statistics-resampling.ipynb): a ready-to-go implementation of statistics-resampling a Jupyter Notebook with an Octave kernel. *Note that the first time (since the last repository commit) that you use statistics-resampling online with Binder you can expect it to take a few minutes to build a docker image.*
 
 Collaborative student projects in GNU Octave can use the statistics-resampling package at [Octave-Online](https://octave-online.net/). Doing so requires users to download the latest release of the Source code (tar.gz) from [here](https://github.com/gnu-octave/statistics-resampling/releases) and follow steps 2-5 of these [instructions](https://octaveonline.uservoice.com/knowledgebase/articles/1078840-installing-custom-packages).
 
@@ -111,7 +111,7 @@ Below are links to demonstrations of how the bootstrap or randomization function
  
  * [Correcting sample size calculations for a two-sample test with nested design](https://gnu-octave.github.io/statistics-resampling/function/sampszcalc.html#6)  
   
-For an example of how to import (larger) data sets from a human-readable text file, like a comma-separated-value (CSV) file, see the last demonstration listed on [this page](https://gnu-octave.github.io/statistics-resampling/function/randtest2.html#5)
+For an example of how to import (larger) data sets from a human-readable text file, like a tab-separated-value (TSV) and comma-separated-value (CSV) file, see the examples in the JupyterLab Notebook at [statistics-resampling-online](https://mybinder.org/v2/gh/acpennlab/statistics-resampling-online/master?labpath=statistics-resampling.ipynb) [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/acpennlab/statistics-resampling-online/master?labpath=statistics-resampling.ipynb) and the last demonstration listed on [this page](https://gnu-octave.github.io/statistics-resampling/function/randtest2.html#5)
  
 ### Issues
 
