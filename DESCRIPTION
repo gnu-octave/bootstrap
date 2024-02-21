@@ -4,7 +4,7 @@ date: 2024-02-15
 author: Andrew Penn <andy.c.penn@gmail.com>
 maintainer: Andrew Penn <andy.c.penn@gmail.com>
 title: A statistics package with a variety of resampling tools
- description: The statistics-resampling package is an Octave
+description: The statistics-resampling package is an Octave
  package and Matlab toolbox that can be used to perform a wide
  variety of statistics tasks using non-parametric resampling
  methods. In particular, the functions included can be used to
