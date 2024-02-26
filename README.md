@@ -12,9 +12,7 @@ Andrew Penn
 ### Citations
 If you use this package, please include the following citation(s):
 
-* Penn, Andrew Charles. (2020). Resampling methods for small samples or samples with complex dependence structures. *Zenodo*. [https://doi.org/10.5281/zenodo.3992392](https://doi.org/10.5281/zenodo.3992392) 
-
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.3992392.svg)](https://doi.org/10.5281/zenodo.3992392)
+* Penn, Andrew Charles. (2020). Resampling methods for small samples or samples with complex dependence structures. *Zenodo*. [https://doi.org/10.5281/zenodo.3992392](https://doi.org/10.5281/zenodo.3992392)    [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.3992392.svg)](https://doi.org/10.5281/zenodo.3992392)
 
 (Note that package versions 5.4.3 and below were named the 'statistics-bootstrap' package. The 'statistics-resampling' package is a more developed version of the older ['iboot'](https://github.com/acp29/iboot) package). 
 
