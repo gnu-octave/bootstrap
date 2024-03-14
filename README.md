@@ -1,6 +1,6 @@
 ## Read me
 
-[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/acpennlab/statistics-resampling-online/master?labpath=statistics-resampling.ipynb)    [![Documentation](https://img.shields.io/badge/docs-online-blue.svg)](https://gnu-octave.github.io/statistics-resampling/)    [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.3992392.svg)](https://doi.org/10.5281/zenodo.3992392) 
+[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/acpennlab/statistics-resampling-online/jammy-docker?labpath=statistics-resampling.ipynb)    [![Documentation](https://img.shields.io/badge/docs-online-blue.svg)](https://gnu-octave.github.io/statistics-resampling/)    [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.3992392.svg)](https://doi.org/10.5281/zenodo.3992392) 
 
 ### Package maintainer
 Andrew Penn (andy.c.penn@gmail.com)
@@ -22,7 +22,7 @@ The statistics-resampling package is an Octave package and Matlab toolbox that c
   
 ### Using the statistics-resampling package online
   
-Try out the statistics-resampling package in your browser at [statistics-resampling-online](https://mybinder.org/v2/gh/acpennlab/statistics-resampling-online/master?labpath=statistics-resampling.ipynb) [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/acpennlab/statistics-resampling-online/master?labpath=statistics-resampling.ipynb): a ready-to-go implementation of statistics-resampling in a JupyterLab Notebook with an Octave kernel. *Note that the first time (since the last repository commit) that you use statistics-resampling online with Binder you can expect it to take a while to build a docker image, but subsequent access to statistics-resampling-online will take less than a minute or so.*
+Try out the statistics-resampling package in your browser at [statistics-resampling-online](https://mybinder.org/v2/gh/acpennlab/statistics-resampling-online/jammy-docker?labpath=statistics-resampling.ipynb) [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/acpennlab/statistics-resampling-online/jammy-docker?labpath=statistics-resampling.ipynb): a ready-to-go implementation of statistics-resampling in a JupyterLab Notebook with an Octave kernel. *Note that the first time (since the last repository commit) that you use statistics-resampling online with Binder you can expect it to take a while to build a docker image, but subsequent access to statistics-resampling-online will take less than a minute or so.*
 
 Collaborative student projects in GNU Octave can use the statistics-resampling package at [Octave-Online](https://octave-online.net/). Doing so requires users to download the latest release of the Source code (tar.gz) from [here](https://github.com/gnu-octave/statistics-resampling/releases) and follow steps 2-5 of these [instructions](https://octaveonline.uservoice.com/knowledgebase/articles/1078840-installing-custom-packages).
 
@@ -75,7 +75,7 @@ Function help can also be requested directly from the Octave/MATLAB command prom
   
 In Octave only, you can get a basic overview of the package and it's functions by typing: `pkg describe -verbose statistics-resampling`, or request demonstrations of function usage by typing `demo function-name`. Users can also request help with using functions and programming in Octave at the [discourse group](https://octave.discourse.group/c/help/6).  
 
-*TIPS: You can now document and publish your statistics-resampling analysis in Jupyter Notebooks (with an Octave kernel) at your GitHub repository using the [nbgitpuller link generator](https://nbgitpuller.readthedocs.io/en/latest/link.html?tab=binder) and the statistics-resampling-online Binder environment [![](https://img.shields.io/github/forks/acpennlab/statistics-resampling-online?label=GitHub%20Repo&amp;style=social)](https://github.com/acpennlab/statistics-resampling-online/). Alternatively, you could fork the repository or use it as a template for you own GitHub repository. Using Jupyter notebooks, you can also integrate use of the statistics-resampling package into your analysis workflow alongside other programming languages including Python, R and Julia [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/acpennlab/statistics-resampling-online/master?labpath=statistics-resampling.ipynb)*  
+*TIPS: You can now document and publish your statistics-resampling analysis in Jupyter Notebooks (with an Octave kernel) at your GitHub repository using the [nbgitpuller link generator](https://nbgitpuller.readthedocs.io/en/latest/link.html?tab=binder) and the statistics-resampling-online Binder environment [![](https://img.shields.io/github/forks/acpennlab/statistics-resampling-online?label=GitHub%20Repo&amp;style=social)](https://github.com/acpennlab/statistics-resampling-online/). Alternatively, you could fork the repository or use it as a template for you own GitHub repository. Using Jupyter notebooks, you can also integrate use of the statistics-resampling package into your analysis workflow alongside other programming languages including Python, R and Julia [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/acpennlab/statistics-resampling-online/jammy-docker?labpath=statistics-resampling.ipynb)*  
 
 ### Quick start
 
@@ -113,7 +113,7 @@ Below are links to demonstrations of how the bootstrap or randomization function
  
  * [Correcting sample size calculations for a two-sample test with nested design](https://gnu-octave.github.io/statistics-resampling/function/sampszcalc.html#6)  
   
-For examples of how to import data sets from a human-readable text file, like a tab-separated-value (TSV) and comma-separated-value (CSV) file, see the examples in the JupyterLab Notebook at [statistics-resampling-online](https://mybinder.org/v2/gh/acpennlab/statistics-resampling-online/master?labpath=statistics-resampling.ipynb) [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/acpennlab/statistics-resampling-online/master?labpath=statistics-resampling.ipynb) and the last demonstration listed on [this page](https://gnu-octave.github.io/statistics-resampling/function/randtest2.html#5)
+For examples of how to import data sets from a human-readable text file, like a tab-separated-value (TSV) and comma-separated-value (CSV) file, see the examples in the JupyterLab Notebook at [statistics-resampling-online](https://mybinder.org/v2/gh/acpennlab/statistics-resampling-online/jammy-docker?labpath=statistics-resampling.ipynb) [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/acpennlab/statistics-resampling-online/jammy-docker?labpath=statistics-resampling.ipynb) and the last demonstration listed on [this page](https://gnu-octave.github.io/statistics-resampling/function/randtest2.html#5)
  
 ### Issues
 
