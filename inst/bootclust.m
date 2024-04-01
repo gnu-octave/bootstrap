@@ -1,5 +1,5 @@
-% Performs balanced bootstrap (or bootknife) resampling of clustered data and 
-% calculates bootstrap bias, standard errors and confidence intervals.
+% Performs balanced bootstrap (or bootknife) resampling of clusters or blocks of
+% data and calculates bootstrap bias, standard errors and confidence intervals.
 %
 % -- Function File: bootclust (DATA)
 % -- Function File: bootclust (DATA, NBOOT)
@@ -8,17 +8,17 @@
 % -- Function File: bootclust (DATA, NBOOT, {BOOTFUN, ...})
 % -- Function File: bootclust (DATA, NBOOT, BOOTFUN, ALPHA)
 % -- Function File: bootclust (DATA, NBOOT, BOOTFUN, ALPHA, CLUSTID)
-% -- Function File: bootclust (DATA, NBOOT, BOOTFUN, ALPHA, CLUSTSZ)
-% -- Function File: bootclust (DATA, NBOOT, BOOTFUN, ALPHA, CLUSTID, LOO)
-% -- Function File: bootclust (DATA, NBOOT, BOOTFUN, ALPHA, CLUSTID, LOO, SEED)
+% -- Function File: bootclust (DATA, NBOOT, BOOTFUN, ALPHA, BLOCKSZ)
+% -- Function File: bootclust (DATA, NBOOT, BOOTFUN, ALPHA, ..., LOO)
+% -- Function File: bootclust (DATA, NBOOT, BOOTFUN, ALPHA, ..., LOO, SEED)
 % -- Function File: STATS = bootclust (...)
 % -- Function File: [STATS, BOOTSTAT] = bootclust (...)
 %
 %     'bootclust (DATA)' uses nonparametric balanced bootstrap resampling
-%     to generate 1999 resamples from clusters of rows of the DATA (column
-%     vector or matrix). By default, each row is it's own cluster (i.e. no
-%     clustering). The means of the resamples are then computed and the
-%     following statistics are displayed:
+%     to generate 1999 resamples from clusters (or blocks) of rows of the DATA
+%     (column vector or matrix). By default, each row is it's own cluster (i.e.
+%     no clustering or blocking). The means of the resamples are then computed
+%     and the following statistics are displayed:
 %        - original: the original estimate(s) calculated by BOOTFUN and the DATA
 %        - bias: bootstrap bias of the estimate(s)
 %        - std_error: bootstrap standard error of the estimate(s)
@@ -71,21 +71,21 @@
 %     the same CLUSTID value are treated as clusters of observations that are
 %     resampled together.
 %
-%     'bootclust (DATA, NBOOT, BOOTFUN, ALPHA, CLUSTSZ)' groups consecutive
-%     DATA rows into clusters of length CLUSTSZ. This is equivalent to block
-%     bootstrap resampling. By default, CLUSTSZ is 1.
+%     'bootclust (DATA, NBOOT, BOOTFUN, ALPHA, BLOCKSZ)' groups consecutive
+%     DATA rows into non-overlapping blocks of length BLOCKSZ for simple block
+%     bootstrap resampling. By default, BLOCKSZ is 1.
 %
-%     'bootclust (DATA, NBOOT, BOOTFUN, ALPHA, CLUSTID, LOO)' sets the
-%     resampling method. If LOO is false, the resampling method used is
-%     balanced bootstrap resampling. If LOO is true, the resampling method used
-%     is balanced bootknife resampling [3]. Where N is the number of clusters,
-%     bootknife cluster resampling involves creating leave-one-out jackknife
-%     samples of size N - 1, and then drawing resamples of size N with
+%     'bootclust (DATA, NBOOT, BOOTFUN, ALPHA, ..., LOO)' sets the resampling
+%     method. If LOO is false, the resampling method used is balanced bootstrap
+%     resampling. If LOO is true, the resampling method used is balanced
+%     bootknife resampling [3]. Where N is the number of clusters or blocks,
+%     bootknife cluster or block resampling involves creating leave-one-out
+%     jackknife samples of size N - 1, and then drawing resamples of size N with
 %     replacement from the jackknife samples, thereby incorporating Bessel's
 %     correction into the resampling procedure. LOO must be a scalar logical
 %     value. The default value of LOO is false.
 %
-%     'bootclust (DATA, NBOOT, BOOTFUN, ALPHA, CLUSTID, LOO, SEED)' initialises
+%     'bootclust (DATA, NBOOT, BOOTFUN, ALPHA, ..., LOO, SEED)' initialises
 %     the Mersenne Twister random number generator using an integer SEED value
 %     so that bootclust results are reproducible.
 %
