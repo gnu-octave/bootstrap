@@ -16,7 +16,7 @@
 %
 %     'bootclust (DATA)' uses nonparametric balanced bootstrap resampling
 %     to generate 1999 resamples from clusters of rows of the DATA (column
-%     vector or matrix). By default, each rows is it's own cluster (i.e. no
+%     vector or matrix). By default, each row is it's own cluster (i.e. no
 %     clustering). The means of the resamples are then computed and the
 %     following statistics are displayed:
 %        - original: the original estimate(s) calculated by BOOTFUN and the DATA
@@ -27,7 +27,7 @@
 %
 %     'bootclust (DATA, NBOOT)' specifies the number of bootstrap resamples,
 %     where NBOOT is a scalar, positive integer corresponding to the number
-%     of bootstrap resamples. THe default value of NBOOT is the scalar: 1999.
+%     of bootstrap resamples. The default value of NBOOT is the scalar: 1999.
 %
 %     'bootclust (DATA, NBOOT, BOOTFUN)' also specifies BOOTFUN: the function
 %     calculated on the original sample and the bootstrap resamples. BOOTFUN
@@ -615,6 +615,7 @@ function print_output (stats, nboot, nalpha, alpha, probs, m, bootfun_str, loo)
                      stats.std_error(i), stats.CI_lower(i), stats.CI_upper(i)]);
     end
     fprintf ('\n');
+    lastwarn ('', '');  % reset last warning
 
 end
 
