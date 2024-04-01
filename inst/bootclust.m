@@ -714,6 +714,33 @@ end
 %!
 %! % Please be patient, the calculations will be completed soon...
 
+%!demo
+%!
+%! % The following dataset represents lutenizing hormone levels measured in a
+%! % healthy women every 10 minutes over an 8 hour period. The dataset was the
+%! % example tabulated on page 92 of Efron and Tibshirani (1993) An Introduction
+%! % to the Bootstrap.
+%! y=[2.4;2.4;2.4;2.2;2.1;1.5;2.3;2.3; 2.5;2.0;1.9;1.7;2.2;1.8;3.2;3.2;...
+%!    2.7;2.2;2.2;1.9;1.9;1.8;2.7;3.0;2.3;2.0;2.0;2.9;2.9;2.7;2.7;2.3;...
+%!    2.6;2.4;1.8;1.7;1.5;1.4;2.1;3.3;3.5;3.5;3.1;2.6;2.1;3.4;3.0;2.9];
+%!
+%! % Calculation of the standardized lutenizing hormone levels is as follows
+%! z = y - mean(y);
+%!
+%! % Let us then calculate the coefficient for a first order autoregressive
+%! % model, AR(1), which can be used to make future predictions of the level
+%! % of lutenizing hormone from the last measurement taken. We will use block
+%! % bootstrap using a block size of 3 to obtain an estimate of the standard
+%! % error and 95% confidence intervals around the regression coefficient
+%! % estimate.
+%! betafunc = @(y) (y(1:end-1) - mean(y)) \ (y(2:end) - mean(y));
+%! blocksz = 3;
+%! bootclust(y,1999,betafunc,[0.025,0.925],blocksz);
+%!
+%! % The estimate of beta here is 0.586 and the standard error is about 0.13.
+%! % The coefficient indicates that we can predict that standardized hormone
+%! % levels to change by a factor of 0.586 from the previous timepoint.
+
 %!test
 %! % Test for errors when using different functionalities of bootclust
 %! y = randn (20,1); 
