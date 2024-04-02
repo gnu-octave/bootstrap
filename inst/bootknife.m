@@ -939,8 +939,8 @@ end
 
 function retval = col2args (func, x, szx)
 
-  % Usage: retval = col2args (func, x, nvar)
-  % col2args evaluates func on the columns of x. When nvar > 1, each of the
+  % Usage: retval = col2args (func, x, szx)
+  % col2args evaluates func on the columns of x. When sum(szx) > 1, each of the
   % blocks of x are passed to func as a separate arguments. 
 
   % Extract columns of the matrix into a cell array
