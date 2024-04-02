@@ -36,8 +36,10 @@ else
 end
 
 % Notify user that installation is complete
-disp ('The statistics-resampling package has been installed at the current location ')
+d = struct;
+d.dir = inst_dir;
+post_install (d);
 
 % Clean up
-clear info isoctave S comment octaverc fid msg inst_dir
+clear info isoctave S comment octaverc fid msg inst_dir d
 

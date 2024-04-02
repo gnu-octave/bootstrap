@@ -40,7 +40,7 @@ end
 
 
 % Notify user that uninstall is complete
-disp ('This statistics-resampling package has been uninstalled from this location')
+fprintf ('The statistics-resampling package was uninstalled from the directory:\n%s\n', inst_dir)
 
 % Clean up
 clear info isoctave S comment octaverc fid msg inst_dir
