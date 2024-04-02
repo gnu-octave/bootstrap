@@ -3,7 +3,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
   <head>
   <meta http-equiv="content-type" content="text/html; charset=utf-8" />
-  <meta name="date" content="2024-03-18"/>
+  <meta name="date" content="2024-04-02"/>
   <meta name="generator" content="generate_html 0.3.3" />
   <meta name="author" content="Andrew Penn" />
   <meta name="description" content="A package for statistical analysis using resampling methods." />
@@ -20,8 +20,8 @@
 <div id="doccontent">
 
 <h2>bootclust</h2>
-<pre> Performs balanced bootstrap (or bootknife) resampling of clustered data and 
- calculates bootstrap bias, standard errors and confidence intervals.
+<pre> Performs balanced bootstrap (or bootknife) resampling of clusters or blocks of
+ data and calculates bootstrap bias, standard errors and confidence intervals.
 
  -- Function File: bootclust (DATA)
  -- Function File: bootclust (DATA, NBOOT)
@@ -30,17 +30,17 @@
  -- Function File: bootclust (DATA, NBOOT, {BOOTFUN, ...})
  -- Function File: bootclust (DATA, NBOOT, BOOTFUN, ALPHA)
  -- Function File: bootclust (DATA, NBOOT, BOOTFUN, ALPHA, CLUSTID)
- -- Function File: bootclust (DATA, NBOOT, BOOTFUN, ALPHA, CLUSTSZ)
- -- Function File: bootclust (DATA, NBOOT, BOOTFUN, ALPHA, CLUSTID, LOO)
- -- Function File: bootclust (DATA, NBOOT, BOOTFUN, ALPHA, CLUSTID, LOO, SEED)
+ -- Function File: bootclust (DATA, NBOOT, BOOTFUN, ALPHA, BLOCKSZ)
+ -- Function File: bootclust (DATA, NBOOT, BOOTFUN, ALPHA, ..., LOO)
+ -- Function File: bootclust (DATA, NBOOT, BOOTFUN, ALPHA, ..., LOO, SEED)
  -- Function File: STATS = bootclust (...)
  -- Function File: [STATS, BOOTSTAT] = bootclust (...)
 
      'bootclust (DATA)' uses nonparametric balanced bootstrap resampling
-     to generate 1999 resamples from clusters of rows of the DATA (column
-     vector or matrix). By default, each rows is it's own cluster (i.e. no
-     clustering). The means of the resamples are then computed and the
-     following statistics are displayed:
+     to generate 1999 resamples from clusters (or blocks) of rows of the DATA
+     (column vector or matrix). By default, each row is it's own cluster (i.e.
+     no clustering or blocking). The means of the resamples are then computed
+     and the following statistics are displayed:
         - original: the original estimate(s) calculated by BOOTFUN and the DATA
         - bias: bootstrap bias of the estimate(s)
         - std_error: bootstrap standard error of the estimate(s)
@@ -49,7 +49,7 @@
 
      'bootclust (DATA, NBOOT)' specifies the number of bootstrap resamples,
      where NBOOT is a scalar, positive integer corresponding to the number
-     of bootstrap resamples. THe default value of NBOOT is the scalar: 1999.
+     of bootstrap resamples. The default value of NBOOT is the scalar: 1999.
 
      'bootclust (DATA, NBOOT, BOOTFUN)' also specifies BOOTFUN: the function
      calculated on the original sample and the bootstrap resamples. BOOTFUN
@@ -93,21 +93,21 @@
      the same CLUSTID value are treated as clusters of observations that are
      resampled together.
 
-     'bootclust (DATA, NBOOT, BOOTFUN, ALPHA, CLUSTSZ)' groups consecutive
-     DATA rows into clusters of length CLUSTSZ. This is equivalent to block
-     bootstrap resampling. By default, CLUSTSZ is 1.
+     'bootclust (DATA, NBOOT, BOOTFUN, ALPHA, BLOCKSZ)' groups consecutive
+     DATA rows into non-overlapping blocks of length BLOCKSZ for simple block
+     bootstrap resampling. By default, BLOCKSZ is 1.
 
-     'bootclust (DATA, NBOOT, BOOTFUN, ALPHA, CLUSTID, LOO)' sets the
-     resampling method. If LOO is false, the resampling method used is
-     balanced bootstrap resampling. If LOO is true, the resampling method used
-     is balanced bootknife resampling [3]. Where N is the number of clusters,
-     bootknife cluster resampling involves creating leave-one-out jackknife
-     samples of size N - 1, and then drawing resamples of size N with
+     'bootclust (DATA, NBOOT, BOOTFUN, ALPHA, ..., LOO)' sets the resampling
+     method. If LOO is false, the resampling method used is balanced bootstrap
+     resampling. If LOO is true, the resampling method used is balanced
+     bootknife resampling [3]. Where N is the number of clusters or blocks,
+     bootknife cluster or block resampling involves creating leave-one-out
+     jackknife samples of size N - 1, and then drawing resamples of size N with
      replacement from the jackknife samples, thereby incorporating Bessel's
      correction into the resampling procedure. LOO must be a scalar logical
      value. The default value of LOO is false.
 
-     'bootclust (DATA, NBOOT, BOOTFUN, ALPHA, CLUSTID, LOO, SEED)' initialises
+     'bootclust (DATA, NBOOT, BOOTFUN, ALPHA, ..., LOO, SEED)' initialises
      the Mersenne Twister random number generator using an integer SEED value
      so that bootclust results are reproducible.
 
@@ -170,11 +170,11 @@ Bootstrap settings:
  Resampling method: Balanced, bootstrap cluster resampling 
  Number of resamples: 1999 
  Confidence interval (CI) type: Expanded bias-corrected and accelerated (BCa) 
- Nominal coverage (and the percentiles used): 95% (1.1%, 97.4%)
+ Nominal coverage (and the percentiles used): 95% (1.2%, 97.5%)
 
 Bootstrap Statistics: 
  original     bias         std_error    CI_lower     CI_upper  
- +29.65       -2.487e-14   +2.575       +23.74       +34.49</pre>
+ +29.65       -3.553e-15   +2.642       +23.61       +34.72</pre>
 </div>
 
 <h3><a name="2">Demonstration 2</a></h3>
@@ -200,11 +200,11 @@ Bootstrap settings:
  Resampling method: Balanced, bootstrap cluster resampling 
  Number of resamples: 1999 
  Confidence interval (CI) type: Expanded bias-corrected and accelerated (BCa) 
- Nominal coverage (and the percentiles used): 95% (1.0%, 98.6%)
+ Nominal coverage (and the percentiles used): 95% (1.2%, 98.9%)
 
 Bootstrap Statistics: 
  original     bias         std_error    CI_lower     CI_upper  
- +29.65       -0.03155     +3.008       +22.52       +35.83</pre>
+ +29.65       -0.02076     +2.966       +22.83       +36.23</pre>
 </div>
 
 <h3><a name="3">Demonstration 3</a></h3>
@@ -232,7 +232,7 @@ Bootstrap settings:
 
 Bootstrap Statistics: 
  original     bias         std_error    CI_lower     CI_upper  
- +171.5       -6.475       +42.19       +96.98       +235.0</pre>
+ +171.5       -6.281       +41.90       +98.51       +235.1</pre>
 </div>
 
 <h3><a name="4">Demonstration 4</a></h3>
@@ -262,7 +262,7 @@ Bootstrap settings:
 
 Bootstrap Statistics: 
  original     bias         std_error    CI_lower     CI_upper  
- +171.5       -9.480       +33.35       +105.2       +213.9</pre>
+ +171.5       -9.500       +34.91       +100.7       +216.7</pre>
 </div>
 
 <h3><a name="5">Demonstration 5</a></h3>
@@ -285,11 +285,11 @@ Bootstrap settings:
  Resampling method: Balanced, bootstrap cluster resampling 
  Number of resamples: 1999 
  Confidence interval (CI) type: Bias-corrected and accelerated (BCa) 
- Nominal coverage (and the percentiles used): 90% (12.6%, 98.8%)
+ Nominal coverage (and the percentiles used): 90% (13.1%, 98.9%)
 
 Bootstrap Statistics: 
  original     bias         std_error    CI_lower     CI_upper  
- +171.5       -6.473       +42.75       +116.4       +262.5</pre>
+ +171.5       -6.926       +41.71       +117.1       +261.8</pre>
 </div>
 
 <h3><a name="6">Demonstration 6</a></h3>
@@ -314,11 +314,11 @@ Bootstrap settings:
  Resampling method: Balanced, bootstrap cluster resampling 
  Number of resamples: 1999 
  Confidence interval (CI) type: Bias-corrected and accelerated (BCa) 
- Nominal coverage (and the percentiles used): 90% (12.8%, 98.7%)
+ Nominal coverage (and the percentiles used): 90% (13.6%, 98.8%)
 
 Bootstrap Statistics: 
  original     bias         std_error    CI_lower     CI_upper  
- +171.5       -9.367       +33.27       +122.9       +230.2</pre>
+ +171.5       -9.181       +32.99       +124.8       +231.3</pre>
 </div>
 
 <h3><a name="7">Demonstration 7</a></h3>
@@ -344,8 +344,8 @@ Bootstrap settings:
 
 Bootstrap Statistics: 
  original     bias         std_error    CI_lower     CI_upper  
- -0.004100    +0.0005636   +0.2091      -0.3562      +0.3338    
- +0.2984      -0.02497     +0.3726      -0.1958      +1.053</pre>
+ -0.02488     +0.01383     +0.3004      -0.5833      +0.4100    
+ -0.1616      -0.04271     +0.3841      -0.7761      +0.4812</pre>
 </div>
 
 <h3><a name="8">Demonstration 8</a></h3>
@@ -372,8 +372,8 @@ Bootstrap settings:
 
 Bootstrap Statistics: 
  original     bias         std_error    CI_lower     CI_upper  
- -0.003460    +0.0007734   +0.1941      -0.4001      +0.2587    
- -0.03895     +0.09480     +0.3275      -0.4516      +0.3005</pre>
+ +0.08743     -0.01768     +0.2656      -0.3089      +0.5849    
+ -0.2182      +0.01847     +0.1900      -0.5138      +0.08557</pre>
 </div>
 
 <h3><a name="9">Demonstration 9</a></h3>
@@ -400,11 +400,56 @@ Bootstrap settings:
  Resampling method: Balanced, bootstrap cluster resampling 
  Number of resamples: 1999 
  Confidence interval (CI) type: Bias-corrected and accelerated (BCa) 
- Nominal coverage (and the percentiles used): 95% (2.1%, 97.1%)
+ Nominal coverage (and the percentiles used): 95% (1.7%, 96.7%)
 
 Bootstrap Statistics: 
  original     bias         std_error    CI_lower     CI_upper  
- +0.7764      -0.02555     +0.1481      +0.4023      +1.006</pre>
+ +0.7764      -0.02427     +0.1433      +0.3912      +0.9911</pre>
+</div>
+
+<h3><a name="10">Demonstration 10</a></h3>
+<div class="demo">
+<p>The following code</p>
+<pre class="example">
+
+ % The following dataset represents lutenizing hormone levels measured in a
+ % healthy women every 10 minutes over an 8 hour period. The dataset was the
+ % example tabulated on page 92 of Efron and Tibshirani (1993) An Introduction
+ % to the Bootstrap.
+ y=[2.4;2.4;2.4;2.2;2.1;1.5;2.3;2.3; 2.5;2.0;1.9;1.7;2.2;1.8;3.2;3.2;...
+    2.7;2.2;2.2;1.9;1.9;1.8;2.7;3.0;2.3;2.0;2.0;2.9;2.9;2.7;2.7;2.3;...
+    2.6;2.4;1.8;1.7;1.5;1.4;2.1;3.3;3.5;3.5;3.1;2.6;2.1;3.4;3.0;2.9];
+
+ % Calculation of the standardized lutenizing hormone levels is as follows
+ z = y - mean(y);
+
+ % Let us then calculate the coefficient for a first order autoregressive
+ % model, AR(1), which can be used to make future predictions of the level
+ % of lutenizing hormone from the last measurement taken. We will use block
+ % bootstrap using a block size of 3 to obtain an estimate of the standard
+ % error and 95% confidence intervals around the regression coefficient
+ % estimate.
+ betafunc = @(y) (y(1:end-1) - mean(y)) \ (y(2:end) - mean(y));
+ blocksz = 3;
+ bootclust(y,1999,betafunc,[0.025,0.925],blocksz);
+
+ % The estimate of beta here is 0.586 and the standard error is about 0.13.
+ % The coefficient indicates that we can predict that standardized hormone
+ % levels to change by a factor of 0.586 from the previous timepoint.</pre>
+<p>Produces the following output</p>
+<pre class="example">Summary of nonparametric cluster bootstrap estimates of bias and precision
+******************************************************************************
+
+Bootstrap settings: 
+ Function: @(y) (y (1:end - 1) - mean (y)) \ (y (2:end) - mean (y))
+ Resampling method: Balanced, bootstrap cluster resampling 
+ Number of resamples: 1999 
+ Confidence interval (CI) type: Bias-corrected and accelerated (BCa) 
+ Nominal coverage (and the percentiles used): 90% (77.8%, 100.0%)
+
+Bootstrap Statistics: 
+ original     bias         std_error    CI_lower     CI_upper  
+ +0.5858      -0.1695      +0.1320      +0.5182      +0.8386</pre>
 </div>
 
 <p>Package: <a href="../index.html">statistics-resampling</a></p>
