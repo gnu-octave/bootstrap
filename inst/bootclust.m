@@ -451,8 +451,15 @@ function [stats, bootstat, X] = bootclust (x, nboot, bootfun, alpha, ...
                      'UniformOutput', false);
 
   % Perform the function evaluations
-  if ( (VECTORIZED) && (nvar == 1) )
-    bootstat = bootfun (cell2mat (X));
+  if (VECTORIZED)
+    if (nvar > 1)
+      % Multivariate
+      bootstat = bootfun (cell2mat (mat2cell (reshape (cell2mat (X), ...
+                          n * nvar, nboot), repmat (n, nvar, 1))'));
+    else
+      % Univariate
+      bootstat = bootfun (cell2mat (X));
+    end
   else
     if (ncpus > 1)
       % Evaluate bootfun on each bootstrap resample in PARALLEL
