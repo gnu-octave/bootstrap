@@ -11,6 +11,7 @@
 % -- Function File: bootclust (DATA, NBOOT, BOOTFUN, ALPHA, BLOCKSZ)
 % -- Function File: bootclust (DATA, NBOOT, BOOTFUN, ALPHA, ..., LOO)
 % -- Function File: bootclust (DATA, NBOOT, BOOTFUN, ALPHA, ..., LOO, SEED)
+% -- Function File: bootclust (DATA, NBOOT, BOOTFUN, ALPHA, ..., LOO, SEED, NPROC)
 % -- Function File: STATS = bootclust (...)
 % -- Function File: [STATS, BOOTSTAT] = bootclust (...)
 %
@@ -90,6 +91,12 @@
 %     the Mersenne Twister random number generator using an integer SEED value
 %     so that bootclust results are reproducible.
 %
+%     'bootclust (DATA, NBOOT, BOOTFUN, ALPHA, ..., LOO, SEED, NPROC)' also
+%     sets the number of parallel processes to use for function evaluations
+%     during bootstrap and jackknife computations on multicore machines. This
+%     feature requires the Parallel package (in Octave), or the Parallel
+%     Computing Toolbox (in Matlab).
+%
 %     'STATS = bootclust (...)' returns a structure with the following fields
 %     (defined above): original, bias, std_error, CI_lower, CI_upper.
 %
@@ -115,7 +122,7 @@
 %        vs. Smoothing; Proceedings of the Section on Statistics & the 
 %        Environment. Alexandria, VA: American Statistical Association.
 %
-%  bootclust (version 2023.09.20)
+%  bootclust (version 2024.04.02)
 %  Author: Andrew Charles Penn
 %  https://www.researchgate.net/profile/Andrew_Penn/
 %
@@ -134,7 +141,12 @@
 %  along with this program.  If not, see http://www.gnu.org/licenses/
 
 function [stats, bootstat] = bootclust (x, nboot, bootfun, alpha, clustid, ...
-                                        loo, seed)
+                                        loo, seed, ncpus)
+
+  % Store local functions in a stucture for parallel processes
+  localfunc = struct ('col2args', @col2args, ...
+                      'kdeinv', @kdeinv, ...
+                      'ExpandProbs', @ExpandProbs);
 
   % Check if we are running Octave or Matlab
   info = ver; 
@@ -144,7 +156,7 @@ function [stats, bootstat] = bootclust (x, nboot, bootfun, alpha, clustid, ...
   if (nargin < 1)
     error ('bootclust: DATA must be provided');
   end
-  if (nargin > 7)
+  if (nargin > 8)
     error ('bootclust: Too many input arguments')
   end
   if (nargout > 2)
@@ -241,12 +253,110 @@ function [stats, bootstat] = bootclust (x, nboot, bootfun, alpha, clustid, ...
     boot (1, 1, true, seed);
   end
 
+  % Evaluate NPROC input argument
+  if ((nargin < 8) || isempty (ncpus)) 
+    ncpus = 0;    % Ignore parallel processing features
+  else
+    if (~ isa (ncpus, 'numeric'))
+      error ('bootclust: NPROC must be numeric');
+    end
+    if (any (ncpus ~= abs (fix (ncpus))))
+      error ('bootclust: NPROC must be a positive integer');
+    end    
+    if (numel (ncpus) > 1)
+      error ('bootclust: NPROC must be a scalar value');
+    end
+  end
+  if (ISOCTAVE)
+    ncpus = min (ncpus, nproc);
+  else
+    ncpus = min (ncpus, feature ('numcores'));
+  end
+
+  % If applicable, check we have parallel computing capabilities
+  if (ncpus > 1)
+    if (ISOCTAVE)
+      software = pkg ('list');
+      names = cellfun (@(S) S.name, software, 'UniformOutput', false);
+      status = cellfun (@(S) S.loaded, software, 'UniformOutput', false);
+      index = find (~ cellfun (@isempty, regexpi (names, '^parallel')));
+      if (~ isempty (index))
+        if (logical (status{index}))
+          PARALLEL = true;
+        else
+          PARALLEL = false;
+        end
+      else
+        PARALLEL = false;
+      end
+    else
+      info = ver; 
+      if (ismember ('Parallel Computing Toolbox', {info.Name}))
+        PARALLEL = true;
+      else
+        PARALLEL = false;
+      end
+    end
+  end
+
+  % If applicable, setup a parallel pool (required for MATLAB)
+  if (~ ISOCTAVE)
+    % MATLAB
+    % bootfun is not vectorized
+    if (ncpus > 0) 
+      % MANUAL
+      try 
+        pool = gcp ('nocreate'); 
+        if isempty (pool)
+          if (ncpus > 1)
+            % Start parallel pool with ncpus workers
+            parpool (ncpus);
+          else
+            % Parallel pool is not running and ncpus is 1 so run function
+            % evaluations in serial
+            ncpus = 1;
+          end
+        else
+          if (pool.NumWorkers ~= ncpus)
+            % Check if number of workers matches ncpus and correct it
+            % accordingly if not
+            delete (pool);
+            if (ncpus > 1)
+              parpool (ncpus);
+            end
+          end
+        end
+      catch
+        % MATLAB Parallel Computing Toolbox is not installed
+        warning ('bootknife:parallel', ...
+                 cat (2, 'Parallel Computing Toolbox not installed or', ...
+                         ' operational. Falling back to serial processing.'))
+        ncpus = 1;
+      end
+    end
+  else
+    if ((ncpus > 1) && ~ PARALLEL)
+      if (ISOCTAVE)
+        % OCTAVE Parallel Computing Package is not installed or loaded
+        warning ('bootknife:parallel', ...
+                 cat (2, 'Parallel Computing Package not installed and/or', ...
+                         ' loaded. Falling back to serial processing.'))
+      else
+        % MATLAB Parallel Computing Toolbox is not installed or loaded
+        warning ('bootknife:parallel', ...
+                 cat (2, 'Parallel Computing Toolbox not installed and/or', ...
+                         ' loaded. Falling back to serial processing.'))
+      end
+      ncpus = 0;
+    end
+  end
+
   % If DATA is a cell array of equal size colunmn vectors, convert the cell
   % array to a matrix and redefine bootfun to parse multiple input arguments
   if (iscell (x))
     szx = cellfun (@(x) size (x, 2), x);
     x = [x{:}];
-    bootfun = @(x) col2args (bootfun, x, szx);
+    bootfun = @(x) localfunc.col2args (bootfun, x, szx);
   else
     szx = size (x, 2);
   end
@@ -257,10 +367,10 @@ function [stats, bootstat] = bootclust (x, nboot, bootfun, alpha, clustid, ...
     error ('bootclust: DATA must be numeric and contain > 1 row')
   end
 
-
   % Sort rows of CLUSTID and the DATA accordingly
   if ((nargin < 5) || isempty (clustid))
     clustid = (1 : n)';
+    blocksz = 1;
   else
     if isscalar (clustid)
       % Group consecutive DATA rows into clusters of >= CLUSTID rows
@@ -340,8 +450,27 @@ function [stats, bootstat] = bootclust (x, nboot, bootfun, alpha, clustid, ...
     X = reshape (vertcat (X{:}), n, nboot * nvar);
     bootstat = bootfun (X);
   else
-    bootstat = cell2mat (arrayfun (@(b) bootfun (vertcat (X{:,b})), ...
-                                        1 : nboot, 'UniformOutput', false));
+    if (ncpus > 1)
+      % Evaluate bootfun on each bootstrap resample in PARALLEL
+      X = arrayfun (@(i) vertcat (X(:,i)), 1 : nboot, 'UniformOutput', false);
+      if (ISOCTAVE)
+        % OCTAVE
+        bootstat = parcellfun (ncpus, @(X) bootfun (cell2mat (X)), X, ...
+                               'UniformOutput', false);
+      
+      else
+        % MATLAB
+        bootstat = cell (1, nboot);
+        parfor b = 1 : nboot; bootstat{b} = bootfun (cell2mat (X{:, b})); end
+      end
+    else
+      % Evaluate bootfun on each bootstrap resample in SERIAL
+      bootstat = cell2mat (arrayfun (@(b) bootfun (vertcat (X{:,b})), ...
+                                          1 : nboot, 'UniformOutput', false));
+    end
+  end
+  if (iscell (bootstat))
+    bootstat = cell2mat (bootstat);
   end
 
   % Remove bootstrap statistics that contain NaN or inf
@@ -363,7 +492,7 @@ function [stats, bootstat] = bootclust (x, nboot, bootfun, alpha, clustid, ...
   % First, if bootfun is the arithmetic meam, expand the probabilities of the 
   % percentiles for the confidence intervals using Student's t-distribution
   if (strcmpi (bootfun_str, 'mean'))
-    probs = ExpandProbs (probs, nx - 1, loo);
+    probs = localfunc.ExpandProbs (probs, nx - 1, loo);
   end
   % If requested, perform adjustments to the probabilities to correct for bias
   % and skewness
@@ -384,8 +513,21 @@ function [stats, bootstat] = bootclust (x, nboot, bootfun, alpha, clustid, ...
       end
       try
         jackfun = @(i) bootfun (vertcat (x{1 : nx ~= i, :}));
-        % Evaluate bootfun on each jackknife resample
-        T = cell2mat (arrayfun (jackfun, 1 : nx, 'UniformOutput', false));
+        if (ncpus > 1)  
+          % PARALLEL evaluation of bootfun on each jackknife resample 
+          if (ISOCTAVE)
+            % OCTAVE
+            T = cell2mat (pararrayfun (ncpus, jackfun, 1 : nx, ...
+                                       'UniformOutput', false));
+          else
+            % MATLAB
+            T = zeros (m, nx);
+            parfor i = 1 : nx; T(:, i) = feval (jackfun, i); end
+          end
+        else
+          % SERIAL evaluation of bootfun on each jackknife resample
+          T = cell2mat (arrayfun (jackfun, 1 : nx, 'UniformOutput', false));
+        end
         % Calculate empirical influence function
         U = (nx - 1) * bsxfun (@minus, mean (T, 2), T);
         a = sum (U.^3, 2) ./ (6 * sum (U.^2, 2) .^ 1.5);
@@ -403,7 +545,7 @@ function [stats, bootstat] = bootclust (x, nboot, bootfun, alpha, clustid, ...
                  cat (2, 'Unable to calculate the bias correction', ...
                          ' constant; reverting to percentile intervals.\n'))
         z0 = zeros (m, 1);
-        a = zeros (m, 1); 
+        a = zeros (m, 1);
       end
       % Calculate BCa or BC percentiles
       z = stdnorminv (probs);
@@ -416,7 +558,7 @@ function [stats, bootstat] = bootclust (x, nboot, bootfun, alpha, clustid, ...
   ci = nan (m, 2);
   for j = 1 : m
     try
-      ci(j, :) = kdeinv (probs(j, :), bootstat(j, :), ...
+      ci(j, :) = localfunc.kdeinv (probs(j, :), bootstat(j, :), ...
                          se(j) * sqrt (1 / (nx - 1)), 1 - 1 / (nx - 1));
     catch
       % Linear interpolation (legacy)
@@ -755,7 +897,8 @@ end
 %! % estimate.
 %! betafunc = @(y) (y(1:end-1) - mean(y)) \ (y(2:end) - mean(y));
 %! blocksz = 3;
-%! bootclust(y,1999,betafunc,[0.025,0.975],blocksz);
+%! seed = 2;
+%! bootclust(y,1999,betafunc,[0.025,0.975],blocksz,true,seed);
 %!
 %! % The estimate of beta here is 0.586 and the standard error is about 0.13.
 %! % The coefficient indicates that we can predict that standardized hormone
