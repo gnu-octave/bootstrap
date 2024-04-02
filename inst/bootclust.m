@@ -15,10 +15,10 @@
 % -- Function File: [STATS, BOOTSTAT] = bootclust (...)
 %
 %     'bootclust (DATA)' uses nonparametric balanced bootstrap resampling
-%     to generate 1999 resamples from clusters (or blocks) of rows of the DATA
-%     (column vector or matrix). By default, each row is it's own cluster (i.e.
-%     no clustering or blocking). The means of the resamples are then computed
-%     and the following statistics are displayed:
+%     to generate 1999 resamples from clusters or contiguous blocks of rows of
+%     the DATA (column vector or matrix) [1]. By default, each row is it's own
+%     cluster/block (i.e. no clustering or blocking). The means of the resamples
+%     are then computed and the following statistics are displayed:
 %        - original: the original estimate(s) calculated by BOOTFUN and the DATA
 %        - bias: bootstrap bias of the estimate(s)
 %        - std_error: bootstrap standard error of the estimate(s)
@@ -45,12 +45,12 @@
 %        one of the same). If BOOTFUN is @mean or 'mean', narrowness bias of
 %        the confidence intervals for single bootstrap are reduced by expanding
 %        the probabilities of the percentiles using Student's t-distribution
-%        [1]. By default, BOOTFUN is @mean.
+%        [2]. By default, BOOTFUN is @mean.
 %
 %     'bootclust ({D1, D2, ...}, NBOOT, BOOTFUN)' resamples from the clusters
-%     of rows of the data vectors D1, D2 etc and the resamples are passed onto
-%     BOOTFUN as multiple data input arguments. All data vectors and matrices
-%     (D1, D2 etc) must have the same number of rows.
+%     or blocks of rows of the data vectors D1, D2 etc and the resamples are
+%     passed onto BOOTFUN as multiple data input arguments. All data vectors
+%     and matrices (D1, D2 etc) must have the same number of rows.
 %
 %     'bootclust (DATA, NBOOT, BOOTFUN, ALPHA)', where ALPHA is numeric
 %     and sets the lower and upper bounds of the confidence interval(s). The
@@ -60,25 +60,26 @@
 %       <> vector: A pair of probabilities defining the (nominal) lower and
 %                  upper percentiles of the confidence interval(s) as
 %                  100*(ALPHA(1))% and 100*(ALPHA(2))% respectively. The
-%                  percentiles are bias-corrected and accelerated (BCa) [2].
+%                  percentiles are bias-corrected and accelerated (BCa) [3].
 %        The default value of ALPHA is the vector: [.025, .975], for a 95%
 %        BCa confidence interval.
 %
 %     'bootclust (DATA, NBOOT, BOOTFUN, ALPHA, CLUSTID)' also sets CLUSTID,
 %     which are identifiers that define the grouping of the DATA rows for
-%     cluster bootstrap case resampling. CLUSTID should be a column vector or
+%     cluster bootstrap resampling. CLUSTID should be a column vector or
 %     cell array with the same number of rows as the DATA. Rows in DATA with
 %     the same CLUSTID value are treated as clusters of observations that are
 %     resampled together.
 %
 %     'bootclust (DATA, NBOOT, BOOTFUN, ALPHA, BLOCKSZ)' groups consecutive
 %     DATA rows into non-overlapping blocks of length BLOCKSZ for simple block
-%     bootstrap resampling. By default, BLOCKSZ is 1.
+%     bootstrap resampling [4]. Note that this variation of block bootstrap is
+%     a special case of resampling clustered data. By default, BLOCKSZ is 1.
 %
 %     'bootclust (DATA, NBOOT, BOOTFUN, ALPHA, ..., LOO)' sets the resampling
 %     method. If LOO is false, the resampling method used is balanced bootstrap
 %     resampling. If LOO is true, the resampling method used is balanced
-%     bootknife resampling [3]. Where N is the number of clusters or blocks,
+%     bootknife resampling [5]. Where N is the number of clusters or blocks,
 %     bootknife cluster or block resampling involves creating leave-one-out
 %     jackknife samples of size N - 1, and then drawing resamples of size N with
 %     replacement from the jackknife samples, thereby incorporating Bessel's
@@ -100,12 +101,17 @@
 %    distributed with the statistics-resampling package.
 %
 %  BIBLIOGRAPHY:
-%  [1] Hesterberg, Tim (2014), What Teachers Should Know about the 
+%  [1] Davison and Hinkley (1997). Bootstrap methods and their application
+%        (Vol. 1). New York, NY: Cambridge University Press.
+%  [2] Hesterberg, Tim (2014), What Teachers Should Know about the 
 %        Bootstrap: Resampling in the Undergraduate Statistics Curriculum, 
 %        http://arxiv.org/abs/1411.5279
-%  [2] Efron, and Tibshirani (1993) An Introduction to the Bootstrap. 
+%  [3] Efron and Tibshirani (1993) An Introduction to the Bootstrap. 
 %        New York, NY: Chapman & Hall
-%  [3] Hesterberg T.C. (2004) Unbiasing the Bootstrap—Bootknife Sampling 
+%  [4] Carlstein (1986) The use of subseries values for estimating the
+%        variance of a general statistic from a stationary sequence. 
+%        Ann. Statist. 14, 1171-9
+%  [5] Hesterberg (2004) Unbiasing the Bootstrap—Bootknife Sampling 
 %        vs. Smoothing; Proceedings of the Section on Statistics & the 
 %        Environment. Alexandria, VA: American Statistical Association.
 %
@@ -258,16 +264,18 @@ function [stats, bootstat] = bootclust (x, nboot, bootfun, alpha, clustid, ...
   else
     if isscalar (clustid)
       % Group consecutive DATA rows into clusters of >= CLUSTID rows
-      clustsz = clustid;
-      if ( (~ isnumeric (clustsz)) || (clustsz ~= abs (clustsz)) || ...
-                 (clustsz >= n) || (clustsz ~= fix (clustsz)) )
-        error (cat (2, 'bootclust: CLUSTSZ must be a positive', ...
+      blocksz = clustid;
+      if ( (~ isnumeric (blocksz)) || (blocksz ~= abs (blocksz)) || ...
+                 (blocksz >= n) || (blocksz ~= fix (blocksz)) )
+        error (cat (2, 'bootclust: BLOCKSZ must be a positive', ...
                        ' integer less than the number of DATA rows'))
       end
-      nx = fix (n / clustsz);
+      nx = fix (n / blocksz);
       clustid = (nx + 1) * ones (n, 1);
-      clustid(1:clustsz * nx, :) = reshape (ones (clustsz, 1) * (1:nx), [], 1);
+      clustid(1:blocksz * nx, :) = reshape (ones (blocksz, 1) * (1:nx), [], 1);
       nx = clustid(end);
+    else
+      blocksz = [];
     end
     if ( any (size (clustid) ~= [n, 1]) )
       error (cat (2, 'bootclust: CLUSTID must be a column vector with', ...
@@ -430,7 +438,8 @@ function [stats, bootstat] = bootclust (x, nboot, bootfun, alpha, clustid, ...
 
   % Print output if no output arguments are requested
   if (nargout == 0) 
-    print_output (stats, nboot, nalpha, alpha, probs, m, bootfun_str, loo);
+    print_output (stats, nboot, nalpha, alpha, probs, m, bootfun_str, ...
+                  loo, blocksz);
   else
     if (isempty (bootsam))
       [warnmsg, warnID] = lastwarn;
@@ -548,20 +557,31 @@ end
 
 %--------------------------------------------------------------------------
 
-function print_output (stats, nboot, nalpha, alpha, probs, m, bootfun_str, loo)
+function print_output (stats, nboot, nalpha, alpha, probs, m, bootfun_str, ...
+                       loo, blocksz)
 
-    fprintf (cat (2, '\nSummary of nonparametric cluster bootstrap', ...
+    if (isempty (blocksz))
+      bootname = 'cluster';
+    else
+      bootname = 'block';
+    end
+    fprintf (cat (2, '\nSummary of nonparametric %s bootstrap', ...
                      ' estimates of bias and precision\n', ...
                      '*************************************************', ...
-                     '*****************************\n\n'));
+                     '*****************************\n\n'), bootname);
     fprintf ('Bootstrap settings: \n');
     fprintf (' Function: %s\n', bootfun_str);
     if loo
-      fprintf (' Resampling method: Balanced, bootknife cluster resampling \n');
+      fprintf (' Resampling method: Balanced, bootknife %s resampling \n', ...
+               bootname);
     else
-      fprintf (' Resampling method: Balanced, bootstrap cluster resampling \n');
+      fprintf (' Resampling method: Balanced, bootstrap %s resampling \n', ...
+               bootname);
     end
     fprintf (' Number of resamples: %u \n', nboot(1));
+    if (~ isempty (blocksz))
+      fprintf (' Number of data rows in each block: %u \n', blocksz);
+    end
     if (nalpha > 1)
       [jnk, warnID] = lastwarn;
       switch warnID
@@ -735,7 +755,7 @@ end
 %! % estimate.
 %! betafunc = @(y) (y(1:end-1) - mean(y)) \ (y(2:end) - mean(y));
 %! blocksz = 3;
-%! bootclust(y,1999,betafunc,[0.025,0.925],blocksz);
+%! bootclust(y,1999,betafunc,[0.025,0.975],blocksz);
 %!
 %! % The estimate of beta here is 0.586 and the standard error is about 0.13.
 %! % The coefficient indicates that we can predict that standardized hormone
