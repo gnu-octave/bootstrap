@@ -33,6 +33,7 @@
  -- Function File: bootclust (DATA, NBOOT, BOOTFUN, ALPHA, BLOCKSZ)
  -- Function File: bootclust (DATA, NBOOT, BOOTFUN, ALPHA, ..., LOO)
  -- Function File: bootclust (DATA, NBOOT, BOOTFUN, ALPHA, ..., LOO, SEED)
+ -- Function File: bootclust (DATA, NBOOT, BOOTFUN, ALPHA, ..., LOO, SEED, NPROC)
  -- Function File: STATS = bootclust (...)
  -- Function File: [STATS, BOOTSTAT] = bootclust (...)
 
@@ -112,6 +113,12 @@
      the Mersenne Twister random number generator using an integer SEED value
      so that bootclust results are reproducible.
 
+     'bootclust (DATA, NBOOT, BOOTFUN, ALPHA, ..., LOO, SEED, NPROC)' also
+     sets the number of parallel processes to use for function evaluations
+     during bootstrap and jackknife computations on multicore machines. This
+     feature requires the Parallel package (in Octave), or the Parallel
+     Computing Toolbox (in Matlab).
+
      'STATS = bootclust (...)' returns a structure with the following fields
      (defined above): original, bias, std_error, CI_lower, CI_upper.
 
@@ -137,7 +144,7 @@
         vs. Smoothing; Proceedings of the Section on Statistics & the 
         Environment. Alexandria, VA: American Statistical Association.
 
-  bootclust (version 2023.09.20)
+  bootclust (version 2024.04.02)
   Author: Andrew Charles Penn
   https://www.researchgate.net/profile/Andrew_Penn/
 
@@ -164,6 +171,34 @@
  % Input univariate dataset
  data = [48 36 20 29 42 42 20 42 22 41 45 14 6 ...
          0 33 28 34 4 32 24 47 41 24 26 30 41].';
+
+ % 95% expanded BCa bootstrap confidence intervals for the mean
+ bootclust (data, 1999, @mean);</pre>
+<p>Produces the following output</p>
+<pre class="example">Summary of nonparametric block bootstrap estimates of bias and precision
+******************************************************************************
+
+Bootstrap settings: 
+ Function: mean
+ Resampling method: Balanced, bootstrap block resampling 
+ Number of resamples: 1999 
+ Number of data rows in each block: 1 
+ Confidence interval (CI) type: Expanded bias-corrected and accelerated (BCa) 
+ Nominal coverage (and the percentiles used): 95% (1.2%, 97.6%)
+
+Bootstrap Statistics: 
+ original     bias         std_error    CI_lower     CI_upper  
+ +29.65       +4.263e-14   +2.612       +23.34       +34.53</pre>
+</div>
+
+<h3><a name="2">Demonstration 2</a></h3>
+<div class="demo">
+<p>The following code</p>
+<pre class="example">
+
+ % Input univariate dataset
+ data = [48 36 20 29 42 42 20 42 22 41 45 14 6 ...
+         0 33 28 34 4 32 24 47 41 24 26 30 41].';
  clustid = {'a';'a';'b';'b';'a';'c';'c';'d';'e';'e';'e';'f';'f'; ...
             'g';'g';'g';'h';'h';'i';'i';'j';'j';'k';'l';'m';'m'};
 
@@ -179,14 +214,43 @@ Bootstrap settings:
  Resampling method: Balanced, bootstrap cluster resampling 
  Number of resamples: 1999 
  Confidence interval (CI) type: Expanded bias-corrected and accelerated (BCa) 
- Nominal coverage (and the percentiles used): 95% (1.0%, 98.6%)
+ Nominal coverage (and the percentiles used): 95% (1.1%, 98.8%)
 
 Bootstrap Statistics: 
  original     bias         std_error    CI_lower     CI_upper  
- +29.65       -0.03865     +2.906       +22.43       +35.67</pre>
+ +29.65       -0.03672     +2.929       +22.97       +36.10</pre>
 </div>
 
-<h3><a name="2">Demonstration 2</a></h3>
+<h3><a name="3">Demonstration 3</a></h3>
+<div class="demo">
+<p>The following code</p>
+<pre class="example">
+
+ % Input univariate dataset
+ data = [48 36 20 29 42 42 20 42 22 41 45 14 6 ...
+         0 33 28 34 4 32 24 47 41 24 26 30 41].';
+
+ % 90% equal-tailed percentile bootstrap confidence intervals for
+ % the variance
+ bootclust (data, 1999, {@var, 1}, 0.1);</pre>
+<p>Produces the following output</p>
+<pre class="example">Summary of nonparametric block bootstrap estimates of bias and precision
+******************************************************************************
+
+Bootstrap settings: 
+ Function: var
+ Resampling method: Balanced, bootstrap block resampling 
+ Number of resamples: 1999 
+ Number of data rows in each block: 1 
+ Confidence interval (CI) type: Percentile (equal-tailed)
+ Nominal coverage (and the percentiles used): 90% (5.0%, 95.0%)
+
+Bootstrap Statistics: 
+ original     bias         std_error    CI_lower     CI_upper  
+ +171.5       -6.542       +40.80       +99.57       +234.1</pre>
+</div>
+
+<h3><a name="4">Demonstration 4</a></h3>
 <div class="demo">
 <p>The following code</p>
 <pre class="example">
@@ -213,10 +277,38 @@ Bootstrap settings:
 
 Bootstrap Statistics: 
  original     bias         std_error    CI_lower     CI_upper  
- +171.5       -9.619       +34.05       +103.2       +216.0</pre>
+ +171.5       -8.635       +33.19       +106.3       +215.6</pre>
 </div>
 
-<h3><a name="3">Demonstration 3</a></h3>
+<h3><a name="5">Demonstration 5</a></h3>
+<div class="demo">
+<p>The following code</p>
+<pre class="example">
+
+ % Input univariate dataset
+ data = [48 36 20 29 42 42 20 42 22 41 45 14 6 ...
+         0 33 28 34 4 32 24 47 41 24 26 30 41].';
+
+ % 90% BCa bootstrap confidence intervals for the variance
+ bootclust (data, 1999, {@var, 1}, [0.05 0.95]);</pre>
+<p>Produces the following output</p>
+<pre class="example">Summary of nonparametric block bootstrap estimates of bias and precision
+******************************************************************************
+
+Bootstrap settings: 
+ Function: var
+ Resampling method: Balanced, bootstrap block resampling 
+ Number of resamples: 1999 
+ Number of data rows in each block: 1 
+ Confidence interval (CI) type: Bias-corrected and accelerated (BCa) 
+ Nominal coverage (and the percentiles used): 90% (11.3%, 98.5%)
+
+Bootstrap Statistics: 
+ original     bias         std_error    CI_lower     CI_upper  
+ +171.5       -6.818       +42.53       +112.3       +260.3</pre>
+</div>
+
+<h3><a name="6">Demonstration 6</a></h3>
 <div class="demo">
 <p>The following code</p>
 <pre class="example">
@@ -238,14 +330,42 @@ Bootstrap settings:
  Resampling method: Balanced, bootstrap cluster resampling 
  Number of resamples: 1999 
  Confidence interval (CI) type: Bias-corrected and accelerated (BCa) 
- Nominal coverage (and the percentiles used): 90% (12.0%, 98.5%)
+ Nominal coverage (and the percentiles used): 90% (12.9%, 98.7%)
 
 Bootstrap Statistics: 
  original     bias         std_error    CI_lower     CI_upper  
- +171.5       -9.279       +32.87       +122.1       +227.9</pre>
+ +171.5       -9.466       +33.77       +122.7       +231.9</pre>
 </div>
 
-<h3><a name="4">Demonstration 4</a></h3>
+<h3><a name="7">Demonstration 7</a></h3>
+<div class="demo">
+<p>The following code</p>
+<pre class="example">
+
+ % Input dataset
+ y = randn (20,1); x = randn (20,1); X = [ones(20,1), x];
+
+ % 90% BCa confidence interval for regression coefficients 
+ bootclust ({y,X}, 1999, @(y,X) X\y, [0.05 0.95]); % Could also use @regress</pre>
+<p>Produces the following output</p>
+<pre class="example">Summary of nonparametric block bootstrap estimates of bias and precision
+******************************************************************************
+
+Bootstrap settings: 
+ Function: @(y, X) X \ y
+ Resampling method: Balanced, bootstrap block resampling 
+ Number of resamples: 1999 
+ Number of data rows in each block: 1 
+ Confidence interval (CI) type: Bias-corrected and accelerated (BCa) 
+ Nominal coverage: 90%
+
+Bootstrap Statistics: 
+ original     bias         std_error    CI_lower     CI_upper  
+ +0.04669     +0.008816    +0.2270      -0.2937      +0.4346    
+ -0.1589      +0.01375     +0.1653      -0.3877      +0.1029</pre>
+</div>
+
+<h3><a name="8">Demonstration 8</a></h3>
 <div class="demo">
 <p>The following code</p>
 <pre class="example">
@@ -269,11 +389,11 @@ Bootstrap settings:
 
 Bootstrap Statistics: 
  original     bias         std_error    CI_lower     CI_upper  
- -0.05368     -0.01334     +0.1530      -0.2371      +0.3204    
- +0.4353      +0.02643     +0.2884      -0.006904    +0.9339</pre>
+ -0.09369     +0.03264     +0.2246      -0.3718      +0.3783    
+ +0.4382      -0.03756     +0.2405      -0.01282     +0.7747</pre>
 </div>
 
-<h3><a name="5">Demonstration 5</a></h3>
+<h3><a name="9">Demonstration 9</a></h3>
 <div class="demo">
 <p>The following code</p>
 <pre class="example">
@@ -297,14 +417,14 @@ Bootstrap settings:
  Resampling method: Balanced, bootstrap cluster resampling 
  Number of resamples: 1999 
  Confidence interval (CI) type: Bias-corrected and accelerated (BCa) 
- Nominal coverage (and the percentiles used): 95% (2.2%, 97.2%)
+ Nominal coverage (and the percentiles used): 95% (1.6%, 96.5%)
 
 Bootstrap Statistics: 
  original     bias         std_error    CI_lower     CI_upper  
- +0.7764      -0.02460     +0.1464      +0.4054      +1.005</pre>
+ +0.7764      -0.02375     +0.1439      +0.3882      +0.9904</pre>
 </div>
 
-<h3><a name="6">Demonstration 6</a></h3>
+<h3><a name="10">Demonstration 10</a></h3>
 <div class="demo">
 <p>The following code</p>
 <pre class="example">
@@ -328,7 +448,8 @@ Bootstrap Statistics:
  % estimate.
  betafunc = @(y) (y(1:end-1) - mean(y)) \ (y(2:end) - mean(y));
  blocksz = 3;
- bootclust(y,1999,betafunc,[0.025,0.975],blocksz);
+ seed = 2;
+ bootclust(y,1999,betafunc,[0.025,0.975],blocksz,true,seed);
 
  % The estimate of beta here is 0.586 and the standard error is about 0.13.
  % The coefficient indicates that we can predict that standardized hormone
@@ -339,15 +460,15 @@ Bootstrap Statistics:
 
 Bootstrap settings: 
  Function: @(y) (y (1:end - 1) - mean (y)) \ (y (2:end) - mean (y))
- Resampling method: Balanced, bootstrap block resampling 
+ Resampling method: Balanced, bootknife block resampling 
  Number of resamples: 1999 
  Number of data rows in each block: 3 
  Confidence interval (CI) type: Bias-corrected and accelerated (BCa) 
- Nominal coverage (and the percentiles used): 95% (80.8%, 100.0%)
+ Nominal coverage (and the percentiles used): 95% (73.4%, 100.0%)
 
 Bootstrap Statistics: 
  original     bias         std_error    CI_lower     CI_upper  
- +0.5858      -0.1710      +0.1300      +0.5273      +0.8674</pre>
+ +0.5858      -0.1686      +0.1319      +0.5009      +0.8686</pre>
 </div>
 
 <p>Package: <a href="../index.html">statistics-resampling</a></p>

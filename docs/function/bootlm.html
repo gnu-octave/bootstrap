@@ -554,7 +554,7 @@ MODEL POSTHOC COMPARISONS
 
 name                                   mean        CI_lower    CI_upper    p-adj
 --------------------------------------------------------------------------------
-female - male                          +10.80      -8.863      +30.46       .254
+female - male                          +10.80      -8.605      +30.21       .237
 
 
 MODEL FORMULA (based on Wilkinson's notation):
@@ -565,9 +565,9 @@ MODEL POSTHOC COMPARISONS
 
 name                                   mean        CI_lower    CI_upper    p-adj
 --------------------------------------------------------------------------------
-female - male                          +0.7379     -0.4263     +1.917           
+female - male                          +0.7494     -0.3713     +1.958           
 
-Cohen's d [95% CI] = 0.74 [-0.43, 1.92] (N = 11)
+Cohen's d [95% CI] = 0.75 [-0.37, 1.96] (N = 11)
 
 
 MODEL FORMULA (based on Wilkinson's notation):
@@ -578,8 +578,8 @@ MODEL ESTIMATED MARGINAL MEANS
 
 name                                   mean        CI_lower    CI_upper        N
 --------------------------------------------------------------------------------
-male                                   +44.20      +33.05      +53.43          5
-female                                 +55.00      +42.97      +68.20          6</pre>
+male                                   +44.20      +32.66      +53.30          5
+female                                 +55.00      +42.33      +67.73          6</pre>
 <p>and the following figure</p>
 <p><table class="images">
 <tr>
@@ -642,7 +642,7 @@ MODEL POSTHOC COMPARISONS
 
 name                                   mean        CI_lower    CI_upper    p-adj
 --------------------------------------------------------------------------------
-after - before                         +1.460      +0.6549     +2.265       .002
+after - before                         +1.460      +0.6651     +2.255       .003
 
 
 MODEL FORMULA (based on Wilkinson's notation):
@@ -653,9 +653,9 @@ MODEL POSTHOC COMPARISONS
 
 name                                   mean        CI_lower    CI_upper    p-adj
 --------------------------------------------------------------------------------
-after - before                         +2.390      +1.168      +3.561           
+after - before                         +2.364      +1.161      +3.542           
 
-Cohen's d [95% CI] = 2.39 [1.17, 3.56] (N = 10)
+Cohen's d [95% CI] = 2.36 [1.16, 3.54] (N = 10)
 
 
 MODEL FORMULA (based on Wilkinson's notation):
@@ -666,8 +666,8 @@ MODEL ESTIMATED MARGINAL MEANS
 
 name                                   mean        CI_lower    CI_upper        N
 --------------------------------------------------------------------------------
-before                                 +4.560      +4.124      +5.005          5
-after                                  +6.020      +5.576      +6.480          5</pre>
+before                                 +4.560      +4.124      +5.009          5
+after                                  +6.020      +5.580      +6.478          5</pre>
 <p>and the following figure</p>
 <p><table class="images">
 <tr>
@@ -722,9 +722,9 @@ MODEL POSTHOC COMPARISONS
 
 name                                   mean        CI_lower    CI_upper    p-adj
 --------------------------------------------------------------------------------
-st - al1                               +7.000      +3.883      +10.08      <.001
-st - al2                               +5.000      +2.554      +7.443       .001
-al1 - al2                              -2.000      -4.843      +0.9612      .171
+st - al1                               +7.000      +3.851      +10.08      <.001
+st - al2                               +5.000      +2.563      +7.456      <.001
+al1 - al2                              -2.000      -4.918      +0.8745      .172
 
 
 MODEL FORMULA (based on Wilkinson's notation):
@@ -735,9 +735,9 @@ MODEL ESTIMATED MARGINAL MEANS
 
 name                                   mean        CI_lower    CI_upper        N
 --------------------------------------------------------------------------------
-st                                     +84.00      +82.18      +85.76          8
-al1                                    +77.00      +75.12      +79.52          6
-al2                                    +79.00      +77.69      +80.46          6</pre>
+st                                     +84.00      +82.11      +85.67          8
+al1                                    +77.00      +74.93      +79.40          6
+al2                                    +79.00      +77.71      +80.44          6</pre>
 <p>and the following figure</p>
 <p><table class="images">
 <tr>
@@ -800,9 +800,9 @@ MODEL POSTHOC COMPARISONS
 
 name                                   mean        CI_lower    CI_upper    p-adj
 --------------------------------------------------------------------------------
-1 - 2                                  -2.000      -2.747      -1.279      <.001
-1 - 5                                  -3.200      -3.866      -2.540      <.001
-2 - 5                                  -1.200      -2.083      -0.3023      .013
+1 - 2                                  -2.000      -2.735      -1.288      <.001
+1 - 5                                  -3.200      -3.859      -2.552      <.001
+2 - 5                                  -1.200      -2.084      -0.3268      .012
 
 
 MODEL FORMULA (based on Wilkinson's notation):
@@ -813,9 +813,9 @@ MODEL ESTIMATED MARGINAL MEANS
 
 name                                   mean        CI_lower    CI_upper        N
 --------------------------------------------------------------------------------
-1                                      +11.00      +10.63      +11.34         10
-2                                      +13.00      +12.51      +13.46         10
-5                                      +14.20      +13.76      +14.64         10</pre>
+1                                      +11.00      +10.64      +11.36         10
+2                                      +13.00      +12.53      +13.50         10
+5                                      +14.20      +13.73      +14.63         10</pre>
 <p>and the following figure</p>
 <p><table class="images">
 <tr>
@@ -887,12 +887,12 @@ MODEL COEFFICIENTS
 
 name                                   coeff       CI_lower    CI_upper    p-val
 --------------------------------------------------------------------------------
-(Intercept)                            +5.667      +4.791      +6.542      <.001
-brands_1                               -1.333      -1.897      -0.7699      .012
-brands_2                               -2.167      -3.122      -1.211      <.001
-popper_1                               +1.167      +0.6066     +1.727       .018
-brands:popper_1                        -0.3333     -1.083      +0.4161      .339
-brands:popper_2                        -0.1667     -1.288      +0.9548      .724
+(Intercept)                            +5.667      +4.789      +6.544      <.001
+brands_1                               -1.333      -1.900      -0.7669      .010
+brands_2                               -2.167      -3.127      -1.206      <.001
+popper_1                               +1.167      +0.5991     +1.734       .019
+brands:popper_1                        -0.3333     -1.076      +0.4089      .334
+brands:popper_2                        -0.1667     -1.248      +0.9143      .724
 
 
 MODEL FORMULA (based on Wilkinson's notation):
@@ -903,9 +903,9 @@ MODEL POSTHOC COMPARISONS
 
 name                                   mean        CI_lower    CI_upper    p-adj
 --------------------------------------------------------------------------------
-Gourmet - National                     +1.500      +1.129      +1.871      <.001
-Gourmet - Generic                      +2.250      +1.704      +2.796      <.001
-National - Generic                     +0.7500     +0.2071     +1.293       .011
+Gourmet - National                     +1.500      +1.135      +1.865      <.001
+Gourmet - Generic                      +2.250      +1.706      +2.794      <.001
+National - Generic                     +0.7500     +0.2079     +1.292       .009
 
 
 MODEL FORMULA (based on Wilkinson's notation):
@@ -916,9 +916,9 @@ MODEL ESTIMATED MARGINAL MEANS
 
 name                                   mean        CI_lower    CI_upper        N
 --------------------------------------------------------------------------------
-Gourmet                                +6.250      +6.057      +6.436          6
-National                               +4.750      +4.564      +4.941          6
-Generic                                +4.000      +3.673      +4.312          6
+Gourmet                                +6.250      +6.057      +6.433          6
+National                               +4.750      +4.562      +4.942          6
+Generic                                +4.000      +3.693      +4.332          6
 
 
 MODEL FORMULA (based on Wilkinson's notation):
@@ -929,7 +929,7 @@ MODEL POSTHOC COMPARISONS
 
 name                                   mean        CI_lower    CI_upper    p-adj
 --------------------------------------------------------------------------------
-oil - air                              -1.000      -1.386      -0.6139     <.001
+oil - air                              -1.000      -1.384      -0.6164     <.001
 
 
 MODEL FORMULA (based on Wilkinson's notation):
@@ -940,8 +940,8 @@ MODEL ESTIMATED MARGINAL MEANS
 
 name                                   mean        CI_lower    CI_upper        N
 --------------------------------------------------------------------------------
-oil                                    +4.500      +4.315      +4.688          9
-air                                    +5.500      +5.321      +5.699          9</pre>
+oil                                    +4.500      +4.314      +4.685          9
+air                                    +5.500      +5.314      +5.686          9</pre>
 <p>and the following figure</p>
 <p><table class="images">
 <tr>
@@ -1824,8 +1824,8 @@ MODEL POSTHOC COMPARISONS
 name                                   mean        CI_lower    CI_upper    p-adj
 --------------------------------------------------------------------------------
 A - B                                  -6.650      -13.50      +0.1989          
-A - C                                  -13.65      -22.58      -4.722           
-B - C                                  -6.999      -22.06      +8.059           
+A - C                                  -13.65      -22.60      -4.702           
+B - C                                  -6.999      -22.18      +8.184           
 
 
 MODEL FORMULA (based on Wilkinson's notation):
@@ -1836,9 +1836,9 @@ MODEL ESTIMATED MARGINAL MEANS
 
 name                                   mean        CI_lower    CI_upper        N
 --------------------------------------------------------------------------------
-A                                      +3.835      -2.493      +10.16          2
-B                                      +10.48      +3.807      +17.16          2
-C                                      +17.48      +2.811      +32.16          2</pre>
+A                                      +3.835      -2.475      +10.14          2
+B                                      +10.48      +3.805      +17.16          2
+C                                      +17.48      +2.735      +32.23          2</pre>
 <p>and the following figure</p>
 <p><table class="images">
 <tr>
