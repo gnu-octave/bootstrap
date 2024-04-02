@@ -37,10 +37,10 @@
  -- Function File: [STATS, BOOTSTAT] = bootclust (...)
 
      'bootclust (DATA)' uses nonparametric balanced bootstrap resampling
-     to generate 1999 resamples from clusters (or blocks) of rows of the DATA
-     (column vector or matrix). By default, each row is it's own cluster (i.e.
-     no clustering or blocking). The means of the resamples are then computed
-     and the following statistics are displayed:
+     to generate 1999 resamples from clusters or contiguous blocks of rows of
+     the DATA (column vector or matrix) [1]. By default, each row is it's own
+     cluster/block (i.e. no clustering or blocking). The means of the resamples
+     are then computed and the following statistics are displayed:
         - original: the original estimate(s) calculated by BOOTFUN and the DATA
         - bias: bootstrap bias of the estimate(s)
         - std_error: bootstrap standard error of the estimate(s)
@@ -67,12 +67,12 @@
         one of the same). If BOOTFUN is @mean or 'mean', narrowness bias of
         the confidence intervals for single bootstrap are reduced by expanding
         the probabilities of the percentiles using Student's t-distribution
-        [1]. By default, BOOTFUN is @mean.
+        [2]. By default, BOOTFUN is @mean.
 
      'bootclust ({D1, D2, ...}, NBOOT, BOOTFUN)' resamples from the clusters
-     of rows of the data vectors D1, D2 etc and the resamples are passed onto
-     BOOTFUN as multiple data input arguments. All data vectors and matrices
-     (D1, D2 etc) must have the same number of rows.
+     or blocks of rows of the data vectors D1, D2 etc and the resamples are
+     passed onto BOOTFUN as multiple data input arguments. All data vectors
+     and matrices (D1, D2 etc) must have the same number of rows.
 
      'bootclust (DATA, NBOOT, BOOTFUN, ALPHA)', where ALPHA is numeric
      and sets the lower and upper bounds of the confidence interval(s). The
@@ -82,25 +82,26 @@
        <> vector: A pair of probabilities defining the (nominal) lower and
                   upper percentiles of the confidence interval(s) as
                   100*(ALPHA(1))% and 100*(ALPHA(2))% respectively. The
-                  percentiles are bias-corrected and accelerated (BCa) [2].
+                  percentiles are bias-corrected and accelerated (BCa) [3].
         The default value of ALPHA is the vector: [.025, .975], for a 95%
         BCa confidence interval.
 
      'bootclust (DATA, NBOOT, BOOTFUN, ALPHA, CLUSTID)' also sets CLUSTID,
      which are identifiers that define the grouping of the DATA rows for
-     cluster bootstrap case resampling. CLUSTID should be a column vector or
+     cluster bootstrap resampling. CLUSTID should be a column vector or
      cell array with the same number of rows as the DATA. Rows in DATA with
      the same CLUSTID value are treated as clusters of observations that are
      resampled together.
 
      'bootclust (DATA, NBOOT, BOOTFUN, ALPHA, BLOCKSZ)' groups consecutive
      DATA rows into non-overlapping blocks of length BLOCKSZ for simple block
-     bootstrap resampling. By default, BLOCKSZ is 1.
+     bootstrap resampling [4]. Note that this variation of block bootstrap is
+     a special case of resampling clustered data. By default, BLOCKSZ is 1.
 
      'bootclust (DATA, NBOOT, BOOTFUN, ALPHA, ..., LOO)' sets the resampling
      method. If LOO is false, the resampling method used is balanced bootstrap
      resampling. If LOO is true, the resampling method used is balanced
-     bootknife resampling [3]. Where N is the number of clusters or blocks,
+     bootknife resampling [5]. Where N is the number of clusters or blocks,
      bootknife cluster or block resampling involves creating leave-one-out
      jackknife samples of size N - 1, and then drawing resamples of size N with
      replacement from the jackknife samples, thereby incorporating Bessel's
@@ -122,12 +123,17 @@
     distributed with the statistics-resampling package.
 
   BIBLIOGRAPHY:
-  [1] Hesterberg, Tim (2014), What Teachers Should Know about the 
+  [1] Davison and Hinkley (1997). Bootstrap methods and their application
+        (Vol. 1). New York, NY: Cambridge University Press.
+  [2] Hesterberg, Tim (2014), What Teachers Should Know about the 
         Bootstrap: Resampling in the Undergraduate Statistics Curriculum, 
         http://arxiv.org/abs/1411.5279
-  [2] Efron, and Tibshirani (1993) An Introduction to the Bootstrap. 
+  [3] Efron and Tibshirani (1993) An Introduction to the Bootstrap. 
         New York, NY: Chapman & Hall
-  [3] Hesterberg T.C. (2004) Unbiasing the Bootstrap—Bootknife Sampling 
+  [4] Carlstein (1986) The use of subseries values for estimating the
+        variance of a general statistic from a stationary sequence. 
+        Ann. Statist. 14, 1171-9
+  [5] Hesterberg (2004) Unbiasing the Bootstrap—Bootknife Sampling 
         vs. Smoothing; Proceedings of the Section on Statistics & the 
         Environment. Alexandria, VA: American Statistical Association.
 
@@ -158,33 +164,6 @@
  % Input univariate dataset
  data = [48 36 20 29 42 42 20 42 22 41 45 14 6 ...
          0 33 28 34 4 32 24 47 41 24 26 30 41].';
-
- % 95% expanded BCa bootstrap confidence intervals for the mean
- bootclust (data, 1999, @mean);</pre>
-<p>Produces the following output</p>
-<pre class="example">Summary of nonparametric cluster bootstrap estimates of bias and precision
-******************************************************************************
-
-Bootstrap settings: 
- Function: mean
- Resampling method: Balanced, bootstrap cluster resampling 
- Number of resamples: 1999 
- Confidence interval (CI) type: Expanded bias-corrected and accelerated (BCa) 
- Nominal coverage (and the percentiles used): 95% (1.2%, 97.5%)
-
-Bootstrap Statistics: 
- original     bias         std_error    CI_lower     CI_upper  
- +29.65       -3.553e-15   +2.642       +23.61       +34.72</pre>
-</div>
-
-<h3><a name="2">Demonstration 2</a></h3>
-<div class="demo">
-<p>The following code</p>
-<pre class="example">
-
- % Input univariate dataset
- data = [48 36 20 29 42 42 20 42 22 41 45 14 6 ...
-         0 33 28 34 4 32 24 47 41 24 26 30 41].';
  clustid = {'a';'a';'b';'b';'a';'c';'c';'d';'e';'e';'e';'f';'f'; ...
             'g';'g';'g';'h';'h';'i';'i';'j';'j';'k';'l';'m';'m'};
 
@@ -200,42 +179,14 @@ Bootstrap settings:
  Resampling method: Balanced, bootstrap cluster resampling 
  Number of resamples: 1999 
  Confidence interval (CI) type: Expanded bias-corrected and accelerated (BCa) 
- Nominal coverage (and the percentiles used): 95% (1.2%, 98.9%)
+ Nominal coverage (and the percentiles used): 95% (1.0%, 98.6%)
 
 Bootstrap Statistics: 
  original     bias         std_error    CI_lower     CI_upper  
- +29.65       -0.02076     +2.966       +22.83       +36.23</pre>
+ +29.65       -0.03865     +2.906       +22.43       +35.67</pre>
 </div>
 
-<h3><a name="3">Demonstration 3</a></h3>
-<div class="demo">
-<p>The following code</p>
-<pre class="example">
-
- % Input univariate dataset
- data = [48 36 20 29 42 42 20 42 22 41 45 14 6 ...
-         0 33 28 34 4 32 24 47 41 24 26 30 41].';
-
- % 90% equal-tailed percentile bootstrap confidence intervals for
- % the variance
- bootclust (data, 1999, {@var, 1}, 0.1);</pre>
-<p>Produces the following output</p>
-<pre class="example">Summary of nonparametric cluster bootstrap estimates of bias and precision
-******************************************************************************
-
-Bootstrap settings: 
- Function: var
- Resampling method: Balanced, bootstrap cluster resampling 
- Number of resamples: 1999 
- Confidence interval (CI) type: Percentile (equal-tailed)
- Nominal coverage (and the percentiles used): 90% (5.0%, 95.0%)
-
-Bootstrap Statistics: 
- original     bias         std_error    CI_lower     CI_upper  
- +171.5       -6.281       +41.90       +98.51       +235.1</pre>
-</div>
-
-<h3><a name="4">Demonstration 4</a></h3>
+<h3><a name="2">Demonstration 2</a></h3>
 <div class="demo">
 <p>The following code</p>
 <pre class="example">
@@ -262,37 +213,10 @@ Bootstrap settings:
 
 Bootstrap Statistics: 
  original     bias         std_error    CI_lower     CI_upper  
- +171.5       -9.500       +34.91       +100.7       +216.7</pre>
+ +171.5       -9.619       +34.05       +103.2       +216.0</pre>
 </div>
 
-<h3><a name="5">Demonstration 5</a></h3>
-<div class="demo">
-<p>The following code</p>
-<pre class="example">
-
- % Input univariate dataset
- data = [48 36 20 29 42 42 20 42 22 41 45 14 6 ...
-         0 33 28 34 4 32 24 47 41 24 26 30 41].';
-
- % 90% BCa bootstrap confidence intervals for the variance
- bootclust (data, 1999, {@var, 1}, [0.05 0.95]);</pre>
-<p>Produces the following output</p>
-<pre class="example">Summary of nonparametric cluster bootstrap estimates of bias and precision
-******************************************************************************
-
-Bootstrap settings: 
- Function: var
- Resampling method: Balanced, bootstrap cluster resampling 
- Number of resamples: 1999 
- Confidence interval (CI) type: Bias-corrected and accelerated (BCa) 
- Nominal coverage (and the percentiles used): 90% (13.1%, 98.9%)
-
-Bootstrap Statistics: 
- original     bias         std_error    CI_lower     CI_upper  
- +171.5       -6.926       +41.71       +117.1       +261.8</pre>
-</div>
-
-<h3><a name="6">Demonstration 6</a></h3>
+<h3><a name="3">Demonstration 3</a></h3>
 <div class="demo">
 <p>The following code</p>
 <pre class="example">
@@ -314,41 +238,14 @@ Bootstrap settings:
  Resampling method: Balanced, bootstrap cluster resampling 
  Number of resamples: 1999 
  Confidence interval (CI) type: Bias-corrected and accelerated (BCa) 
- Nominal coverage (and the percentiles used): 90% (13.6%, 98.8%)
+ Nominal coverage (and the percentiles used): 90% (12.0%, 98.5%)
 
 Bootstrap Statistics: 
  original     bias         std_error    CI_lower     CI_upper  
- +171.5       -9.181       +32.99       +124.8       +231.3</pre>
+ +171.5       -9.279       +32.87       +122.1       +227.9</pre>
 </div>
 
-<h3><a name="7">Demonstration 7</a></h3>
-<div class="demo">
-<p>The following code</p>
-<pre class="example">
-
- % Input dataset
- y = randn (20,1); x = randn (20,1); X = [ones(20,1), x];
-
- % 90% BCa confidence interval for regression coefficients 
- bootclust ({y,X}, 1999, @(y,X) X\y, [0.05 0.95]); % Could also use @regress</pre>
-<p>Produces the following output</p>
-<pre class="example">Summary of nonparametric cluster bootstrap estimates of bias and precision
-******************************************************************************
-
-Bootstrap settings: 
- Function: @(y, X) X \ y
- Resampling method: Balanced, bootstrap cluster resampling 
- Number of resamples: 1999 
- Confidence interval (CI) type: Bias-corrected and accelerated (BCa) 
- Nominal coverage: 90%
-
-Bootstrap Statistics: 
- original     bias         std_error    CI_lower     CI_upper  
- -0.02488     +0.01383     +0.3004      -0.5833      +0.4100    
- -0.1616      -0.04271     +0.3841      -0.7761      +0.4812</pre>
-</div>
-
-<h3><a name="8">Demonstration 8</a></h3>
+<h3><a name="4">Demonstration 4</a></h3>
 <div class="demo">
 <p>The following code</p>
 <pre class="example">
@@ -372,11 +269,11 @@ Bootstrap settings:
 
 Bootstrap Statistics: 
  original     bias         std_error    CI_lower     CI_upper  
- +0.08743     -0.01768     +0.2656      -0.3089      +0.5849    
- -0.2182      +0.01847     +0.1900      -0.5138      +0.08557</pre>
+ -0.05368     -0.01334     +0.1530      -0.2371      +0.3204    
+ +0.4353      +0.02643     +0.2884      -0.006904    +0.9339</pre>
 </div>
 
-<h3><a name="9">Demonstration 9</a></h3>
+<h3><a name="5">Demonstration 5</a></h3>
 <div class="demo">
 <p>The following code</p>
 <pre class="example">
@@ -400,14 +297,14 @@ Bootstrap settings:
  Resampling method: Balanced, bootstrap cluster resampling 
  Number of resamples: 1999 
  Confidence interval (CI) type: Bias-corrected and accelerated (BCa) 
- Nominal coverage (and the percentiles used): 95% (1.7%, 96.7%)
+ Nominal coverage (and the percentiles used): 95% (2.2%, 97.2%)
 
 Bootstrap Statistics: 
  original     bias         std_error    CI_lower     CI_upper  
- +0.7764      -0.02427     +0.1433      +0.3912      +0.9911</pre>
+ +0.7764      -0.02460     +0.1464      +0.4054      +1.005</pre>
 </div>
 
-<h3><a name="10">Demonstration 10</a></h3>
+<h3><a name="6">Demonstration 6</a></h3>
 <div class="demo">
 <p>The following code</p>
 <pre class="example">
@@ -431,25 +328,26 @@ Bootstrap Statistics:
  % estimate.
  betafunc = @(y) (y(1:end-1) - mean(y)) \ (y(2:end) - mean(y));
  blocksz = 3;
- bootclust(y,1999,betafunc,[0.025,0.925],blocksz);
+ bootclust(y,1999,betafunc,[0.025,0.975],blocksz);
 
  % The estimate of beta here is 0.586 and the standard error is about 0.13.
  % The coefficient indicates that we can predict that standardized hormone
  % levels to change by a factor of 0.586 from the previous timepoint.</pre>
 <p>Produces the following output</p>
-<pre class="example">Summary of nonparametric cluster bootstrap estimates of bias and precision
+<pre class="example">Summary of nonparametric block bootstrap estimates of bias and precision
 ******************************************************************************
 
 Bootstrap settings: 
  Function: @(y) (y (1:end - 1) - mean (y)) \ (y (2:end) - mean (y))
- Resampling method: Balanced, bootstrap cluster resampling 
+ Resampling method: Balanced, bootstrap block resampling 
  Number of resamples: 1999 
+ Number of data rows in each block: 3 
  Confidence interval (CI) type: Bias-corrected and accelerated (BCa) 
- Nominal coverage (and the percentiles used): 90% (77.8%, 100.0%)
+ Nominal coverage (and the percentiles used): 95% (80.8%, 100.0%)
 
 Bootstrap Statistics: 
  original     bias         std_error    CI_lower     CI_upper  
- +0.5858      -0.1695      +0.1320      +0.5182      +0.8386</pre>
+ +0.5858      -0.1710      +0.1300      +0.5273      +0.8674</pre>
 </div>
 
 <p>Package: <a href="../index.html">statistics-resampling</a></p>
