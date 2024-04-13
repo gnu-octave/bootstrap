@@ -507,7 +507,7 @@ function [stats, bootstat, X] = bootclust (x, nboot, bootfun, alpha, ...
   % and skewness
   switch (nalpha)
     case 1
-      % No adjustements made
+      % No adjustments made
       probs = repmat (probs, m, 1);
     case 2
       % Create distribution functions
@@ -800,6 +800,8 @@ end
 %!
 %! % 95% expanded BCa bootstrap confidence intervals for the mean
 %! bootclust (data, 1999, @mean);
+%!
+%! % Please be patient, the calculations will be completed soon...
 
 %!demo
 %!
@@ -812,6 +814,8 @@ end
 %! % 95% expanded BCa bootstrap confidence intervals for the mean with
 %! % cluster resampling
 %! bootclust (data, 1999, @mean, [0.025,0.975], clustid);
+%!
+%! % Please be patient, the calculations will be completed soon...
 
 %!demo
 %!
@@ -822,6 +826,8 @@ end
 %! % 90% equal-tailed percentile bootstrap confidence intervals for
 %! % the variance
 %! bootclust (data, 1999, {@var, 1}, 0.1);
+%!
+%! % Please be patient, the calculations will be completed soon...
 
 %!demo
 %!
@@ -834,6 +840,8 @@ end
 %! % 90% equal-tailed percentile bootstrap confidence intervals for
 %! % the variance
 %! bootclust (data, 1999, {@var, 1}, 0.1, clustid);
+%!
+%! % Please be patient, the calculations will be completed soon...
 
 %!demo
 %!
@@ -843,6 +851,8 @@ end
 %!
 %! % 90% BCa bootstrap confidence intervals for the variance
 %! bootclust (data, 1999, {@var, 1}, [0.05 0.95]);
+%!
+%! % Please be patient, the calculations will be completed soon...
 
 %!demo
 %!
@@ -854,6 +864,8 @@ end
 %!
 %! % 90% BCa bootstrap confidence intervals for the variance
 %! bootclust (data, 1999, {@var, 1}, [0.05 0.95], clustid);
+%!
+%! % Please be patient, the calculations will be completed soon...
 
 %!demo
 %!
@@ -861,7 +873,9 @@ end
 %! y = randn (20,1); x = randn (20,1); X = [ones(20,1), x];
 %!
 %! % 90% BCa confidence interval for regression coefficients 
-%! bootclust ({y,X}, 1999, @(y,X) X\y, [0.05 0.95]); % Could also use @regress
+%! bootclust ({X,y}, 1999, @mldivide, [0.05 0.95]);
+%!
+%! % Please be patient, the calculations will be completed soon...
 
 %!demo
 %!
@@ -870,7 +884,9 @@ end
 %! clustid = [1;1;1;1;2;2;2;3;3;3;3;4;4;4;4;4;5;5;5;6];
 %!
 %! % 90% BCa confidence interval for regression coefficients 
-%! bootclust ({y,X}, 1999, @(y,X) X\y, [0.05 0.95], clustid);
+%! bootclust ({X,y}, 1999, @mldivide, [0.05 0.95], clustid);
+%!
+%! % Please be patient, the calculations will be completed soon...
 
 %!demo
 %!
@@ -951,12 +967,12 @@ end
 %! y = randn (20,1); x = randn (20,1); X = [ones(20,1), x];
 %! stats = bootclust ({x,y}, 1999, @cor);
 %! stats = bootclust ({x,y}, 1999, @cor, [], clustid);
-%! stats = bootclust ({y,x}, 1999, @(y,x) pinv(x)*y); % Could use @regress
-%! stats = bootclust ({y,X}, 1999, @(y,X) pinv(X)*y);
-%! stats = bootclust ({y,X}, 1999, @(y,X) pinv(X)*y, [], clustid);
-%! stats = bootclust ({y,X}, 1999, @(y,X) pinv(X)*y, [], clustid, true);
-%! stats = bootclust ({y,X}, 1999, @(y,X) pinv(X)*y, [], clustid, true, 1);
-%! stats = bootclust ({y,X}, 1999, @(y,X) pinv(X)*y, [.05,.95], clustid);
+%! stats = bootclust ({x,y}, 1999, @mldivide);
+%! stats = bootclust ({X,y}, 1999, @mldivide);
+%! stats = bootclust ({X,y}, 1999, @mldivide, [], clustid);
+%! stats = bootclust ({X,y}, 1999, @mldivide, [], clustid, true);
+%! stats = bootclust ({X,y}, 1999, @mldivide, [], clustid, true, 1);
+%! stats = bootclust ({X,y}, 1999, @mldivide, [.05,.95], clustid);
 
 %!test
 %! % Air conditioning failure times in Table 1.2 of Davison A.C. and

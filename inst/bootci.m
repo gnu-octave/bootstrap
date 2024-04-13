@@ -431,6 +431,8 @@ end
 %!
 %! % 95% BCa bootstrap confidence intervals for the mean
 %! ci = bootci (1999, @mean, data)
+%!
+%! % Please be patient, the calculations will be completed soon...
 
 %!demo
 %!
@@ -463,6 +465,8 @@ end
 %!
 %! % 90% percentile bootstrap confidence intervals for the variance
 %! ci = bootci (1999, {{@var,1}, data}, 'type', 'per', 'alpha', 0.1)
+%!
+%! % Please be patient, the calculations will be completed soon...
 
 %!demo
 %!
@@ -472,6 +476,8 @@ end
 %!
 %! % 90% BCa bootstrap confidence intervals for the variance
 %! ci = bootci (1999, {{@var,1}, data}, 'type', 'bca', 'alpha', 0.1)
+%!
+%! % Please be patient, the calculations will be completed soon...
 
 %!demo
 %!
@@ -606,6 +612,21 @@ end
 %!   %<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 %! 
 %! end
+%!
+%! % Please be patient, the calculations will be completed soon...
+
+%!demo
+%!
+%! % Input dataset
+%! y = randn (20,1); x = randn (20,1); X = [ones(20,1), x];
+%!
+%! % 95% BCa confidence interval for regression coefficients 
+%! ci = bootci (1999, @mldivide, X, y)
+%!
+%! % N.B: Consider using either the 'bootwild', 'bootbayes' or 'bootlm'
+%! % functions for bootstrapping linear regression problems instead
+%!
+%! % Please be patient, the calculations will be completed soon...
 
 %!demo
 %!
@@ -780,15 +801,15 @@ end
 %!   y = randn (20,1); x = randn (20,1); X = [ones(20,1),x];
 %!   bootci (1999, @cor, x, y);
 %!   bootci (1999, {@cor, x, y}, 'strata', g);
-%!   bootci (1999, @(y,X) pinv(X)*y, y, X);
-%!   bootci (1999, @(y,X) pinv(X)*y, y, X, 'alpha', 0.1);
-%!   bootci (1999, {@(y,X) pinv(X)*y, y, X}, 'alpha', 0.1);
-%!   bootci (1999, {@(y,X) pinv(X)*y, y, X}, 'alpha', 0.1, 'type', 'norm');
-%!   bootci (1999, {@(y,X) pinv(X)*y, y, X}, 'alpha', 0.1, 'type', 'per');
-%!   bootci (1999, {@(y,X) pinv(X)*y, y, X}, 'alpha', 0.1, 'type', 'basic');
-%!   bootci (1999, {@(y,X) pinv(X)*y, y, X}, 'alpha', 0.1, 'type', 'bca');
-%!   bootci (1999, {@(y,X) pinv(X)*y, y, X}, 'alpha', 0.1, 'type', 'stud');
-%!   bootci (1999, {@(y,X) pinv(X)*y, y, X}, 'alpha', 0.1, 'type', 'cal');
+%!   bootci (1999, @mldivide, X, y);
+%!   bootci (1999, @mldivide, X, y, 'alpha', 0.1);
+%!   bootci (1999, {@mldivide, X, y}, 'alpha', 0.1);
+%!   bootci (1999, {@mldivide, X, y}, 'alpha', 0.1, 'type', 'norm');
+%!   bootci (1999, {@mldivide, X, y}, 'alpha', 0.1, 'type', 'per');
+%!   bootci (1999, {@mldivide, X, y}, 'alpha', 0.1, 'type', 'basic');
+%!   bootci (1999, {@mldivide, X, y}, 'alpha', 0.1, 'type', 'bca');
+%!   bootci (1999, {@mldivide, X, y}, 'alpha', 0.1, 'type', 'stud');
+%!   bootci (1999, {@mldivide, X, y}, 'alpha', 0.1, 'type', 'cal');
 %! catch
 %!   warning ('on', 'bootknife:parallel')
 %!   rethrow (lasterror)

@@ -1048,6 +1048,8 @@ end
 %!
 %! % 95% expanded BCa bootstrap confidence intervals for the mean
 %! bootknife (data, 1999, @mean);
+%!
+%! % Please be patient, the calculations will be completed soon...
 
 %!demo
 %!
@@ -1081,6 +1083,8 @@ end
 %! % 90% equal-tailed percentile bootstrap confidence intervals for
 %! % the variance
 %! bootknife (data, 1999, {@var, 1}, 0.1);
+%!
+%! % Please be patient, the calculations will be completed soon...
 
 %!demo
 %!
@@ -1090,6 +1094,8 @@ end
 %!
 %! % 90% BCa bootstrap confidence intervals for the variance
 %! bootknife (data, 1999, {@var, 1}, [0.05 0.95]);
+%!
+%! % Please be patient, the calculations will be completed soon...
 
 %!demo
 %!
@@ -1120,7 +1126,12 @@ end
 %! y = randn (20,1); x = randn (20,1); X = [ones(20,1), x];
 %!
 %! % 90% BCa confidence interval for regression coefficients 
-%! bootknife ({y,X}, 1999, @(y,X) X\y, [0.05 0.95]); % Could also use @regress
+%! bootknife ({X,y}, 1999, @mldivide, [0.05 0.95]);
+%!
+%! % N.B: Consider using either the 'bootwild', 'bootbayes' or 'bootlm'
+%! % functions for bootstrapping linear regression problems instead
+%!
+%! % Please be patient, the calculations will be completed soon...
 
 %!demo
 %!
@@ -1226,6 +1237,8 @@ end
 %!   %<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 %! 
 %! end
+%!
+%! % Please be patient, the calculations will be completed soon...
 
 %!demo
 %!
@@ -1496,11 +1509,11 @@ end
 %!   y = randn (20,1); x = randn (20,1); X = [ones(20,1), x];
 %!   stats = bootknife ({x,y}, 1999, @cor);
 %!   stats = bootknife ({x,y}, 1999, @cor, [], strata);
-%!   stats = bootknife ({y,x}, 1999, @(y,x) pinv(x)*y); % Could use @regress
-%!   stats = bootknife ({y,X}, 1999, @(y,X) pinv(X)*y);
-%!   stats = bootknife ({y,X}, 1999, @(y,X) pinv(X)*y, [], strata);
-%!   stats = bootknife ({y,X}, 1999, @(y,X) pinv(X)*y, [], strata, 2);
-%!   stats = bootknife ({y,X}, 1999, @(y,X) pinv(X)*y, [.05,.95], strata);
+%!   stats = bootknife ({x,y}, 1999, @mldivide);
+%!   stats = bootknife ({X,y}, 1999, @mldivide);
+%!   stats = bootknife ({X,y}, 1999, @mldivide, [], strata);
+%!   stats = bootknife ({X,y}, 1999, @mldivide, [], strata, 2);
+%!   stats = bootknife ({X,y}, 1999, @mldivide, [.05,.95], strata);
 %! catch
 %!   warning ('on', 'bootknife:parallel')
 %!   rethrow (lasterror)

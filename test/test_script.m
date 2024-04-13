@@ -55,11 +55,11 @@ try
   y = randn (20,1); x = randn (20,1); X = [ones(20,1), x];
   stats = bootknife ({x,y}, 2000, @cor);
   stats = bootknife ({x,y}, 2000, @cor, [], strata);
-  stats = bootknife ({y,x}, 2000, @(y,x) pinv(x)*y); % Could also use @regress
-  stats = bootknife ({y,X}, 2000, @(y,X) pinv(X)*y);
-  stats = bootknife ({y,X}, 2000, @(y,X) pinv(X)*y, [], strata);
-  stats = bootknife ({y,X}, 2000, @(y,X) pinv(X)*y, [], strata, 2);
-  stats = bootknife ({y,X}, 2000, @(y,X) pinv(X)*y, [.05,.95], strata);
+  stats = bootknife ({x,y}, 2000, @mldivide);
+  stats = bootknife ({X,y}, 2000, @mldivide);
+  stats = bootknife ({X,y}, 2000, @mldivide, [], strata);
+  stats = bootknife ({X,y}, 2000, @mldivide, [], strata, 2);
+  stats = bootknife ({X,y}, 2000, @mldivide, [.05,.95], strata);
 
   % bootclust 
   % bootclust:test:1
@@ -101,12 +101,12 @@ try
   y = randn (20,1); x = randn (20,1); X = [ones(20,1), x];
   stats = bootclust ({x,y}, 1999, @cor);
   stats = bootclust ({x,y}, 1999, @cor, [], clustid);
-  stats = bootclust ({y,x}, 1999, @(y,x) pinv(x)*y); % Could use @regress
-  stats = bootclust ({y,X}, 1999, @(y,X) pinv(X)*y);
-  stats = bootclust ({y,X}, 1999, @(y,X) pinv(X)*y, [], clustid);
-  stats = bootclust ({y,X}, 1999, @(y,X) pinv(X)*y, [], clustid, true);
-  stats = bootclust ({y,X}, 1999, @(y,X) pinv(X)*y, [], clustid, true, 1);
-  stats = bootclust ({y,X}, 1999, @(y,X) pinv(X)*y, [.05,.95], clustid);
+  stats = bootclust ({x,y}, 1999, @mldivide);
+  stats = bootclust ({X,y}, 1999, @mldivide);
+  stats = bootclust ({X,y}, 1999, @mldivide, [], clustid);
+  stats = bootclust ({X,y}, 1999, @mldivide, [], clustid, true);
+  stats = bootclust ({X,y}, 1999, @mldivide, [], clustid, true, 1);
+  stats = bootclust ({X,y}, 1999, @mldivide, [.05,.95], clustid);
 
   % bootci
   % bootci:test:1
@@ -155,15 +155,15 @@ try
   y = randn (20,1); x = randn (20,1); X = [ones(20,1),x];
   bootci (1999, @cor, x, y);
   bootci (1999, {@cor, x, y}, 'strata', g);
-  bootci (1999, @(y,X) pinv(X)*y, y, X);
-  bootci (1999, @(y,X) pinv(X)*y, y, X, 'alpha', 0.1);
-  bootci (1999, {@(y,X) pinv(X)*y, y, X}, 'alpha', 0.1);
-  bootci (1999, {@(y,X) pinv(X)*y, y, X}, 'alpha', 0.1, 'type', 'norm');
-  bootci (1999, {@(y,X) pinv(X)*y, y, X}, 'alpha', 0.1, 'type', 'per');
-  bootci (1999, {@(y,X) pinv(X)*y, y, X}, 'alpha', 0.1, 'type', 'basic');
-  bootci (1999, {@(y,X) pinv(X)*y, y, X}, 'alpha', 0.1, 'type', 'bca');
-  bootci (1999, {@(y,X) pinv(X)*y, y, X}, 'alpha', 0.1, 'type', 'stud');
-  bootci (1999, {@(y,X) pinv(X)*y, y, X}, 'alpha', 0.1, 'type', 'cal');
+  bootci (1999, @mldivide, X, y);
+  bootci (1999, @mldivide, X, y, 'alpha', 0.1);
+  bootci (1999, {@mldivide, X, y}, 'alpha', 0.1);
+  bootci (1999, {@mldivide, X, y}, 'alpha', 0.1, 'type', 'norm');
+  bootci (1999, {@mldivide, X, y}, 'alpha', 0.1, 'type', 'per');
+  bootci (1999, {@mldivide, X, y}, 'alpha', 0.1, 'type', 'basic');
+  bootci (1999, {@mldivide, X, y}, 'alpha', 0.1, 'type', 'bca');
+  bootci (1999, {@mldivide, X, y}, 'alpha', 0.1, 'type', 'stud');
+  bootci (1999, {@mldivide, X, y}, 'alpha', 0.1, 'type', 'cal');
   
   % bootstrp
   y = randn (20,1);
