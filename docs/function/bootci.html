@@ -3,7 +3,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
   <head>
   <meta http-equiv="content-type" content="text/html; charset=utf-8" />
-  <meta name="date" content="2024-04-02"/>
+  <meta name="date" content="2024-04-14"/>
   <meta name="generator" content="generate_html 0.3.3" />
   <meta name="author" content="Andrew Penn" />
   <meta name="description" content="A package for statistical analysis using resampling methods." />
@@ -180,12 +180,14 @@
          0 33 28 34 4 32 24 47 41 24 26 30 41].';
 
  % 95% BCa bootstrap confidence intervals for the mean
- ci = bootci (1999, @mean, data)</pre>
+ ci = bootci (1999, @mean, data)
+
+ % Please be patient, the calculations will be completed soon...</pre>
 <p>Produces the following output</p>
 <pre class="example">ci =
 
-       23.825
-       34.411</pre>
+       23.616
+       34.358</pre>
 </div>
 
 <h3><a name="2">Demonstration 2</a></h3>
@@ -204,8 +206,8 @@
 <p>Produces the following output</p>
 <pre class="example">ci =
 
-       23.462
-       34.651</pre>
+       23.975
+       34.269</pre>
 </div>
 
 <h3><a name="3">Demonstration 3</a></h3>
@@ -225,8 +227,8 @@
 <p>Produces the following output</p>
 <pre class="example">ci =
 
-       24.811
-       36.698</pre>
+        25.04
+       36.477</pre>
 </div>
 
 <h3><a name="4">Demonstration 4</a></h3>
@@ -239,12 +241,14 @@
          0 33 28 34 4 32 24 47 41 24 26 30 41].';
 
  % 90% percentile bootstrap confidence intervals for the variance
- ci = bootci (1999, {{@var,1}, data}, 'type', 'per', 'alpha', 0.1)</pre>
+ ci = bootci (1999, {{@var,1}, data}, 'type', 'per', 'alpha', 0.1)
+
+ % Please be patient, the calculations will be completed soon...</pre>
 <p>Produces the following output</p>
 <pre class="example">ci =
 
-       100.29
-        233.9</pre>
+       96.629
+       235.91</pre>
 </div>
 
 <h3><a name="5">Demonstration 5</a></h3>
@@ -257,12 +261,14 @@
          0 33 28 34 4 32 24 47 41 24 26 30 41].';
 
  % 90% BCa bootstrap confidence intervals for the variance
- ci = bootci (1999, {{@var,1}, data}, 'type', 'bca', 'alpha', 0.1)</pre>
+ ci = bootci (1999, {{@var,1}, data}, 'type', 'bca', 'alpha', 0.1)
+
+ % Please be patient, the calculations will be completed soon...</pre>
 <p>Produces the following output</p>
 <pre class="example">ci =
 
-        116.4
-       265.89</pre>
+       117.01
+       260.73</pre>
 </div>
 
 <h3><a name="6">Demonstration 6</a></h3>
@@ -282,8 +288,8 @@
 <p>Produces the following output</p>
 <pre class="example">ci =
 
-       106.75
-       290.95</pre>
+       108.55
+       297.71</pre>
 </div>
 
 <h3><a name="7">Demonstration 7</a></h3>
@@ -303,8 +309,8 @@
 <p>Produces the following output</p>
 <pre class="example">ci =
 
-       115.81
-       278.35</pre>
+       111.53
+       268.13</pre>
 </div>
 
 <h3><a name="8">Demonstration 8</a></h3>
@@ -325,8 +331,8 @@
 <p>Produces the following output</p>
 <pre class="example">ci =
 
-      0.51674
-        0.873</pre>
+      0.50501
+      0.86333</pre>
 </div>
 
 <h3><a name="9">Demonstration 9</a></h3>
@@ -427,20 +433,44 @@
 
    %<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
  
- end</pre>
+ end
+
+ % Please be patient, the calculations will be completed soon...</pre>
 <p>Produces the following output</p>
 <pre class="example">ans =
 
-       -16.69      -20.526      -12.642
-      -11.721      -15.188      -8.0851
-      -8.0606      -11.299      -4.6596
-      0.10476    -0.062295      0.28823
-     0.010336     -0.00273     0.023016
-      0.06452     0.033493     0.094721
-    0.0016638   0.00019837    0.0031828</pre>
+       -16.69      -20.555      -12.325
+      -11.721      -15.104       -7.907
+      -8.0606      -11.244      -4.3564
+      0.10476    -0.081023      0.28225
+     0.010336   -0.0032993     0.022647
+      0.06452     0.033083     0.095608
+    0.0016638   0.00017173    0.0031554</pre>
 </div>
 
 <h3><a name="10">Demonstration 10</a></h3>
+<div class="demo">
+<p>The following code</p>
+<pre class="example">
+
+ % Input dataset
+ y = randn (20,1); x = randn (20,1); X = [ones(20,1), x];
+
+ % 95% BCa confidence interval for regression coefficients 
+ ci = bootci (1999, @mldivide, X, y)
+
+ % N.B: Consider using either the 'bootwild', 'bootbayes' or 'bootlm'
+ % functions for bootstrapping linear regression problems instead
+
+ % Please be patient, the calculations will be completed soon...</pre>
+<p>Produces the following output</p>
+<pre class="example">ci =
+
+     -0.45168     -0.85612
+      0.30168      0.01942</pre>
+</div>
+
+<h3><a name="11">Demonstration 11</a></h3>
 <div class="demo">
 <p>The following code</p>
 <pre class="example">
