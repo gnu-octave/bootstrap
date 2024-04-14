@@ -142,6 +142,7 @@ function bootsam = boot (x, nboot, u, s, w)
     % Assign weights (counts) for uniform sampling
     c = ones (n, 1) * nboot; 
   end
+  N = sum (c);
 
   % Perform balanced sampling
   r = 0;
@@ -156,15 +157,14 @@ function bootsam = boot (x, nboot, u, s, w)
       end
     end
     for i = 1:n
-      d = c;  
+      d = c;
       if (u)
-        d(r) = 0;
-      end
-      if (~ sum (d))
-        d = c;
+        if (N > d(r))
+          d(r) = 0;
+        end
       end
       d = cumsum (d);
-      j = sum (R(i) >= d ./ d(n)) + 1;
+      j = sum (R(i) * d(n) >= d) + 1;
       if (isvec) 
         bootsam (i, b) = x(j);
       else
@@ -172,10 +172,10 @@ function bootsam = boot (x, nboot, u, s, w)
       end
       if (nboot > 1)
         c(j) = c(j) - 1;
+        N = N - 1;
       end
     end
   end
-
 
 %!demo
 %!

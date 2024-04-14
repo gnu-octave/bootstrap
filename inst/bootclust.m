@@ -521,21 +521,31 @@ function [stats, bootstat, X] = bootclust (x, nboot, bootfun, alpha, ...
         warning ('off', 'all');
       end
       try
-        jackfun = @(i) bootfun (vertcat (x{1 : nx ~= i, :}));
-        if (ncpus > 1)  
-          % PARALLEL evaluation of bootfun on each jackknife resample 
-          if (ISOCTAVE)
-            % OCTAVE
-            T = cell2mat (pararrayfun (ncpus, jackfun, 1 : nx, ...
-                                       'UniformOutput', false));
-          else
-            % MATLAB
-            T = zeros (m, nx);
-            parfor i = 1 : nx; T(:, i) = feval (jackfun, i); end
-          end
+        if (VECTORIZED)
+          % Leave-one-out DATA resampling followed by vectorized function
+          % evaluations
+          T = bootfun (reshape (cell2mat (arrayfun (...
+                       @(i) vertcat (x{1 : nx ~= i, :}), (1 : nx)', ...
+                       'UniformOutput', false)), n - n / nx, []));
         else
-          % SERIAL evaluation of bootfun on each jackknife resample
-          T = cell2mat (arrayfun (jackfun, 1 : nx, 'UniformOutput', false));
+          % Leave-one-out DATA resampling followed by looped function
+          % evaluations (if bootfun is not vectorized)
+          jackfun = @(i) bootfun (vertcat (x{1 : nx ~= i, :}));
+          if (ncpus > 1)  
+            % PARALLEL evaluation of bootfun on each jackknife resample 
+            if (ISOCTAVE)
+              % OCTAVE
+              T = cell2mat (pararrayfun (ncpus, jackfun, 1 : nx, ...
+                                         'UniformOutput', false));
+            else
+              % MATLAB
+              T = zeros (m, nx);
+              parfor i = 1 : nx; T(:, i) = feval (jackfun, i); end
+            end
+          else
+            % SERIAL evaluation of bootfun on each jackknife resample
+            T = cell2mat (arrayfun (jackfun, 1 : nx, 'UniformOutput', false));
+          end
         end
         % Calculate empirical influence function
         U = (nx - 1) * bsxfun (@minus, mean (T, 2), T);

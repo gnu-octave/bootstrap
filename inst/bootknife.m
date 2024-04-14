@@ -718,21 +718,31 @@ function [stats, bootstat, bootsam] = bootknife (x, nboot, bootfun, alpha, ...
           % Attempt to form bias-corrected and accelerated (BCa) bootstrap CIs
           % Use the Jackknife to calculate the acceleration constant (a)
           try
-            jackfun = @(i) bootfun (x(1 : n ~= i, :));
-            if (ncpus > 1)  
-              % PARALLEL evaluation of bootfun on each jackknife resample 
-              if (ISOCTAVE)
-                % OCTAVE
-                T = cell2mat (pararrayfun (ncpus, jackfun, 1 : n, ...
-                                           'UniformOutput', false));
-              else
-                % MATLAB
-                T = zeros (m, n);
-                parfor i = 1 : n; T(:, i) = feval (jackfun, i); end
-              end
+            if (vectorized)
+              % Leave-one-out DATA resampling followed by vectorized function
+              % evaluations
+              T = bootfun (reshape (cell2mat (arrayfun (...
+                           @(i) x(1 : n ~= i, :), (1 : n)', ...
+                           'UniformOutput', false)), n - 1, []));
             else
-              % SERIAL evaluation of bootfun on each jackknife resample
-              T = cell2mat (arrayfun (jackfun, 1 : n, 'UniformOutput', false));
+              % Leave-one-out DATA resampling followed by looped function
+              % evaluations (if bootfun is not vectorized)
+              jackfun = @(i) bootfun (x(1 : n ~= i, :));
+              if (ncpus > 1)  
+                % PARALLEL evaluation of bootfun on each jackknife resample 
+                if (ISOCTAVE)
+                  % OCTAVE
+                  T = cell2mat (pararrayfun (ncpus, jackfun, 1 : n, ...
+                                             'UniformOutput', false));
+                else
+                  % MATLAB
+                  T = zeros (m, n);
+                  parfor i = 1 : n; T(:, i) = feval (jackfun, i); end
+                end
+              else
+                % SERIAL evaluation of bootfun on each jackknife resample
+                T = cell2mat (arrayfun (jackfun, 1 : n, 'UniformOutput', false));
+              end
             end
             % Calculate empirical influence function
             if (~ isempty (strata))
