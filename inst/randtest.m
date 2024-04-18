@@ -267,8 +267,21 @@ end
 
 %!demo
 %!
-%! % Example data from: 
-%! % https://www.biostat.wisc.edu/~kbroman/teaching/labstat/third/notes18.pdf
+%! % Randomization or permutation test for linear regression (without intercept)
+%! X = [212 435 339 251 404 510 377 335 410 335 ...
+%!      415 356 339 188 256 296 249 303 266 300]';
+%! Y = [247 461 526 302 636 593 393 409 488 381 ...
+%!      474 329 555 282 423 323 256 431 437 240]';
+%!
+%! % Randomization test to assess the statistical significance of the
+%! % regression coefficient being different from 0. (Model: y ~ x or y = 0 + x,
+%! % i.e. linear regression through the origin)
+%! [pval, stat]  = randtest (X, Y, 5000) % Default value of FUNC is @mldivide
+%!
+
+%!demo
+%!
+%! % Randomization or permutation test for linear regression (with intercept)
 %! X = [212 435 339 251 404 510 377 335 410 335 ...
 %!      415 356 339 188 256 296 249 303 266 300]';
 %! Y = [247 461 526 302 636 593 393 409 488 381 ...
@@ -276,18 +289,24 @@ end
 %! N = numel (Y);
 %!
 %! % Randomization test to assess the statistical significance of the
-%! % correlation coefficient being different from 0
-%! [pval, stat] = randtest (X, Y, 5000, @cor)
-%!
-%! % Randomization test to assess the statistical significance of the
-%! % regression coefficient being different from 0. (Model: y ~ x, i.e. 
-%! % linear regression through the origin)
-%! [pval, stat]  = randtest (X, Y, 5000) % Default value of FUNC is @mldivide
-%!
-%! % As above but including intercept (Model: y ~ 1 + x, i.e. linear regression
-%! % including an estimate for the intercept)
+%! % regression coefficients (intercept and slope) being different from 0.
+%! % (Model: y ~ 1 + x, i.e. linear regression with intercept)
 %! X1 = cat (2, ones (N, 1), X);
 %! [pval, stat]  = randtest (X1, Y, 5000) % Default value of FUNC is @mldivide
+
+%!demo
+%!
+%! % Randomization or permutation test for the correlation coefficient
+%! % Example data from: 
+%! % https://www.biostat.wisc.edu/~kbroman/teaching/labstat/third/notes18.pdf
+%! X = [212 435 339 251 404 510 377 335 410 335 ...
+%!      415 356 339 188 256 296 249 303 266 300]';
+%! Y = [247 461 526 302 636 593 393 409 488 381 ...
+%!      474 329 555 282 423 323 256 431 437 240]';
+%!
+%! % Randomization test to assess the statistical significance of the
+%! % correlation coefficient being different from 0
+%! [pval, stat] = randtest (X, Y, 5000, @cor)
 
 %!test
 %!
