@@ -65,7 +65,7 @@
 %        vs. Smoothing; Proceedings of the Section on Statistics & the 
 %        Environment. Alexandria, VA: American Statistical Association.
 %
-%  boot (version 2023.01.28)
+%  boot (version 2024.04.16)
 %  Author: Andrew Charles Penn
 %  https://www.researchgate.net/profile/Andrew_Penn/
 %
@@ -83,7 +83,7 @@
 %  You should have received a copy of the GNU General Public License
 %  along with this program.  If not, see http://www.gnu.org/licenses/
 
-function bootsam = boot (x, nboot, u, s, w)
+function bootsam = boot (x, nboot, loo, s, w)
 
   % Input variables
   n = numel(x);
@@ -107,13 +107,13 @@ function bootsam = boot (x, nboot, u, s, w)
     error (cat (2, 'boot: The second input argument (NBOOT) must be a', ...
                    ' finite positive integer'))
   end
-  if ((nargin > 2) && ~ isempty (u))
-    if ( (~ isscalar (u)) || (~ islogical (u)) )
+  if ((nargin > 2) && ~ isempty (loo))
+    if ( (~ isscalar (loo)) || (~ islogical (loo)) )
       error (cat (2, 'boot: The third input argument (LOO) must be', ...
                      ' a logical scalar value'))
     end
   else
-    u = false;
+    loo = false;
   end
   if ((nargin > 3) && ~ isempty (s))
     if (isinf (s) || isnan (s) || (max (size (s)) > 1))
@@ -137,44 +137,90 @@ function bootsam = boot (x, nboot, u, s, w)
     if (sum (w) ~= n * nboot)
       error ('boot: The elements of WEIGHTS must sum to N * NBOOT.')
     end
-    c = w;
+    c = w(:);
   else
     % Assign weights (counts) for uniform sampling
     c = ones (n, 1) * nboot; 
   end
+
+  % Initialize
   N = sum (c);
+  vectorized = true;
+  if (loo)
+    % If bootknife resampling, create a vector (r) containing the index of the 
+    % observation to omit from each of the nboot resamples
+    b = (1 : nboot);
+    r = b - fix ((b - 1) / n) * n;                        % systematic
+    nr = sum ((fix ((b - 1) / n) == fix (nboot / n)));
+    r(end - nr + 1 : end)  = 1 + fix (rand (1, nr) * n);  % random
+  end
 
   % Perform balanced sampling
-  r = 0;
   for b = 1:nboot
-    R = rand (n, 1);
-    if (u)
-      % Choose which row of the data to exclude for this bootknife sample
-      if (fix ((b - 1) / n) == fix (nboot / n))
-        r = 1 + fix (rand (1) * n);     % random
-      else
-        r = b - fix ((b - 1) / n) * n;  % systematic
+
+    % Create n pseudo-random numbers for resample number b
+    R = rand (1, n);
+
+    % Re-evaluate whether to use vectorized resampling. The resampling is only
+    % vectorized when the count (c) for each of the indices is >= n
+    if (vectorized)
+      if (any (c < n))
+        vectorized = false;
       end
     end
-    for i = 1:n
-      d = c;
-      if (u)
-        if (N > d(r))
-          d(r) = 0;
+
+    % Additional steps relevant to bootknife resampling only
+    if (loo)
+      % Only leave-one-out if omitting sample index r leaves greater than or
+      % equal to n sample counts summed across the other indices (unless we are
+      % only requesting a single random bootstrap resample)
+      if ((N - c(r(b)) >= n) || (nboot == 1))
+        m = c(r(b));
+        c(r(b)) = 0;
+      else
+        loo = false;
+      end
+    end
+
+    % Generate resampled indices using the pseudo-random numbers
+    if (vectorized)
+      % Vectorized resampling - faster algorithm that can be used to generate
+      % most of the resamples. It is approximate since weights/counts only
+      % update after each data set is resampled. 
+      d = cumsum (c);
+      j = sum (bsxfun (@ge, R * d(n), d)) + 1;
+      if (nboot > 1)
+        c = c - sum (bsxfun (@eq, j, (1 : n)'), 2);
+        N = N - n;
+      end
+    else
+      % Non-vectorized resampling - slower but guarantees exact first order
+      % balance as we approach nboot resamples. Weights/counts update after
+      % each observation is sampled.
+      j = zeros (n, 1);
+      for i = 1:n
+        d = cumsum (c);
+        j(i) = sum (R(i) * d(n) >= d) + 1;
+        if (nboot > 1)
+          c(j(i)) = c(j(i)) - 1;
+          N = N - 1;
         end
       end
-      d = cumsum (d);
-      j = sum (R(i) * d(n) >= d) + 1;
-      if (isvec) 
-        bootsam (i, b) = x(j);
-      else
-        bootsam (i, b) = j;
-      end
-      if (nboot > 1)
-        c(j) = c(j) - 1;
-        N = N - 1;
-      end
     end
+
+    % Assign resampled data or indices to output
+    if (isvec) 
+      bootsam (:, b) = x(j);
+    else
+      bootsam (:, b) = j;
+    end
+
+    % Additional steps relevant to bootknife resampling only
+    if (loo)
+      c(r(b)) = m;
+      m = 0;
+    end
+
   end
 
 %!demo
