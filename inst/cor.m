@@ -43,12 +43,16 @@ function RHO = cor (X, Y)
   if (nargout > 1)
     error ('cor: Invalid number of output arguments')
   end
-  sz = size (X);
-  if (~ all (sz == size (Y)))
-    error ('cor: X and Y must be the same size')
+  szx = size (X);
+  szy = size (Y);
+  if (~ (szx(1) == szy(1)))
+    error ('cor: X and Y must have the same number of rows')
   end
-  if (numel (sz) > 2)
-    error ('cor: Arrays of more than 2 dimensions are not supported')
+  if (numel (szx) > 2)
+    error ('cor: X cannot have more than 2 dimensions')
+  end
+  if (numel (szy) > 2)
+    error ('cor: Y cannot have more than 2 dimensions')
   end
 
   % Calculate correlation coefficient 
@@ -57,4 +61,9 @@ function RHO = cor (X, Y)
   % and so are omitted for efficiency
   XERR = X - mean (X);
   YERR = Y - mean (Y);
-  RHO = sum ( XERR .* YERR ) ./ sqrt (sum (XERR.^2) .* sum (YERR.^2));
+  if (all (szx == szy))
+    RHO = sum ( XERR .* YERR ) ./ sqrt (sum (XERR.^2) .* sum (YERR.^2));
+  else
+    RHO =  sum (bsxfun (@times, XERR, YERR)) ./ ...
+          sqrt (bsxfun (@times, sum (XERR.^2), sum (YERR.^2)));
+  end
