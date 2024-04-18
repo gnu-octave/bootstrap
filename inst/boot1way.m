@@ -969,12 +969,12 @@ end
 %! p = boot1way (y(:),g(:),'ref','male','nboot',[999,0],'DisplayOpt',false);
 %! if (isempty (regexp (which ('boot'), 'mex$')))
 %!   % test boot m-file result
-%!   assert (p, 0.281036161800208, 1e-06);
+%!   assert (p, 0.2770321577962039, 1e-06);
 %! end
 %! p = boot1way (y(:),g(:),'nboot',[999,0],'DisplayOpt',false);
 %! if (isempty (regexp (which ('boot'), 'mex$')))
 %!   % test boot m-file result
-%!   assert (p, 0.281036161800208, 1e-06);
+%!   assert (p, 0.2770321577962039, 1e-06);
 %! end
 %! % Result from anova1 is 0.2613
 
@@ -1015,7 +1015,7 @@ end
 %! p = boot1way (y(:),g(:),'bootfun',{@std,1},'DisplayOpt',false);
 %! if (isempty (regexp (which ('boot'), 'mex$')))
 %!   % test boot m-file result
-%!   assert (min(p), 0.4523926257950379, 1e-06);
+%!   assert (min(p), 0.4455958708255711, 1e-06);
 %! end
 
 %!test

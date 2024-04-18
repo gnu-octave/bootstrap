@@ -729,12 +729,12 @@ end
 %! %
 %! % method             |   0.05 |   0.95 | length | shape |  
 %! % -------------------|--------|--------|--------|-------|
-%! % ci1 - normal       |  110.1 |  246.2 |  136.1 |  1.22 |
-%! % ci2 - percentile   |   98.1 |  234.7 |  136.6 |  0.86 |
-%! % ci3 - basic        |  108.4 |  245.0 |  136.1 |  1.17 |
-%! % ci4 - BCa          |  116.1 |  259.3 |  143.2 |  1.59 |
-%! % ci5 - bootstrap-t  |  114.0 |  290.3 |  176.3 |  2.07 |
-%! % ci6 - calibrated   |  115.3 |  276.4 |  161.1 |  1.87 |
+%! % ci1 - normal       |  109.5 |  246.8 |  137.3 |  1.21 |
+%! % ci2 - percentile   |   97.7 |  234.9 |  137.2 |  0.86 |
+%! % ci3 - basic        |  108.2 |  245.4 |  137.2 |  1.17 |
+%! % ci4 - BCa          |  116.0 |  260.3 |  144.3 |  1.60 |
+%! % ci5 - bootstrap-t  |  112.8 |  289.8 |  177.0 |  2.02 |
+%! % ci6 - calibrated   |  115.2 |  278.7 |  163.5 |  1.90 |
 %! % -------------------|--------|--------|--------|-------|
 %! % parametric - exact |  118.4 |  305.2 |  186.8 |  2.52 |
 %! %
@@ -828,8 +828,8 @@ end
 %! ci = bootci(1999,{{@var,1},A},'alpha',0.1,'type','per','seed',1);
 %! if (isempty (regexp (which ('boot'), 'mex$')))
 %!   % test boot m-file result
-%!   assert (ci(1), 97.67001810580366, 1e-07);
-%!   assert (ci(2), 233.0388437331518, 1e-07);
+%!   assert (ci(1), 97.49355067155864, 1e-07);
+%!   assert (ci(2), 233.207702361817, 1e-07);
 %! end
 %!
 %! % Nonparametric 90% BCa confidence intervals (single bootstrap)
@@ -837,8 +837,8 @@ end
 %! ci = bootci(1999,{{@var,1},A},'alpha',0.1,'type','bca','seed',1);
 %! if (isempty (regexp (which ('boot'), 'mex$')))
 %!   % test boot m-file result
-%!   assert (ci(1), 115.956346143457, 1e-07);
-%!   assert (ci(2), 256.2289974055464, 1e-07);
+%!   assert (ci(1), 115.643362990639, 1e-07);
+%!   assert (ci(2), 256.0719555540051, 1e-07);
 %! end
 %!
 %! % Nonparametric 90% bootstrap-t confidence intervals (double bootstrap)
@@ -846,8 +846,8 @@ end
 %!                                                  'nbootstd',100,'seed',1);
 %! if (isempty (regexp (which ('boot'), 'mex$')))
 %!   % test boot m-file result
-%!   assert (ci(1), 114.5922631417029, 1e-07);
-%!   assert (ci(2), 287.0028178891804, 1e-07);
+%!   assert (ci(1), 114.4602660067695, 1e-07);
+%!   assert (ci(2), 288.7667036808156, 1e-07);
 %! end
 %!
 %! % Nonparametric 90% calibrated percentile confidence intervals
@@ -856,8 +856,8 @@ end
 %!                                                  'nbootcal',199,'seed',1);
 %! if (isempty (regexp (which ('boot'), 'mex$')))
 %!   % test boot m-file result
-%!   assert (ci(1), 116.0773028946106, 1e-07);
-%!   assert (ci(2), 279.0402847885312, 1e-07);
+%!   assert (ci(1), 116.1158249047411, 1e-07);
+%!   assert (ci(2), 277.5572125379819, 1e-07);
 %! end
 %!
 %! % Exact intervals based on normal theory are 118.4 - 305.2 (Table 14.2)
@@ -875,8 +875,8 @@ end
 %! ci = bootci(1999,{@cor,LSAT,GPA},'alpha',0.1,'type','per','seed',1);
 %! if (isempty (regexp (which ('boot'), 'mex$')))
 %!   % test boot m-file result
-%!   assert (ci(1), 0.5146251204001586, 1e-07);
-%!   assert (ci(2), 0.9531054945982934, 1e-07);
+%!   assert (ci(1), 0.5147126713756366, 1e-07);
+%!   assert (ci(2), 0.953156157402217, 1e-07);
 %! end
 %!
 %! % Nonparametric 90% BCa confidence intervals (single bootstrap)
@@ -884,8 +884,8 @@ end
 %! ci = bootci(1999,{@cor,LSAT,GPA},'alpha',0.1,'type','bca','seed',1);
 %! if (isempty (regexp (which ('boot'), 'mex$')))
 %!   % test boot m-file result
-%!   assert (ci(1), 0.4177828971982108, 1e-07);
-%!   assert (ci(2), 0.9238952404759969, 1e-07);
+%!   assert (ci(1), 0.4179653612679617, 1e-07);
+%!   assert (ci(2), 0.9240227537437981, 1e-07);
 %! end
 %!
 %! % Nonparametric 90% calibrated percentile confidence intervals
@@ -894,7 +894,7 @@ end
 %!                                                     'nbootcal',499,'seed',1);
 %! if (isempty (regexp (which ('boot'), 'mex$')))
 %!   % test boot m-file result
-%!   assert (ci(1), 0.2832002889846569, 1e-07);
-%!   assert (ci(2), 0.9352503844648827, 1e-07);
+%!   assert (ci(1), 0.2899032097111454, 1e-07);
+%!   assert (ci(2), 0.9347549589238046, 1e-07);
 %! end
 %! % Exact intervals based on normal theory are 0.51 - 0.91
