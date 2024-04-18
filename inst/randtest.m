@@ -142,13 +142,10 @@ function [pval, stat, fpr, STATS] = randtest (x, y, nreps, func, seed)
     rand ('seed', seed);
   end
 
-  % Remove NaN data values and check for infinite values
+  % Remove NaN data values
   ridx = any (isnan (cat (2, x, y)), 2);
   x(ridx, :) = [];
   y(ridx, :) = [];
-  if ( any (isinf (x(:))) || any (isinf (y)) )
-    error ('randtest: X and Y cannot not contain inf values')
-  end
 
   % Get size of the data
   szx = size (x);
@@ -167,6 +164,11 @@ function [pval, stat, fpr, STATS] = randtest (x, y, nreps, func, seed)
                     'number of rows as y'))
   end
   n = szy (1);
+
+  % Check for infinite values in the data
+  if ( any (isinf (x(:))) || any (isinf (y)) )
+    error ('randtest: X and Y cannot not contain inf values')
+  end
 
   % Compute test statistic on the original data
   stat = func (x, y);
