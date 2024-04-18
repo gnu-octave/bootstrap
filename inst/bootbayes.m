@@ -421,7 +421,9 @@ end
 
 function param = lmfit (X, y, W, L)
 
-  % Get model coefficients by solving the linear equation by matrix arithmetic
+  % Get model coefficients by solving the linear equation by matrix arithmetic.
+  % Solve the linear least squares problem using the Moore-Penrose pseudo
+  % inverse (pinv) to make it more robust to the situation where X is singular.
   % If optional arument W is provided, it should be a diagonal matrix of
   % weights or a positive definite covariance matrix
   n = numel (y);
