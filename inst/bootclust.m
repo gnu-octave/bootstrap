@@ -524,9 +524,17 @@ function [stats, bootstat, X] = bootclust (x, nboot, bootfun, alpha, ...
         if (VECTORIZED)
           % Leave-one-out DATA resampling followed by vectorized function
           % evaluations
-          T = bootfun (reshape (cell2mat (arrayfun (...
-                       @(i) vertcat (x{1 : nx ~= i, :}), (1 : nx)', ...
-                       'UniformOutput', false)), n - n / nx, []));
+          if (nvar > 1)
+            % Multivariate
+            T = bootfun (reshape (cell2mat (arrayfun (...
+                         @(i) vertcat (x{1 : nx ~= i, :}), (1 : nx)', ...
+                         'UniformOutput', false)), n - n / nx, []));
+          else
+            % Univariate
+            T = bootfun (cell2mat (arrayfun (...
+                         @(i) vertcat (x{1 : nx ~= i, :}), (1 : nx), ...
+                         'UniformOutput', false)));
+          end
         else
           % Leave-one-out DATA resampling followed by looped function
           % evaluations (if bootfun is not vectorized)
@@ -1000,10 +1008,10 @@ end
 %! if (isempty (regexp (which ('boot'), 'mex$')))
 %!   % test boot m-file result
 %!   assert (stats.original, 108.0833333333333, 1e-08);
-%!   assert (stats.bias, -2.842170943040401e-14, 1e-08);
-%!   assert (stats.std_error, 38.21311346451331, 1e-08);
-%!   assert (stats.CI_lower, 37.63178001821489, 1e-08);
-%!   assert (stats.CI_upper, 200.846030428085, 1e-08);
+%!   assert (stats.bias, 8.526512829121202e-14, 1e-08);
+%!   assert (stats.std_error, 39.13480972156448, 1e-08);
+%!   assert (stats.CI_lower, 35.93016716402185, 1e-08);
+%!   assert (stats.CI_upper, 202.9345038615351, 1e-08);
 %! end
 %!
 %! % Nonparametric 95% expanded BCa confidence intervals
@@ -1016,10 +1024,10 @@ end
 %! if (isempty (regexp (which ('boot'), 'mex$')))
 %!   % test boot m-file result
 %!   assert (stats.original, 108.0833333333333, 1e-08);
-%!   assert (stats.bias, -2.842170943040401e-14, 1e-08);
-%!   assert (stats.std_error, 38.21311346451331, 1e-08);
-%!   assert (stats.CI_lower, 49.68734232019933, 1e-08);
-%!   assert (stats.CI_upper, 232.2854912518225, 1e-08);
+%!   assert (stats.bias, 8.526512829121202e-14, 1e-08);
+%!   assert (stats.std_error, 39.13480972156448, 1e-08);
+%!   assert (stats.CI_lower, 48.80198765188484, 1e-08);
+%!   assert (stats.CI_upper, 246.531254466907, 1e-08);
 %! end
 %!
 %! % Exact intervals based on an exponential model are 65.9 - 209.2
@@ -1039,10 +1047,10 @@ end
 %! if (isempty (regexp (which ('boot'), 'mex$')))
 %!   % test boot m-file result
 %!   assert (stats.original, 171.534023668639, 1e-08);
-%!   assert (stats.bias, -7.305657266503118, 1e-08);
-%!   assert (stats.std_error, 43.17157379039285, 1e-08);
-%!   assert (stats.CI_lower, 95.33589724383222, 1e-08);
-%!   assert (stats.CI_upper, 237.1866652820803, 1e-08);
+%!   assert (stats.bias, -6.916841556872669, 1e-08);
+%!   assert (stats.std_error, 42.5668171689963, 1e-08);
+%!   assert (stats.CI_lower, 96.28173295410532, 1e-08);
+%!   assert (stats.CI_upper, 236.5630928698122, 1e-08);
 %! end
 %!
 %! % Nonparametric 90% BCa confidence intervals
@@ -1052,10 +1060,10 @@ end
 %! if (isempty (regexp (which ('boot'), 'mex$')))
 %!   % test boot m-file result
 %!   assert (stats.original, 171.534023668639, 1e-08);
-%!   assert (stats.bias, -7.305657266503118, 1e-08);
-%!   assert (stats.std_error, 43.17157379039285, 1e-08);
-%!   assert (stats.CI_lower, 113.2858617321027, 1e-08);
-%!   assert (stats.CI_upper, 264.0328613673329, 1e-08);
+%!   assert (stats.bias, -6.916841556872669, 1e-08);
+%!   assert (stats.std_error, 42.5668171689963, 1e-08);
+%!   assert (stats.CI_lower, 117.0129329921189, 1e-08);
+%!   assert (stats.CI_upper, 269.5860065995567, 1e-08);
 %! end
 %!
 %! % Exact intervals based on normal theory are 118.4 - 305.2 (Table 14.2)
@@ -1078,10 +1086,10 @@ end
 %! if (isempty (regexp (which ('boot'), 'mex$')))
 %!   % test boot m-file result
 %!   assert (stats.original, 0.7763744912894071, 1e-08);
-%!   assert (stats.bias, -0.007614791775856333, 1e-08);
-%!   assert (stats.std_error, 0.1355245146889644, 1e-08);
-%!   assert (stats.CI_lower, 0.5146251204001586, 1e-08);
-%!   assert (stats.CI_upper, 0.9531054945982934, 1e-08);
+%!   assert (stats.bias, -0.007472442917410338, 1e-08);
+%!   assert (stats.std_error, 0.1355235987517371, 1e-08);
+%!   assert (stats.CI_lower, 0.5147126713756366, 1e-08);
+%!   assert (stats.CI_upper, 0.953156157402217, 1e-08);
 %! end
 %!
 %! % Nonparametric 90% BCa confidence intervals
@@ -1091,8 +1099,8 @@ end
 %! if (isempty (regexp (which ('boot'), 'mex$')))
 %!   % test boot m-file result
 %!   assert (stats.original, 0.7763744912894071, 1e-08);
-%!   assert (stats.bias, -0.007614791775856333, 1e-08);
-%!   assert (stats.std_error, 0.1355245146889644, 1e-08);
-%!   assert (stats.CI_lower, 0.4177828971982108, 1e-08);
-%!   assert (stats.CI_upper, 0.9238952404759969, 1e-08);
+%!   assert (stats.bias, -0.007472442917410338, 1e-08);
+%!   assert (stats.std_error, 0.1355235987517371, 1e-08);
+%!   assert (stats.CI_lower, 0.4179653612679617, 1e-08);
+%!   assert (stats.CI_upper, 0.9240227537437981, 1e-08);
 %! end
