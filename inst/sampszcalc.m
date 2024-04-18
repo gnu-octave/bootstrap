@@ -102,7 +102,7 @@ function n = sampszcalc (testtype, effsz, power, alpha, tails, deff)
     else
       error ('sampszcalc: TESTTYPE must be a character string')
     end
-    if (~ any (isa (power, {'single','double'})))
+    if (~ or (isa (power, 'single'), isa (power, 'double')))
       error ('sampszcalc: POW must be single or double precision')
     end
     if (numel (power) > 1)
@@ -111,7 +111,7 @@ function n = sampszcalc (testtype, effsz, power, alpha, tails, deff)
     if ( (power <= 0) || (power >= 1) )
       error ('sampszcalc: the value of POW must be: 0 < POW < 1')
     end
-    if (~ any (isa (alpha, {'single','double'})))
+    if (~ or (isa (alpha, 'single'), isa (alpha, 'double')))
       error ('sampszcalc: ALPHA must be single or double precision')
     end
     if (numel (alpha) > 1)
@@ -123,7 +123,7 @@ function n = sampszcalc (testtype, effsz, power, alpha, tails, deff)
     if (~ ismember (tails, 1:2))
       error ('sampszcalc: tails must be either 1 or 2')
     end
-    if (~ any (isa (deff, {'single','double'})))
+    if (~ or (isa (deff, 'single'), isa (deff, 'double')))
       error ('sampszcalc: DEFF must be single or double precision')
     end
     if (numel (deff) > 1)
