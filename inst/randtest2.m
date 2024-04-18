@@ -58,8 +58,8 @@
 %
 %     'PVAL = randtest2 (A, B, PAIRED, NREPS, FUNC, SEED)' initialises the
 %     Mersenne Twister random number generator using an integer SEED value so
-%     that that the results of 'randtest2' results are reproducible when the
-%     test is approximate (i.e. when using randomization if not all permutations
+%     that the results of 'randtest2' results are reproducible when the test
+%     is approximate (i.e. when using randomization if not all permutations
 %     can be evaluated systematically).
 %
 %     'PVAL = randtest2 ([A, GA], [B, GB], ...)' also specifies the sampling
