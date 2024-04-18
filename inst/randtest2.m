@@ -12,8 +12,8 @@
 % -- Function File: [PVAL, STAT, FPR] = randtest (...)
 % -- Function File: [PVAL, STAT, FPR, PERMSTAT] = randtest (...)
 %
-%     'PVAL = randtest2 (A, B)' performs a randomization (a.k.a. permutation)
-%     test to ascertain whether data samples A and B come from populations with
+%     'PVAL = randtest2 (A, B)' performs a randomization (or permutation) test
+%     to ascertain whether data samples A and B come from populations with
 %     the same distribution. Distributions are compared using the Wasserstein
 %     metric [1,2], which is the area of the difference between the empirical
 %     cumulative distribution functions of A and B. The data in A and B should

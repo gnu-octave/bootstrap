@@ -8,14 +8,15 @@
 % -- Function File: [PVAL, STAT, FPR] = randtest (...)
 % -- Function File: [PVAL, STAT, FPR, PERMSTAT] = randtest (...)
 %
-%     'PVAL = randtest (X, Y)' performs a randomization (a.k.a. permutation)
-%     test of the null hypothesis that coefficients from the regression of Y
-%     on X are significantly different from 0. The value returned is a 2-tailed
-%     p-value. Note that the Y values are centered before randomization or
-%     permutation to also provide valid null hypothesis tests of the intercept.
-%     To include an intercept term in the regression, X must contain a column
-%     of ones. For randomization/permutation testing of the difference between
-%     two paired or independent samples, please use the 'randtest2' function.
+%     'PVAL = randtest (X, Y)' uses the approach of Manly [1] to perform
+%     a randomization (or permutation) test of the null hypothesis that
+%     coefficients from the regression of Y on X are significantly different
+%     from 0. The value returned is a 2-tailed p-value. Note that the Y values
+%     are centered before randomization or permutation to also provide valid
+%     null hypothesis tests of the intercept. To include an intercept term in
+%     the regression, X must contain a column of ones. For randomization/
+%     permutation testing of the difference between two paired or independent
+%     samples, please use the 'randtest2' function.
 %
 %     'PVAL = randtest (X, Y, NREPS)' specifies the number of resamples without
 %     replacement to take in the randomization test. By default, NREPS is 5000.
@@ -52,6 +53,10 @@
 %
 %     '[PVAL, STAT, FPR, PERMSTAT] = randtest (...)' also returns the
 %     statistics of the permutation distribution.
+%
+%  Bibliography:
+%  [1] Manly (1997) Randomization, Bootstrap and Monte Carlo Method in Biology.
+%       2nd Edition. London: Chapman & Hall.
 %
 %  randtest (version 2024.04.17)
 %  Author: Andrew Charles Penn
