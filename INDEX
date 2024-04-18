@@ -4,6 +4,7 @@ Main functions
  bootclust
  bootwild
  bootbayes
+ randtest
  randtest2
  bootlm
  boot1way
