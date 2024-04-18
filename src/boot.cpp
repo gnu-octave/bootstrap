@@ -119,15 +119,15 @@ void mexFunction (int nlhs, mxArray* plhs[],
     if ( !mxIsFinite (nboot) ) {
         mexErrMsgTxt ("The second input argument (NBOOT) cannot be NaN or Inf.");    
     }
-    // Third input argument (u)
-    bool u;
+    // Third input argument (LOO)
+    bool loo;
     if ( nrhs > 2 && !mxIsEmpty (prhs[2]) ) {
         if (mxGetNumberOfElements (prhs[2]) > 1 || !mxIsClass (prhs[2], "logical")) {
             mexErrMsgTxt ("The third input argument (LOO) must be a logical scalar value.");
         }
-        u = *(mxGetLogicals (prhs[2]));
+        loo = *(mxGetLogicals (prhs[2]));
     } else {
-        u = false;
+        loo = false;
     }
     // Fourth input argument (seed)
     unsigned int seed;
@@ -194,7 +194,6 @@ void mexFunction (int nlhs, mxArray* plhs[],
             c.push_back (nboot);      // Set each element in c to nboot
         }
     }
-    bool LOO = false;     // Leave-one-out (LOO) flag
     long long int m = 0;  // Counter for LOO sample index r
     int r = -1;           // Sample index for LOO
 
@@ -207,22 +206,24 @@ void mexFunction (int nlhs, mxArray* plhs[],
 
     // Perform balanced sampling
     for ( int b = 0; b < nboot ; b++ ) { 
-        if (u == true) {
+        if ( loo == true ) {
             // Note that the following division operations are for integers 
             if ( (b / n) == (nboot / n) ) {
                 r = distr (rng);      // random
             } else {
                 r = b - (b / n) * n;  // systematic
             }
+            m = c[r];
+            c[r] = 0;
         }
         for ( int i = 0; i < n ; i++ ) {
-            if (u == true) {
+            if ( loo == true ) {
                 // Only leave-one-out if sample index r doesn't account for all
                 // remaining sampling counts
-                if (c[r] < N) {
-                    m = c[r];
-                    c[r] = 0;
-                    LOO = true;
+                if (N == m) {
+                    c[r] = m;
+                    m = 0;
+                    loo = false;
                 }
             }
             uniform_int_distribution<int> distk (0, N - m - 1);
@@ -235,7 +236,7 @@ void mexFunction (int nlhs, mxArray* plhs[],
                     } else {
                         ptr[b * n + i] = j + 1;
                     }
-                    if (nboot > 1) {
+                    if ( nboot > 1 ) {
                       c[j] -= 1;
                       N -= 1;
                     }
@@ -244,11 +245,10 @@ void mexFunction (int nlhs, mxArray* plhs[],
                     d += c[j + 1];
                 }
             }
-            if ( LOO == true ) {
-                c[r] = m;
-                m = 0;
-                LOO = false;
-            }
+        }
+        if ( loo == true ) {
+            c[r] = m;
+            m = 0;
         }
     }
 
