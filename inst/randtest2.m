@@ -1,36 +1,40 @@
 % Performs a permutation or randomization test to compare the distributions of 
 % two independent or paired data samples. 
 %
-% -- Function File: PVAL = randtest2 (X, Y)
-% -- Function File: PVAL = randtest2 (X, Y, PAIRED)
-% -- Function File: PVAL = randtest2 (X, Y, PAIRED, NREPS)
-% -- Function File: PVAL = randtest2 (X, Y, PAIRED, NREPS)
-% -- Function File: PVAL = randtest2 (X, Y, PAIRED, NREPS, FUNC)
-% -- Function File: PVAL = randtest2 (X, Y, PAIRED, NREPS, FUNC, SEED)
-% -- Function File: PVAL = randtest2 ([X, GX], [Y, GY], ...)
+% -- Function File: PVAL = randtest2 (A, B)
+% -- Function File: PVAL = randtest2 (A, B, PAIRED)
+% -- Function File: PVAL = randtest2 (A, B, PAIRED, NREPS)
+% -- Function File: PVAL = randtest2 (A, B, PAIRED, NREPS)
+% -- Function File: PVAL = randtest2 (A, B, PAIRED, NREPS, FUNC)
+% -- Function File: PVAL = randtest2 (A, B, PAIRED, NREPS, FUNC, SEED)
+% -- Function File: PVAL = randtest2 ([A, GA], [B, GB], ...)
 % -- Function File: [PVAL, STAT] = randtest (...)
 % -- Function File: [PVAL, STAT, FPR] = randtest (...)
 % -- Function File: [PVAL, STAT, FPR, PERMSTAT] = randtest (...)
 %
-%     'PVAL = randtest2 (X, Y)' performs a randomization (a.k.a. permutation)
-%     test to ascertain whether data samples X and Y come from populations with
+%     'PVAL = randtest2 (A, B)' performs a randomization (a.k.a. permutation)
+%     test to ascertain whether data samples A and B come from populations with
 %     the same distribution. Distributions are compared using the Wasserstein
 %     metric [1,2], which is the area of the difference between the empirical
-%     cumulative distribution functions of X and Y. The data in X and Y should
+%     cumulative distribution functions of A and B. The data in A and B should
 %     be column vectors that represent measurements of the same variable. The
 %     value returned is a 2-tailed p-value against the null hypothesis computed
 %     using the absolute values of the test statistics.
 %
-%     'PVAL = randtest2 (X, Y, PAIRED)' specifies whether X and Y should be
+%     'PVAL = randtest2 (A, B, PAIRED)' specifies whether A and B should be
 %     treated as independent (unpaired) or paired samples. PAIRED accepts a
 %     logical scalar:
-%        o false (default): As above.
+%        o false (default): As above. The rows of samples A and B combined are
+%                permuted or randomized.
 %        o true: Performs a randomization or permutation test to ascertain
-%                whether paired or matched data samples X and Y come from
-%                populations with the same distribution. The vectors X and Y
-%                must contain the same number of sampling units.
+%                whether paired or matched data samples A and B come from
+%                populations with the same distribution. The vectors A and B
+%                must each contain the same number of rows, where each row
+%                across A and B corresponds to a pair of matched observations.
+%                Within each pair, the allocation of data to samples A or B is
+%                permuted or randomized.
 %
-%     'PVAL = randtest2 (X, Y, PAIRED, NREPS)' specifies the number of resamples
+%     'PVAL = randtest2 (A, B, PAIRED, NREPS)' specifies the number of resamples
 %     without replacement to take in the randomization test. By default, NREPS
 %     is 5000. If the number of possible permutations is smaller than NREPS, the
 %     test becomes exact. For example, if the number of sampling units across
@@ -41,10 +45,10 @@
 %     permutations is 2^12 = 4096, so NREPS will be truncated at 4096 and
 %     sampling will systematically evaluate all possible permutations. 
 %
-%     'PVAL = randtest2 (X, Y, PAIRED, NREPS, FUNC)' also specifies a custom
+%     'PVAL = randtest2 (A, B, PAIRED, NREPS, FUNC)' also specifies a custom
 %     function calculated on the original samples, and the permuted or
 %     randomized resamples. Note that FUNC must compute a difference statistic
-%     between samples X and Y, and should either be a:
+%     between samples A and B, and should either be a:
 %        o function handle or anonymous function,
 %        o string of function name, or
 %        o a cell array where the first cell is one of the above function
@@ -52,24 +56,27 @@
 %          to that function (other than the data arguments).
 %        See the built-in demos for example usage with the mean or vaiance.
 %
-%     'PVAL = randtest2 (X, Y, PAIRED, NREPS, FUNC, SEED)' initialises the
+%     'PVAL = randtest2 (A, B, PAIRED, NREPS, FUNC, SEED)' initialises the
 %     Mersenne Twister random number generator using an integer SEED value so
 %     that that the results of 'randtest2' results are reproducible when the
 %     test is approximate (i.e. when using randomization if not all permutations
 %     can be evaluated systematically).
 %
-%     'PVAL = randtest2 ([X, GX], [Y, GY], ...)' also specifies the sampling
-%     units (i.e. clusters) using consecutive positive integers in GX and GY
-%     for X and Y respectively. Defining the sampling units has applications
+%     'PVAL = randtest2 ([A, GA], [B, GB], ...)' also specifies the sampling
+%     units (i.e. clusters) using consecutive positive integers in GA and GB
+%     for A and B respectively. Defining the sampling units has applications
 %     for clustered resampling, for example in the cases of nested experimental 
-%     designs. If PAIRED is false, numeric identifiers in GX and GY must be
-%     unique (e.g. 1,2,3 in GX, 4,5,6 in GY). If PAIRED is true, numeric
-%     identifiers in GX and GY must by identical (e.g. 1,2,3 in GX, 1,2,3 in
-%     GY). Note that when sampling units contain different numbers of values,
-%     function evaluations after sampling cannot be vectorized. If the parallel
-%     computing toolbox (Matlab) or package (Octave) is installed and loaded,
-%     then the function evaluations will be automatically accelerated by
-%     parallel processing on platforms with multiple processors.
+%     designs. If PAIRED is false, numeric identifiers in GA and GB must be
+%     unique (e.g. 1,2,3 in GA, 4,5,6 in GB) - resampling of clusters then
+%     occurs across the combined sample of A and B. If PAIRED is true, numeric
+%     identifiers in GA and GB must by identical (e.g. 1,2,3 in GA, 1,2,3 in
+%     GB) - resampling is then restricted to exchange of clusters between A 
+%     and B only where the clusters have the same identifier. Note that when
+%     sampling units contain different numbers of values, function evaluations
+%     after sampling cannot be vectorized. If the parallel computing toolbox
+%     (Matlab) or package (Octave) is installed and loaded, then the function
+%     evaluations will be automatically accelerated by parallel processing
+%     on platforms with multiple processors.
 %
 %     '[PVAL, STAT] = randtest2 (...)' also returns the test statistic.
 %
@@ -85,7 +92,7 @@
 %       https://doi.org/10.48550/arXiv.2007.01360
 %  [2] https://en.wikipedia.org/wiki/Wasserstein_metric
 %
-%  randtest2 (version 2023.09.16)
+%  randtest2 (version 2024.04.17)
 %  Author: Andrew Charles Penn
 %  https://www.researchgate.net/profile/Andrew_Penn/
 %
@@ -104,6 +111,10 @@
 %  along with this program.  If not, see http://www.gnu.org/licenses/
 
 function [pval, stat, fpr, STATS] = randtest2 (x, y, paired, nreps, func, seed)
+
+  % The documentation, warnings and errors refer to the samples x and y as A
+  % and B to avoid them being mistaken for independent and dependent variables
+  % in a regression
 
   % Check if we are running Octave or Matlab
   info = ver; 
@@ -133,7 +144,7 @@ function [pval, stat, fpr, STATS] = randtest2 (x, y, paired, nreps, func, seed)
 
   % Check the number of function arguments
   if (nargin < 2)
-    error ('randtest2: X and Y must be provided');
+    error ('randtest2: A and B must be provided');
   end
   if (nargin > 6)
     error ('randtest2: Too many input arguments')
@@ -175,16 +186,28 @@ function [pval, stat, fpr, STATS] = randtest2 (x, y, paired, nreps, func, seed)
     rand ('seed', seed);
   end
 
-  % Remove NaN data values
-  x(isnan (x(:,1)), :) = [];
-  y(isnan (y(:,1)), :) = [];
+  % Remove NaN data values and check for infinite values
+  if paired
+    ridx = any (isnan (cat (2, x(:,1), y(:,1))), 2);
+    x(ridx, :) = [];
+    y(ridx, :) = [];
+  else
+    x(isnan (x(:,1)), :) = [];
+    y(isnan (y(:,1)), :) = [];
+  end
   if ( any (isinf (x(:,1))) || any (isinf (y(:,1))) )
-    error ('randtest2: x and y cannot not contain inf values')
+    error ('randtest2: A and B cannot contain inf values')
   end
 
   % Get size of the data
   szx = size (x);
   szy = size (y);
+  if (numel (szx) > 2)
+    error ('randtest: A has too many dimensions')
+  end
+  if (numel (szy) > 2)
+    error ('randtest: B has too many dimensions')
+  end
 
   % Evaluate definition of the sampling units (e.g. clusters) of x and y
   if (szx(2) > 1)
@@ -220,13 +243,13 @@ function [pval, stat, fpr, STATS] = randtest2 (x, y, paired, nreps, func, seed)
 
       % Error checking
       if ( any (ismember (ux, uy)) )
-        error (cat (2, 'randtest2: sampling units defined in GX and GY', ...
+        error (cat (2, 'randtest2: sampling units defined in GA and GB', ...
                        ' must be unique when PAIRED is false'))
       end
       nz = nx + ny;
       if ( ~ all (ismember ((1 + nx) : nz, uy)) )
-        error (cat (2, 'randtest2: sampling units defined in GY must', ...
-                       ' continue numbering from GX when PAIRED is false'))
+        error (cat (2, 'randtest2: sampling units defined in GB must', ...
+                       ' continue numbering from GA when PAIRED is false'))
       end
       if ( (any ((ux ~= (1 : nx)'))) || ...
            (any ((uy ~= (1 : ny)' + nx))) )
@@ -248,10 +271,10 @@ function [pval, stat, fpr, STATS] = randtest2 (x, y, paired, nreps, func, seed)
 
       % Create permutations or randomized samples
       if (factorial (nz) < nreps)
-        I = perms (1:nz).';                 % For exact permutation test
+        I = perms (1:nz).';                 % For exact (permutation) test
         nreps = factorial (nz);
       else 
-        [jnk, I] = sort (rand (nz, nreps)); % For approximate randomization test
+        [jnk, I] = sort (rand (nz, nreps)); % For approximate (randomization) test
       end
       X = arrayfun (@(i) z(I(i, :)), 1 : nx, 'UniformOutput', false);
       X = [X{:}]';
@@ -259,17 +282,20 @@ function [pval, stat, fpr, STATS] = randtest2 (x, y, paired, nreps, func, seed)
       Y = [Y{:}]';
 
       % Check if we can vectorize function evaluations
-      VECTORIZED = ~ any (diff (accumarray (gz, 1)));
+      VECTORIZED = all (cat (2, ~ any (diff (accumarray (gz, 1))), ...
+                       all (bsxfun (@eq, size (func (...
+                           repmat (x(:, 1), 1, 2), ...
+                           repmat (y(:, 1), 1, 2))), 1 : 2))));
 
     case true
 
       % Error checking
       if (nx ~= ny)
-        error (cat (2, 'randtest2: X and Y must have the same number of', ...
+        error (cat (2, 'randtest2: A and B must have the same number of', ...
                        ' sampling units when PAIRED is true'))
       end
       if (any (ux ~= uy))
-        error (cat (2, 'randtest2: GX and GY must use the same IDs for', ...
+        error (cat (2, 'randtest2: GA and GB must use the same IDs for', ...
                        ' sampling units when PAIRED is true'))
       end
       if ( (~ all (ismember (1 : nx, ux))) || ...
@@ -284,7 +310,7 @@ function [pval, stat, fpr, STATS] = randtest2 (x, y, paired, nreps, func, seed)
       end
       if (any (gx ~= gy))
         error (cat (2, 'randtest2: cluster definitions must be identical', ...
-                       ' for x and y when PAIRED is true'))
+                       ' for A and B when PAIRED is true'))
       end
 
       % Compute test statistic on the original data
@@ -296,10 +322,10 @@ function [pval, stat, fpr, STATS] = randtest2 (x, y, paired, nreps, func, seed)
 
       % Create permutations or perform randomization
       if (2^nz < nreps)
-        I = (dec2bin (0 : 2^nz - 1).' - '0') + 1; % For exact permutation test
+        I = (dec2bin (0 : 2^nz - 1).' - '0') + 1; % For exact (permutation) test
         nreps = 2^nz;
       else 
-        I = (rand (nz, nreps) > 0.5) + 1; % For approximate randomization test
+        I = (rand (nz, nreps) > 0.5) + 1; % For approximate (randomization) test
       end
       X = arrayfun (@(i) z(I(i, :), i), 1 : nz, 'UniformOutput', false);
       X = [X{:}]';
@@ -309,6 +335,12 @@ function [pval, stat, fpr, STATS] = randtest2 (x, y, paired, nreps, func, seed)
       % Check if we can vectorize function evaluations
       VECTORIZED = and (~ any (diff (accumarray (gx, 1))), ...
                         ~ any (diff (accumarray (gy, 1))));
+      % Check if we can vectorize function evaluations
+      VECTORIZED = all (cat (2, and (~ any (diff (accumarray (gx, 1))), ...
+                                     ~ any (diff (accumarray (gy, 1)))), ...
+                                all (bsxfun (@eq, size (func (...
+                                    repmat (x(:, 1), 1, 2), ...
+                                    repmat (y(:, 1), 1, 2))), 1 : 2))));
 
   end
 
@@ -335,12 +367,12 @@ function [pval, stat, fpr, STATS] = randtest2 (x, y, paired, nreps, func, seed)
   end
 
   % Calculate two-tailed p-value(s) by linear interpolation
-  [x, jnk, P] = bootcdf (abs (STATS), true);
+  [u, jnk, P] = bootcdf (abs (STATS), true);
   res_lim = 1 / nreps;
-  if (abs (stat) < x(1))
-    pval = interp1 (x, P, abs (stat), 'linear', 1);
+  if (abs (stat) < u(1))
+    pval = interp1 (u, P, abs (stat), 'linear', 1);
   else
-    pval = interp1 (x, P, abs (stat), 'linear', res_lim);
+    pval = interp1 (u, P, abs (stat), 'linear', res_lim);
   end
   if (nargout > 2)
     % Compute minimum false positive risk
@@ -458,13 +490,13 @@ end
 %! % Randomization test comparing the difference in means between two
 %! % independent samples (assuming i.i.d and exchangeability) 
 %! pval = randtest2 (control, treatment, false, 5000, ...
-%!                           @(x, y) mean (x) - mean (y))
+%!                           @(A, B) mean (A) - mean (B))
 %!
 %! % Randomization test comparing the ratio of variances between two
 %! % independent samples (assuming i.i.d and exchangeability). (Note that
 %! % the log transformation is necessary to make the p-value two-tailed)
 %! pval = randtest2 (control, treatment, false, 5000, ...
-%!                           @(x, y) log (var (y) ./ var (x)))
+%!                           @(A, B) log (var (A) ./ var (B)))
 %!
 
 %!demo
@@ -492,34 +524,34 @@ end
 
 %!demo
 %!
-%! X = [21,26,33,22,18,25,26,24,21,25,35,28,32,36,38]';
-%! GX = [1,1,1,1,2,2,2,2,2,2,3,3,3,3,3]';
-%! Y = [26,34,27,38,44,34,45,38,31,41,34,35,38,46]';
-%! GY = [4,4,4,5,5,5,5,5,6,6,6,6,6,6]';
+%! A = [21,26,33,22,18,25,26,24,21,25,35,28,32,36,38]';
+%! GA = [1,1,1,1,2,2,2,2,2,2,3,3,3,3,3]';
+%! B = [26,34,27,38,44,34,45,38,31,41,34,35,38,46]';
+%! GB = [4,4,4,5,5,5,5,5,6,6,6,6,6,6]';
 %!
 %! % Randomization test comparing the distributions of observations from two
 %! % independent samples (assuming i.i.d) using the Wasserstein metric
-%! pval = randtest2 (X, Y, false, 5000)
+%! pval = randtest2 (A, B, false, 5000)
 %!
 %! % Randomization test comparing the distributions of clustered observations
 %! % from two independent samples using the Wasserstein metric
-%! pval = randtest2 ([X GX], [Y GY], false, 5000)
+%! pval = randtest2 ([A GA], [B GB], false, 5000)
 %!
 
 %!demo
 %!
-%! X = [21,26,33,22,18,25,26,24,21,25,35,28,32,36,38]';
-%! GX = [1,1,1,1,2,2,2,2,2,2,3,3,3,3,3]';
-%! Y = [26,34,27,38,44,34,45,38,31,41,34,35,38,46,36]';
-%! GY = [1,1,1,1,2,2,2,2,2,2,3,3,3,3,3]';
+%! A = [21,26,33,22,18,25,26,24,21,25,35,28,32,36,38]';
+%! GA = [1,1,1,1,2,2,2,2,2,2,3,3,3,3,3]';
+%! B = [26,34,27,38,44,34,45,38,31,41,34,35,38,46,36]';
+%! GB = [1,1,1,1,2,2,2,2,2,2,3,3,3,3,3]';
 %!
 %! % Randomization test comparing the distributions of observations from two
 %! % paired or matched samples (assuming i.i.d) using the Wasserstein metric
-%! pval = randtest2 (X, Y, true, 5000)
+%! pval = randtest2 (A, B, true, 5000)
 %!
 %! % Randomization test comparing the distributions of clustered observations
 %! % from two paired or matched using the Wasserstein metric
-%! pval = randtest2 ([X GX], [Y GY], true, 5000)
+%! pval = randtest2 ([A GA], [B GB], true, 5000)
 %!
 
 %!demo
@@ -529,29 +561,29 @@ end
 %! trt = data(:,1); % Predictor: 0 = no treatment; 1 = treatment
 %! grp = data(:,2); % Cluster IDs
 %! val = data(:,3); % Values measured of the outcome
-%! X = val(trt==0); GX = grp(trt==0);
-%! Y = val(trt==1); GY = grp(trt==1);
+%! A = val(trt==0); GA = grp(trt==0);
+%! B = val(trt==1); GB = grp(trt==1);
 %!
 %! % Randomization test comparing the distributions of clustered observations
 %! % from two independent samples using the Wasserstein metric
-%! pval = randtest2([X, GX], [Y, GY], false)
+%! pval = randtest2([A, GA], [B, GB], false)
 %!
 
 
 %!test
 %!
 %! % Test various capabilities of randtest2
-%! X = randn (3,1);
-%! Y = randn (3,1);
-%! pval1 = randtest2 (X, Y);
-%! pval2 = randtest2 (X, Y, false);
-%! pval3 = randtest2 (X, Y, []);
-%! randtest2 (X, Y, true);
-%! randtest2 (X, Y, [], 500);
-%! randtest2 (X, Y, [], []);
-%! X = randn (9,1);
-%! Y = randn (9,1);
-%! pval5 = randtest2 (X, Y, false, 5000);
-%! pval5 = randtest2 (X, Y, false, [], [], 1);
-%! pval6 = randtest2 (X, Y, false, [], @(X, Y) mean (X) - mean (Y), 1);
-%! pval7 = randtest2 (X, Y, false, [], @(A, B) log (var (A) ./ var (B)), 1);
+%! A = randn (3,1);
+%! B = randn (3,1);
+%! pval1 = randtest2 (A, B);
+%! pval2 = randtest2 (A, B, false);
+%! pval3 = randtest2 (A, B, []);
+%! randtest2 (A, B, true);
+%! randtest2 (A, B, [], 500);
+%! randtest2 (A, B, [], []);
+%! A = randn (9,1);
+%! B = randn (9,1);
+%! pval5 = randtest2 (A, B, false, 5000);
+%! pval5 = randtest2 (A, B, false, [], [], 1);
+%! pval6 = randtest2 (A, B, false, [], @(X, Y) mean (X) - mean (Y), 1);
+%! pval7 = randtest2 (A, B, false, [], @(A, B) log (var (A) ./ var (B)), 1);
