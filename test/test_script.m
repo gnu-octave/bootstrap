@@ -336,7 +336,6 @@ try
   % bootlm:test:2
   % Two-sample paired test on dependent or matched samples equivalent to a
   % paired t-test.
- 
   score = [4.5 5.6; 3.7 6.4; 5.3 6.4; 5.4 6.0; 3.9 5.7]';
   treatment = {'before' 'after'; 'before' 'after'; 'before' 'after';
                'before' 'after'; 'before' 'after'}';
@@ -349,7 +348,6 @@ try
                              'model', 'linear', 'display', 'off', ...
                              'varnames', {'treatment', 'subject'}, ...
                              'dim', 1, 'method','bayesian', 'prior', 'auto');
-
   % bootlm:test:3
   % One-way design. The data is from a study on the strength of structural
   % beams, in Hogg and Ledolter (1987) Engineering Statistics. NY: MacMillan
@@ -362,7 +360,6 @@ try
                   'dim', 1, 'posthoc','pairwise');
   STATS = bootlm (strength, alloy, 'display', 'off', 'varnames', 'alloy', ...
                   'dim', 1, 'method','bayesian', 'prior', 'auto');
-
   % bootlm:test:4
   % One-way repeated measures design. The data is from a study on the number of
   % words recalled by 10 subjects for three time condtions, in Loftus & Masson
@@ -385,7 +382,6 @@ try
                              'model', 'linear', 'display', 'off', ...
                              'varnames', {'subject', 'seconds'}, ...
                              'dim', 2, 'method', 'bayesian', 'prior', 'auto');
-
   % bootlm:test:5
   % Balanced two-way design with interaction on the data from a study of popcorn
   % brands and popper types, in Hogg and Ledolter (1987) Engineering Statistics.
@@ -422,7 +418,6 @@ try
                              'display', 'off', 'model', 'full', ...
                              'varnames', {'brands', 'popper'}, ...
                              'dim', 2, 'method', 'bayesian', 'prior', 'auto');
-
   % bootlm:test:6
   % Unbalanced two-way design (2x2). The data is from a study on the effects
   % of gender and a college degree on starting salaries of company employees,
@@ -459,7 +454,6 @@ try
                              'display', 'off', 'varnames', ...
                              {'gender', 'degree'}, 'dim', 2, ...
                              'method', 'bayesian','prior', 'auto');
-
   % bootlm:test:7
   % Unbalanced two-way design (3x2) on the data from a study of the effect of
   % adding sugar and/or milk on the tendency of coffee to make people babble,
@@ -473,7 +467,6 @@ try
  
   STATS = bootlm (babble, {sugar, milk}, 'model', 'full', 'display', 'off', ...
                                          'varnames', {'sugar', 'milk'});
-
   % bootlm:test:8
   % Unbalanced three-way design (3x2x2). The data is from a study of the
   % effects of three different drugs, biofeedback and diet on patient blood
@@ -529,7 +522,6 @@ try
   STATS = bootlm (pulse, {species, temp}, 'model', 'linear', ...
                             'continuous', 2, 'display', 'off', ...
                             'varnames', {'species', 'temp'});
-
   % bootlm:test:10
   % Factorial design with continuous covariate on data from a study of the
   % effects of treatment and exercise on stress reduction score after adjusting
@@ -569,7 +561,6 @@ try
                              'continuous', 3, 'display', 'off', ...
                              'varnames', {'treatment', 'exercise', 'age'},...
                              'dim', [1, 2], 'posthoc', 'trt_vs_ctrl');
-
   % bootlm:test:11
   % One-way design with continuous covariate. The data is from a study of the
   % additive effects of species and temperature on chirpy pulses of crickets,
@@ -597,7 +588,6 @@ try
                             'continuous', 1, 'display', 'off', ...
                             'varnames', {'temp', 'species'}, 'dim', 2, ...
                             'method', 'bayesian', 'prior', 'auto');
-
   % bootlm:test:11
   % Factorial design with continuous covariate. The data is from a study of the
   % effects of treatment and exercise on stress reduction score after adjusting
@@ -641,7 +631,6 @@ try
                              'continuous', 1, 'display', 'off', ...
                              'varnames', {'age', 'exercise', 'treatment'}, ...
                              'method', 'bayesian', 'prior', 'auto');
-
   % bootlm:test:12
   % Unbalanced one-way design with custom, orthogonal contrasts. The statistics
   % relating to the contrasts are shown in the table of model parameters, and
@@ -663,7 +652,6 @@ try
   STATS = bootlm (dv, g, 'contrasts', C, 'varnames', 'score', ...
                            'alpha', 0.05, 'display', false, 'dim', 1, ...
                            'method', 'Bayesian', 'prior', 'auto');
-
   % bootlm:test:13
   % One-way design.
   g = [1, 1, 1, 1, 1, 1, 1, 1, ...
@@ -674,7 +662,6 @@ try
        11, 39, 26, 35, 25, 14, 24, 17]';
   stats = bootlm (y, g, 'display', false, 'dim', 1, 'posthoc', 'pairwise', ...
                         'seed', 1);
-
   % bootlm:test:14
   % Prediction errors of linear models
   amount = [25.8; 20.5; 14.3; 23.2; 20.6; 31.1; 20.9; 20.9; 30.4; ...
@@ -707,6 +694,20 @@ try
   [stats, bootstat, aovstat] = bootlm (data(:), group(:), 'seed', 1, ...
                                       'clustid', clustid(:), 'display', 'off');
 
+  % randtest:test:1
+  % Test various capabilities of randtest
+  X = randn (3,1);
+  Y = randn (3,1);
+  pval1 = randtest (X, Y);
+  pval2 = randtest (X, Y, 500);
+  randtest (X, Y, [], []);
+  X = randn (9,1);
+  Y = randn (9,1);
+  pval5 = randtest (X, Y, 5000);
+  pval5 = randtest (X, Y, [], [], 1);
+  pval6 = randtest (X, Y, [], @mldivide, 1);
+  pval7 = randtest (X, Y, [], @cor, 1);
+
   % randtest2:test:1
   X = randn (3,1);
   Y = randn (3,1);
@@ -729,6 +730,65 @@ try
   CI = credint (Y,0.95);          % Shortest probability interval
   CI = credint (Y,[0.025,0.975]); % Equal-tailed interval
 
+  % sampszcalc:test:1
+  ns = sampszcalc ('t', 0.20, 0.80, 0.05, 2);
+  nm = sampszcalc ('t', 0.50, 0.80, 0.05, 2);
+  nl = sampszcalc ('t', 0.80, 0.80, 0.05, 2);
+  ns = sampszcalc ('t', 'small');
+  nm = sampszcalc ('t', 'medium');
+  nl = sampszcalc ('t', 'large');
+  % sampszcalc:test:2
+  ns = sampszcalc ('t2', 0.20, 0.80, 0.05, 2);
+  nm = sampszcalc ('t2', 0.50, 0.80, 0.05, 2);
+  nl = sampszcalc ('t2', 0.80, 0.80, 0.05, 2);
+  ns = sampszcalc ('t2', 'small');
+  nm = sampszcalc ('t2', 'medium');
+  nl = sampszcalc ('t2', 'large');
+  % sampszcalc:test:3
+  ns = sampszcalc ('z', 0.20, 0.80, 0.05, 2);
+  nm = sampszcalc ('z', 0.50, 0.80, 0.05, 2);
+  nl = sampszcalc ('z', 0.80, 0.80, 0.05, 2);
+  ns = sampszcalc ('z', 'small');
+  nm = sampszcalc ('z', 'medium');
+  nl = sampszcalc ('z', 'large');
+  % sampszcalc:test:4
+  ns = sampszcalc ('z2', 0.20, 0.80, 0.05, 2);
+  nm = sampszcalc ('z2', 0.50, 0.80, 0.05, 2);
+  nl = sampszcalc ('z2', 0.80, 0.80, 0.05, 2);
+  ns = sampszcalc ('z2', 'small');
+  nm = sampszcalc ('z2', 'medium');
+  nl = sampszcalc ('z2', 'large');
+  % sampszcalc:test:5
+  ns = sampszcalc ('r', 0.10, 0.80, 0.05, 2);
+  nm = sampszcalc ('r', 0.30, 0.80, 0.05, 2);
+  nl = sampszcalc ('r', 0.50, 0.80, 0.05, 2);
+  ns = sampszcalc ('r', 'small');
+  nm = sampszcalc ('r', 'medium');
+  nl = sampszcalc ('r', 'large');
+  % sampszcalc:test:6
+  score = [21, 26, 33, 22, 18, 25, 26, 24, 21, 25, 35, 28, 32, 36, 38, ...
+           26, 34, 27, 38, 44, 34, 45, 38, 31, 41, 34, 35, 38, 46]';
+  method = {'A','A','A','A','A','A','A','A','A','A','A','A','A','A','A', ...
+            'B','B','B','B','B','B','B','B','B','B','B','B','B','B'}';
+  room = [1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, ...
+          1, 1, 1, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3]';
+  [STATS_STD] = bootlm (score, {method}, 'clustid', room, ...
+                              'seed', 1, 'display', 'off', 'dim', 1, ...
+                              'posthoc', 'trt_vs_ctrl', ...
+                              'method', 'bayesian', 'prior', 'auto', ...
+                              'standardize', true);
+  [STATS, BOOTSTAT] = bootlm (score, {method}, 'clustid', room, ...
+                              'seed', 1, 'display', 'off', 'dim', 1, ...
+                              'posthoc', 'trt_vs_ctrl', ...
+                              'method', 'bayesian', 'prior', 'auto');
+  [STATS_SRS, BOOTSTAT_SRS] = bootlm (score, {method}, 'clustid', [], ...
+                              'seed', 1, 'display', 'off', 'dim', 1, ...
+                              'posthoc', 'trt_vs_ctrl', ...
+                              'method', 'bayesian', 'prior', 'auto');
+  N = sampszcalc ('t2', STATS_STD.estimate, 0.80, 0.05, 2);
+  DEFF = deffcalc (BOOTSTAT, BOOTSTAT_SRS);
+  N_corrected = sampszcalc ('t2', STATS_STD.estimate, 0.80, 0.05, 2, DEFF);
+  
   fprintf('Tests completed successfully.\n')
 
 catch
