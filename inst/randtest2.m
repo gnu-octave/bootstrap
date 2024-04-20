@@ -524,10 +524,15 @@ end
 %! pval = randtest2 (A, B, true, 5000, @(A, B) log (var (A) ./ var (B)))
 %!
 %! % One-sample randomization test comparing the difference in the mean between
-%! % a sample and a population value (called m)
-%! m = 120;
-%! C = B - m
-%! pval = randtest2 (C, -C, true, 5000, @(A, B) mean (A) - mean (B))
+%! % a sample (in this case B) and a population value (in this case 120, which
+%! % we have called m). As we can see from this example, a one-sample
+%! % randomization/permutation test is a special case of a paired two-sample
+%! % test designed to flip the sign of the sample values. Note that the function
+%! % should be in mean (as demonstrated below), not the default Wasserstein
+%! % metric function.
+%! m = 120;    % population value of the mean
+%! C = B - m;  % subtract population value from the sample
+%! pval = randtest2 (C, -C, true, 5000, @(A, B) mean (A))
 
 %!demo
 %!
