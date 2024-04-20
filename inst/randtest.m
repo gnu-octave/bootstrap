@@ -270,6 +270,7 @@ end
 %!demo
 %!
 %! % Randomization or permutation test for linear regression (without intercept)
+%! % cd4 data in DiCiccio and Efron (1996) Statistical Science
 %! X = [212 435 339 251 404 510 377 335 410 335 ...
 %!      415 356 339 188 256 296 249 303 266 300]';
 %! Y = [247 461 526 302 636 593 393 409 488 381 ...
@@ -284,6 +285,7 @@ end
 %!demo
 %!
 %! % Randomization or permutation test for linear regression (with intercept)
+%! % cd4 data in DiCiccio and Efron (1996) Statistical Science
 %! X = [212 435 339 251 404 510 377 335 410 335 ...
 %!      415 356 339 188 256 296 249 303 266 300]';
 %! Y = [247 461 526 302 636 593 393 409 488 381 ...
@@ -299,15 +301,16 @@ end
 %!demo
 %!
 %! % Randomization or permutation test for the correlation coefficient
-%! % Example data from: 
-%! % https://www.biostat.wisc.edu/~kbroman/teaching/labstat/third/notes18.pdf
+%! % cd4 data in DiCiccio and Efron (1996) Statistical Science
 %! X = [212 435 339 251 404 510 377 335 410 335 ...
 %!      415 356 339 188 256 296 249 303 266 300]';
 %! Y = [247 461 526 302 636 593 393 409 488 381 ...
 %!      474 329 555 282 423 323 256 431 437 240]';
 %!
 %! % Randomization test to assess the statistical significance of the
-%! % correlation coefficient being different from 0
+%! % correlation coefficient being different from 0. This is equivalent to 
+%! % the slope regression coefficient for a linear regression (with intercept)
+%! % of standardized x and y values.
 %! [pval, stat] = randtest (X, Y, 5000, @cor)
 
 %!test
