@@ -581,7 +581,6 @@ end
 %! pval = randtest2([A, GA], [B, GB], false)
 %!
 
-
 %!test
 %!
 %! % Test various capabilities of randtest2
