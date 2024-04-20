@@ -59,8 +59,8 @@ function RHO = cor (X, Y)
   % Note that the factor of 1/n in the terms for the mean and standard
   % deviations in the numerator and denominator respectively cancel out
   % and so are omitted for efficiency
-  XERR = X - mean (X);
-  YERR = Y - mean (Y);
+  XERR = bsxfun (@minus, X, mean (X));
+  YERR = bsxfun (@minus, Y, mean (Y));
   if (all (szx == szy))
     RHO = sum ( XERR .* YERR ) ./ sqrt (sum (XERR.^2) .* sum (YERR.^2));
   else
