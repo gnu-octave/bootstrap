@@ -14,9 +14,10 @@
 %     from 0. The value returned is a 2-tailed p-value. Note that the Y values
 %     are centered before randomization or permutation to also provide valid
 %     null hypothesis tests of the intercept. To include an intercept term in
-%     the regression, X must contain a column of ones. For randomization/
-%     permutation testing of the difference between two paired or independent
-%     samples, please use the 'randtest2' function.
+%     the regression, X must contain a column of ones.
+%
+%     Hint: For one-sample or two-sample randomization/permutation tests,
+%     please use the 'randtest1' or 'randtest2' functions respectively.
 %
 %     'PVAL = randtest (X, Y, NREPS)' specifies the number of resamples without
 %     replacement to take in the randomization test. By default, NREPS is 5000.
@@ -118,13 +119,13 @@ function [pval, stat, fpr, STATS] = randtest (x, y, nreps, func, seed)
   end
   if ( (nargin > 3) && (~ isempty (func)) )
     if (iscell (func))
+      args = func(2:end);
       if (ischar (func{1}))
         % Convert character string of a function name to a function handle
         func = str2func (func{1});
       else
         func = func{1};
       end
-      args = func(2:end);
       func = @(varargin) func (varargin{:}, args{:});
     elseif (ischar (func))
       % Convert character string of a function name to a function handle
@@ -221,10 +222,14 @@ function [pval, stat, fpr, STATS] = randtest (x, y, nreps, func, seed)
   for j = 1:p
     if (~ isnan (stat(j)))
       [u, jnk, P] = bootcdf (abs (STATS(j,:)), true);
-      if (abs (stat(j)) < u(1))
-        pval(j) = interp1 (u, P, abs (stat(j)), 'linear', 1);
-      else
-        pval(j) = interp1 (u, P, abs (stat(j)), 'linear', res_lim);
+      if (numel (u) > 1)
+        if (abs (stat(j)) < u(1))
+          pval(j) = interp1 (u, P, abs (stat(j)), 'linear', 1);
+        else
+          pval(j) = interp1 (u, P, abs (stat(j)), 'linear', res_lim);
+        end
+      else 
+        pval(j) = P;
       end
     end
   end
@@ -323,7 +328,7 @@ end
 %! randtest (X, Y, [], []);
 %! X = randn (9,1);
 %! Y = randn (9,1);
-%! pval5 = randtest (X, Y, 5000);
-%! pval5 = randtest (X, Y, [], [], 1);
-%! pval6 = randtest (X, Y, [], @mldivide, 1);
-%! pval7 = randtest (X, Y, [], @cor, 1);
+%! pval3 = randtest (X, Y, 5000);
+%! pval4 = randtest (X, Y, [], [], 1);
+%! pval5 = randtest (X, Y, [], @mldivide, 1);
+%! pval6 = randtest (X, Y, [], @cor, 1);
