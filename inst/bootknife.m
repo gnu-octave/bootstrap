@@ -109,10 +109,6 @@
 %    or serially dependent data can also be analysed by the 'bootwild' and
 %    'bootbayes' functions.
 %
-%  REQUIREMENTS:
-%    The function file boot.m (or better boot.mex) and bootcdf, which are
-%    distributed with the statistics-resampling package.
-%
 %  DETAILS:
 %    For a DATA sample with n rows, bootknife resampling involves creating
 %  leave-one-out jackknife samples of size n - 1 and then drawing resamples
