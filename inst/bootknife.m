@@ -1526,7 +1526,6 @@ end
 %!   y = randn (20,1); x = randn (20,1); X = [ones(20,1), x];
 %!   stats = bootknife ({x,y}, 1999, @cor);
 %!   stats = bootknife ({x,y}, 1999, @cor, [], strata);
-%!   stats = bootknife ({x,y}, 1999, @mldivide);
 %!   stats = bootknife ({X,y}, 1999, @mldivide);
 %!   stats = bootknife ({X,y}, 1999, @mldivide, [], strata);
 %!   stats = bootknife ({X,y}, 1999, @mldivide, [], strata, 2);

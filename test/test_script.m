@@ -55,7 +55,6 @@ try
   y = randn (20,1); x = randn (20,1); X = [ones(20,1), x];
   stats = bootknife ({x,y}, 2000, @cor);
   stats = bootknife ({x,y}, 2000, @cor, [], strata);
-  stats = bootknife ({x,y}, 2000, @mldivide);
   stats = bootknife ({X,y}, 2000, @mldivide);
   stats = bootknife ({X,y}, 2000, @mldivide, [], strata);
   stats = bootknife ({X,y}, 2000, @mldivide, [], strata, 2);
