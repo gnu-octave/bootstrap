@@ -180,7 +180,7 @@ function n = sampszcalc (testtype, effsz, power, alpha, tails, deff)
       case {'t','t2'}
         % Create function to optimize sample size based on Student-t
         % distribution and n * k - k degrees of freedom
-        if (exist ('betaincinv', 'file'))
+        if ((exist ('betaincinv', 'builtin')) || (exist ('betaincinv', 'file')))
           studinv = @(P, DF) sign (P - 0.5) * ...
                 sqrt ( DF ./ betaincinv (2 * min (P, 1 - P), DF / 2, 0.5) - DF);
         else
