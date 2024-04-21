@@ -1,7 +1,8 @@
 % Vectorized function for computing Pearson's correlation coefficient (RHO)
-% between the respective columns in two equal-sized matrices.
+% between the columns in two matrices and/or column vectors.
 %
 % -- Function File: RHO = cor (X, Y)
+% -- Function File: R2  = cor (X, Y, 'squared')
 %
 %     'RHO = cor (X, Y)' computes Pearson's correlation coefficient (RHO)
 %     between the column vectors X and Y. If X and Y are matrices, then
@@ -15,6 +16,14 @@
 %     cor (X, Y) = ...
 %
 %     mean ( (X - mean (X)) .* (Y - mean (Y)) ) ./ (std (X, 1) .* std (Y, 1))
+%
+%     'R2 = cor (X, Y, 'squared')' as above but returns the correlation
+%     coefficient squared (i.e. the coefficient of determination).
+%
+%    HINT: To use this function to compute Spearman's rank correlation,
+%    independently transform X and Y to ranks, with tied observations
+%    receiving the same average rank, before providing them as input to
+%    this function.
 %
 %  cor (version 2023.05.02)
 %  Author: Andrew Charles Penn
@@ -34,7 +43,7 @@
 %  You should have received a copy of the GNU General Public License
 %  along with this program.  If not, see http://www.gnu.org/licenses/
 
-function RHO = cor (X, Y)
+function RETVAL = cor (X, Y, SQ)
 
   % Evaluate input arguments
   if ((nargin < 2) || (nargin > 3))
@@ -42,6 +51,14 @@ function RHO = cor (X, Y)
   end
   if (nargout > 1)
     error ('cor: Invalid number of output arguments')
+  end
+  if (nargin > 2)
+    if (~ ischar (SQ))
+      error ('cor: The third input argument must be a character string')
+    end
+    if (~ strcmpi (SQ, {'sq','square','squared'}))
+      error ('cor: If provided, the third input argument must be ''squared''')
+    end
   end
   szx = size (X);
   szy = size (Y);
@@ -61,9 +78,10 @@ function RHO = cor (X, Y)
   % and so are omitted for efficiency
   XERR = bsxfun (@minus, X, mean (X));
   YERR = bsxfun (@minus, Y, mean (Y));
-  if (all (szx == szy))
-    RHO = sum ( XERR .* YERR ) ./ sqrt (sum (XERR.^2) .* sum (YERR.^2));
+  RHO  =  sum (bsxfun (@times, XERR, YERR)) ./ ...
+         sqrt (bsxfun (@times, sum (XERR.^2), sum (YERR.^2)));
+  if (nargin > 2)
+    RETVAL = RHO.^2;
   else
-    RHO =  sum (bsxfun (@times, XERR, YERR)) ./ ...
-          sqrt (bsxfun (@times, sum (XERR.^2), sum (YERR.^2)));
+    RETVAL = RHO;
   end
