@@ -8,9 +8,9 @@
 % -- Function File: PVAL = randtest2 (A, B, PAIRED, NREPS, FUNC)
 % -- Function File: PVAL = randtest2 (A, B, PAIRED, NREPS, FUNC, SEED)
 % -- Function File: PVAL = randtest2 ([A, GA], [B, GB], ...)
-% -- Function File: [PVAL, STAT] = randtest (...)
-% -- Function File: [PVAL, STAT, FPR] = randtest (...)
-% -- Function File: [PVAL, STAT, FPR, PERMSTAT] = randtest (...)
+% -- Function File: [PVAL, STAT] = randtest2 (...)
+% -- Function File: [PVAL, STAT, FPR] = randtest2 (...)
+% -- Function File: [PVAL, STAT, FPR, PERMSTAT] = randtest2 (...)
 %
 %     'PVAL = randtest2 (A, B)' performs a randomization (or permutation) test
 %     to ascertain whether data samples A and B come from populations with
@@ -165,13 +165,13 @@ function [pval, stat, fpr, STATS] = randtest2 (x, y, paired, nreps, func, seed)
   end
   if ( (nargin > 4) && (~ isempty (func)) )
     if (iscell (func))
+      args = func(2:end);
       if (ischar (func{1}))
         % Convert character string of a function name to a function handle
         func = str2func (func{1});
       else
         func = func{1};
       end
-      args = func(2:end);
       func = @(varargin) func (varargin{:}, args{:});
     elseif (ischar (func))
       % Convert character string of a function name to a function handle
@@ -206,10 +206,10 @@ function [pval, stat, fpr, STATS] = randtest2 (x, y, paired, nreps, func, seed)
   szx = size (x);
   szy = size (y);
   if (numel (szx) > 2)
-    error ('randtest: A has too many dimensions')
+    error ('randtest: Variable A has too many dimensions')
   end
   if (numel (szy) > 2)
-    error ('randtest: B has too many dimensions')
+    error ('randtest: Variable B has too many dimensions')
   end
 
   % Evaluate definition of the sampling units (e.g. clusters) of x and y
@@ -372,10 +372,14 @@ function [pval, stat, fpr, STATS] = randtest2 (x, y, paired, nreps, func, seed)
   % Calculate two-tailed p-value(s) by linear interpolation
   [u, jnk, P] = bootcdf (abs (STATS), true);
   res_lim = 1 / nreps;
-  if (abs (stat) < u(1))
-    pval = interp1 (u, P, abs (stat), 'linear', 1);
+  if (numel (u) > 1)
+    if (abs (stat) < u(1))
+      pval = interp1 (u, P, abs (stat), 'linear', 1);
+    else
+      pval = interp1 (u, P, abs (stat), 'linear', res_lim);
+    end
   else
-    pval = interp1 (u, P, abs (stat), 'linear', res_lim);
+    pval = P;
   end
   if (nargout > 2)
     % Compute minimum false positive risk
