@@ -83,7 +83,7 @@ function [bootstat, bootsam] = bootstrp (argin1, argin2, varargin)
   paropt = struct;
   paropt.UseParallel = false;
   if (~ ISOCTAVE)
-    ncpus = feature('numcores');
+    ncpus = feature ('numcores');
   else
     ncpus = nproc;
   end
