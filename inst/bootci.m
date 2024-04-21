@@ -408,8 +408,8 @@ function [ci, bootstat, bootsam] = bootci (argin1, argin2, varargin)
 
       % Other interval types are natively supported in bootknife function
       % Undocumented input argument for simple bootstrap resampling
-      [stats, bootstat] = bootknife (data, nboot, bootfun, alpha, strata, ...
-                                     ncpus, [], [], ISOCTAVE, true, loo);
+      [stats, bootstat, bootsam] = bootknife (data, nboot, bootfun, alpha, ...
+                                     strata, ncpus, [], [], ISOCTAVE, true, loo);
 
   end
 
