@@ -703,10 +703,25 @@ try
   randtest (X, Y, [], []);
   X = randn (9,1);
   Y = randn (9,1);
-  pval5 = randtest (X, Y, 5000);
-  pval5 = randtest (X, Y, [], [], 1);
-  pval6 = randtest (X, Y, [], @mldivide, 1);
-  pval7 = randtest (X, Y, [], @cor, 1);
+  pval3 = randtest (X, Y, 5000);
+  pval4 = randtest (X, Y, [], [], 1);
+  pval5 = randtest (X, Y, [], @mldivide, 1);
+  pval6 = randtest (X, Y, [], @cor, 1);
+
+  % randtest1:test:1
+  A = randn (3,1);
+  M = 0;
+  pval1 = randtest1 (A, M);
+  pval2 = randtest1 (A, M, []);
+  randtest1 (A, M, 500);
+  randtest1 (A, M, []);
+  A = randn (9,1);
+  pval3 = randtest1 (A, M, 5000);
+  pval4 = randtest1 (A, M, [], [], 1);
+  pval5 = randtest1 (A, M, [], 'mean', 1);
+  pval6 = randtest1 (A, M, [], {@mean,'omitnan'}, 1);
+  pval7 = randtest1 (A, M, [], {'mean','omitnan'}, 1);
+  pval8 = randtest1 (A, M, [], @smoothmedian, 1);
 
   % randtest2:test:1
   X = randn (3,1);
