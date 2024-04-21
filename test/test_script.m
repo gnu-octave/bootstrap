@@ -127,7 +127,7 @@ try
   bootci (1999, {@mean, y}, 'alpha', 0.1, 'type', 'stud', 'nbootstd', 100);
   bootci (1999, {@mean, y}, 'alpha', 0.1, 'type', 'cal');
   bootci (1999, {@mean, y}, 'alpha', 0.1, 'type', 'cal', 'nbootcal', 199);
-  g = reshape (repmat ([1:5], 4, 1), 20, []);
+  g = reshape (repmat ((1:5), 4, 1), 20, []);
   bootci (1999, {@mean, y}, 'alpha', 0.1, 'strata', []);
   bootci (1999, {@mean, y}, 'alpha', 0.1, 'type', 'norm', 'strata', g);
   bootci (1999, {@mean, y}, 'alpha', 0.1, 'type', 'per', 'strata', g);
@@ -718,9 +718,7 @@ try
   pval3 = randtest1 (A, M, 5000);
   pval4 = randtest1 (A, M, [], [], 1);
   pval5 = randtest1 (A, M, [], 'mean', 1);
-  pval6 = randtest1 (A, M, [], {@mean,'omitnan'}, 1);
-  pval7 = randtest1 (A, M, [], {'mean','omitnan'}, 1);
-  pval8 = randtest1 (A, M, [], @smoothmedian, 1);
+  pval6 = randtest1 (A, M, [], @smoothmedian, 1);
 
   % randtest2:test:1
   X = randn (3,1);

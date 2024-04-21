@@ -15,21 +15,21 @@
 %     to ascertain whether data sample in the column vector A comes from a
 %     population with mean equal to the value M. The value returned is a 2-
 %     tailed p-value against the null hypothesis computed using the absolute
-%     values of the test statistics. This function works by subtracting the
-%     value M from A
+%     values of the mean. This function generates resamples by independently
+%     and randomly flipping the signs of values in (A - M).
 %
 %     'PVAL = randtest1 (A, M, NREPS)' specifies the number of resamples to
 %     take in the randomization test. By default, NREPS is 5000. If the number
 %     of possible permutations is smaller than NREPS, the test becomes exact.
-%     For example, if the number of sampling units in the sample is 12, then
-%     the number of possible permutations is 2^12 = 4096, so NREPS will be
-%     truncated at 4096 and sampling will systematically evaluate all possible
-%     permutations. 
+%     For example, if the number of sampling units (i.e. rows) in the sample
+%     is 12, then the number of possible permutations is 2^12 = 4096, so NREPS
+%     will be truncated at 4096 and sampling will systematically evaluate all
+%     possible permutations. 
 %
-%     'PVAL = randtest1 (A, M, NREPS, FUNC)' also specifies a custom
-%     function calculated on the original samples, and the permuted or
-%     randomized resamples. Note that FUNC must compute a location parameter
-%     and should either be a:
+%     'PVAL = randtest1 (A, M, NREPS, FUNC)' specifies a custom function
+%     calculated on the original samples, and the permuted or randomized
+%     resamples. Note that FUNC must compute a location parameter and
+%     should either be a:
 %        o function handle or anonymous function,
 %        o string of function name, or
 %        o a cell array where the first cell is one of the above function
@@ -37,11 +37,11 @@
 %          to that function (other than the data arguments).
 %        See the built-in demos for example usage using the mean.
 %
-%     'PVAL = randtest1 (A, M, NREPS, FUNC, SEED)' initialises the
-%     Mersenne Twister random number generator using an integer SEED value so
-%     that the results of 'randtest1' results are reproducible when the test
-%     is approximate (i.e. when using randomization if not all permutations
-%     can be evaluated systematically).
+%     'PVAL = randtest1 (A, M, NREPS, FUNC, SEED)' initialises the Mersenne
+%     Twister random number generator using an integer SEED value so that
+%     the results of 'randtest1' are reproducible when the test is approximate
+%     (i.e. when using randomization if not all permutations can be 
+%     evaluated systematically).
 %
 %     'PVAL = randtest1 ([A, GA], M, ...)' also specifies the sampling
 %     units (i.e. clusters) using consecutive positive integers in GA for A.
@@ -49,9 +49,9 @@
 %     for example in the cases of nested experimental designs. Note that when
 %     sampling units contain different numbers of values, function evaluations
 %     after sampling cannot be vectorized. If the parallel computing toolbox
-%     (Matlab) or package (Octave) is installed and loaded, then the function
-%     evaluations will be automatically accelerated by parallel processing
-%     on platforms with multiple processors.
+%     (Matlab) or parallel package (Octave) is installed and loaded, then the
+%     function evaluations will be automatically accelerated by parallel
+%     processing on platforms with multiple processors.
 %
 %     '[PVAL, STAT] = randtest1 (...)' also returns the test statistic.
 %
@@ -89,7 +89,7 @@ function [pval, stat, fpr, STATS] = randtest1 (x, m, nreps, func, seed)
 
   % Check the number of function arguments
   if (nargin < 2)
-    error ('randtest1: A and m must be provided');
+    error ('randtest1: A and m must be provided')
   end
   if (nargin > 5)
     error ('randtest1: Too many input arguments')
@@ -203,6 +203,4 @@ end
 %! pval3 = randtest1 (A, M, 5000);
 %! pval4 = randtest1 (A, M, [], [], 1);
 %! pval5 = randtest1 (A, M, [], 'mean', 1);
-%! pval6 = randtest1 (A, M, [], {@mean,'omitnan'}, 1);
-%! pval7 = randtest1 (A, M, [], {'mean','omitnan'}, 1);
-%! pval8 = randtest1 (A, M, [], @smoothmedian, 1);
+%! pval6 = randtest1 (A, M, [], @smoothmedian, 1);

@@ -79,6 +79,7 @@
 
 function [pval, stat, fpr, STATS] = randtest (x, y, nreps, func, seed)
 
+
   % Check if we are running Octave or Matlab
   info = ver; 
   ISOCTAVE = any (ismember ({info.Name}, 'Octave'));
@@ -104,7 +105,7 @@ function [pval, stat, fpr, STATS] = randtest (x, y, nreps, func, seed)
 
   % Check the number of function arguments
   if (nargin < 2)
-    error ('randtest: X and Y must be provided');
+    error ('randtest: X and Y must be provided')
   end
   if (nargin > 6)
     error ('randtest: Too many input arguments')

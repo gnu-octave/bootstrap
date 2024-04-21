@@ -33,9 +33,6 @@
 %                across A and B corresponds to a pair of matched observations.
 %                Within each pair, the allocation of data to samples A or B is
 %                permuted or randomized.
-%        See the built-in demo 2 for example usage on how to use 'randtest2'
-%        with paired == true to perform a one-sample randomization/permutation
-%        test.
 %
 %     'PVAL = randtest2 (A, B, PAIRED, NREPS)' specifies the number of resamples
 %     without replacement to take in the randomization test. By default, NREPS
@@ -77,9 +74,9 @@
 %     and B only where the clusters have the same identifier. Note that when
 %     sampling units contain different numbers of values, function evaluations
 %     after sampling cannot be vectorized. If the parallel computing toolbox
-%     (Matlab) or package (Octave) is installed and loaded, then the function
-%     evaluations will be automatically accelerated by parallel processing
-%     on platforms with multiple processors.
+%     (Matlab) or Parallel package (Octave) is installed and loaded, then the
+%     function evaluations will be automatically accelerated by parallel
+%     processing on platforms with multiple processors.
 %
 %     '[PVAL, STAT] = randtest2 (...)' also returns the test statistic.
 %
@@ -147,7 +144,7 @@ function [pval, stat, fpr, STATS] = randtest2 (x, y, paired, nreps, func, seed)
 
   % Check the number of function arguments
   if (nargin < 2)
-    error ('randtest2: A and B must be provided');
+    error ('randtest2: A and B must be provided')
   end
   if (nargin > 6)
     error ('randtest2: Too many input arguments')
@@ -526,17 +523,6 @@ end
 %! % paired or matching samples (assuming i.i.d and exchangeability). (Note
 %! % that the log transformation is necessary to make the p-value two-tailed)
 %! pval = randtest2 (A, B, true, 5000, @(A, B) log (var (A) ./ var (B)))
-%!
-%! % One-sample randomization test comparing the difference in the mean between
-%! % a sample (in this case B) and a population value (in this case 120, which
-%! % we have called m). As we can see from this example, a one-sample
-%! % randomization/permutation test is a special case of a paired two-sample
-%! % test designed to flip the sign of the sample values. Note that the function
-%! % should be in mean (as demonstrated below), not the default Wasserstein
-%! % metric function.
-%! m = 120;    % population value of the mean
-%! C = B - m;  % subtract population value from the sample
-%! pval = randtest2 (C, -C, true, 5000, @(A, B) mean (A))
 
 %!demo
 %!
