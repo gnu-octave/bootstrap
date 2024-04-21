@@ -123,7 +123,11 @@ function [x, F, P] = bootcdf (y, trim, m, Tol)
 
   % Create empirical CDF accounting for ties by competition ranking
   [jnk, IA, IC] = unique (x, 'first');
-  R = cat (1, IA(2:end) - 1, N);
+  if (numel (IA) > 1)
+    R = cat (1, IA(2:end) - 1, N);
+  else
+    R = cat (1, IA - 1, N);
+  end
   F = arrayfun (@(i) R(IC(i)), (1 : N)') / (N + m);
 
   % Create p-value distribution accounting for ties by competition ranking
@@ -132,7 +136,7 @@ function [x, F, P] = bootcdf (y, trim, m, Tol)
   % Remove redundancy
   if trim
     M = unique ([x, F, P], 'rows', 'last');
-    x = M(:,1); F = M(:,2); P = M(:,3);
+    x = M(:, 1); F = M(:, 2); P = M(:, 3);
   end
 
 end
