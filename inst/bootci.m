@@ -289,8 +289,8 @@ function [ci, bootstat, bootsam] = bootci (argin1, argin2, varargin)
       if (ncpus == 0)
         % OCTAVE Parallel Computing Package is not installed or loaded
         warning ('bootci:parallel', ...
-                 cat (2, 'Parallel Computing Package is installed and/or', ...
-                         ' loaded. Falling back to serial processing.'))
+                 cat (2, 'Parallel package is not installed and/or loaded.', ...
+                         ' Falling back to serial processing.'))
       end
     else
       info = ver; 

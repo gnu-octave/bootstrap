@@ -395,7 +395,7 @@ function [pval, c, stats, Q] = boot1way (data, group, varargin)
     if (paropt.UseParallel && (paropt.nproc > 1) && ~PARALLEL)
       if (ISOCTAVE)
         % OCTAVE Parallel Computing Package is not installed or loaded
-        warning ('boot1way:parallel', cat (2, 'Parallel Computing Package', ...
+        warning ('boot1way:parallel', cat (2, 'Parallel package', ...
          ' is not installed and/or loaded. Falling back to serial processing.'))
       else
         % MATLAB Parallel Computing Toolbox is not installed or loaded
