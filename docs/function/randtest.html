@@ -1,0 +1,180 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+ "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+  <head>
+  <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+  <meta name="date" content="2024-04-22"/>
+  <meta name="generator" content="generate_html 0.3.3" />
+  <meta name="author" content="Andrew Penn" />
+  <meta name="description" content="A package for statistical analysis using resampling methods." />
+  <meta name="keywords" lang="en" content="GNU Octave Packages, MATLAB Toolbox" />
+  <title>The statistics-resampling package manual</title>
+  <link rel="stylesheet" type="text/css" href="../site-files/manual.css" />
+  <script src="../site-files/fixed.js" type="text/javascript"></script>
+  <script src="../site-files/javascript.js" type="text/javascript"></script>
+  <link rel="shortcut icon" href=".././site-files/favicon.ico" />
+  </head>
+  <body onload="javascript:fix_top_menu (); javascript:show_left_menu ();">
+  <script type="text/javascript"> write_top_menu ('..'); </script>
+  <script type="text/javascript"> write_docs_left_menu ('..'); </script>
+<div id="doccontent">
+
+<h2>randtest</h2>
+<pre> Performs permutation or randomization tests for regression coefficients.
+
+ -- Function File: PVAL = randtest (X, Y)
+ -- Function File: PVAL = randtest (X, Y, NREPS)
+ -- Function File: PVAL = randtest (X, Y, NREPS, FUNC)
+ -- Function File: PVAL = randtest (X, Y, NREPS, FUNC, SEED)
+ -- Function File: [PVAL, STAT] = randtest (...)
+ -- Function File: [PVAL, STAT, FPR] = randtest (...)
+ -- Function File: [PVAL, STAT, FPR, PERMSTAT] = randtest (...)
+
+     'PVAL = randtest (X, Y)' uses the approach of Manly [1] to perform
+     a randomization (or permutation) test of the null hypothesis that
+     coefficients from the regression of Y on X are significantly different
+     from 0. The value returned is a 2-tailed p-value. Note that the Y values
+     are centered before randomization or permutation to also provide valid
+     null hypothesis tests of the intercept. To include an intercept term in
+     the regression, X must contain a column of ones.
+
+     Hint: For one-sample or two-sample randomization/permutation tests,
+     please use the 'randtest1' or 'randtest2' functions respectively.
+
+     'PVAL = randtest (X, Y, NREPS)' specifies the number of resamples without
+     replacement to take in the randomization test. By default, NREPS is 5000.
+     If the number of possible permutations is smaller than NREPS, the test
+     becomes exact. For example, if the number of sampling units (i.e. rows
+     in Y) is 6, then the number of possible permutations is factorial (6) =
+     720, so NREPS will be truncated at 720 and sampling will systematically
+     evaluate all possible permutations. 
+
+     'PVAL = randtest (X, Y, NREPS, FUNC)' also specifies a custom function
+     calculated on the original samples, and the permuted or randomized
+     resamples. Note that FUNC must compute statistics related to regression,
+     and should either be a:
+        o function handle or anonymous function,
+        o string of function name, or
+        o a cell array where the first cell is one of the above function
+          definitions and the remaining cells are (additional) input arguments 
+          to that function (other than the data arguments).
+        See the built-in demos for example usage with @mldivide for linear
+        regression coefficients, or with @cor for the correlation coefficient.
+        The default value of FUNC is @mldivide.
+
+     'PVAL = randtest (X, Y, NREPS, FUNC, SEED)' initialises the Mersenne
+     Twister random number generator using an integer SEED value so that
+     the results of 'randtest' results are reproducible when the
+     test is approximate (i.e. when using randomization if not all permutations
+     can be evaluated systematically).
+
+     '[PVAL, STAT] = randtest (...)' also returns the test statistic.
+
+     '[PVAL, STAT, FPR] = randtest (...)' also returns the minimum false
+     positive risk (FPR) calculated for the p-value, computed using the
+     Sellke-Berger approach.
+
+     '[PVAL, STAT, FPR, PERMSTAT] = randtest (...)' also returns the
+     statistics of the permutation distribution.
+
+  Bibliography:
+  [1] Manly (1997) Randomization, Bootstrap and Monte Carlo Method in Biology.
+       2nd Edition. London: Chapman & Hall.
+
+  randtest (version 2024.04.17)
+  Author: Andrew Charles Penn
+  https://www.researchgate.net/profile/Andrew_Penn/
+
+  Copyright 2019 Andrew Charles Penn
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+
+  You should have received a copy of the GNU General Public License
+  along with this program.  If not, see http://www.gnu.org/licenses/
+</pre>
+
+<h3><a name="1">Demonstration 1</a></h3>
+<div class="demo">
+<p>The following code</p>
+<pre class="example">
+
+ % Randomization or permutation test for linear regression (without intercept)
+ % cd4 data in DiCiccio and Efron (1996) Statistical Science
+ X = [212 435 339 251 404 510 377 335 410 335 ...
+      415 356 339 188 256 296 249 303 266 300]';
+ Y = [247 461 526 302 636 593 393 409 488 381 ...
+      474 329 555 282 423 323 256 431 437 240]';
+
+ % Randomization test to assess the statistical significance of the
+ % regression coefficient being different from 0. (Model: y ~ x or y = 0 + x,
+ % i.e. linear regression through the origin)
+ [pval, stat]  = randtest (X, Y, 5000) % Default value of FUNC is @mldivide
+</pre>
+<p>Produces the following output</p>
+<pre class="example">pval = 0.0002
+stat = 1.2334</pre>
+</div>
+
+<h3><a name="2">Demonstration 2</a></h3>
+<div class="demo">
+<p>The following code</p>
+<pre class="example">
+
+ % Randomization or permutation test for linear regression (with intercept)
+ % cd4 data in DiCiccio and Efron (1996) Statistical Science
+ X = [212 435 339 251 404 510 377 335 410 335 ...
+      415 356 339 188 256 296 249 303 266 300]';
+ Y = [247 461 526 302 636 593 393 409 488 381 ...
+      474 329 555 282 423 323 256 431 437 240]';
+ N = numel (Y);
+
+ % Randomization test to assess the statistical significance of the
+ % regression coefficients (intercept and slope) being different from 0.
+ % (Model: y ~ 1 + x, i.e. linear regression with intercept)
+ X1 = cat (2, ones (N, 1), X);
+ [pval, stat]  = randtest (X1, Y, 5000) % Default value of FUNC is @mldivide</pre>
+<p>Produces the following output</p>
+<pre class="example">pval =
+
+      0.53148
+   0.00049014
+
+stat =
+
+       69.038
+       1.0349</pre>
+</div>
+
+<h3><a name="3">Demonstration 3</a></h3>
+<div class="demo">
+<p>The following code</p>
+<pre class="example">
+
+ % Randomization or permutation test for the correlation coefficient
+ % cd4 data in DiCiccio and Efron (1996) Statistical Science
+ X = [212 435 339 251 404 510 377 335 410 335 ...
+      415 356 339 188 256 296 249 303 266 300]';
+ Y = [247 461 526 302 636 593 393 409 488 381 ...
+      474 329 555 282 423 323 256 431 437 240]';
+
+ % Randomization test to assess the statistical significance of the
+ % correlation coefficient being different from 0. This is equivalent to 
+ % the slope regression coefficient for a linear regression (with intercept)
+ % of standardized x and y values.
+ [pval, stat] = randtest (X, Y, 5000, @cor)</pre>
+<p>Produces the following output</p>
+<pre class="example">pval = 0.0002
+stat = 0.72317</pre>
+</div>
+
+<p>Package: <a href="../index.html">statistics-resampling</a></p>
+</div>
+</body>
+</html>

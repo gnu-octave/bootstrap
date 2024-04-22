@@ -3,7 +3,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
   <head>
   <meta http-equiv="content-type" content="text/html; charset=utf-8" />
-  <meta name="date" content="2024-04-14"/>
+  <meta name="date" content="2024-04-22"/>
   <meta name="generator" content="generate_html 0.3.3" />
   <meta name="author" content="Andrew Penn" />
   <meta name="description" content="A package for statistical analysis using resampling methods." />
@@ -21,9 +21,10 @@
 
 <h2>cor</h2>
 <pre> Vectorized function for computing Pearson's correlation coefficient (RHO)
- between the respective columns in two equal-sized matrices.
+ between the columns in two matrices and/or column vectors.
 
  -- Function File: RHO = cor (X, Y)
+ -- Function File: R2  = cor (X, Y, 'squared')
 
      'RHO = cor (X, Y)' computes Pearson's correlation coefficient (RHO)
      between the column vectors X and Y. If X and Y are matrices, then
@@ -37,6 +38,14 @@
      cor (X, Y) = ...
 
      mean ( (X - mean (X)) .* (Y - mean (Y)) ) ./ (std (X, 1) .* std (Y, 1))
+
+     'R2 = cor (X, Y, 'squared')' as above but returns the correlation
+     coefficient squared (i.e. the coefficient of determination).
+
+    HINT: To use this function to compute Spearman's rank correlation,
+    independently transform X and Y to ranks, with tied observations
+    receiving the same average rank, before providing them as input to
+    this function.
 
   cor (version 2023.05.02)
   Author: Andrew Charles Penn
