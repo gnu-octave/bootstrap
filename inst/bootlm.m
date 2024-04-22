@@ -124,9 +124,10 @@
 %             and returned from bootlm when the METHOD is 'wild'. Since the wild
 %             bootstrap method here (based on Webb's 6-point distribution)
 %             imposes symmetry on the sampling of the residuals, we recommend
-%             using 'wild' bootstrap for hypothesis testing, and instead use
-%             'bayesian' bootstrap with the 'auto' prior setting (see below)
-%             for estimation of precision/uncertainty (e.g. credible intervals).
+%             using 'wild' bootstrap for (two-sided) hypothesis tests, and
+%             instead use 'bayesian' bootstrap with the 'auto' prior setting
+%             (see below) for estimation of precision/uncertainty (e.g. credible
+%             intervals).
 %
 %     '[...] = bootlm (Y, GROUP, ..., 'method', 'bayesian', 'prior', PRIOR)'
 %
