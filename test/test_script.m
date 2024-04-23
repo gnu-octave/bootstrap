@@ -164,9 +164,29 @@ try
   bootci (1999, {@mldivide, X, y}, 'alpha', 0.1, 'type', 'stud');
   bootci (1999, {@mldivide, X, y}, 'alpha', 0.1, 'type', 'cal');
   
-  % bootstrp
-  y = randn (20,1);
-  bootstat = bootstrp (50, @mean, y);
+  % bootstrp:test:1
+  X = [212 435 339 251 404 510 377 335 410 335 ...
+       415 356 339 188 256 296 249 303 266 300]';
+  Y = [247 461 526 302 636 593 393 409 488 381 ...
+       474 329 555 282 423 323 256 431 437 240]';
+  Z = cat (1, X, Y);
+  bootstrp (50, @mean, X)
+  bootstrp (50, @(x) mean (cell2mat (x)), num2cell (X, 2))
+  bootstrp (50, @(x, y) mean (x) - mean (y), X, Y)
+  bootstrp (50, @(x, y) mean (x - y), X, Y)
+  bootstrp (50, @(x, y) mean (x - y), X, Y, 'match', true)
+  bootstrp (50, @(x, y) mean (x) - mean (y), X, Y, 'match', false)
+  bootstrp (50, @(x, z) mean (x) - mean (z), X, Z, 'match', false)
+  bootstrp (50, @cor, X, Y);
+  bootstrp (50, @(x, y) cor (cell2mat (x), cell2mat (y)), num2cell (X, 2), ...
+                                                          num2cell (Y, 2))
+  bootstrp (50, @mldivide, X, Y)
+  bootstrp (50, @mldivide, cat (2, ones (20, 1), X), Y)
+  bootstrp (50, @(x, y) mldivide (x, cell2mat (y)), ...
+                           cat (2, ones (20, 1), X), num2cell (Y, 2))
+  bootstrp (50, @mean, X, 'seed', 1)
+  bootstrp (50, @mean, X, 'loo', false)
+  bootstrp (50, @mean, X, 'Weights', rand (20, 1));
   
   % boot1way 
   % boot1way:test:1

@@ -3,31 +3,31 @@
 %
 % -- Function File: BOOTSTAT = bootstrp (NBOOT, BOOTFUN, D)
 % -- Function File: BOOTSTAT = bootstrp (NBOOT, BOOTFUN, D1, ..., DN)
-% -- Function File: BOOTSTAT = bootstrp (..., 'seed', SEED)
 % -- Function File: BOOTSTAT = bootstrp (..., 'Options', PAROPT)
+% -- Function File: BOOTSTAT = bootstrp (..., 'Weights', WEIGHTS)
+% -- Function File: BOOTSTAT = bootstrp (..., 'seed', SEED)
+% -- Function File: BOOTSTAT = bootstrp (..., 'loo', LOO)
+% -- Function File: BOOTSTAT = bootstrp (..., D1, ..., DN, 'match', MATCH)
 % -- Function File: [BOOTSTAT, BOOTSAM] = bootstrp (...) 
 %
-%     BOOTSTAT = bootstrp (NBOOT, BOOTFUN, D) draws NBOOT bootstrap resamples
+%     'BOOTSTAT = bootstrp (NBOOT, BOOTFUN, D)' draws NBOOT bootstrap resamples
 %     from the data D and returns the statistic computed by BOOTFUN in BOOTSTAT
 %     [1]. bootstrp resamples from the rows of a data sample D (column vector
 %     or a matrix). BOOTFUN is a function handle (e.g. specified with @), or a
 %     string indicating the function name. The third input argument is data
-%     (column vector or a matrix), that is used to create inputs for BOOTFUN.
-%     The resampling method used throughout is balanced bootstrap resampling
-%     [2-3].
+%     (column vector, matrix or cell array), that is used to create inputs
+%     for BOOTFUN. The resampling method used throughout is balanced bootstrap
+%     resampling [2-3].
 %
-%     BOOTSTAT = bootstrp (NBOOT, BOOTFUN, D1,...,DN) is as above except that 
-%     the third and subsequent numeric input arguments are data vectors that
-%     are used to create inputs for BOOTFUN.
+%     'BOOTSTAT = bootstrp (NBOOT, BOOTFUN, D1,...,DN)' is as above except that 
+%     the third and subsequent input arguments are data are used to create
+%     inputs for BOOTFUN.
 %
-%     BOOTSTAT = bootstrp (..., 'seed', SEED) initialises the Mersenne Twister
-%     random number generator using an integer SEED value so that bootci results
-%     are reproducible.
-%
-%     BOOTSTAT = bootstrp (..., 'Options', PAROPT) specifies options that govern
-%     if and how to perform bootstrap iterations using multiple processors (if
-%     the Parallel Computing Toolbox or Octave Parallel package is available).
-%     This argument is a structure with the following recognised fields:
+%     'BOOTSTAT = bootstrp (..., 'Options', PAROPT)' specifies options that
+%     govern if and how to perform bootstrap iterations using multiple
+%     processors (if the Parallel Computing Toolbox or Octave Parallel package).
+%     is available This argument is a structure with the following recognised
+%     fields:
 %        o 'UseParallel':  If true, use parallel processes to accelerate
 %                          bootstrap computations on multicore machines. 
 %                          Default is false for serial computation. In MATLAB,
@@ -35,10 +35,43 @@
 %                          has already been started. 
 %        o 'nproc':        nproc sets the number of parallel processes
 %
-%     [BOOTSTAT, BOOTSAM] = bootstrp (...) also returns BOOTSAM, a matrix of
-%     indices from the bootstrap. Each column in BOOTSAM corresponds to one
-%     bootstrap sample and contains the row indices of the values drawn from
-%     the nonscalar data argument to create that sample.
+%     'BOOTSTAT = bootstrp (..., D1, ..., DN, 'match', MATCH)' controls the
+%     resampling strategy when multiple data arguments are provided. When MATCH
+%     is true, row indices of D1 to DN are the same (i.e. matched) for each
+%     resample. This is the default strategy when D1 to DN all have the same
+%     number of rows. If MATCH is set to false, then row indices are resampled
+%     indpendently for D1 to DN in each of the resamples. When any of the data
+%     D1 to DN, have a different number of rows, this input argument is ignored
+%     and MATCH is enforced to have a value of false.
+%
+%     'BOOTSTAT = bootstrp (..., D, 'weights', WEIGHTS)' sets the resampling
+%     weights. WEIGHTS must be a column vector with the same number of rows as
+%     the data, D. If WEIGHTS is empty or not provided, the default is a vector
+%     of length N with uniform weighting 1/N. 
+%
+%     'BOOTSTAT = bootstrp (..., D1, ... DN, 'weights', WEIGHTS)' as above if
+%     MATCH is true. If MATCH is false, a 1-by-N cell array of column vectors
+%     can be provided to specify independent resampling weights for D1 to DN.
+%
+%     'BOOTSTAT = bootstrp (..., 'loo', LOO)' sets the resampling method. If 
+%     LOO is false, the resampling method used is balanced bootstrap resampling.
+%     If LOO is true, the resampling method used is balanced bootknife
+%     resampling [4]. The latter involves creating leave-one-out jackknife
+%     samples of size N - 1, and then drawing resamples of size N with
+%     replacement from the jackknife samples, thereby incorporating Bessel's
+%     correction into the resampling procedure. LOO must be a scalar logical
+%     value. The default value of LOO is false.
+%
+%     'BOOTSTAT = bootstrp (..., 'seed', SEED)' initialises the Mersenne Twister
+%     random number generator using an integer SEED value so that bootci results
+%     are reproducible.
+%
+%     '[BOOTSTAT, BOOTSAM] = bootstrp (...)' also returns indices used for
+%     bootstrap resampling. If MATCH is true or only one data argument is
+%     provided, BOOTSAM is a matrix. If multiple data arguments are provided
+%     and MATCH is false, BOOTSAM is returned in a 1-by-N cell array of
+%     matrices, where each cell corresponds to the respective data argument
+%     D1 to DN.
 %
 %  Bibliography:
 %  [1] Efron, and Tibshirani (1993) An Introduction to the
@@ -47,8 +80,11 @@
 %        Biometrika, 73: 555-66
 %  [3] Booth, Hall and Wood (1993) Balanced Importance Resampling
 %        for the Bootstrap. The Annals of Statistics. 21(1):286-298
+%  [4] Hesterberg T.C. (2004) Unbiasing the Bootstrap—Bootknife Sampling 
+%        vs. Smoothing; Proceedings of the Section on Statistics & the 
+%        Environment. Alexandria, VA: American Statistical Association.
 %
-%  bootstrp (version 2023.06.20)
+%  bootstrp (version 2024.04.23)
 %  Author: Andrew Charles Penn
 %  https://www.researchgate.net/profile/Andrew_Penn/
 %
@@ -74,6 +110,12 @@ function [bootstat, bootsam] = bootstrp (argin1, argin2, varargin)
     error (cat (2, 'bootstrp usage: ''bootstrp (nboot, {bootfun, data},', ...
                    ' varargin)''; atleast 2 input arguments required'))
   end
+  if (nargout > 2)
+    error (cat (2, 'bootstrp: Maximum of 2 output arguments can be requested'))
+  end
+
+  % Store subfunctions in a stucture to make them available for parallel processes
+  parsubfun = struct ('booteval', @booteval);
 
   % Check if using MATLAB or Octave
   info = ver; 
@@ -88,6 +130,10 @@ function [bootstat, bootsam] = bootstrp (argin1, argin2, varargin)
     ncpus = nproc;
   end
   paropt.nproc = ncpus;
+  w = [];
+  loo = false;
+  match = true;
+  seed = [];
 
   % Assign input arguments to function variables
   nboot = argin1;
@@ -95,30 +141,42 @@ function [bootstat, bootsam] = bootstrp (argin1, argin2, varargin)
   argin3 = varargin;
   narg = numel (argin3);
   if (narg > 1)
-    while ischar(argin3{end-1})
-      if (any(strcmpi({'Options','Option'},argin3{end-1})))
-        paropt = argin3{end};
-      elseif (any(strcmpi('seed',argin3{end-1})))
-        seed = argin3{end};
-        % Initialise the random number generator with the seed
-        boot (1, 1, false, seed);
-      else
-        error ('bootstrp: Unrecognised input argument to bootstrp')
+    name = argin3{end - 1};
+    while (ischar (name))
+      switch (lower (name))
+        case {'weights', 'weight'}
+          w = argin3{end};
+        case {'options', 'option'}
+          paropt = argin3{end};
+        case 'match'
+          match = argin3{end};
+        case 'seed'
+          seed = argin3{end};
+          boot (1, 1, false, seed); % Initialise the RNG with seed
+        case 'loo'
+          loo = argin3{end};
+        otherwise
+          error ('bootstrp: Unrecognised input argument to bootstrp')
       end
-      argin3 = {argin3{1:end-2}};
+      argin3 = argin3(1:end-2);
       narg = numel (argin3);
       if (narg < 2)
         break
       end
+      name = argin3{end - 1};
     end
   end
-  if (numel (argin3) > 1)
-    x = argin3;
-  else
-    x = argin3{1};
-  end
+  x = argin3;
   if (paropt.UseParallel)
-    ncpus = paropt.nproc;
+    if (isfield (paropt, 'nproc'))
+      ncpus = paropt.nproc;
+    else
+      if (ISOCTAVE)
+        ncpus = inf;
+      else
+        ncpus = [];
+      end
+    end
   else
     ncpus = 0;
   end
@@ -126,7 +184,7 @@ function [bootstat, bootsam] = bootstrp (argin1, argin2, varargin)
   % Error checking
   % nboot input argument
   if ((nargin < 2) || isempty (nboot))
-    nboot = 2000;
+    nboot = 1999;
   else
     if (~ isa (nboot, 'numeric'))
       error ('bootstrp: NBOOT must be numeric');
@@ -140,41 +198,6 @@ function [bootstat, bootsam] = bootstrp (argin1, argin2, varargin)
   end
   if (~ all (size (nboot) == [1, 1]))
     error ('bootstrp: NBOOT must be a scalar value')
-  end
-
-  % bootfun input argument
-  if ((nargin < 3) || isempty (bootfun))
-    bootfun = @mean;
-    bootfun_str = 'mean';
-  else
-    if (iscell (bootfun))
-      if (ischar (bootfun{1}))
-        % Convert character string of a function name to a function handle
-        bootfun_str = bootfun{1};
-        func = str2func (bootfun{1});
-      else
-        bootfun_str = func2str (bootfun{1});
-        func = bootfun{1};
-      end
-      args = bootfun(2:end);
-      bootfun = @(varargin) func (varargin{:}, args{:});
-    elseif (ischar (bootfun))
-      % Convert character string of a function name to a function handle
-      bootfun_str = bootfun;
-      bootfun = str2func (bootfun);
-    elseif (isa (bootfun, 'function_handle'))
-      bootfun_str = func2str (bootfun);
-    else
-      error ('bootstrp: BOOTFUN must be a function name or function handle')
-    end
-  end
-
-  % Determine properties of the DATA (x)
-  szx = size (x);
-  n = szx(1);
-  nvar = szx(2);
-  if (n < 2)
-    error ('bootstrp: DATA must be numeric and contain > 1 row')
   end
 
   % If applicable, check we have parallel computing capabilities
@@ -201,34 +224,6 @@ function [bootstat, bootsam] = bootstrp (argin1, argin2, varargin)
       else
         PARALLEL = false;
       end
-    end
-  end
-
-  % Evaluate bootfun on the DATA
-  T0 = bootfun (x);
-  if (any (isnan (T0)))
-    error ('bootstrp: BOOTFUN returned NaN with the DATA provided')
-  end
-
-  % Check whether bootfun is vectorized
-  if (nvar > 1)
-    M = cell2mat (cellfun (@(i) repmat (x(:, i), 1, 2), ...
-                  num2cell (1:nvar), 'UniformOutput', false));
-  else
-    M = repmat (x, 1, 2);
-  end
-  if (any (szx > 1))
-    vectorized = false;
-  else
-    try
-      chk = bootfun (M);
-      if (all (size (chk) == [size(T0, 1), 2]) && all (chk == bootfun (x)))
-        vectorized = true;
-      else
-        vectorized = false;
-      end
-    catch
-      vectorized = false;
     end
   end
 
@@ -284,95 +279,129 @@ function [bootstat, bootsam] = bootstrp (argin1, argin2, varargin)
     end
   end
 
-  % Calculate the number of elements in the return value of bootfun 
-  m = numel (T0);
-  if (m > 1)
-    % Vectorized along the dimension of the return values of bootfun so
-    % reshape the output to be a column vector before proceeding with bootstrap
-    if (size (T0, 2) > 1)
-      bootfun = @(x) reshape (bootfun (x), [], 1);
-      T0 = reshape (T0, [], 1);
-      vectorized = false;
+  % bootfun input argument
+  if ((nargin > 2) && (~ isempty (bootfun)))
+    if (iscell (bootfun))
+      if (ischar (bootfun{1}))
+        % Convert character string of a function name to a function handle
+        func = str2func (bootfun{1});
+      else
+        func = bootfun{1};
+      end
+      args = bootfun(2:end);
+      bootfun = @(varargin) func (varargin{:}, args{:});
+    elseif (ischar (bootfun))
+      % Convert character string of a function name to a function handle
+      bootfun = str2func (bootfun);
+    elseif (isa (bootfun, 'function_handle'))
+      % Do nothing
+    else
+      error ('bootstrp: BOOTFUN must be a function name or function handle')
     end
   end
+
+  % Determine properties of the DATA (x)
+  n = cellfun (@(x) size (x, 1), x, 'UniformOutput', false);
+  nvar = numel (n);
+  if (nvar > 1)
+    if  (~ isequal (n{:}))
+      if (match)
+        warning (cat (2, 'bootstrp: Data arguments do not have the same', ...
+                         ' number of rows. Enforcing MATCH = false.'))
+        match = false;
+      end
+    end
+  end
+
+  % Evaluate weights argument and convert each set of sampling probabilities to
+  % a weighting vector that sums to N * NBOOT
+  if (isempty (w))
+    w = cellfun (@(n) ones (n, 1) / n, n, 'UniformOutput', false);
+  else
+    if (isnumeric (w))
+      w = repmat (mat2cell (w, n{1}, 1), 1, nvar);
+    end
+    if (any (arrayfun (@(v) any (bsxfun (@lt, w{v}, 0)), 1 : nvar)))
+      error ('bootstrp: Weights cannot contain negative values')
+    end
+    if (any (arrayfun (@(v) any (isinf(w{v})), 1 : nvar)))
+      error ('bootstrp: Weights cannot contain any infinite values')
+    end
+    if (any (arrayfun (@(v) any (isnan(w{v})), 1 : nvar)))
+      error ('bootstrp: Weights cannot contain NaN values')
+    end
+    if (match)
+      if (numel (w) > 1)
+        if (~ isequal (w{:}))
+          error (cat (2, 'bootstrp: Weights must be the same for each row', ...
+                          ' of matching data sets'))
+        end
+      end
+    else
+      if (~ all (bsxfun (@eq, cat (2, 1, nvar), size (w))))
+        error (cat (2, 'bootstrp: Weights must be an array of cells equal ', ...
+                       ' equal in number to their non-matching data arguments'))
+      end
+    end
+  end
+  s = arrayfun (@(v) fzero (@(s) sum (round (s * w{v} / mean (w{v}) * nboot) ...
+                                 - nboot), 1), 1 : nvar, 'UniformOutput', false);
+  w = arrayfun (@(v) round (s{v} * w{v} / mean (w{v}) * nboot), 1 : nvar, ...
+                            'UniformOutput', false);
+
 
   % Perform balanced bootstrap resampling
-  unbiased = false;  % Set to false for bootstrap resampling
-  if (nvar > 1) || (nargout > 1)
-    % We can save some memory by making bootsam an int32 datatype
-    bootsam = zeros (n, nboot, 'int32');
-    bootsam(:, :) = boot (n, nboot, unbiased);
+  if (match)
+    bootsam = repmat (mat2cell (boot (n{1}, nboot, loo, seed, w{1}), ...
+                                n{1}, nboot), nvar, 1);
   else
-    % For more efficiency, if we don't need bootsam, we can directly resample
-    % values of x
-    bootsam = [];
-    X = boot (x, nboot, unbiased);
+    bootsam = cellfun (@(n, w) boot (n, nboot, loo, seed, w), ... 
+                         n', w', 'UniformOutput', false);
   end
-
-  % Evaluate bootfun each bootstrap resample
-  if (isempty (bootsam))
-    if (vectorized)
-      % Vectorized evaluation of bootfun on the DATA resamples
-      bootstat = bootfun (X);
+  if (isempty (bootfun))
+    bootstat = zeros (nboot, 0);
+  else
+    if (ncpus > 1)
+      % Parallel processing
+      if (ISOCTAVE)
+        % OCTAVE
+        bootstat = parcellfun (ncpus, ...
+                           @(i) parsubfun.booteval (x, i, bootfun, n, nvar), ...
+                                           num2cell (cell2mat (bootsam), 1), ...
+                                           'UniformOutput', false);
+      else
+        % MATLAB
+        parbootsam = num2cell (cell2mat (bootsam), 1);
+        bootstat = cell (1, nboot);
+        parfor b = 1:nboot 
+          bootstat{b} = booteval (x, parbootsam{b}, bootfun, n, nvar);
+        end
+      end
     else
-      if (ncpus > 1)
-        % Evaluate bootfun on each bootstrap resample in PARALLEL
-        if (ISOCTAVE)
-          % OCTAVE
-          bootstat = parcellfun (ncpus, bootfun, num2cell (X, 1), ...
-                                 'UniformOutput', false);
-        else
-          % MATLAB
-          bootstat = cell (1, nboot);
-          parfor b = 1:nboot; bootstat{b} = bootfun (X(:, b)); end
-        end
-      else
-        bootstat = cellfun (bootfun, num2cell (X, 1), 'UniformOutput', false);
-      end
+      % Serial processing
+      bootstat = cellfun (@(i) booteval (x, i, bootfun, n, nvar), ...
+                               num2cell (cell2mat (bootsam), 1), ...
+                               'UniformOutput', false);
     end
-  else
-    if (vectorized)
-      % DATA resampling (using bootsam) and vectorized evaluation of bootfun on 
-      % the DATA resamples 
-      if (nvar > 1)
-        % Multivariate
-        % Perform DATA sampling
-        X = cell2mat (cellfun (@(i) reshape (x(bootsam, i), n, nboot), ...
-                      num2cell (1:nvar, 1), 'UniformOutput', false));
-      else
-        % Univariate
-        % Perform DATA sampling
-        X = x(bootsam);
-      end
-      % Function evaluation on bootstrap samples
-      bootstat = bootfun (X);
-    else 
-      cellfunc = @(bootsam) bootfun (x(bootsam, :));
-      if (ncpus > 1)
-        % Evaluate bootfun on each bootstrap resample in PARALLEL
-        if (ISOCTAVE)
-          % OCTAVE
-          bootstat = parcellfun (ncpus, cellfunc, num2cell (bootsam, 1), ...
-                                 'UniformOutput', false);
-        else
-          % MATLAB
-          bootstat = cell (1, nboot);
-          parfor b = 1:nboot; bootstat{b} = cellfunc (bootsam(:, b)); end
-        end
-      else
-        % Evaluate bootfun on each bootstrap resample in SERIAL
-        bootstat = cellfun (cellfunc, num2cell (bootsam, 1), ...
-                            'UniformOutput', false);
-      end
-    end
+    bootstat = [bootstat{:}]';
   end
-  if (iscell (bootstat))
-    bootstat = cell2mat (bootstat);
+  if (match)
+    bootsam(2:end) = [];
+    bootsam = cell2mat (bootsam);
+  else
+    bootsam = bootsam';
   end
 
-  % Format output to be consistent with MATLAB's bootstrp
-  bootstat = bootstat.';
-  bootsam = double (bootsam);
+end
+
+%--------------------------------------------------------------------------
+
+function bootstat = booteval (x, bootsam, bootfun, n, nvar)
+
+    % Helper subfunction to resample x using bootsam and evaluate bootfun
+    i = mat2cell (bootsam, cell2mat (n));
+    xr = arrayfun (@(v) x{v}(i{v}, :), 1 : nvar, 'UniformOutput', false);
+    bootstat = reshape (bootfun (xr{:}), [], 1);
 
 end
 
@@ -383,16 +412,34 @@ end
 %!         0 33 28 34 4 32 24 47 41 24 26 30 41]';
 %!
 %! % Compute 50 bootstrap statistics for the mean and calculate the bootstrap
-%! % standard arror
+%! % standard error
 %! bootstat = bootstrp (50, @mean, data)
 %! std (bootstat)
 
 %!test
 %!
-%! % Input univariate dataset
-%! data = [48 36 20 29 42 42 20 42 22 41 45 14 6 ...
-%!         0 33 28 34 4 32 24 47 41 24 26 30 41]';
+%! % Input test dataset
+%! X = [212 435 339 251 404 510 377 335 410 335 ...
+%!      415 356 339 188 256 296 249 303 266 300]';
+%! Y = [247 461 526 302 636 593 393 409 488 381 ...
+%!      474 329 555 282 423 323 256 431 437 240]';
+%! Z = cat (1, X, Y);
 %!
-%! % Compute 50 bootstrap statistics for the mean and calculate the bootstrap
-%! % standard arror
-%! bootstat = bootstrp (50, @mean, data);
+%! bootstrp (50, @mean, X);
+%! bootstrp (50, @(x) mean (cell2mat (x)), num2cell (X, 2));
+%! bootstrp (50, @(x, y) mean (x) - mean (y), X, Y);
+%! bootstrp (50, @(x, y) mean (x - y), X, Y);
+%! bootstrp (50, @(x, y) mean (x - y), X, Y, 'match', true);
+%! bootstrp (50, @(x, y) mean (x) - mean (y), X, Y, 'match', false);
+%! bootstrp (50, @(x, z) mean (x) - mean (z), X, Z, 'match', false);
+%! bootstrp (50, @cor, X, Y);
+%! bootstrp (50, @(x, y) cor (cell2mat (x), cell2mat (y)), num2cell (X, 2), ...
+%!                                                         num2cell (Y, 2));
+%! bootstrp (50, @mldivide, X, Y);
+%! bootstrp (50, @mldivide, cat (2, ones (20, 1), X), Y);
+%! bootstrp (50, @(x, y) mldivide (x, cell2mat (y)), ...
+%!                          cat (2, ones (20, 1), X), num2cell (Y, 2));
+%! bootstrp (50, @mean, X, 'seed', 1);
+%! bootstrp (50, @mean, X, 'loo', false);
+%! bootstrp (50, @mean, X, 'Weights', rand (20, 1));
+
