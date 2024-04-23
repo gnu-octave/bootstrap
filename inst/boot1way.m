@@ -149,8 +149,8 @@ function [pval, c, stats, Q] = boot1way (data, group, varargin)
                    ' atleast 2 input arguments required'))
   end
 
-  % Store local functions in a stucture for parallel processes
-  localfunc = struct ('maxstat',@maxstat, ...
+  % Store subfunctions in a stucture to make them available for parallel processes
+  parsubfun = struct ('maxstat',@maxstat, ...
                       'bootcdf',@bootcdf);
 
   % Check if running in Octave (else assume Matlab)
@@ -408,7 +408,7 @@ function [pval, c, stats, Q] = boot1way (data, group, varargin)
   end
 
   % Create maxstat anonymous function for bootstrap
-  func = @(data) localfunc.maxstat (data, g, nboot(2), bootfun, ref, ISOCTAVE);
+  func = @(data) parsubfun.maxstat (data, g, nboot(2), bootfun, ref, ISOCTAVE);
 
   % Perform resampling and calculate bootstrap statistics to estimate the 
   % sampling distribution under the null hypothesis.

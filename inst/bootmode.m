@@ -131,8 +131,8 @@
 
 function [H, P, h] = bootmode (x, m, B, kernel, ncpus)
 
-  % Store local functions in a stucture for parallel processes
-  localfunc = struct ('findCriticalBandwidth',@findCriticalBandwidth , ...
+  % Store subfunctions in a stucture to make them available for parallel processes
+  parsubfun = struct ('findCriticalBandwidth',@findCriticalBandwidth , ...
                       'kde',@kde);
 
   % Check if running in Octave (else assume Matlab)
@@ -251,7 +251,7 @@ function [H, P, h] = bootmode (x, m, B, kernel, ncpus)
   n = numel(x);
 
   % Find critical bandwidth
-  [criticalBandwidth] = localfunc.findCriticalBandwidth (x, m, kernel);
+  [criticalBandwidth] = parsubfun.findCriticalBandwidth (x, m, kernel);
   h = criticalBandwidth;
 
   % Random resampling with replacement from a smooth estimate of
@@ -269,7 +269,7 @@ function [H, P, h] = bootmode (x, m, B, kernel, ncpus)
     if (ISOCTAVE)
       % OCTAVE
       f = cell2mat (parcellfun (ncpus, ...
-                                @(j) localfunc.kde (X(:,j), h, kernel), ...
+                                @(j) parsubfun.kde (X(:,j), h, kernel), ...
                                 num2cell (1:B), 'UniformOutput', false));
     else
       % MATLAB
@@ -278,7 +278,7 @@ function [H, P, h] = bootmode (x, m, B, kernel, ncpus)
     end
   else
     % SERIAL
-    f = cell2mat (cellfun (@(j) localfunc.kde (X(:,j), h, kernel), ...
+    f = cell2mat (cellfun (@(j) parsubfun.kde (X(:,j), h, kernel), ...
                            num2cell (1:B), 'UniformOutput', false));
   end
 

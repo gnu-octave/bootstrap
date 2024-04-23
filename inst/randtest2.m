@@ -120,8 +120,8 @@ function [pval, stat, fpr, STATS] = randtest2 (x, y, paired, nreps, func, seed)
   info = ver; 
   ISOCTAVE = any (ismember ({info.Name}, 'Octave'));
 
-  % Store local function wass_stat in a stucture (for parallel processes)
-  localfunc = struct ('wass_stat', @wass_stat);
+  % Store subfunctions in a stucture to make them available for parallel processes
+  parsubfun = struct ('wass_stat', @wass_stat);
 
   % Check if we have parallel processing capabilities
   PARALLEL = false; % Default
@@ -179,7 +179,7 @@ function [pval, stat, fpr, STATS] = randtest2 (x, y, paired, nreps, func, seed)
       error ('randtest2: FUNC must be a function name or function handle')
     end
   else
-    func = localfunc.wass_stat;
+    func = parsubfun.wass_stat;
   end
   if ( (nargin > 5) && (~ isempty (seed)) )
     % Set random seed

@@ -144,8 +144,8 @@
 function [stats, bootstat, X] = bootclust (x, nboot, bootfun, alpha, ...
                                         clustid, loo, seed, ncpus)
 
-  % Store local functions in a stucture for parallel processes
-  localfunc = struct ('col2args', @col2args, ...
+  % Store subfunctions in a stucture to make them available for parallel processes
+  parsubfun = struct ('col2args', @col2args, ...
                       'kdeinv', @kdeinv, ...
                       'ExpandProbs', @ExpandProbs);
 
@@ -357,7 +357,7 @@ function [stats, bootstat, X] = bootclust (x, nboot, bootfun, alpha, ...
   if (iscell (x))
     szx = cellfun (@(x) size (x, 2), x);
     x = [x{:}];
-    bootfun = @(x) localfunc.col2args (bootfun, x, szx);
+    bootfun = @(x) parsubfun.col2args (bootfun, x, szx);
   else
     szx = size (x, 2);
   end
@@ -497,7 +497,7 @@ function [stats, bootstat, X] = bootclust (x, nboot, bootfun, alpha, ...
   % First, if bootfun is the arithmetic meam, expand the probabilities of the 
   % percentiles for the confidence intervals using Student's t-distribution
   if (strcmpi (bootfun_str, 'mean'))
-    probs = localfunc.ExpandProbs (probs, nx - 1, loo);
+    probs = parsubfun.ExpandProbs (probs, nx - 1, loo);
   end
   % If requested, perform adjustments to the probabilities to correct for bias
   % and skewness
@@ -581,7 +581,7 @@ function [stats, bootstat, X] = bootclust (x, nboot, bootfun, alpha, ...
   ci = nan (m, 2);
   for j = 1 : m
     try
-      ci(j, :) = localfunc.kdeinv (probs(j, :), bootstat(j, :), ...
+      ci(j, :) = parsubfun.kdeinv (probs(j, :), bootstat(j, :), ...
                          se(j) * sqrt (1 / (nx - 1)), 1 - 1 / (nx - 1));
     catch
       % Linear interpolation (legacy)

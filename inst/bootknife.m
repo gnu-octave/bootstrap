@@ -183,8 +183,8 @@ function [stats, bootstat, bootsam] = bootknife (x, nboot, bootfun, alpha, ...
   % REF, ISOCTAVE, ERRCHK and LOO are undocumented input arguments required for
   % some of the features of bootknife or the functions that require it
 
-  % Store local functions in a stucture for parallel processes
-  localfunc = struct ('col2args', @col2args, ...
+  % Store subfunctions in a stucture to make them available for parallel processes
+  parsubfun = struct ('col2args', @col2args, ...
                       'kdeinv', @kdeinv, ...
                       'ExpandProbs', @ExpandProbs);
 
@@ -239,7 +239,7 @@ function [stats, bootstat, bootsam] = bootknife (x, nboot, bootfun, alpha, ...
       % array to a matrix and redefine bootfun to parse multiple input arguments
       szx = cellfun (@(x) size (x, 2), x);
       x = [x{:}];
-      bootfun = @(x) localfunc.col2args (bootfun, x, szx);
+      bootfun = @(x) parsubfun.col2args (bootfun, x, szx);
     else
       szx = size (x, 2);
     end
@@ -693,7 +693,7 @@ function [stats, bootstat, bootsam] = bootknife (x, nboot, bootfun, alpha, ...
       % percentiles using Student's t-distribution
       if (strcmpi (bootfun_str, 'mean'))
         expan_alpha = (3 - nalpha) * ...
-                      localfunc.ExpandProbs (alpha / (3 - nalpha), n - K, LOO);
+                      parsubfun.ExpandProbs (alpha / (3 - nalpha), n - K, LOO);
       else
         expan_alpha = alpha;
       end
@@ -784,7 +784,7 @@ function [stats, bootstat, bootsam] = bootknife (x, nboot, bootfun, alpha, ...
       ci = zeros (m, 2);
       for j = 1 : m
         try
-          ci(j, :) = localfunc.kdeinv (l(j, :), bootstat(j, :), ...
+          ci(j, :) = parsubfun.kdeinv (l(j, :), bootstat(j, :), ...
                                    se(j) * sqrt (1 / (n - K)), 1 - 1 / (n - K));
         catch
           % Linear interpolation (legacy)
