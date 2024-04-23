@@ -230,7 +230,15 @@ function [ci, bootstat, bootsam] = bootci (argin1, argin2, varargin)
     end
   end
   if (paropt.UseParallel)
-    ncpus = paropt.nproc;
+    if (isfield (paropt, 'nproc'))
+      ncpus = paropt.nproc;
+    else
+      if (ISOCTAVE)
+        ncpus = inf;
+      else
+        ncpus = [];
+      end
+    end
   else
     ncpus = 0;
   end
