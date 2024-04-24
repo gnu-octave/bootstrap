@@ -12,12 +12,14 @@
 %
 %     'BOOTSTAT = bootstrp (NBOOT, BOOTFUN, D)' draws NBOOT bootstrap resamples
 %     from the data D and returns the statistic computed by BOOTFUN in BOOTSTAT
-%     [1]. bootstrp resamples from the rows of a data sample D (column vector
-%     or a matrix). BOOTFUN is a function handle (e.g. specified with @), or a
-%     string indicating the function name. The third input argument is data
-%     (column vector, matrix or cell array), that is used to create inputs
-%     for BOOTFUN. The resampling method used throughout is balanced bootstrap
-%     resampling [2-3].
+%     [1]. bootstrp resamples from the rows of a data sample D (column vector,
+%     matrix or cell array). BOOTFUN is a function handle (e.g. specified with
+%     @), a string indicating the function name, or a cell array where the first
+%     cell is one of the above function definitions and the remaining cells are
+%     (additional) input arguments to that function (after the data argument(s)).
+%     The third input argument is the data (column vector, matrix or cell array),
+%     which is supplied to BOOTFUN. The resampling method used throughout is
+%     bootstrap resampling with first order balance [2-3].
 %
 %     'BOOTSTAT = bootstrp (NBOOT, BOOTFUN, D1,...,DN)' is as above except that 
 %     the third and subsequent input arguments are data are used to create
@@ -279,6 +281,19 @@ function [bootstat, bootsam] = bootstrp (argin1, argin2, varargin)
     end
   end
 
+  % Determine properties of the data (x)
+  n = cellfun (@(x) size (x, 1), x, 'UniformOutput', false);
+  nvar = numel (n);
+  if (nvar > 1)
+    if  (~ isequal (n{:}))
+      if (match)
+        warning (cat (2, 'bootstrp: Data arguments do not have the same', ...
+                         ' number of rows. Enforcing MATCH = false.'))
+        match = false;
+      end
+    end
+  end
+
   % bootfun input argument
   if ((nargin > 2) && (~ isempty (bootfun)))
     if (iscell (bootfun))
@@ -299,16 +314,24 @@ function [bootstat, bootsam] = bootstrp (argin1, argin2, varargin)
       error ('bootstrp: BOOTFUN must be a function name or function handle')
     end
   end
-
-  % Determine properties of the DATA (x)
-  n = cellfun (@(x) size (x, 1), x, 'UniformOutput', false);
-  nvar = numel (n);
-  if (nvar > 1)
-    if  (~ isequal (n{:}))
-      if (match)
-        warning (cat (2, 'bootstrp: Data arguments do not have the same', ...
-                         ' number of rows. Enforcing MATCH = false.'))
-        match = false;
+  try
+    t0 = bootfun (x{:});
+  catch
+    error (cat (2, 'bootstrp: There was an error evaluating ''bootfun''', ...
+                   ' and the data provided'))
+  end
+  % Check whether evaluation of bootfun on the data is vectorized
+  vectorized = false;
+  if (eq (size (t0, 2), 1)) 
+    if (all (bsxfun (@eq, 1, cellfun (@(x) size (x, 2), x))))
+      xt = arrayfun (@(v) repmat (x{v}, 1, 2), 1 : nvar, 'UniformOutput', false);
+      try
+        chk = bootfun (xt{:});
+        if ( eq (size (chk), cat (2, size (t0, 1), 2)) )
+          vectorized = true;
+        end
+      catch
+        % Do nothing
       end
     end
   end
@@ -317,6 +340,7 @@ function [bootstat, bootsam] = bootstrp (argin1, argin2, varargin)
   % a weighting vector that sums to N * NBOOT
   if (isempty (w))
     w = cellfun (@(n) ones (n, 1) / n, n, 'UniformOutput', false);
+    s = num2cell (ones (1, nvar), 1);
   else
     if (isnumeric (w))
       w = repmat (mat2cell (w, n{1}, 1), 1, nvar);
@@ -343,11 +367,11 @@ function [bootstat, bootsam] = bootstrp (argin1, argin2, varargin)
                        ' equal in number to their non-matching data arguments'))
       end
     end
+    s = arrayfun (@(v) fzero (@(s) sum (round (s * w{v} / mean (w{v}) * nboot) ...
+                                - nboot), 1), 1 : nvar, 'UniformOutput', false);
   end
-  s = arrayfun (@(v) fzero (@(s) sum (round (s * w{v} / mean (w{v}) * nboot) ...
-                                 - nboot), 1), 1 : nvar, 'UniformOutput', false);
-  w = arrayfun (@(v) round (s{v} * w{v} / mean (w{v}) * nboot), 1 : nvar, ...
-                            'UniformOutput', false);
+  w = arrayfun (@(v) round (s{v} * w{v} / mean (w{v}) * nboot), ...
+                            1 : nvar, 'UniformOutput', false);
 
 
   % Perform balanced bootstrap resampling
@@ -379,9 +403,14 @@ function [bootstat, bootsam] = bootstrp (argin1, argin2, varargin)
       end
     else
       % Serial processing
-      bootstat = cellfun (@(i) booteval (x, i, bootfun, n, nvar), ...
-                               num2cell (cell2mat (bootsam), 1), ...
-                               'UniformOutput', false);
+      if (vectorized)
+        XR = arrayfun (@(v) x{v}(bootsam{v}), 1 : nvar, 'UniformOutput', false);
+        bootstat = num2cell (bootfun (XR{:}), 2);
+      else
+        bootstat = cellfun (@(i) booteval (x, i, bootfun, n, nvar), ...
+                                 num2cell (cell2mat (bootsam), 1), ...
+                                 'UniformOutput', false);
+      end
     end
     bootstat = [bootstat{:}]';
   end
@@ -432,7 +461,10 @@ end
 %! bootstrp (50, @(x, y) mean (x - y), X, Y, 'match', true);
 %! bootstrp (50, @(x, y) mean (x) - mean (y), X, Y, 'match', false);
 %! bootstrp (50, @(x, z) mean (x) - mean (z), X, Z, 'match', false);
+%! bootstrp (50, @var, X);
+%! bootstrp (50, {@var, 1}, X);
 %! bootstrp (50, @cor, X, Y);
+%! bootstrp (50, {@cor,'squared'}, X, Y);
 %! bootstrp (50, @(x, y) cor (cell2mat (x), cell2mat (y)), num2cell (X, 2), ...
 %!                                                         num2cell (Y, 2));
 %! bootstrp (50, @mldivide, X, Y);
@@ -442,4 +474,5 @@ end
 %! bootstrp (50, @mean, X, 'seed', 1);
 %! bootstrp (50, @mean, X, 'loo', false);
 %! bootstrp (50, @mean, X, 'Weights', rand (20, 1));
+%! bootstrp (50, @mean, X, 'seed', 1, 'loo', false, 'Weights', rand (20, 1));
 
