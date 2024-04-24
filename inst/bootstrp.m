@@ -151,7 +151,7 @@ function [bootstat, bootsam] = bootstrp (argin1, argin2, varargin)
           w = value;
         case {'options', 'option'}
           paropt = value;
-        case 'match'
+        case {'match', 'matched', 'matching'}
           match = value;
         case 'seed'
           seed = value;
@@ -444,8 +444,116 @@ end
 %!         0 33 28 34 4 32 24 47 41 24 26 30 41]';
 %!
 %! % Compute 50 bootstrap statistics for the mean and calculate the bootstrap
-%! % standard error
-%! bootstat = bootstrp (50, @mean, data)
+%! % standard error of the mean
+%! bootstat = bootstrp (50, @mean, data, 'seed', 1);
+%! % Or equivalently
+%! bootstat = bootstrp (50, @mean, data, 'seed', 1, 'loo', false);
+%! std (bootstat)
+
+%!demo
+%!
+%! % Input univariate dataset
+%! data = [48 36 20 29 42 42 20 42 22 41 45 14 6 ...
+%!         0 33 28 34 4 32 24 47 41 24 26 30 41]';
+%!
+%! % Compute 50 bootknife statistics for the mean and calculate the unbiased
+%! % bootstrap standard error of the mean
+%! bootstat = bootstrp (50, @mean, data, 'seed', 1, 'loo', true);
+%! std (bootstat)
+
+%!demo
+%!
+%! % Input univariate dataset
+%! data = [48 36 20 29 42 42 20 42 22 41 45 14 6 ...
+%!         0 33 28 34 4 32 24 47 41 24 26 30 41]';
+%! % Split data into consecutive blocks of two data observations per cell
+%! data_blocks = mat2cell (data, 2 * (ones (13, 1)), 1);
+%!
+%! % Compute 50 bootknife statistics for the mean and calculate the unbiased
+%! % bootstrap standard error of the mean
+%! bootstat = bootstrp (50, @(x) mean (cell2mat (x)), data_blocks, 'seed', 1, ...
+%!                                                                 'loo', true);
+%! std (bootstat)
+
+%!demo
+%!
+%! % Input univariate dataset
+%! data = [48 36 20 29 42 42 20 42 22 41 45 14 6 ...
+%!         0 33 28 34 4 32 24 47 41 24 26 30 41]';
+%!
+%! % Compute 50 bootknife statistics for the variance and calculate the
+%! % unbiased standard error of the variance
+%! bootstat = bootstrp (50, {@var, 1}, data, 'loo', true);
+%! std (bootstat)
+
+%!demo
+%!
+%! % Input two-sample dataset
+%! X = [212 435 339 251 404 510 377 335 410 335 ...
+%!      415 356 339 188 256 296 249 303 266 300]';
+%! Y = [247 461 526 302 636 593 393 409 488 381 ...
+%!      474 329 555 282 423 323 256 431 437 240]';
+%!
+%! % Compute 50 bootknife statistics for the mean difference between X and Y
+%! % and calculate the unbiased bootstrap standard error of the mean difference
+%! bootstat = bootstrp (50, @(x, y) mean (x - y), X, Y, 'loo', true);
+%! % Or equivalently
+%! bootstat = bootstrp (50, @(x, y) mean (x - y), X, Y, 'loo', true, ...
+%!                                                      'match', true);
+%! std (bootstat)
+
+%!demo
+%!
+%! % Input two-sample dataset
+%! X = [212 435 339 251 404 510 377 335 410 335 ...
+%!      415 356 339 188 256 296 249 303 266 300]';
+%! Y = [247 461 526 302 636 593 393 409 488 381 ...
+%!      474 329 555 282 423 323 256 431 437 240]';
+%!
+%! % Compute 50 bootknife statistics for the difference in mean between
+%! % between independent samples X and Y and calculate the unbiased bootstrap
+%! % standard error of the difference in mean
+%! bootstat = bootstrp (50, @(x, y) mean (x) - mean(y), X, Y, 'loo', true, ...
+%!                                                            'match', false);
+%! std (bootstat)
+
+%!demo
+%!
+%! % Input bivariate dataset
+%! X = [212 435 339 251 404 510 377 335 410 335 ...
+%!      415 356 339 188 256 296 249 303 266 300]';
+%! Y = [247 461 526 302 636 593 393 409 488 381 ...
+%!      474 329 555 282 423 323 256 431 437 240]';
+%!
+%! % Compute 50 bootstrap statistics for the correlation coefficient and
+%! % calculate the bootstrap standard error of the correlation coefficient
+%! bootstat = bootstrp (50, @cor, X, Y);
+%! std (bootstat)
+
+%!demo
+%!
+%! % Input bivariate dataset
+%! X = [212 435 339 251 404 510 377 335 410 335 ...
+%!      415 356 339 188 256 296 249 303 266 300]';
+%! Y = [247 461 526 302 636 593 393 409 488 381 ...
+%!      474 329 555 282 423 323 256 431 437 240]';
+%!
+%! % Compute 50 bootstrap statistics for the coefficient of determination and
+%! % calculate the bootstrap standard error of the coefficient of determination
+%! bootstat = bootstrp (50, {@cor,'squared'}, X, Y);
+%! std (bootstat)
+
+%!demo
+%!
+%! % Input bivariate dataset
+%! X = [212 435 339 251 404 510 377 335 410 335 ...
+%!      415 356 339 188 256 296 249 303 266 300]';
+%! Y = [247 461 526 302 636 593 393 409 488 381 ...
+%!      474 329 555 282 423 323 256 431 437 240]';
+%!
+%! % Compute 50 bootstrap statistics for the slope and intercept of a linear
+%! % regression and calculate there bootstrap standard errors
+%! bootstat = bootstrp (50, @mldivide, cat (2, ones (20, 1), X), Y);
 %! std (bootstat)
 
 %!test
