@@ -106,8 +106,8 @@
 %     drawn from the nonscalar DATA argument to create that sample.
 %
 %  * For cluster resampling, use the 'bootclust' function instead. Clustered
-%    or serially dependent data can also be analysed by the 'bootwild' and
-%    'bootbayes' functions.
+%    or serially dependent data can also be analysed by the 'bootstrp', 
+%    'bootwild' and 'bootbayes' functions.
 %
 %  DETAILS:
 %    For a DATA sample with n rows, bootknife resampling involves creating
@@ -689,7 +689,7 @@ function [stats, bootstat, bootsam] = bootknife (x, nboot, bootfun, alpha, ...
     % Bootstrap standard error
     se = std (bootstat, 0, 2);  % Unbiased since we used bootknife resampling
     if (~ isnan (alpha))
-      % If bootfun is the arithmetic meam, expand the probabilities of the 
+      % If bootfun is the arithmetic mean, expand the probabilities of the 
       % percentiles using Student's t-distribution
       if (strcmpi (bootfun_str, 'mean'))
         expan_alpha = (3 - nalpha) * ...
@@ -784,12 +784,15 @@ function [stats, bootstat, bootsam] = bootknife (x, nboot, bootfun, alpha, ...
       ci = zeros (m, 2);
       for j = 1 : m
         try
-          ci(j, :) = parsubfun.kdeinv (l(j, :), bootstat(j, :), ...
+          if (LOO)
+            ci(j, :) = parsubfun.kdeinv (l(j, :), bootstat(j, :), ...
                                    se(j) * sqrt (1 / (n - K)), 1 - 1 / (n - K));
+          else
+            error ('Invoke linear interpolation method.')
+          end
         catch
-          % Linear interpolation (legacy)
-          fprintf (strcat ('Note: Falling back to linear interpolation to', ...
-                           ' calculate percentiles for interval pair %u\n'), j);
+          % Linear interpolation (legacy) when LOO is false and for corner cases
+          % where KDE fails
           [t1, cdf] = bootcdf (bootstat(j, :), true, 1);
           ci(j, 1) = interp1 (cdf, t1, l(j, 1), 'linear', min (t1));
           ci(j, 2) = interp1 (cdf, t1, l(j, 2), 'linear', max (t1));

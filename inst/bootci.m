@@ -87,14 +87,14 @@
 %     and how to perform bootstrap iterations using multiple processors (if the
 %     Parallel Computing Toolbox or Octave Parallel package is available). This
 %     argument is a structure with the following recognised fields:
-%       <> 'UseParallel':  If true, use parallel processes to accelerate
-%                          bootstrap computations on multicore machines,
-%                          specifically non-vectorized function evaluations,
-%                          double bootstrap resampling and jackknife function
-%                          evaluations. Default is false for serial computation.
-%                          In MATLAB, the default is true if a parallel pool
-%                          has already been started. 
-%       <> 'nproc':        nproc sets the number of parallel processes
+%       <> 'UseParallel': If true, use parallel processes to accelerate
+%                         bootstrap computations on multicore machines,
+%                         specifically non-vectorized function evaluations,
+%                         double bootstrap resampling and jackknife function
+%                         evaluations. Default is false for serial computation.
+%                         In MATLAB, the default is true if a parallel pool
+%                         has already been started. 
+%       <> 'nproc':       nproc sets the number of parallel processes (optional)
 %
 %     '[CI, BOOTSTAT] = bootci (...)' also returns the bootstrap statistics
 %     used to calculate the confidence intervals CI.
@@ -742,12 +742,12 @@ end
 %! %
 %! % method             |   0.05 |   0.95 | length | shape |  
 %! % -------------------|--------|--------|--------|-------|
-%! % ci1 - normal       |  109.5 |  246.8 |  137.3 |  1.21 |
-%! % ci2 - percentile   |   97.7 |  234.9 |  137.2 |  0.86 |
-%! % ci3 - basic        |  108.2 |  245.4 |  137.2 |  1.17 |
-%! % ci4 - BCa          |  116.0 |  260.3 |  144.3 |  1.60 |
-%! % ci5 - bootstrap-t  |  112.8 |  289.8 |  177.0 |  2.02 |
-%! % ci6 - calibrated   |  115.2 |  278.7 |  163.5 |  1.90 |
+%! % ci1 - normal       |  108.9 |  247.4 |  138.5 |  1.22 |
+%! % ci2 - percentile   |   98.2 |  235.1 |  136.9 |  0.87 |
+%! % ci3 - basic        |  108.0 |  244.8 |  136.9 |  1.15 |
+%! % ci4 - BCa          |  116.2 |  259.6 |  143.4 |  1.60 |
+%! % ci5 - bootstrap-t  |  114.0 |  289.5 |  175.5 |  2.05 |
+%! % ci6 - calibrated   |  115.3 |  276.9 |  161.6 |  1.87 |
 %! % -------------------|--------|--------|--------|-------|
 %! % parametric - exact |  118.4 |  305.2 |  186.8 |  2.52 |
 %! %
@@ -841,8 +841,8 @@ end
 %! ci = bootci(1999,{{@var,1},A},'alpha',0.1,'type','per','seed',1);
 %! if (isempty (regexp (which ('boot'), 'mex$')))
 %!   % test boot m-file result
-%!   assert (ci(1), 97.49355067155864, 1e-07);
-%!   assert (ci(2), 233.207702361817, 1e-07);
+%!   assert (ci(1), 97.67455621301775, 1e-07);
+%!   assert (ci(2), 233.1553254437869, 1e-07);
 %! end
 %!
 %! % Nonparametric 90% BCa confidence intervals (single bootstrap)
@@ -850,8 +850,8 @@ end
 %! ci = bootci(1999,{{@var,1},A},'alpha',0.1,'type','bca','seed',1);
 %! if (isempty (regexp (which ('boot'), 'mex$')))
 %!   % test boot m-file result
-%!   assert (ci(1), 115.643362990639, 1e-07);
-%!   assert (ci(2), 256.0719555540051, 1e-07);
+%!   assert (ci(1), 115.3439904214919, 1e-07);
+%!   assert (ci(2), 254.8041855869813, 1e-07);
 %! end
 %!
 %! % Nonparametric 90% bootstrap-t confidence intervals (double bootstrap)
@@ -888,8 +888,8 @@ end
 %! ci = bootci(1999,{@cor,LSAT,GPA},'alpha',0.1,'type','per','seed',1);
 %! if (isempty (regexp (which ('boot'), 'mex$')))
 %!   % test boot m-file result
-%!   assert (ci(1), 0.5147126713756366, 1e-07);
-%!   assert (ci(2), 0.953156157402217, 1e-07);
+%!   assert (ci(1), 0.5087487217143066, 1e-07);
+%!   assert (ci(2), 0.9477093289635946, 1e-07);
 %! end
 %!
 %! % Nonparametric 90% BCa confidence intervals (single bootstrap)
@@ -897,8 +897,8 @@ end
 %! ci = bootci(1999,{@cor,LSAT,GPA},'alpha',0.1,'type','bca','seed',1);
 %! if (isempty (regexp (which ('boot'), 'mex$')))
 %!   % test boot m-file result
-%!   assert (ci(1), 0.4179653612679617, 1e-07);
-%!   assert (ci(2), 0.9240227537437981, 1e-07);
+%!   assert (ci(1), 0.4107777334127511, 1e-07);
+%!   assert (ci(2), 0.9234715078308394, 1e-07);
 %! end
 %!
 %! % Nonparametric 90% calibrated percentile confidence intervals

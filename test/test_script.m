@@ -763,8 +763,14 @@ try
   % credint:test:1
   randn ('seed', 1);
   Y = exp (randn (5, 999));
-  CI = credint (Y,0.95);          % Shortest probability interval
-  CI = credint (Y,[0.025,0.975]); % Equal-tailed interval
+  CI = credint (Y,0.95);          % 95% shortest probability interval
+  CI = credint (Y,[0.025,0.975]); % 95% equal-tailed interval
+
+  % bootint:test:1
+  randn ('seed', 1);
+  Y = exp (randn (5, 999));
+  CI = bootint (Y,0.95);          % 95% percentile interval
+  CI = bootint (Y,[0.025,0.975]); % 95% percentile interval
 
   % sampszcalc:test:1
   ns = sampszcalc ('t', 0.20, 0.80, 0.05, 2);

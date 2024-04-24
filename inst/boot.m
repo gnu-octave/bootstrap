@@ -28,7 +28,7 @@
 %     'BOOTSAM = boot (..., NBOOT, LOO)' sets the resampling method. If LOO
 %     is false, the resampling method used is balanced bootstrap resampling.
 %     If LOO is true, the resampling method used is balanced bootknife
-%     resampling [4]. The latter involves creating leave-one-out jackknife
+%     resampling [4]. The latter involves creating leave-one-out (jackknife)
 %     samples of size N - 1, and then drawing resamples of size N with
 %     replacement from the jackknife samples, thereby incorporating Bessel's
 %     correction into the resampling procedure. LOO must be a scalar logical

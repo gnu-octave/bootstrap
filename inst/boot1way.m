@@ -67,14 +67,14 @@
 %     and how to perform bootstrap iterations using multiple processors (if the
 %     Parallel Computing Toolbox or Octave Parallel package is available). This
 %     argument is a structure with the following recognised fields:
-%        o 'UseParallel':  If true, use parallel processes to accelerate
-%                          bootstrap computations on multicore machines,
-%                          specifically non-vectorized function evaluations,
-%                          double bootstrap resampling and jackknife function
-%                          evaluations. Default is false for serial computation.
-%                          In MATLAB, the default is true if a parallel pool
-%                          has already been started. 
-%        o 'nproc':        nproc sets the number of parallel processes
+%        o 'UseParallel': If true, use parallel processes to accelerate
+%                         bootstrap computations on multicore machines,
+%                         specifically non-vectorized function evaluations,
+%                         double bootstrap resampling and jackknife function
+%                         evaluations. Default is false for serial computation.
+%                         In MATLAB, the default is true if a parallel pool
+%                         has already been started. 
+%        o 'nproc':       nproc sets the number of parallel processes (optional)
 %
 %     'PVAL = boot1way (DATA, GROUP, ...)' returns the p-value(s) for the 
 %     (multiple) two-tailed test(s). Note that the p-value(s) returned are

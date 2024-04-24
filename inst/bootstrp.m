@@ -3,11 +3,11 @@
 %
 % -- Function File: BOOTSTAT = bootstrp (NBOOT, BOOTFUN, D)
 % -- Function File: BOOTSTAT = bootstrp (NBOOT, BOOTFUN, D1, ..., DN)
+% -- Function File: BOOTSTAT = bootstrp (..., D1, ..., DN, 'match', MATCH)
 % -- Function File: BOOTSTAT = bootstrp (..., 'Options', PAROPT)
 % -- Function File: BOOTSTAT = bootstrp (..., 'Weights', WEIGHTS)
-% -- Function File: BOOTSTAT = bootstrp (..., 'seed', SEED)
 % -- Function File: BOOTSTAT = bootstrp (..., 'loo', LOO)
-% -- Function File: BOOTSTAT = bootstrp (..., D1, ..., DN, 'match', MATCH)
+% -- Function File: BOOTSTAT = bootstrp (..., 'seed', SEED)
 % -- Function File: [BOOTSTAT, BOOTSAM] = bootstrp (...) 
 %
 %     'BOOTSTAT = bootstrp (NBOOT, BOOTFUN, D)' draws NBOOT bootstrap resamples
@@ -22,20 +22,8 @@
 %     balance [2-3].
 %
 %     'BOOTSTAT = bootstrp (NBOOT, BOOTFUN, D1,...,DN)' is as above except that 
-%     the third and subsequent input arguments are data are used to create
-%     inputs for BOOTFUN.
-%
-%     'BOOTSTAT = bootstrp (..., 'Options', PAROPT)' specifies options that
-%     govern if and how to perform bootstrap iterations using multiple
-%     processors (if the Parallel Computing Toolbox or Octave Parallel package).
-%     is available This argument is a structure with the following recognised
-%     fields:
-%        o 'UseParallel':  If true, use parallel processes to accelerate
-%                          bootstrap computations on multicore machines. 
-%                          Default is false for serial computation. In MATLAB,
-%                          the default is true if a parallel pool
-%                          has already been started. 
-%        o 'nproc':        nproc sets the number of parallel processes
+%     the third and subsequent input arguments are multiple data objects used
+%     as input for BOOTFUN.
 %
 %     'BOOTSTAT = bootstrp (..., D1, ..., DN, 'match', MATCH)' controls the
 %     resampling strategy when multiple data arguments are provided. When MATCH
@@ -44,7 +32,20 @@
 %     number of rows. If MATCH is set to false, then row indices are resampled
 %     independently for D1 to DN in each of the resamples. When any of the data
 %     D1 to DN, have a different number of rows, this input argument is ignored
-%     and MATCH is enforced to have a value of false.
+%     and MATCH is enforced to have a value of false. Note that the MATLAB
+%     bootstrp function only operates in a mode equivalent to MATCH = true.
+%
+%     'BOOTSTAT = bootstrp (..., 'Options', PAROPT)' specifies options that
+%     govern if and how to perform bootstrap iterations using multiple
+%     processors (if the Parallel Computing Toolbox or Octave Parallel package).
+%     is available This argument is a structure with the following recognised
+%     fields:
+%        o 'UseParallel': If true, use parallel processes to accelerate
+%                         bootstrap computations on multicore machines. 
+%                         Default is false for serial computation. In MATLAB,
+%                         the default is true if a parallel pool
+%                         has already been started. 
+%        o 'nproc':       nproc sets the number of parallel processes (optional)
 %
 %     'BOOTSTAT = bootstrp (..., D, 'weights', WEIGHTS)' sets the resampling
 %     weights. WEIGHTS must be a column vector with the same number of rows as
@@ -58,7 +59,7 @@
 %     'BOOTSTAT = bootstrp (..., 'loo', LOO)' sets the simulation method. If 
 %     LOO is false, the resampling method used is balanced bootstrap resampling.
 %     If LOO is true, the resampling method used is balanced bootknife
-%     resampling [4]. The latter involves creating leave-one-out jackknife
+%     resampling [4]. The latter involves creating leave-one-out (jackknife)
 %     samples of size N - 1, and then drawing resamples of size N with
 %     replacement from the jackknife samples, thereby incorporating Bessel's
 %     correction into the resampling procedure. LOO must be a scalar logical
@@ -539,7 +540,7 @@ end
 %!      474 329 555 282 423 323 256 431 437 240]';
 %!
 %! % Compute 50 bootstrap statistics for the coefficient of determination and
-%! % calculate the bootstrap standard error of the coefficient of determination
+%! % calculate it's bootstrap standard error
 %! bootstat = bootstrp (50, {@cor,'squared'}, X, Y);
 %! std (bootstat)
 
@@ -551,8 +552,21 @@ end
 %! Y = [247 461 526 302 636 593 393 409 488 381 ...
 %!      474 329 555 282 423 323 256 431 437 240]';
 %!
+%! % Compute 4999 bootstrap statistics for the coefficient of determination and
+%! % calculate 95% percentile confidence intervals
+%! bootstat = bootstrp (4999, {@cor,'squared'}, X, Y);
+%! bootint (bootstat)
+
+%!demo
+%!
+%! % Input bivariate dataset
+%! X = [212 435 339 251 404 510 377 335 410 335 ...
+%!      415 356 339 188 256 296 249 303 266 300]';
+%! Y = [247 461 526 302 636 593 393 409 488 381 ...
+%!      474 329 555 282 423 323 256 431 437 240]';
+%!
 %! % Compute 50 bootstrap statistics for the slope and intercept of a linear
-%! % regression and calculate there bootstrap standard errors
+%! % regression and calculate their bootstrap standard errors
 %! bootstat = bootstrp (50, @mldivide, cat (2, ones (20, 1), X), Y);
 %! std (bootstat)
 

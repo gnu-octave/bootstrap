@@ -16,6 +16,7 @@ Cloned Matlab functions
 Utility Functions
  boot
  bootcdf
+ bootint
  credint
  deffcalc
  sampszcalc

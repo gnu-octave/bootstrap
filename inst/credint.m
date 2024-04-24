@@ -1,5 +1,5 @@
-% Computes credible intervals from a vector of posterior data values, for
-% example, those obtained by bayesian bootstrap.
+% Computes credible interval(s) from a vector (or row-major matrix) of posterior
+% data values, for example, those obtained by bayesian bootstrap.
 %
 % -- Function File: CI = credint (Y)
 % -- Function File: CI = credint (Y, PROB)
@@ -17,10 +17,10 @@
 %     and sets the lower and upper bounds of the credible interval(s). The
 %     value(s) of PROB must be between 0 and 1. PROB can either be:
 %       <> scalar: To set the central mass of shortest probability intervals
-%                  to 100*(1-PROB)%
+%                  to 100*PROB%
 %       <> vector: A pair of probabilities defining the lower and upper
 %                  percentiles of the credible interval(s) as 100*(PROB(1))%
-%                  and 100*(PROB(2))% respectively. 
+%                  and 100*(PROB(2))% respectively.
 %          The default value of PROB is the scalar: 0.95, for a 95% shortest 
 %          posterior credible interval.
 %
@@ -113,7 +113,14 @@ function CI = credint (Y, PROB)
     if (nprob > 1)
       % Percentile intervals
       if (~ isnan (PROB))
-        CI(j, :) = Y(j, gap);
+        CI(j, :) = Y(j, cat (2, max (1, gap(1)), min (nboot, gap(2))));
+      end
+      CI(:,isnan(PROB)) = NaN;
+      if (gap(1) == 0)
+        CI(:, 1) = -inf;
+      end
+      if (gap(2) > nboot)
+        CI(:, 2) = +inf;
       end
     else
       % Shortest probability interval
@@ -142,5 +149,5 @@ end
 %! Y = exp (randn (5, 999));
 %!
 %! % 95% credible interval for the mean 
-%! CI = credint (Y,0.95);          # Shortest probability interval
-%! CI = credint (Y,[0.025,0.975]); # Equal-tailed interval
+%! CI = credint (Y,0.95);          # 95% shortest probability interval
+%! CI = credint (Y,[0.025,0.975]); # 95% equal-tailed interval
