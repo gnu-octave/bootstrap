@@ -181,33 +181,38 @@ function [ci, bootstat, bootsam] = bootci (argin1, argin2, varargin)
   argin3 = varargin;
   narg = numel (argin3);
   if (narg > 1)
-    while (ischar (argin3{end-1}))
-      if (any (strcmpi ({'Options', 'Option'}, argin3{end-1})))
-        paropt = argin3{end};
-      elseif (any (strcmpi ('alpha', argin3{end-1})))
-        alpha = argin3{end};
-      elseif (any (strcmpi ('type', argin3{end-1})))
-        type = argin3{end};
-      elseif (any (strcmpi ('nbootstd', argin3{end-1})))
-        nbootstd = argin3{end};
-      elseif (any (strcmpi ('nbootcal', argin3{end-1})))
-        nbootcal = argin3{end};
-      elseif (any (strcmpi ('strata', argin3{end-1})))
-        strata = argin3{end};
-      elseif (any (strcmpi ('loo', argin3{end-1})))
-        loo = argin3{end};
-      elseif (any (strcmpi ('seed', argin3{end-1})))
-        seed = argin3{end};
-        % Initialise the random number generator with the seed
-        boot (1, 1, true, seed);
-      else
-        error ('bootci: Unrecognised input argument to bootci')
+    name = argin3{end - 1};
+    value = argin3{end};
+    while (ischar (name))
+      switch (lower (name))
+        case {'options', 'option'}
+          paropt = value;
+        case 'alpha'
+          alpha = value;
+        case 'type'
+          type = value;
+        case 'nbootstd'
+          nbootstd = value;
+        case 'nbootcal'
+          nbootcal = value;
+        case 'strata'
+          strata = value;
+        case 'loo'
+          loo = value;
+        case'seed'
+          seed = value;
+          % Initialise the random number generator with the seed
+          boot (1, 1, true, seed);
+        otherwise
+          error ('bootci: Unrecognised input argument to bootci')
       end
-      argin3 = {argin3{1:end-2}};
+      argin3 = argin3(1:end-2);
       narg = numel (argin3);
       if (narg < 2)
         break
       end
+      name = argin3{end - 1};
+      value = argin3{end};
     end
   end
   if (iscell (argin2))

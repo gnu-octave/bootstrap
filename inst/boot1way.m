@@ -175,27 +175,32 @@ function [pval, c, stats, Q] = boot1way (data, group, varargin)
   argin3 = varargin;
   narg = numel (argin3);
   if (narg > 1)
-    while ischar (argin3{end-1})
-      if (strcmpi (argin3{end-1},'bootfun'))
-        bootfun = argin3{end};
-      elseif (strcmpi (argin3{end-1},'nboot'))
-        nboot = argin3{end};
-      elseif (strcmpi (argin3{end-1},'ref'))
-        ref = argin3{end};
-      elseif (any (strcmpi (argin3{end-1},{'Options','Option'})))
-        paropt = argin3{end};
-      elseif (strcmpi (argin3{end-1},'alpha'))
-        alpha = argin3{end};
-      elseif (any (strcmpi (argin3{end-1},{'DisplayOpt','Display'})))
-        DisplayOpt = argin3{end};
-      else
-        error ('boot1way: Unrecognised input argument to boot1way')
+    name = argin3{end - 1};
+    value = argin3{end};
+    while (ischar (name))
+      switch (lower (name))
+        case 'bootfun'
+          bootfun = value;
+        case 'nboot'
+          nboot = value;
+        case 'ref'
+          ref = value;
+        case {'options','option'}
+          paropt = value;
+        case 'alpha'
+          alpha = value;
+        case {'displayopt','display'}
+          DisplayOpt = value;
+        otherwise
+          error ('boot1way: Unrecognised input argument to boot1way')
       end
-      argin3 = {argin3{1:end-2}};
+      argin3 = argin3(1:end-2);
       narg = numel (argin3);
       if (narg < 1)
         break
       end
+      name = argin3{end - 1};
+      value = argin3{end};
     end
   end
 

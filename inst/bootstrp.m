@@ -11,15 +11,15 @@
 % -- Function File: [BOOTSTAT, BOOTSAM] = bootstrp (...) 
 %
 %     'BOOTSTAT = bootstrp (NBOOT, BOOTFUN, D)' draws NBOOT bootstrap resamples
-%     from the data D and returns the statistic computed by BOOTFUN in BOOTSTAT
-%     [1]. bootstrp resamples from the rows of a data sample D (column vector,
-%     matrix or cell array). BOOTFUN is a function handle (e.g. specified with
-%     @), a string indicating the function name, or a cell array where the first
-%     cell is one of the above function definitions and the remaining cells are
-%     (additional) input arguments to that function (after the data argument(s)).
-%     The third input argument is the data (column vector, matrix or cell array),
-%     which is supplied to BOOTFUN. The resampling method used throughout is
-%     bootstrap resampling with first order balance [2-3].
+%     with replacement from the rows of the data D and returns the statistic
+%     computed by BOOTFUN in BOOTSTAT [1]. BOOTFUN is a function handle (e.g.
+%     specified with @) or name, a string indicating the function name, or a
+%     cell array, where the first cell is one of the above function definitions
+%     and the remaining cells are (additional) input arguments to that function
+%     (after the data argument(s)). The third input argument is the data
+%     (column vector, matrix or cell array), which is supplied to BOOTFUN. The
+%     simulation method used by default is bootstrap resampling with first order
+%     balance [2-3].
 %
 %     'BOOTSTAT = bootstrp (NBOOT, BOOTFUN, D1,...,DN)' is as above except that 
 %     the third and subsequent input arguments are data are used to create
@@ -55,7 +55,7 @@
 %     MATCH is true. If MATCH is false, a 1-by-N cell array of column vectors
 %     can be provided to specify independent resampling weights for D1 to DN.
 %
-%     'BOOTSTAT = bootstrp (..., 'loo', LOO)' sets the resampling method. If 
+%     'BOOTSTAT = bootstrp (..., 'loo', LOO)' sets the simulation method. If 
 %     LOO is false, the resampling method used is balanced bootstrap resampling.
 %     If LOO is true, the resampling method used is balanced bootknife
 %     resampling [4]. The latter involves creating leave-one-out jackknife
@@ -144,19 +144,20 @@ function [bootstat, bootsam] = bootstrp (argin1, argin2, varargin)
   narg = numel (argin3);
   if (narg > 1)
     name = argin3{end - 1};
+    value = argin3{end};
     while (ischar (name))
       switch (lower (name))
         case {'weights', 'weight'}
-          w = argin3{end};
+          w = value;
         case {'options', 'option'}
-          paropt = argin3{end};
+          paropt = value;
         case 'match'
-          match = argin3{end};
+          match = value;
         case 'seed'
-          seed = argin3{end};
+          seed = value;
           boot (1, 1, false, seed); % Initialise the RNG with seed
         case 'loo'
-          loo = argin3{end};
+          loo = value;
         otherwise
           error ('bootstrp: Unrecognised input argument to bootstrp')
       end
@@ -166,6 +167,7 @@ function [bootstat, bootsam] = bootstrp (argin1, argin2, varargin)
         break
       end
       name = argin3{end - 1};
+      value = argin3{end};
     end
   end
   x = argin3;
@@ -373,7 +375,6 @@ function [bootstat, bootsam] = bootstrp (argin1, argin2, varargin)
   w = arrayfun (@(v) round (s{v} * w{v} / mean (w{v}) * nboot), ...
                             1 : nvar, 'UniformOutput', false);
 
-
   % Perform balanced bootstrap resampling
   if (match)
     bootsam = repmat (mat2cell (boot (n{1}, nboot, loo, seed, w{1}), ...
@@ -404,9 +405,11 @@ function [bootstat, bootsam] = bootstrp (argin1, argin2, varargin)
     else
       % Serial processing
       if (vectorized)
+        % Fast: Vectorized evaluation of bootfun on the resampled
         XR = arrayfun (@(v) x{v}(bootsam{v}), 1 : nvar, 'UniformOutput', false);
         bootstat = num2cell (bootfun (XR{:}), 2);
       else
+        % Slow: Looped evaluation of bootfun on the resampled
         bootstat = cellfun (@(i) booteval (x, i, bootfun, n, nvar), ...
                                  num2cell (cell2mat (bootsam), 1), ...
                                  'UniformOutput', false);
