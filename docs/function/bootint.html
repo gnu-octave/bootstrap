@@ -19,40 +19,36 @@
   <script type="text/javascript"> write_docs_left_menu ('..'); </script>
 <div id="doccontent">
 
-<h2>credint</h2>
-<pre> Computes credible interval(s) from a vector (or row-major matrix) of posterior
- data values, for example, those obtained by bayesian bootstrap.
+<h2>bootint</h2>
+<pre> Computes percentile confidence interval(s) from a vector (or row-major
+ matrix) of bootstrap statistics.
 
- -- Function File: CI = credint (Y)
- -- Function File: CI = credint (Y, PROB)
+ -- Function File: CI = bootint (Y)
+ -- Function File: CI = bootint (Y, PROB)
 
-     'CI = credint (Y)' computes 95% credible intervals of data in the vector,
-     or rows* of the matrix, Y. The credible intervals are shortest probability
-     intervals (SPI), which represent a more computationally stable version of
-     the highest posterior density interval [1,2].
+     'CI = bootint (Y)' computes 95% percentile confidence intervals using data
+     from the vector, or rows* of the matrix, Y, where Y contains bootstrap
+     statistics, such as those obtained using the `bootstrp` function. Note
+     that, depending on the application, bootstrap confidence intervals with
+     better coverage and accuracy can be computed using the various dedicated
+     bootstrap functions from the statistics-resampling package.
 
         * The matrix should have dimensions P * NBOOT, where P corresponds to
           the number of parameter estimates and NBOOT corresponds to the number
-          of posterior (or Bayesian bootstrap) samples.
+          of bootstrap samples.
 
-     'CI = credint (Y, PROB)' returns credible intervals, where PROB is numeric
-     and sets the lower and upper bounds of the credible interval(s). The
-     value(s) of PROB must be between 0 and 1. PROB can either be:
-       <> scalar: To set the central mass of shortest probability intervals
+     'CI = bootint (Y, PROB)' returns confidence intervals, where PROB is
+     numeric and sets the lower and upper bounds of the confidence interval(s).
+     The value(s) of PROB must be between 0 and 1. PROB can either be:
+       <> scalar: To set the central mass of normal confidence intervals
                   to 100*PROB%
        <> vector: A pair of probabilities defining the lower and upper
-                  percentiles of the credible interval(s) as 100*(PROB(1))%
+                  percentiles of the confidence interval(s) as 100*(PROB(1))%
                   and 100*(PROB(2))% respectively.
-          The default value of PROB is the scalar: 0.95, for a 95% shortest 
-          posterior credible interval.
+          The default value of PROB is the vector: [0.025, 0.975], for an
+          equal-tailed 95% percentile confidence interval.
 
-  Bibliography:
-  [1] Liu, Gelman & Zheng (2015). Simulation-efficient shortest probability
-        intervals. Statistics and Computing, 25(4), 809–819. 
-  [2] Gelman (2020) Shortest Posterior Intervals.
-        https://discourse.mc-stan.org/t/shortest-posterior-intervals/16281/16
-
-  credint (version 2023.09.03)
+  bootint (version 2024.04.24)
   Author: Andrew Charles Penn
   https://www.researchgate.net/profile/Andrew_Penn/
 
