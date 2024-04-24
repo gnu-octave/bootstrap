@@ -42,7 +42,7 @@
 %     is true, row indices of D1 to DN are the same (i.e. matched) for each
 %     resample. This is the default strategy when D1 to DN all have the same
 %     number of rows. If MATCH is set to false, then row indices are resampled
-%     indpendently for D1 to DN in each of the resamples. When any of the data
+%     independently for D1 to DN in each of the resamples. When any of the data
 %     D1 to DN, have a different number of rows, this input argument is ignored
 %     and MATCH is enforced to have a value of false.
 %

@@ -3,7 +3,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
   <head>
   <meta http-equiv="content-type" content="text/html; charset=utf-8" />
-  <meta name="date" content="2024-04-22"/>
+  <meta name="date" content="2024-04-24"/>
   <meta name="generator" content="generate_html 0.3.3" />
   <meta name="author" content="Andrew Penn" />
   <meta name="description" content="A package for statistical analysis using resampling methods." />
@@ -20,36 +20,38 @@
 <div id="doccontent">
 
 <h2>bootstrp</h2>
-<pre> Balanced bootstrap resampling.
+<pre> Bootstrap resampling.
 
 
  -- Function File: BOOTSTAT = bootstrp (NBOOT, BOOTFUN, D)
  -- Function File: BOOTSTAT = bootstrp (NBOOT, BOOTFUN, D1, ..., DN)
- -- Function File: BOOTSTAT = bootstrp (..., 'seed', SEED)
  -- Function File: BOOTSTAT = bootstrp (..., 'Options', PAROPT)
+ -- Function File: BOOTSTAT = bootstrp (..., 'Weights', WEIGHTS)
+ -- Function File: BOOTSTAT = bootstrp (..., 'seed', SEED)
+ -- Function File: BOOTSTAT = bootstrp (..., 'loo', LOO)
+ -- Function File: BOOTSTAT = bootstrp (..., D1, ..., DN, 'match', MATCH)
  -- Function File: [BOOTSTAT, BOOTSAM] = bootstrp (...) 
 
-     BOOTSTAT = bootstrp (NBOOT, BOOTFUN, D) draws NBOOT bootstrap resamples
-     from the data D and returns the statistic computed by BOOTFUN in BOOTSTAT
-     [1]. bootstrp resamples from the rows of a data sample D (column vector
-     or a matrix). BOOTFUN is a function handle (e.g. specified with @), or a
-     string indicating the function name. The third input argument is data
-     (column vector or a matrix), that is used to create inputs for BOOTFUN.
-     The resampling method used throughout is balanced bootstrap resampling
-     [2-3].
+     'BOOTSTAT = bootstrp (NBOOT, BOOTFUN, D)' draws NBOOT bootstrap resamples
+     with replacement from the rows of the data D and returns the statistic
+     computed by BOOTFUN in BOOTSTAT [1]. BOOTFUN is a function handle (e.g.
+     specified with @) or name, a string indicating the function name, or a
+     cell array, where the first cell is one of the above function definitions
+     and the remaining cells are (additional) input arguments to that function
+     (after the data argument(s)). The third input argument is the data
+     (column vector, matrix or cell array), which is supplied to BOOTFUN. The
+     simulation method used by default is bootstrap resampling with first order
+     balance [2-3].
 
-     BOOTSTAT = bootstrp (NBOOT, BOOTFUN, D1,...,DN) is as above except that 
-     the third and subsequent numeric input arguments are data vectors that
-     are used to create inputs for BOOTFUN.
+     'BOOTSTAT = bootstrp (NBOOT, BOOTFUN, D1,...,DN)' is as above except that 
+     the third and subsequent input arguments are data are used to create
+     inputs for BOOTFUN.
 
-     BOOTSTAT = bootstrp (..., 'seed', SEED) initialises the Mersenne Twister
-     random number generator using an integer SEED value so that bootci results
-     are reproducible.
-
-     BOOTSTAT = bootstrp (..., 'Options', PAROPT) specifies options that govern
-     if and how to perform bootstrap iterations using multiple processors (if
-     the Parallel Computing Toolbox or Octave Parallel package is available).
-     This argument is a structure with the following recognised fields:
+     'BOOTSTAT = bootstrp (..., 'Options', PAROPT)' specifies options that
+     govern if and how to perform bootstrap iterations using multiple
+     processors (if the Parallel Computing Toolbox or Octave Parallel package).
+     is available This argument is a structure with the following recognised
+     fields:
         o 'UseParallel':  If true, use parallel processes to accelerate
                           bootstrap computations on multicore machines. 
                           Default is false for serial computation. In MATLAB,
@@ -57,10 +59,43 @@
                           has already been started. 
         o 'nproc':        nproc sets the number of parallel processes
 
-     [BOOTSTAT, BOOTSAM] = bootstrp (...) also returns BOOTSAM, a matrix of
-     indices from the bootstrap. Each column in BOOTSAM corresponds to one
-     bootstrap sample and contains the row indices of the values drawn from
-     the nonscalar data argument to create that sample.
+     'BOOTSTAT = bootstrp (..., D1, ..., DN, 'match', MATCH)' controls the
+     resampling strategy when multiple data arguments are provided. When MATCH
+     is true, row indices of D1 to DN are the same (i.e. matched) for each
+     resample. This is the default strategy when D1 to DN all have the same
+     number of rows. If MATCH is set to false, then row indices are resampled
+     indpendently for D1 to DN in each of the resamples. When any of the data
+     D1 to DN, have a different number of rows, this input argument is ignored
+     and MATCH is enforced to have a value of false.
+
+     'BOOTSTAT = bootstrp (..., D, 'weights', WEIGHTS)' sets the resampling
+     weights. WEIGHTS must be a column vector with the same number of rows as
+     the data, D. If WEIGHTS is empty or not provided, the default is a vector
+     of length N with uniform weighting 1/N. 
+
+     'BOOTSTAT = bootstrp (..., D1, ... DN, 'weights', WEIGHTS)' as above if
+     MATCH is true. If MATCH is false, a 1-by-N cell array of column vectors
+     can be provided to specify independent resampling weights for D1 to DN.
+
+     'BOOTSTAT = bootstrp (..., 'loo', LOO)' sets the simulation method. If 
+     LOO is false, the resampling method used is balanced bootstrap resampling.
+     If LOO is true, the resampling method used is balanced bootknife
+     resampling [4]. The latter involves creating leave-one-out jackknife
+     samples of size N - 1, and then drawing resamples of size N with
+     replacement from the jackknife samples, thereby incorporating Bessel's
+     correction into the resampling procedure. LOO must be a scalar logical
+     value. The default value of LOO is false.
+
+     'BOOTSTAT = bootstrp (..., 'seed', SEED)' initialises the Mersenne Twister
+     random number generator using an integer SEED value so that bootci results
+     are reproducible.
+
+     '[BOOTSTAT, BOOTSAM] = bootstrp (...)' also returns indices used for
+     bootstrap resampling. If MATCH is true or only one data argument is
+     provided, BOOTSAM is a matrix. If multiple data arguments are provided
+     and MATCH is false, BOOTSAM is returned in a 1-by-N cell array of
+     matrices, where each cell corresponds to the respective data argument
+     D1 to DN.
 
   Bibliography:
   [1] Efron, and Tibshirani (1993) An Introduction to the
@@ -69,8 +104,11 @@
         Biometrika, 73: 555-66
   [3] Booth, Hall and Wood (1993) Balanced Importance Resampling
         for the Bootstrap. The Annals of Statistics. 21(1):286-298
+  [4] Hesterberg T.C. (2004) Unbiasing the Bootstrap—Bootknife Sampling 
+        vs. Smoothing; Proceedings of the Section on Statistics & the 
+        Environment. Alexandria, VA: American Statistical Association.
 
-  bootstrp (version 2023.06.20)
+  bootstrp (version 2024.04.23)
   Author: Andrew Charles Penn
   https://www.researchgate.net/profile/Andrew_Penn/
 
@@ -99,64 +137,169 @@
          0 33 28 34 4 32 24 47 41 24 26 30 41]';
 
  % Compute 50 bootstrap statistics for the mean and calculate the bootstrap
- % standard arror
- bootstat = bootstrp (50, @mean, data)
+ % standard error of the mean
+ bootstat = bootstrp (50, @mean, data, 'seed', 1);
+ % Or equivalently
+ bootstat = bootstrp (50, @mean, data, 'seed', 1, 'loo', false);
  std (bootstat)</pre>
 <p>Produces the following output</p>
-<pre class="example">bootstat =
+<pre class="example">ans = 2.7156</pre>
+</div>
 
-       30.385
-       26.577
-       32.962
-       26.885
-       28.962
-       27.385
-       29.538
-       28.615
-       36.269
-       29.192
-       36.192
-       35.346
-       30.923
-       31.423
-       30.231
-       25.692
-       28.577
-       27.038
-       26.269
-       31.423
-       30.154
-       29.654
-       28.577
-       32.154
-       28.385
-       32.615
-       24.846
-       32.269
-       25.577
-       29.615
-       26.923
-       27.038
-       26.731
-       33.923
-       31.962
-       26.538
-       26.846
-       29.769
-           27
-       26.731
-       29.231
-       30.885
-       31.077
-           30
-       29.115
-       31.769
-       32.423
-       30.692
-       29.231
-       31.077
+<h3><a name="2">Demonstration 2</a></h3>
+<div class="demo">
+<p>The following code</p>
+<pre class="example">
 
-ans = 2.7164</pre>
+ % Input univariate dataset
+ data = [48 36 20 29 42 42 20 42 22 41 45 14 6 ...
+         0 33 28 34 4 32 24 47 41 24 26 30 41]';
+
+ % Compute 50 bootknife statistics for the mean and calculate the unbiased
+ % bootstrap standard error of the mean
+ bootstat = bootstrp (50, @mean, data, 'seed', 1, 'loo', true);
+ std (bootstat)</pre>
+<p>Produces the following output</p>
+<pre class="example">ans = 2.4052</pre>
+</div>
+
+<h3><a name="3">Demonstration 3</a></h3>
+<div class="demo">
+<p>The following code</p>
+<pre class="example">
+
+ % Input univariate dataset
+ data = [48 36 20 29 42 42 20 42 22 41 45 14 6 ...
+         0 33 28 34 4 32 24 47 41 24 26 30 41]';
+ % Split data into consecutive blocks of two data observations per cell
+ data_blocks = mat2cell (data, 2 * (ones (13, 1)), 1);
+
+ % Compute 50 bootknife statistics for the mean and calculate the unbiased
+ % bootstrap standard error of the mean
+ bootstat = bootstrp (50, @(x) mean (cell2mat (x)), data_blocks, 'seed', 1, ...
+                                                                 'loo', true);
+ std (bootstat)</pre>
+<p>Produces the following output</p>
+<pre class="example">ans = 2.9384</pre>
+</div>
+
+<h3><a name="4">Demonstration 4</a></h3>
+<div class="demo">
+<p>The following code</p>
+<pre class="example">
+
+ % Input univariate dataset
+ data = [48 36 20 29 42 42 20 42 22 41 45 14 6 ...
+         0 33 28 34 4 32 24 47 41 24 26 30 41]';
+
+ % Compute 50 bootknife statistics for the variance and calculate the
+ % unbiased standard error of the variance
+ bootstat = bootstrp (50, {@var, 1}, data, 'loo', true);
+ std (bootstat)</pre>
+<p>Produces the following output</p>
+<pre class="example">ans = 39.204</pre>
+</div>
+
+<h3><a name="5">Demonstration 5</a></h3>
+<div class="demo">
+<p>The following code</p>
+<pre class="example">
+
+ % Input two-sample dataset
+ X = [212 435 339 251 404 510 377 335 410 335 ...
+      415 356 339 188 256 296 249 303 266 300]';
+ Y = [247 461 526 302 636 593 393 409 488 381 ...
+      474 329 555 282 423 323 256 431 437 240]';
+
+ % Compute 50 bootknife statistics for the mean difference between X and Y
+ % and calculate the unbiased bootstrap standard error of the mean difference
+ bootstat = bootstrp (50, @(x, y) mean (x - y), X, Y, 'loo', true);
+ % Or equivalently
+ bootstat = bootstrp (50, @(x, y) mean (x - y), X, Y, 'loo', true, ...
+                                                      'match', true);
+ std (bootstat)</pre>
+<p>Produces the following output</p>
+<pre class="example">ans = 14.614</pre>
+</div>
+
+<h3><a name="6">Demonstration 6</a></h3>
+<div class="demo">
+<p>The following code</p>
+<pre class="example">
+
+ % Input two-sample dataset
+ X = [212 435 339 251 404 510 377 335 410 335 ...
+      415 356 339 188 256 296 249 303 266 300]';
+ Y = [247 461 526 302 636 593 393 409 488 381 ...
+      474 329 555 282 423 323 256 431 437 240]';
+
+ % Compute 50 bootknife statistics for the difference in mean between
+ % between independent samples X and Y and calculate the unbiased bootstrap
+ % standard error of the difference in mean
+ bootstat = bootstrp (50, @(x, y) mean (x) - mean(y), X, Y, 'loo', true, ...
+                                                            'match', false);
+ std (bootstat)</pre>
+<p>Produces the following output</p>
+<pre class="example">ans = 32.705</pre>
+</div>
+
+<h3><a name="7">Demonstration 7</a></h3>
+<div class="demo">
+<p>The following code</p>
+<pre class="example">
+
+ % Input bivariate dataset
+ X = [212 435 339 251 404 510 377 335 410 335 ...
+      415 356 339 188 256 296 249 303 266 300]';
+ Y = [247 461 526 302 636 593 393 409 488 381 ...
+      474 329 555 282 423 323 256 431 437 240]';
+
+ % Compute 50 bootstrap statistics for the correlation coefficient and
+ % calculate the bootstrap standard error of the correlation coefficient
+ bootstat = bootstrp (50, @cor, X, Y);
+ std (bootstat)</pre>
+<p>Produces the following output</p>
+<pre class="example">ans = 0.098974</pre>
+</div>
+
+<h3><a name="8">Demonstration 8</a></h3>
+<div class="demo">
+<p>The following code</p>
+<pre class="example">
+
+ % Input bivariate dataset
+ X = [212 435 339 251 404 510 377 335 410 335 ...
+      415 356 339 188 256 296 249 303 266 300]';
+ Y = [247 461 526 302 636 593 393 409 488 381 ...
+      474 329 555 282 423 323 256 431 437 240]';
+
+ % Compute 50 bootstrap statistics for the coefficient of determination and
+ % calculate the bootstrap standard error of the coefficient of determination
+ bootstat = bootstrp (50, {@cor,'squared'}, X, Y);
+ std (bootstat)</pre>
+<p>Produces the following output</p>
+<pre class="example">ans = 0.1265</pre>
+</div>
+
+<h3><a name="9">Demonstration 9</a></h3>
+<div class="demo">
+<p>The following code</p>
+<pre class="example">
+
+ % Input bivariate dataset
+ X = [212 435 339 251 404 510 377 335 410 335 ...
+      415 356 339 188 256 296 249 303 266 300]';
+ Y = [247 461 526 302 636 593 393 409 488 381 ...
+      474 329 555 282 423 323 256 431 437 240]';
+
+ % Compute 50 bootstrap statistics for the slope and intercept of a linear
+ % regression and calculate there bootstrap standard errors
+ bootstat = bootstrp (50, @mldivide, cat (2, ones (20, 1), X), Y);
+ std (bootstat)</pre>
+<p>Produces the following output</p>
+<pre class="example">ans =
+
+       61.963      0.17194</pre>
 </div>
 
 <p>Package: <a href="../index.html">statistics-resampling</a></p>

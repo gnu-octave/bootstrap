@@ -3,7 +3,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
   <head>
   <meta http-equiv="content-type" content="text/html; charset=utf-8" />
-  <meta name="date" content="2024-04-22"/>
+  <meta name="date" content="2024-04-24"/>
   <meta name="generator" content="generate_html 0.3.3" />
   <meta name="author" content="Andrew Penn" />
   <meta name="description" content="A package for statistical analysis using resampling methods." />
@@ -55,11 +55,11 @@
      'bootclust (DATA, NBOOT, BOOTFUN)' also specifies BOOTFUN: the function
      calculated on the original sample and the bootstrap resamples. BOOTFUN
      must be either a:
-       <> function handle or anonymous function,
-       <> string of function name, or
+       <> function handle, function name or an anonymous function,
+       <> string of a function name, or
        <> a cell array where the first cell is one of the above function
           definitions and the remaining cells are (additional) input arguments 
-          to that function (other than the data arguments).
+          to that function (after the data arguments).
         In all cases BOOTFUN must take DATA for the initial input argument(s).
         BOOTFUN can return a scalar or any multidimensional numeric variable,
         but the output will be reshaped as a column vector. BOOTFUN must
@@ -187,11 +187,11 @@ Bootstrap settings:
  Number of resamples: 1999 
  Number of data rows in each block: 1 
  Confidence interval (CI) type: Expanded bias-corrected and accelerated (BCa) 
- Nominal coverage (and the percentiles used): 95% (1.4%, 97.8%)
+ Nominal coverage (and the percentiles used): 95% (1.4%, 97.7%)
 
 Bootstrap Statistics: 
  original     bias         std_error    CI_lower     CI_upper  
- +29.65       -3.553e-15   +2.563       +23.66       +34.69</pre>
+ +29.65       +1.776e-14   +2.573       +23.98       +34.67</pre>
 </div>
 
 <h3><a name="2">Demonstration 2</a></h3>
@@ -219,11 +219,11 @@ Bootstrap settings:
  Resampling method: Balanced, bootstrap cluster resampling 
  Number of resamples: 1999 
  Confidence interval (CI) type: Expanded bias-corrected and accelerated (BCa) 
- Nominal coverage (and the percentiles used): 95% (1.1%, 98.7%)
+ Nominal coverage (and the percentiles used): 95% (1.2%, 98.9%)
 
 Bootstrap Statistics: 
  original     bias         std_error    CI_lower     CI_upper  
- +29.65       -0.04052     +2.932       +22.75       +35.92</pre>
+ +29.65       -0.03233     +2.892       +23.14       +35.97</pre>
 </div>
 
 <h3><a name="3">Demonstration 3</a></h3>
@@ -254,7 +254,7 @@ Bootstrap settings:
 
 Bootstrap Statistics: 
  original     bias         std_error    CI_lower     CI_upper  
- +171.5       -6.974       +42.22       +98.20       +237.8</pre>
+ +171.5       -6.406       +41.53       +99.13       +234.2</pre>
 </div>
 
 <h3><a name="4">Demonstration 4</a></h3>
@@ -286,7 +286,7 @@ Bootstrap settings:
 
 Bootstrap Statistics: 
  original     bias         std_error    CI_lower     CI_upper  
- +171.5       -9.505       +34.01       +103.7       +216.4</pre>
+ +171.5       -8.995       +32.96       +106.1       +215.3</pre>
 </div>
 
 <h3><a name="5">Demonstration 5</a></h3>
@@ -312,11 +312,11 @@ Bootstrap settings:
  Number of resamples: 1999 
  Number of data rows in each block: 1 
  Confidence interval (CI) type: Bias-corrected and accelerated (BCa) 
- Nominal coverage (and the percentiles used): 90% (13.6%, 99.0%)
+ Nominal coverage (and the percentiles used): 90% (12.1%, 98.7%)
 
 Bootstrap Statistics: 
  original     bias         std_error    CI_lower     CI_upper  
- +171.5       -7.062       +42.46       +117.0       +266.9</pre>
+ +171.5       -6.855       +41.69       +115.4       +263.0</pre>
 </div>
 
 <h3><a name="6">Demonstration 6</a></h3>
@@ -343,11 +343,11 @@ Bootstrap settings:
  Resampling method: Balanced, bootstrap cluster resampling 
  Number of resamples: 1999 
  Confidence interval (CI) type: Bias-corrected and accelerated (BCa) 
- Nominal coverage (and the percentiles used): 90% (14.0%, 98.9%)
+ Nominal coverage (and the percentiles used): 90% (14.6%, 98.9%)
 
 Bootstrap Statistics: 
  original     bias         std_error    CI_lower     CI_upper  
- +171.5       -9.645       +33.49       +125.0       +231.2</pre>
+ +171.5       -9.973       +33.87       +125.3       +232.9</pre>
 </div>
 
 <h3><a name="7">Demonstration 7</a></h3>
@@ -376,8 +376,8 @@ Bootstrap settings:
 
 Bootstrap Statistics: 
  original     bias         std_error    CI_lower     CI_upper  
- +0.1027      +0.006838    +0.2525      -0.2972      +0.5411    
- -0.1219      +0.01000     +0.1683      -0.3815      +0.1661</pre>
+ +0.04006     -0.01294     +0.2088      -0.3053      +0.3697    
+ +0.1410      +0.0005343   +0.1810      -0.1187      +0.4558</pre>
 </div>
 
 <h3><a name="8">Demonstration 8</a></h3>
@@ -406,8 +406,8 @@ Bootstrap settings:
 
 Bootstrap Statistics: 
  original     bias         std_error    CI_lower     CI_upper  
- +0.1088      +0.01781     +0.3219      -0.2837      +0.8343    
- -0.2450      -0.01102     +0.3331      -0.8124      +0.2832</pre>
+ -0.1446      +0.004816    +0.2655      -0.6247      +0.2453    
+ -0.3187      +0.02024     +0.2593      -0.7709      +0.08425</pre>
 </div>
 
 <h3><a name="9">Demonstration 9</a></h3>
@@ -434,11 +434,11 @@ Bootstrap settings:
  Resampling method: Balanced, bootstrap cluster resampling 
  Number of resamples: 1999 
  Confidence interval (CI) type: Bias-corrected and accelerated (BCa) 
- Nominal coverage (and the percentiles used): 95% (1.8%, 96.8%)
+ Nominal coverage (and the percentiles used): 95% (2.0%, 97.0%)
 
 Bootstrap Statistics: 
  original     bias         std_error    CI_lower     CI_upper  
- +0.7764      -0.02382     +0.1438      +0.4050      +0.9963</pre>
+ +0.7764      -0.02443     +0.1439      +0.4074      +0.9985</pre>
 </div>
 
 <h3><a name="10">Demonstration 10</a></h3>
