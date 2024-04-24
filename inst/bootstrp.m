@@ -1,4 +1,4 @@
-% Balanced bootstrap resampling.
+% Bootstrap resampling.
 %
 %
 % -- Function File: BOOTSTAT = bootstrp (NBOOT, BOOTFUN, D)

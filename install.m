@@ -1,5 +1,6 @@
-% Basic script for local installation
-% 
+% Basic script for local installation.
+% Make sure you run the 'make' function first for optimum performance.
+%
 
 % Add inst directory to path
 inst_dir = fullfile (fileparts (mfilename ('fullpath')), 'inst');
