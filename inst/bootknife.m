@@ -37,11 +37,11 @@
 %     'bootknife (DATA, NBOOT, BOOTFUN)' also specifies BOOTFUN: the function
 %     calculated on the original sample and the bootstrap resamples. BOOTFUN
 %     must be either a:
-%       <> function handle or anonymous function,
-%       <> string of function name, or
+%       <> function handle, function name or an anonymous function,
+%       <> string of a function name, or
 %       <> a cell array where the first cell is one of the above function
 %          definitions and the remaining cells are (additional) input arguments 
-%          to that function (other than the data arguments).
+%          to that function (after the data arguments).
 %        In all cases BOOTFUN must take DATA for the initial input argument(s).
 %        BOOTFUN can return a scalar or any multidimensional numeric variable,
 %        but the output will be reshaped as a column vector. BOOTFUN must
