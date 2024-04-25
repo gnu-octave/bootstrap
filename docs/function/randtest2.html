@@ -54,7 +54,7 @@
                 must each contain the same number of rows, where each row
                 across A and B corresponds to a pair of matched observations.
                 Within each pair, the allocation of data to samples A or B is
-                permuted or randomized.
+                permuted or randomized [3].
 
      'PVAL = randtest2 (A, B, PAIRED, NREPS)' specifies the number of resamples
      without replacement to take in the randomization test. By default, NREPS
@@ -76,7 +76,7 @@
         o a cell array where the first cell is one of the above function
           definitions and the remaining cells are (additional) input arguments 
           to that function (other than the data arguments).
-        See the built-in demos for example usage with the mean or vaiance.
+        See the built-in demos for example usage with the mean [3], or vaiance.
 
      'PVAL = randtest2 (A, B, PAIRED, NREPS, FUNC, SEED)' initialises the
      Mersenne Twister random number generator using an integer SEED value so
@@ -113,6 +113,9 @@
   [1] Dowd (2020) A New ECDF Two-Sample Test Statistic. arXiv.
        https://doi.org/10.48550/arXiv.2007.01360
   [2] https://en.wikipedia.org/wiki/Wasserstein_metric
+  [3] Hesterberg, Moore, Monaghan, Clipson, and Epstein (2011) Bootstrap
+       Methods and Permutation Tests (BMPT) by in Introduction to the Practice
+       of Statistics, 7th Edition by Moore, McCabe and Craig.
 
   randtest2 (version 2024.04.17)
   Author: Andrew Charles Penn
@@ -159,9 +162,9 @@
                            @(A, B) log (var (A) ./ var (B)))
 </pre>
 <p>Produces the following output</p>
-<pre class="example">pval = 0.361
-pval = 0.279
-pval = 0.31646</pre>
+<pre class="example">pval = 0.357
+pval = 0.2782
+pval = 0.3174</pre>
 </div>
 
 <h3><a name="2">Demonstration 2</a></h3>
@@ -181,7 +184,9 @@ pval = 0.31646</pre>
 
  % Randomization test comparing the difference in means between two
  % paired or matching samples (assuming i.i.d and exchangeability) 
- pval = randtest2 (A, B, true, 5000, @(A, B) mean (A) - mean (B))
+ pval = randtest2 (A, B, true, 5000, @(A, B) mean (A) - mean (B), 1)
+ % Note that this is equivalent to:
+ pval = randtest1 (A - B, 0, 5000, @mean, 1)
 
  % Randomization test comparing the ratio of variances between two
  % paired or matching samples (assuming i.i.d and exchangeability). (Note
@@ -189,6 +194,7 @@ pval = 0.31646</pre>
  pval = randtest2 (A, B, true, 5000, @(A, B) log (var (A) ./ var (B)))</pre>
 <p>Produces the following output</p>
 <pre class="example">pval = 0.12891
+pval = 0.037109
 pval = 0.037109
 pval = 0.51172</pre>
 </div>
@@ -212,7 +218,7 @@ pval = 0.51172</pre>
  pval = randtest2 ([A GA], [B GB], false, 5000)
 </pre>
 <p>Produces the following output</p>
-<pre class="example">pval = 0.00044828
+<pre class="example">pval = 0.00042414
 pval =   0.2</pre>
 </div>
 
@@ -235,7 +241,7 @@ pval =   0.2</pre>
  pval = randtest2 ([A GA], [B GB], true, 5000)
 </pre>
 <p>Produces the following output</p>
-<pre class="example">pval = 0.0028
+<pre class="example">pval = 0.0024
 pval =  0.25</pre>
 </div>
 
@@ -257,7 +263,7 @@ pval =  0.25</pre>
  pval = randtest2([A, GA], [B, GB], false)
 </pre>
 <p>Produces the following output</p>
-<pre class="example">pval = 0.0684</pre>
+<pre class="example">pval = 0.0694</pre>
 </div>
 
 <p>Package: <a href="../index.html">statistics-resampling</a></p>
