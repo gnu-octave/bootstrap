@@ -3,7 +3,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
   <head>
   <meta http-equiv="content-type" content="text/html; charset=utf-8" />
-  <meta name="date" content="2024-04-24"/>
+  <meta name="date" content="2024-04-25"/>
   <meta name="generator" content="generate_html 0.3.3" />
   <meta name="author" content="Andrew Penn" />
   <meta name="description" content="A package for statistical analysis using resampling methods." />
@@ -26,10 +26,12 @@
  -- Function File: CI = credint (Y)
  -- Function File: CI = credint (Y, PROB)
 
-     'CI = credint (Y)' computes 95% credible intervals of data in the vector,
-     or rows* of the matrix, Y. The credible intervals are shortest probability
-     intervals (SPI), which represent a more computationally stable version of
-     the highest posterior density interval [1,2].
+     'CI = credint (Y)' computes 95% credible intervals from the vector, or
+     rows* of the matrix, Y, where Y contains posterior (or Bayesian bootstrap)
+     statistics, such as those generated using the `bootbayes` function. The
+     credible intervals are shortest probability intervals (SPI), which
+     represent a more computationally stable version of the highest posterior
+     density interval [1,2].
 
         * The matrix should have dimensions P * NBOOT, where P corresponds to
           the number of parameter estimates and NBOOT corresponds to the number

@@ -3,7 +3,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
   <head>
   <meta http-equiv="content-type" content="text/html; charset=utf-8" />
-  <meta name="date" content="2024-04-24"/>
+  <meta name="date" content="2024-04-25"/>
   <meta name="generator" content="generate_html 0.3.3" />
   <meta name="author" content="Andrew Penn" />
   <meta name="description" content="A package for statistical analysis using resampling methods." />
@@ -26,11 +26,11 @@
  -- Function File: CI = bootint (Y)
  -- Function File: CI = bootint (Y, PROB)
 
-     'CI = bootint (Y)' computes 95% percentile confidence intervals using data
-     from the vector, or rows* of the matrix, Y, where Y contains bootstrap
-     statistics, such as those obtained using the `bootstrp` function. Note
-     that, depending on the application, bootstrap confidence intervals with
-     better coverage and accuracy can be computed using the various dedicated
+     'CI = bootint (Y)' computes 95% percentile confidence intervals from
+     the vector, or rows* of the matrix, Y, where Y contains bootstrap
+     statistics, such as those generated using the `bootstrp` function.
+     Depending on the application, bootstrap confidence intervals with better
+     coverage and accuracy can be computed using the various dedicated
      bootstrap functions from the statistics-resampling package.
 
         * The matrix should have dimensions P * NBOOT, where P corresponds to
