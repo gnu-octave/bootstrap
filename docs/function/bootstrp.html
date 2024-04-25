@@ -43,9 +43,10 @@
      simulation method used by default is bootstrap resampling with first order
      balance [2-3].
 
-     'BOOTSTAT = bootstrp (NBOOT, BOOTFUN, D1,...,DN)' is as above except that 
-     the third and subsequent input arguments are multiple data objects used
-     as input for BOOTFUN.
+     'BOOTSTAT = bootstrp (NBOOT, BOOTFUN, D1,...,DN)' is as above except 
+     that the third and subsequent input arguments are multiple data objects,
+     (column vectors, matrices or cell arrays,) which are used as input for
+     BOOTFUN.
 
      'BOOTSTAT = bootstrp (..., D1, ..., DN, 'match', MATCH)' controls the
      resampling strategy when multiple data arguments are provided. When MATCH
