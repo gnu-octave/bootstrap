@@ -4,11 +4,11 @@
 % -- Function File: CI = bootint (Y)
 % -- Function File: CI = bootint (Y, PROB)
 %
-%     'CI = bootint (Y)' computes 95% percentile confidence intervals using data
-%     from the vector, or rows* of the matrix, Y, where Y contains bootstrap
-%     statistics, such as those obtained using the `bootstrp` function. Note
-%     that, depending on the application, bootstrap confidence intervals with
-%     better coverage and accuracy can be computed using the various dedicated
+%     'CI = bootint (Y)' computes 95% percentile confidence intervals from
+%     the vector, or rows* of the matrix, Y, where Y contains bootstrap
+%     statistics, such as those generated using the `bootstrp` function.
+%     Depending on the application, bootstrap confidence intervals with better
+%     coverage and accuracy can be computed using the various dedicated
 %     bootstrap functions from the statistics-resampling package.
 %
 %        * The matrix should have dimensions P * NBOOT, where P corresponds to
@@ -105,7 +105,7 @@ function CI = bootint (Y, PROB)
     CI(j, 1) = interp1 (cdf, t1, PROB(1) , 'linear', min (t1));
     CI(j, 2) = interp1 (cdf, t1, PROB(2) , 'linear', max (t1));
   end
-  CI(:,isnan(PROB)) = NaN;
+  CI(:, isnan(PROB)) = NaN;
   if (PROB(1) == 0)
     CI(:, 1) = -inf;
   end

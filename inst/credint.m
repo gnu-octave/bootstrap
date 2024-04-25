@@ -4,10 +4,12 @@
 % -- Function File: CI = credint (Y)
 % -- Function File: CI = credint (Y, PROB)
 %
-%     'CI = credint (Y)' computes 95% credible intervals of data in the vector,
-%     or rows* of the matrix, Y. The credible intervals are shortest probability
-%     intervals (SPI), which represent a more computationally stable version of
-%     the highest posterior density interval [1,2].
+%     'CI = credint (Y)' computes 95% credible intervals from the vector, or
+%     rows* of the matrix, Y, where Y contains posterior (or Bayesian bootstrap)
+%     statistics, such as those generated using the `bootbayes` function. The
+%     credible intervals are shortest probability intervals (SPI), which
+%     represent a more computationally stable version of the highest posterior
+%     density interval [1,2].
 %
 %        * The matrix should have dimensions P * NBOOT, where P corresponds to
 %          the number of parameter estimates and NBOOT corresponds to the number
