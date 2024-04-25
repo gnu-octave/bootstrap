@@ -8,7 +8,7 @@
 % -- Function File: [PVAL, STAT, FPR] = randtest (...)
 % -- Function File: [PVAL, STAT, FPR, PERMSTAT] = randtest (...)
 %
-%     'PVAL = randtest (X, Y)' uses the approach of Manly [1] to perform
+%     'PVAL = randtest (X, Y)' uses the approach of Manly [1,2] to perform
 %     a randomization (or permutation) test of the null hypothesis that
 %     coefficients from the regression of Y on X are significantly different
 %     from 0. The value returned is a 2-tailed p-value. Note that the Y values
@@ -58,6 +58,9 @@
 %  Bibliography:
 %  [1] Manly (1997) Randomization, Bootstrap and Monte Carlo Method in Biology.
 %       2nd Edition. London: Chapman & Hall.
+%  [2] Hesterberg, Moore, Monaghan, Clipson, and Epstein (2011) Bootstrap
+%       Methods and Permutation Tests (BMPT) by in Introduction to the Practice
+%       of Statistics, 7th Edition by Moore, McCabe and Craig.
 %
 %  randtest (version 2024.04.17)
 %  Author: Andrew Charles Penn

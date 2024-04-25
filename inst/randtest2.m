@@ -32,7 +32,7 @@
 %                must each contain the same number of rows, where each row
 %                across A and B corresponds to a pair of matched observations.
 %                Within each pair, the allocation of data to samples A or B is
-%                permuted or randomized.
+%                permuted or randomized [3].
 %
 %     'PVAL = randtest2 (A, B, PAIRED, NREPS)' specifies the number of resamples
 %     without replacement to take in the randomization test. By default, NREPS
@@ -54,7 +54,7 @@
 %        o a cell array where the first cell is one of the above function
 %          definitions and the remaining cells are (additional) input arguments 
 %          to that function (other than the data arguments).
-%        See the built-in demos for example usage with the mean or vaiance.
+%        See the built-in demos for example usage with the mean [3], or vaiance.
 %
 %     'PVAL = randtest2 (A, B, PAIRED, NREPS, FUNC, SEED)' initialises the
 %     Mersenne Twister random number generator using an integer SEED value so
@@ -91,6 +91,9 @@
 %  [1] Dowd (2020) A New ECDF Two-Sample Test Statistic. arXiv.
 %       https://doi.org/10.48550/arXiv.2007.01360
 %  [2] https://en.wikipedia.org/wiki/Wasserstein_metric
+%  [3] Hesterberg, Moore, Monaghan, Clipson, and Epstein (2011) Bootstrap
+%       Methods and Permutation Tests (BMPT) by in Introduction to the Practice
+%       of Statistics, 7th Edition by Moore, McCabe and Craig.
 %
 %  randtest2 (version 2024.04.17)
 %  Author: Andrew Charles Penn
@@ -517,7 +520,9 @@ end
 %!
 %! % Randomization test comparing the difference in means between two
 %! % paired or matching samples (assuming i.i.d and exchangeability) 
-%! pval = randtest2 (A, B, true, 5000, @(A, B) mean (A) - mean (B))
+%! pval = randtest2 (A, B, true, 5000, @(A, B) mean (A) - mean (B), 1)
+%! % Note that this is equivalent to:
+%! pval = randtest1 (A - B, 0, 5000, @mean, 1)
 %!
 %! % Randomization test comparing the ratio of variances between two
 %! % paired or matching samples (assuming i.i.d and exchangeability). (Note
