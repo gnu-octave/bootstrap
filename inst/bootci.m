@@ -24,8 +24,8 @@
 %     balance [2-3].
 %
 %     'CI = bootci (NBOOT, BOOTFUN, D1,...,DN)' is as above except that the
-%     third and subsequent numeric input arguments are data vectors that are
-%     used to create inputs for bootfun.
+%     third and subsequent numeric input arguments are data (column vectors
+%     or matrices) that are used to create inputs for BOOTFUN.
 %
 %     'CI = bootci (NBOOT, {BOOTFUN, D}, NAME, VALUE)' is as above but includes
 %     setting optional parameters using Name-Value pairs.
