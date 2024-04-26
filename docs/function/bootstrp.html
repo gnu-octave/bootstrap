@@ -3,7 +3,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
   <head>
   <meta http-equiv="content-type" content="text/html; charset=utf-8" />
-  <meta name="date" content="2024-04-25"/>
+  <meta name="date" content="2024-04-26"/>
   <meta name="generator" content="generate_html 0.3.3" />
   <meta name="author" content="Andrew Penn" />
   <meta name="description" content="A package for statistical analysis using resampling methods." />
@@ -39,9 +39,10 @@
      cell array, where the first cell is one of the above function definitions
      and the remaining cells are (additional) input arguments to that function
      (after the data argument(s)). The third input argument is the data
-     (column vector, matrix or cell array), which is supplied to BOOTFUN. The
-     simulation method used by default is bootstrap resampling with first order
-     balance [2-3].
+     (column vector, matrix or cell array), which is supplied to BOOTFUN. This
+     function is the only function in the statistics-resampling package to also
+     accept cell arrays for the data arguments. The simulation method used by
+     default is bootstrap resampling with first order balance [2-3].
 
      'BOOTSTAT = bootstrp (NBOOT, BOOTFUN, D1,...,DN)' is as above except 
      that the third and subsequent input arguments are multiple data objects,
