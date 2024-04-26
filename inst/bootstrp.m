@@ -17,9 +17,10 @@
 %     cell array, where the first cell is one of the above function definitions
 %     and the remaining cells are (additional) input arguments to that function
 %     (after the data argument(s)). The third input argument is the data
-%     (column vector, matrix or cell array), which is supplied to BOOTFUN. The
-%     simulation method used by default is bootstrap resampling with first order
-%     balance [2-3].
+%     (column vector, matrix or cell array), which is supplied to BOOTFUN. This
+%     function is the only function in the statistics-resampling package to also
+%     accept cell arrays for the data arguments. The simulation method used by
+%     default is bootstrap resampling with first order balance [2-3].
 %
 %     'BOOTSTAT = bootstrp (NBOOT, BOOTFUN, D1,...,DN)' is as above except 
 %     that the third and subsequent input arguments are multiple data objects,
