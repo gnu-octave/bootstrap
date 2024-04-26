@@ -408,11 +408,11 @@ function [bootstat, bootsam] = bootstrp (argin1, argin2, varargin)
     else
       % Serial processing
       if (vectorized)
-        % Fast: Vectorized evaluation of bootfun on the resampled
+        % Fast: Vectorized evaluation of bootfun on the resamples
         XR = arrayfun (@(v) x{v}(bootsam{v}), 1 : nvar, 'UniformOutput', false);
         bootstat = num2cell (bootfun (XR{:}), 2);
       else
-        % Slow: Looped evaluation of bootfun on the resampled
+        % Slow: Looped evaluation of bootfun on the resamples
         bootstat = cellfun (@(i) booteval (x, i, bootfun, n, nvar), ...
                                  num2cell (cell2mat (bootsam), 1), ...
                                  'UniformOutput', false);
