@@ -1,4 +1,5 @@
-% Bootstrap resampling.
+% Bootstrap: Resample with replacement to generate new samples and return the
+% statistic(s) calculated by evaluating the specified function on each resample.
 %
 %
 % -- Function File: BOOTSTAT = bootstrp (NBOOT, BOOTFUN, D)
