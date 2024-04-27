@@ -43,7 +43,8 @@
      (column vector, matrix or cell array), which is supplied to BOOTFUN. This
      function is the only function in the statistics-resampling package to also
      accept cell arrays for the data arguments. The simulation method used by
-     default is bootstrap resampling with first order balance [2-3].
+     default is bootstrap resampling with first order balance [2-3]; see help
+     for the 'boot' function for more information.
 
      'BOOTSTAT = bootstrp (NBOOT, BOOTFUN, D1,...,DN)' is as above except 
      that the third and subsequent input arguments are multiple data objects,
@@ -99,7 +100,8 @@
      provided, BOOTSAM is a matrix. If multiple data arguments are provided
      and MATCH is false, BOOTSAM is returned in a 1-by-N cell array of
      matrices, where each cell corresponds to the respective data argument
-     D1 to DN.
+     D1 to DN.  To get the output samples BOOTSAM without applying a function,
+     set BOOTFUN to empty (i.e. []).
 
   Bibliography:
   [1] Efron, and Tibshirani (1993) An Introduction to the
@@ -140,14 +142,14 @@
  data = [48 36 20 29 42 42 20 42 22 41 45 14 6 ...
          0 33 28 34 4 32 24 47 41 24 26 30 41]';
 
- % Compute 50 bootstrap statistics for the mean and calculate the bootstrap
+ % Compute 500 bootstrap statistics for the mean and calculate the bootstrap
  % standard error of the mean
- bootstat = bootstrp (50, @mean, data, 'seed', 1);
+ bootstat = bootstrp (500, @mean, data, 'seed', 1);
  % Or equivalently
- bootstat = bootstrp (50, @mean, data, 'seed', 1, 'loo', false);
+ bootstat = bootstrp (500, @mean, data, 'seed', 1, 'loo', false);
  std (bootstat)</pre>
 <p>Produces the following output</p>
-<pre class="example">ans = 2.7156</pre>
+<pre class="example">ans = 2.5977</pre>
 </div>
 
 <h3><a name="2">Demonstration 2</a></h3>
@@ -159,12 +161,12 @@
  data = [48 36 20 29 42 42 20 42 22 41 45 14 6 ...
          0 33 28 34 4 32 24 47 41 24 26 30 41]';
 
- % Compute 50 bootknife statistics for the mean and calculate the unbiased
+ % Compute 500 bootknife statistics for the mean and calculate the unbiased
  % bootstrap standard error of the mean
- bootstat = bootstrp (50, @mean, data, 'seed', 1, 'loo', true);
+ bootstat = bootstrp (500, @mean, data, 'seed', 1, 'loo', true);
  std (bootstat)</pre>
 <p>Produces the following output</p>
-<pre class="example">ans = 2.4052</pre>
+<pre class="example">ans = 2.6441</pre>
 </div>
 
 <h3><a name="3">Demonstration 3</a></h3>
@@ -178,13 +180,13 @@
  % Split data into consecutive blocks of two data observations per cell
  data_blocks = mat2cell (data, 2 * (ones (13, 1)), 1);
 
- % Compute 50 bootknife statistics for the mean and calculate the unbiased
+ % Compute 500 bootknife statistics for the mean and calculate the unbiased
  % bootstrap standard error of the mean
- bootstat = bootstrp (50, @(x) mean (cell2mat (x)), data_blocks, 'seed', 1, ...
+ bootstat = bootstrp (500, @(x) mean (cell2mat (x)), data_blocks, 'seed', 1, ...
                                                                  'loo', true);
  std (bootstat)</pre>
 <p>Produces the following output</p>
-<pre class="example">ans = 2.9384</pre>
+<pre class="example">ans = 3.045</pre>
 </div>
 
 <h3><a name="4">Demonstration 4</a></h3>
@@ -196,12 +198,12 @@
  data = [48 36 20 29 42 42 20 42 22 41 45 14 6 ...
          0 33 28 34 4 32 24 47 41 24 26 30 41]';
 
- % Compute 50 bootknife statistics for the variance and calculate the
+ % Compute 500 bootknife statistics for the variance and calculate the
  % unbiased standard error of the variance
- bootstat = bootstrp (50, {@var, 1}, data, 'loo', true);
+ bootstat = bootstrp (500, {@var, 1}, data, 'loo', true);
  std (bootstat)</pre>
 <p>Produces the following output</p>
-<pre class="example">ans = 39.204</pre>
+<pre class="example">ans = 42.137</pre>
 </div>
 
 <h3><a name="5">Demonstration 5</a></h3>
@@ -215,15 +217,15 @@
  Y = [247 461 526 302 636 593 393 409 488 381 ...
       474 329 555 282 423 323 256 431 437 240]';
 
- % Compute 50 bootknife statistics for the mean difference between X and Y
+ % Compute 500 bootknife statistics for the mean difference between X and Y
  % and calculate the unbiased bootstrap standard error of the mean difference
- bootstat = bootstrp (50, @(x, y) mean (x - y), X, Y, 'loo', true);
+ bootstat = bootstrp (500, @(x, y) mean (x - y), X, Y, 'loo', true);
  % Or equivalently
- bootstat = bootstrp (50, @(x, y) mean (x - y), X, Y, 'loo', true, ...
+ bootstat = bootstrp (500, @(x, y) mean (x - y), X, Y, 'loo', true, ...
                                                       'match', true);
  std (bootstat)</pre>
 <p>Produces the following output</p>
-<pre class="example">ans = 14.614</pre>
+<pre class="example">ans = 18.185</pre>
 </div>
 
 <h3><a name="6">Demonstration 6</a></h3>
@@ -237,14 +239,14 @@
  Y = [247 461 526 302 636 593 393 409 488 381 ...
       474 329 555 282 423 323 256 431 437 240]';
 
- % Compute 50 bootknife statistics for the difference in mean between
+ % Compute 500 bootknife statistics for the difference in mean between
  % between independent samples X and Y and calculate the unbiased bootstrap
  % standard error of the difference in mean
- bootstat = bootstrp (50, @(x, y) mean (x) - mean(y), X, Y, 'loo', true, ...
+ bootstat = bootstrp (500, @(x, y) mean (x) - mean(y), X, Y, 'loo', true, ...
                                                             'match', false);
  std (bootstat)</pre>
 <p>Produces the following output</p>
-<pre class="example">ans = 32.705</pre>
+<pre class="example">ans = 31.797</pre>
 </div>
 
 <h3><a name="7">Demonstration 7</a></h3>
@@ -258,12 +260,12 @@
  Y = [247 461 526 302 636 593 393 409 488 381 ...
       474 329 555 282 423 323 256 431 437 240]';
 
- % Compute 50 bootstrap statistics for the correlation coefficient and
+ % Compute 500 bootstrap statistics for the correlation coefficient and
  % calculate the bootstrap standard error of the correlation coefficient
- bootstat = bootstrp (50, @cor, X, Y);
+ bootstat = bootstrp (500, @cor, X, Y);
  std (bootstat)</pre>
 <p>Produces the following output</p>
-<pre class="example">ans = 0.098974</pre>
+<pre class="example">ans = 0.10017</pre>
 </div>
 
 <h3><a name="8">Demonstration 8</a></h3>
@@ -277,12 +279,12 @@
  Y = [247 461 526 302 636 593 393 409 488 381 ...
       474 329 555 282 423 323 256 431 437 240]';
 
- % Compute 50 bootstrap statistics for the coefficient of determination and
+ % Compute 500 bootstrap statistics for the coefficient of determination and
  % calculate it's bootstrap standard error
- bootstat = bootstrp (50, {@cor,'squared'}, X, Y);
+ bootstat = bootstrp (500, {@cor,'squared'}, X, Y);
  std (bootstat)</pre>
 <p>Produces the following output</p>
-<pre class="example">ans = 0.1265</pre>
+<pre class="example">ans = 0.12767</pre>
 </div>
 
 <h3><a name="9">Demonstration 9</a></h3>
@@ -317,14 +319,14 @@
  Y = [247 461 526 302 636 593 393 409 488 381 ...
       474 329 555 282 423 323 256 431 437 240]';
 
- % Compute 50 bootstrap statistics for the slope and intercept of a linear
+ % Compute 500 bootstrap statistics for the slope and intercept of a linear
  % regression and calculate their bootstrap standard errors
- bootstat = bootstrp (50, @mldivide, cat (2, ones (20, 1), X), Y);
+ bootstat = bootstrp (500, @mldivide, cat (2, ones (20, 1), X), Y);
  std (bootstat)</pre>
 <p>Produces the following output</p>
 <pre class="example">ans =
 
-       58.311      0.18007</pre>
+       63.468      0.18955</pre>
 </div>
 
 <p>Package: <a href="../index.html">statistics-resampling</a></p>
