@@ -50,7 +50,9 @@
 %        one of the same). If BOOTFUN is @mean or 'mean', narrowness bias of
 %        the confidence intervals for single bootstrap are reduced by expanding
 %        the probabilities of the percentiles using Student's t-distribution
-%        [7]. By default, BOOTFUN is @mean.
+%        [7]. To compute confidence intervals for the mean without this
+%        correction for narrowness bias, define the mean within an anonymous
+%        function instead (e.g. @(x) mean(x)). By default, BOOTFUN is @mean.
 %
 %     'bootknife ({D1, D2, ...}, NBOOT, BOOTFUN)' resamples from the rows of D1,
 %     D2 etc and the resamples are passed to BOOTFUN as multiple data input

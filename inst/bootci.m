@@ -50,11 +50,13 @@
 %      <> 'bca': Bias-corrected and accelerated method [5,6] (Default).
 %      <> 'stud' or 'student': Studentized bootstrap (bootstrap-t) [1,4].
 %      <> 'cal': Calibrated percentile method (by double bootstrap [7]).
-%       Note that when BOOTFUN is the mean, percentile, basic and bca intervals
-%       are automatically expanded using Student's t-distribution in order to
-%       improve coverage for small samples [8]. The bootstrap-t method includes
-%       an additive correction to stabilize the variance when the sample size
-%       is small [9].
+%       Note that when BOOTFUN is the mean, the percentile, basic and bca
+%       intervals are automatically expanded using Student's t-distribution in
+%       order to improve coverage for small samples [8]. To compute confidence
+%       the intervals for the mean without this correction for narrowness bias,
+%       define the mean in BOOTFUN as an anonymous function (e.g. @(x) mean(x)).
+%       The bootstrap-t method includes an additive correction to stabilize the
+%       variance when the sample size is small [9].
 %
 %     'CI = bootci (..., 'type', 'stud', 'nbootstd', NBOOTSTD)' computes the
 %     Studentized bootstrap confidence intervals CI, with the standard errors

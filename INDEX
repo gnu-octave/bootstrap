@@ -1,4 +1,7 @@
 statistics-resampling >> Statistical analysis using resampling methods
+Cloned Matlab functions
+ bootstrp
+ bootci
 Main functions
  bootknife
  bootclust
@@ -10,9 +13,6 @@ Main functions
  bootlm
  boot1way
  bootmode
-Cloned Matlab functions
- bootstrp
- bootci
 Utility Functions
  boot
  bootcdf
