@@ -1,5 +1,5 @@
-% Computes credible interval(s) from a vector (or row-major matrix) of posterior
-% data values, for example, those obtained by bayesian bootstrap.
+% Computes credible interval(s) from a vector (or row-major matrix) of the
+% posterior(s) obtained by bayesian bootstrap.
 %
 % -- Function File: CI = credint (Y)
 % -- Function File: CI = credint (Y, PROB)
