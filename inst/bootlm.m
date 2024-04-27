@@ -2111,6 +2111,13 @@ end
 %!
 %! % Two-sample paired test on dependent or matched samples equivalent to a
 %! % paired t-test.
+%! %
+%! % IMPORTANT: We are interested here in the statistics for the predictor
+%! % 'treatment', which we have fitted, and interpreted as, a fixed effect. We
+%! % cannot interpret the statistics here for 'subject' since we are treating
+%! % it as a fixed effect when it really should be a random effect. This doesn't
+%! % affect our statistics for 'treatment' since there is no interaction between
+%! % the two predictors in our model.
 %!
 %! score = [4.5 5.6; 3.7 6.4; 5.3 6.4; 5.4 6.0; 3.9 5.7]';
 %! treatment = {'before' 'after'; 'before' 'after'; 'before' 'after';
@@ -2183,6 +2190,13 @@ end
 %! % One-way repeated measures design. The data is from a study on the number
 %! % of words recalled by 10 subjects for three time condtions, in Loftus &
 %! % Masson (1994) Psychon Bull Rev. 1(4):476-490, Table 2.
+%! %
+%! % IMPORTANT: We are interested here in the statistics for the predictor
+%! % 'seconds', which we have fitted, and interpreted as, a fixed effect. We
+%! % cannot interpret the statistics here for 'subject' since we are treating
+%! % it as a fixed effect when it really should be a random effect. This doesn't
+%! % affect our statistics for 'seconds' since there is no interaction between
+%! % the two predictors in our model.
 %!
 %! words = [10 13 13; 6 8 8; 11 14 14; 22 23 25; 16 18 20; ...
 %!          15 17 17; 1 1 4; 12 15 17;  9 12 12;  8 9 12];
