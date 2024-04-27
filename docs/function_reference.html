@@ -26,11 +26,19 @@
   </div>
 
 <p>Select category:  <select name="cat" onchange="location = this.options[this.selectedIndex].value;">
-    <option value="#Main_functions">Main functions</option>
     <option value="#Cloned_Matlab_functions">Cloned Matlab functions</option>
+    <option value="#Main_functions">Main functions</option>
     <option value="#Utility_Functions">Utility Functions</option>
     <option value="#Parameter_functions">Parameter functions</option>
   </select></p>
+
+  <h3 class="category"><a name="Cloned_Matlab_functions">Cloned Matlab functions</a></h3>
+
+    <div class="func"><b><a href="function/bootstrp.html">bootstrp</a></b></div>
+    <div class="ftext"> Bootstrap: Resample with replacement to generate new samples and return the  statistic(s) calculated by evaluating the specified function on each resample.</div>
+
+    <div class="func"><b><a href="function/bootci.html">bootci</a></b></div>
+    <div class="ftext"> Bootstrap confidence intervals: Performs bootstrap and calculates confidence  intervals from the resulting bootstrap statistics.</div>
 
   <h3 class="category"><a name="Main_functions">Main functions</a></h3>
 
@@ -64,14 +72,6 @@
     <div class="func"><b><a href="function/bootmode.html">bootmode</a></b></div>
     <div class="ftext"> Uses bootstrap to evaluate the likely number of real peaks (i.e. modes)  in the distribution of a single set of data.</div>
 
-  <h3 class="category"><a name="Cloned_Matlab_functions">Cloned Matlab functions</a></h3>
-
-    <div class="func"><b><a href="function/bootstrp.html">bootstrp</a></b></div>
-    <div class="ftext"> Bootstrap resampling.</div>
-
-    <div class="func"><b><a href="function/bootci.html">bootci</a></b></div>
-    <div class="ftext"> Performs single or double bootstrap (or bootknife) resampling and calculates  confidence intervals.</div>
-
   <h3 class="category"><a name="Utility_Functions">Utility Functions</a></h3>
 
     <div class="func"><b><a href="function/boot.html">boot</a></b></div>
@@ -84,7 +84,7 @@
     <div class="ftext"> Computes percentile confidence interval(s) from a vector (or row-major  matrix) of bootstrap statistics.</div>
 
     <div class="func"><b><a href="function/credint.html">credint</a></b></div>
-    <div class="ftext"> Computes credible interval(s) from a vector (or row-major matrix) of posterior  data values, for example, those obtained by bayesian bootstrap.</div>
+    <div class="ftext"> Computes credible interval(s) from a vector (or row-major matrix) of the  posterior(s) obtained by bayesian bootstrap.</div>
 
     <div class="func"><b><a href="function/deffcalc.html">deffcalc</a></b></div>
     <div class="ftext"> Computes the design effect (DEFF), which can subsequently be used to correct  sample size calculations using the 'sampszcalc' function.</div>

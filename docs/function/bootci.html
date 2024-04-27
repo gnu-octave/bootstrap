@@ -20,8 +20,8 @@
 <div id="doccontent">
 
 <h2>bootci</h2>
-<pre> Performs single or double bootstrap (or bootknife) resampling and calculates
- confidence intervals.
+<pre> Bootstrap confidence intervals: Performs bootstrap and calculates confidence
+ intervals from the resulting bootstrap statistics.
 
  -- Function File: CI = bootci (NBOOT, BOOTFUN, D)
  -- Function File: CI = bootci (NBOOT, BOOTFUN, D1,...,DN)
@@ -72,11 +72,13 @@
       <> 'bca': Bias-corrected and accelerated method [5,6] (Default).
       <> 'stud' or 'student': Studentized bootstrap (bootstrap-t) [1,4].
       <> 'cal': Calibrated percentile method (by double bootstrap [7]).
-       Note that when BOOTFUN is the mean, percentile, basic and bca intervals
-       are automatically expanded using Student's t-distribution in order to
-       improve coverage for small samples [8]. The bootstrap-t method includes
-       an additive correction to stabilize the variance when the sample size
-       is small [9].
+       Note that when BOOTFUN is the mean, the percentile, basic and bca
+       intervals are automatically expanded using Student's t-distribution in
+       order to improve coverage for small samples [8]. To compute confidence
+       the intervals for the mean without this correction for narrowness bias,
+       define the mean in BOOTFUN as an anonymous function (e.g. @(x) mean(x)).
+       The bootstrap-t method includes an additive correction to stabilize the
+       variance when the sample size is small [9].
 
      'CI = bootci (..., 'type', 'stud', 'nbootstd', NBOOTSTD)' computes the
      Studentized bootstrap confidence intervals CI, with the standard errors
@@ -466,8 +468,8 @@
 <p>Produces the following output</p>
 <pre class="example">ci =
 
-      -0.5826     -0.44271
-      0.22767      0.40505</pre>
+      -0.3902     -0.90907
+      0.33819      0.26111</pre>
 </div>
 
 <h3><a name="11">Demonstration 11</a></h3>
