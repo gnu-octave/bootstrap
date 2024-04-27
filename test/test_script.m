@@ -171,6 +171,9 @@ try
        474 329 555 282 423 323 256 431 437 240]';
   Z = cat (1, X, Y);
   bootstrp (50, @mean, X);
+  bootstat = bootstrp (50, @mean, X);
+  [bootstat, bootsam] = bootstrp (50, @mean, X);
+  [bootstat, bootsam] = bootstrp (50, [], X);
   bootstrp (50, @(x) mean (cell2mat (x)), num2cell (X, 2));
   bootstrp (50, @(x, y) mean (x) - mean (y), X, Y);
   bootstrp (50, @(x, y) mean (x - y), X, Y);

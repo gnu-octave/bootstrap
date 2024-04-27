@@ -21,7 +21,8 @@
 %     (column vector, matrix or cell array), which is supplied to BOOTFUN. This
 %     function is the only function in the statistics-resampling package to also
 %     accept cell arrays for the data arguments. The simulation method used by
-%     default is bootstrap resampling with first order balance [2-3].
+%     default is bootstrap resampling with first order balance [2-3]; see help
+%     for the 'boot' function for more information.
 %
 %     'BOOTSTAT = bootstrp (NBOOT, BOOTFUN, D1,...,DN)' is as above except 
 %     that the third and subsequent input arguments are multiple data objects,
@@ -77,7 +78,8 @@
 %     provided, BOOTSAM is a matrix. If multiple data arguments are provided
 %     and MATCH is false, BOOTSAM is returned in a 1-by-N cell array of
 %     matrices, where each cell corresponds to the respective data argument
-%     D1 to DN.
+%     D1 to DN.  To get the output samples BOOTSAM without applying a function,
+%     set BOOTFUN to empty (i.e. []).
 %
 %  Bibliography:
 %  [1] Efron, and Tibshirani (1993) An Introduction to the
@@ -320,24 +322,26 @@ function [bootstat, bootsam] = bootstrp (argin1, argin2, varargin)
       error ('bootstrp: BOOTFUN must be a function name or function handle')
     end
   end
-  try
-    t0 = bootfun (x{:});
-  catch
-    error (cat (2, 'bootstrp: There was an error evaluating ''bootfun''', ...
-                   ' and the data provided'))
-  end
-  % Check whether evaluation of bootfun on the data is vectorized
-  vectorized = false;
-  if (eq (size (t0, 2), 1)) 
-    if (all (bsxfun (@eq, 1, cellfun (@(x) size (x, 2), x))))
-      xt = arrayfun (@(v) repmat (x{v}, 1, 2), 1 : nvar, 'UniformOutput', false);
-      try
-        chk = bootfun (xt{:});
-        if ( eq (size (chk), cat (2, size (t0, 1), 2)) )
-          vectorized = true;
+  if (~ isempty (bootfun))
+    try
+      t0 = bootfun (x{:});
+    catch
+      error (cat (2, 'bootstrp: There was an error evaluating ''bootfun''', ...
+                     ' and the data provided'))
+    end
+    % Check whether evaluation of bootfun on the data is vectorized
+    vectorized = false;
+    if (eq (size (t0, 2), 1)) 
+      if (all (bsxfun (@eq, 1, cellfun (@(x) size (x, 2), x))))
+        xt = arrayfun (@(v) repmat (x{v}, 1, 2), 1 : nvar, 'UniformOutput', false);
+        try
+          chk = bootfun (xt{:});
+          if ( eq (size (chk), cat (2, size (t0, 1), 2)) )
+            vectorized = true;
+          end
+        catch
+          % Do nothing
         end
-      catch
-        % Do nothing
       end
     end
   end
@@ -583,6 +587,9 @@ end
 %! Z = cat (1, X, Y);
 %!
 %! bootstrp (50, @mean, X);
+%! bootstat = bootstrp (50, @mean, X);
+%! [bootstat, bootsam] = bootstrp (50, @mean, X);
+%! [bootstat, bootsam] = bootstrp (50, [], X);
 %! bootstrp (50, @(x) mean (cell2mat (x)), num2cell (X, 2));
 %! bootstrp (50, @(x, y) mean (x) - mean (y), X, Y);
 %! bootstrp (50, @(x, y) mean (x - y), X, Y);
