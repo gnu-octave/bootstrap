@@ -2112,12 +2112,13 @@ end
 %! % Two-sample paired test on dependent or matched samples equivalent to a
 %! % paired t-test.
 %! %
-%! % IMPORTANT: We are interested here in the statistics for the predictor
+%! % IMPORTANT: We are only interested here in the statistics for the predictor
 %! % 'treatment', which we have fitted, and interpreted as, a fixed effect. We
-%! % cannot interpret the statistics here for 'subject' since we are treating
-%! % it as a fixed effect when it really should be a random effect. This doesn't
-%! % affect our statistics for 'treatment' since there is no interaction between
-%! % the two predictors in our model.
+%! % have also treated the predictor 'subject' as a fixed effect, when in most
+%! % instances we would want include it as a random effect in a mixed model.
+%! % However, treating 'subject' as a fixed doesn't affect our results for
+%! % 'treatment' since there is no interaction specified between the two
+%! % predictors in our model.
 %!
 %! score = [4.5 5.6; 3.7 6.4; 5.3 6.4; 5.4 6.0; 3.9 5.7]';
 %! treatment = {'before' 'after'; 'before' 'after'; 'before' 'after';
@@ -2191,12 +2192,13 @@ end
 %! % of words recalled by 10 subjects for three time condtions, in Loftus &
 %! % Masson (1994) Psychon Bull Rev. 1(4):476-490, Table 2.
 %! %
-%! % IMPORTANT: We are interested here in the statistics for the predictor
+%! % IMPORTANT: We are only interested here in the statistics for the predictor
 %! % 'seconds', which we have fitted, and interpreted as, a fixed effect. We
-%! % cannot interpret the statistics here for 'subject' since we are treating
-%! % it as a fixed effect when it really should be a random effect. This doesn't
-%! % affect our statistics for 'seconds' since there is no interaction between
-%! % the two predictors in our model.
+%! % have also treated the predictor 'subject' as a fixed effect, when in most
+%! % instances we would want include it as a random effect in a mixed model.
+%! % However, treating 'subject' as a fixed doesn't affect our results for
+%! % 'seconds' since there is no interaction specified between the two
+%! % predictors in our model.
 %!
 %! words = [10 13 13; 6 8 8; 11 14 14; 22 23 25; 16 18 20; ...
 %!          15 17 17; 1 1 4; 12 15 17;  9 12 12;  8 9 12];
@@ -2705,6 +2707,15 @@ end
 %!demo
 %!
 %! % Analysis of nested one-way ANOVA design using clustered resampling.
+%! %
+%! % While the effect of nesting is minimal on parameter estimates, it can have
+%! % a big effect on standard errors, confidence intervals and p-values for the
+%! % parameters. One way to estimate p-values and the precision of parameter
+%! % estimates for fixed effects in nested designs is to fit a mixed linear
+%! % model. Another way, as we do so here, is to fit a linear model but
+%! % calculate standard errors, confidence intervals and p-values using
+%! % bootstrap with clustered resampling.
+%!
 %! % Nested model example from:
 %! % https://www.southampton.ac.uk/~cpd/anovas/datasets/#Chapter2
 %!
@@ -3240,6 +3251,15 @@ end
 %!test
 %!
 %! % Comparing analysis of nested design using ANOVA with clustered resampling.
+%! %
+%! % While the effect of nesting is minimal on parameter estimates, it can have
+%! % a big effect on standard errors, confidence intervals and p-values for the
+%! % parameters. One way to estimate p-values and the precision of parameter
+%! % estimates for fixed effects in nested designs is to fit a mixed linear
+%! % model. Another way, as we do so here, is to fit a linear model but
+%! % calculate standard errors, confidence intervals and p-values using
+%! % bootstrap with clustered resampling.
+%!
 %! % Two factor nested model example from:
 %! % https://www.southampton.ac.uk/~cpd/anovas/datasets/#Chapter2
 %!
