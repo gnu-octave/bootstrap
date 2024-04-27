@@ -1,5 +1,5 @@
 % Vectorized function for computing Pearson's correlation coefficient (RHO)
-% between the columns in two matrices and/or column vectors.
+% between data provided as column vectors or column-major matrices.
 %
 % -- Function File: RHO = cor (X, Y)
 % -- Function File: R2  = cor (X, Y, 'squared')
