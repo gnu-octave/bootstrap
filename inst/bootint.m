@@ -1,4 +1,4 @@
-% Computes percentile confidence interval(s) from a vector (or row-major
+% Computes simple percentile confidence interval(s) from a vector (or row-major
 % matrix) of bootstrap statistics.
 %
 % -- Function File: CI = bootint (Y)

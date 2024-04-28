@@ -1,5 +1,5 @@
-% Bootstrap confidence intervals: Performs bootstrap and calculates confidence
-% intervals from the resulting bootstrap statistics.
+% Advanced bootstrap confidence intervals: Performs bootstrap and calculates
+% various types of confidence intervals from the resulting bootstrap statistics. 
 %
 % -- Function File: CI = bootci (NBOOT, BOOTFUN, D)
 % -- Function File: CI = bootci (NBOOT, BOOTFUN, D1,...,DN)
