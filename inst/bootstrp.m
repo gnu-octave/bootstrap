@@ -9,7 +9,8 @@
 % -- Function File: BOOTSTAT = bootstrp (..., 'Weights', WEIGHTS)
 % -- Function File: BOOTSTAT = bootstrp (..., 'loo', LOO)
 % -- Function File: BOOTSTAT = bootstrp (..., 'seed', SEED)
-% -- Function File: [BOOTSTAT, BOOTSAM] = bootstrp (...) 
+% -- Function File: [BOOTSTAT, BOOTSAM] = bootstrp (...)
+% -- Function File: [BOOTSTAT, BOOTSAM, STATS] = bootstrp (...)
 %
 %     'BOOTSTAT = bootstrp (NBOOT, BOOTFUN, D)' draws NBOOT bootstrap resamples
 %     with replacement from the rows of the data D and returns the statistic
@@ -81,6 +82,16 @@
 %     D1 to DN.  To get the output samples BOOTSAM without applying a function,
 %     set BOOTFUN to empty (i.e. []).
 %
+%     '[BOOTSTAT, BOOTSAM, STATS] = bootstrp (...)' also calculates and returns
+%     the following basic statistics relating to each column of BOOTSTAT: 
+%        - original: the original estimate(s) calculated by BOOTFUN and the DATA
+%        - bias: bootstrap bias of the estimate(s)
+%        - bias_corrected: original estimate(s) after subtracting the bias
+%        - var: bootstrap variance of the original estimate(s)
+%        - std_error: bootstrap standard error of the original estimate(s)
+%     If BOOTSTAT is not numeric, STATS only returns the 'original' field. If
+%     BOOTFUN is empty, then the value of the 'original' field is also empty.
+%
 %  Bibliography:
 %  [1] Efron, and Tibshirani (1993) An Introduction to the
 %        Bootstrap. New York, NY: Chapman & Hall
@@ -111,15 +122,15 @@
 %  along with this program.  If not, see http://www.gnu.org/licenses/
 
 
-function [bootstat, bootsam] = bootstrp (argin1, argin2, varargin)
+function [bootstat, bootsam, stats] = bootstrp (argin1, argin2, varargin)
 
   % Evaluate the number of function arguments
   if (nargin < 2)
     error (cat (2, 'bootstrp usage: ''bootstrp (nboot, {bootfun, data},', ...
                    ' varargin)''; atleast 2 input arguments required'))
   end
-  if (nargout > 2)
-    error (cat (2, 'bootstrp: Maximum of 2 output arguments can be requested'))
+  if (nargout > 3)
+    error (cat (2, 'bootstrp: Maximum of 3 output arguments can be requested'))
   end
 
   % Store subfunctions in a stucture to make them available for parallel processes
@@ -161,7 +172,6 @@ function [bootstat, bootsam] = bootstrp (argin1, argin2, varargin)
           match = value;
         case 'seed'
           seed = value;
-          boot (1, 1, false, seed); % Initialise the RNG with seed
         case 'loo'
           loo = value;
         otherwise
@@ -430,6 +440,23 @@ function [bootstat, bootsam] = bootstrp (argin1, argin2, varargin)
     bootsam = cell2mat (bootsam);
   else
     bootsam = bootsam';
+  end
+  if (nargout > 2)
+    stats = struct;
+    if (~ isempty (bootfun))
+      stats.original = reshape (bootfun (x{:}), 1, []);
+      try 
+        stats.bias = bsxfun (@minus, mean (bootstat), stats.original);
+        stats.bias_corrected = bsxfun (@minus, stats.original, stats.bias);
+        stats.var = var (bootstat, 0);
+        stats.std_error = sqrt (stats.var);
+      catch
+        % Do not create fields for statistics that we cannot calculate
+      end
+    else
+      % Leave stats structure empty
+      stats.original = [];
+    end
   end
 
 end
