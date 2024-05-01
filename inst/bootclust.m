@@ -251,7 +251,7 @@ function [stats, bootstat, X] = bootclust (x, nboot, bootfun, alpha, ...
   
   % Initialise the random number generator with the SEED (if provided)
   if ( (nargin > 6) && (~ isempty (seed)) )
-    boot (1, 1, true, seed);
+    boot (1, 1, false, seed);
   end
 
   % Evaluate NPROC input argument
