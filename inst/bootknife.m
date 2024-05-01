@@ -21,7 +21,7 @@
 %     following statistics:
 %        - original: the original estimate(s) calculated by BOOTFUN and the DATA
 %        - bias: bootstrap bias of the estimate(s)
-%        - std_error: bootstrap estandard error of the estimate(s)
+%        - std_error: bootstrap standard error of the estimate(s)
 %        - CI_lower: lower bound(s) of the 95% bootstrap confidence interval
 %        - CI_upper: upper bound(s) of the 95% bootstrap confidence interval
 %
@@ -689,7 +689,7 @@ function [stats, bootstat, bootsam] = bootknife (x, nboot, bootfun, alpha, ...
     % Bootstrap bias estimation
     bias = mean (bootstat, 2) - T0;
     % Bootstrap standard error
-    se = std (bootstat, 0, 2);  % Unbiased since we used bootknife resampling
+    se = std (bootstat, 0, 2);  % Unbiased if we use bootknife resampling
     if (~ isnan (alpha))
       % If bootfun is the arithmetic mean, expand the probabilities of the 
       % percentiles using Student's t-distribution
