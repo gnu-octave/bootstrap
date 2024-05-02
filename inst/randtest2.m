@@ -273,7 +273,7 @@ function [pval, stat, fpr, STATS] = randtest2 (x, y, paired, nreps, func, seed)
       gz = cat (1, gx, gy);
 
       % Create permutations or randomized samples
-      if (factorial (nz) < nreps)
+      if (factorial (nz) <= nreps)
         I = perms (1:nz).';                 % For exact (permutation) test
         nreps = factorial (nz);
       else 
@@ -324,7 +324,7 @@ function [pval, stat, fpr, STATS] = randtest2 (x, y, paired, nreps, func, seed)
                   mat2cell (y(:, 1), accumarray (gy, 1))');
 
       % Create permutations or perform randomization
-      if (2^nz < nreps)
+      if (2^nz <= nreps)
         I = (dec2bin (0 : 2^nz - 1).' - '0') + 1; % For exact (permutation) test
         nreps = 2^nz;
       else 

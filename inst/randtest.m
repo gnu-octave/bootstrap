@@ -189,7 +189,7 @@ function [pval, stat, fpr, STATS] = randtest (x, y, nreps, func, seed)
   end
 
   % Create permutations or randomized samples
-  if (factorial (n) < nreps)
+  if (factorial (n) <= nreps)
     I = perms (1:n).';                  % For exact (permutation) test
     nreps = factorial (n);
   else 
