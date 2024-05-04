@@ -466,8 +466,14 @@ end
 function bootstat = booteval (x, bootsam, bootfun, n, nvar)
 
     % Helper subfunction to resample x using bootsam and evaluate bootfun
-    i = mat2cell (bootsam, cell2mat (n));
-    xr = arrayfun (@(v) x{v}(i{v}, :), 1 : nvar, 'UniformOutput', false);
+    if (nvar > 1)
+      i = mat2cell (bootsam, cell2mat (n));
+      xr = arrayfun (@(v) x{v}(i{v}, :), 1 : nvar, 'UniformOutput', false);
+    else
+      % Faster when nvar is only one
+      xr = cell (1);
+      xr{1} = x{1}(bootsam);
+    end
     bootstat = reshape (bootfun (xr{:}), [], 1);
 
 end
