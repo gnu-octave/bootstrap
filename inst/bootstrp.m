@@ -472,7 +472,7 @@ function bootstat = booteval (x, bootsam, bootfun, n, nvar)
     else
       % Faster when nvar is only one
       xr = cell (1);
-      xr{1} = x{1}(bootsam);
+      xr{1} = x{1}(bootsam, :);
     end
     bootstat = reshape (bootfun (xr{:}), [], 1);
 
