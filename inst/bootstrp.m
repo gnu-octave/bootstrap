@@ -469,12 +469,12 @@ function bootstat = booteval (x, bootsam, bootfun, n, nvar)
     if (nvar > 1)
       i = mat2cell (bootsam, cell2mat (n));
       xr = arrayfun (@(v) x{v}(i{v}, :), 1 : nvar, 'UniformOutput', false);
+      bootstat = reshape (bootfun (xr{:}), [], 1);
     else
       % Faster when nvar is only one
-      xr = cell (1);
-      xr{1} = x{1}(bootsam, :);
+      xr = x{1}(bootsam, :);
+      bootstat = reshape (bootfun (xr), [], 1);
     end
-    bootstat = reshape (bootfun (xr{:}), [], 1);
 
 end
 
