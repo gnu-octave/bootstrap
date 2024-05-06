@@ -41,6 +41,23 @@ d = struct;
 d.dir = inst_dir;
 post_install (d);
 
+% Check if the user has run the make script
+F = dir (inst_dir);
+if (all (arrayfun (@(name) ismember (sprintf ('%s.%s', name{:}, mexext),{F.name}), {'boot', 'smoothmedian'})))
+  try
+    boot (1, 1);
+    smoothmedian (1);
+    make_done = true;
+  catch
+    make_done = false;
+  end
+else
+  make_done = false;
+end
+if (~ make_done)
+  warning ('For optimal performance, run the ''make'' command in order to copy or compile the appropriate binaries')
+end
+
 % Clean up
 clear info isoctave S comment octaverc fid msg inst_dir d
 

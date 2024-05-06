@@ -93,7 +93,7 @@ else
       errflag = true;
       err = lasterror();
       disp (err.message);
-      warning ('Could not compile boot.%s. Falling back to the (slower) boot.m file.',mexext)
+      warning ('Could not compile boot.%s. Falling back to the (slower) boot.m file.', mexext)
     end
     try
       mkoctfile -std=c++11 --mex --output ./inst/smoothmedian ./src/smoothmedian.cpp
@@ -101,7 +101,7 @@ else
       errflag = true;
       err = lasterror();
       disp(err.message);
-      warning ('Could not compile smoothmedian.%s. Falling back to the (slower) smoothmedian.m file.',mexext)
+      warning ('Could not compile smoothmedian.%s. Falling back to the (slower) smoothmedian.m file.', mexext)
     end
   else
     try  
@@ -117,7 +117,7 @@ else
       errflag = true;
       err = lasterror ();
       disp (err.message);
-      warning ('Could not compile boot.%s. Falling back to the (slower) boot.m file.',mexext)
+      warning ('Could not compile boot.%s. Falling back to the (slower) boot.m file.', mexext)
     end
     try
       mex CXXFLAGS="$CXXFLAGS -std=c++11" -output ./inst/smoothmedian ./src/smoothmedian.cpp
@@ -125,7 +125,7 @@ else
       errflag = true;
       err = lasterror();
       disp (err.message);
-      warning ('Could not compile smoothmedian.%s. Falling back to the (slower) smoothmedian.m file.',mexext)
+      warning ('Could not compile smoothmedian.%s. Falling back to the (slower) smoothmedian.m file.', mexext)
     end
   end
 end
