@@ -137,7 +137,7 @@ if errflag
   end
   fprintf ('If you now execute ''install'', .m files equivalent to the mex files will be used instead. \n')
 else
-  fprintf ('\n''make'' completed successfully. Please now run the ''install'' command. \n')
+  fprintf ('\n''make'' completed successfully. \nPlease now run the ''install'' command if you haven''t done so already. \n')
 end
 
 clear arch arch_idx binary binary_paths comp endian info isoctave maxsize errflag retval

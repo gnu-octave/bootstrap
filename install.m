@@ -42,8 +42,9 @@ d.dir = inst_dir;
 post_install (d);
 
 % Check if the user has run the make script
-F = dir (inst_dir);
-if (all (arrayfun (@(name) ismember (sprintf ('%s.%s', name{:}, mexext),{F.name}), {'boot', 'smoothmedian'})))
+inst_files = dir (inst_dir);
+if (all (arrayfun (@(name) ismember (sprintf ('%s.%s', name{:}, mexext), ...
+                                 {inst_files.name}), {'boot', 'smoothmedian'})))
   try
     boot (1, 1);
     smoothmedian (1);
@@ -55,9 +56,9 @@ else
   make_done = false;
 end
 if (~ make_done)
-  warning ('For optimal performance, run the ''make'' command in order to copy or compile the appropriate binaries')
+  warning ('For optimal performance, run the ''make'' command to copy or compile the appropriate binaries')
 end
 
 % Clean up
-clear info isoctave S comment octaverc fid msg inst_dir d
+clear info isoctave S comment octaverc fid msg inst_dir inst_files d make_done
 
