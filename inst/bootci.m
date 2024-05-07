@@ -683,18 +683,18 @@ end
 %!
 %! % Calculations using the 'boot' and 'bootstrap' packages in R
 %! % 
-%! % library (boot)       % Functions from Davison and Hinkley (1997)
-%! % A <- c(48,36,20,29,42,42,20,42,22,41,45,14,6, ...
+%! % library (boot)       # Functions from Davison and Hinkley (1997)
+%! % A <- c(48,36,20,29,42,42,20,42,22,41,45,14,6,
 %! %         0,33,28,34,4,32,24,47,41,24,26,30,41);
 %! % n <- length(A)
 %! %  var.fun <- function (d, i) { 
-%! %        % Function to compute the population variance
+%! %        # Function to compute the population variance
 %! %        n <- length (d); 
 %! %        return (var (d[i]) * (n - 1) / n) };
 %! %  boot.fun <- function (d, i) {
-%! %        % Compute the estimate
+%! %        # Compute the estimate
 %! %        t <- var.fun (d, i);
-%! %        % Compute sampling variance of the estimate using Tukey's jackknife
+%! %        # Compute sampling variance of the estimate using Tukey's jackknife
 %! %        n <- length (d);
 %! %        U <- empinf (data=d[i], statistic=var.fun, type="jack", stype="i");
 %! %        var.t <- sum (U^2 / (n * (n - 1)));
@@ -707,7 +707,7 @@ end
 %! % ci4 <- boot.ci (var.boot, conf=0.90, type="bca")
 %! % ci5 <- boot.ci (var.boot, conf=0.90, type="stud")
 %! %
-%! % library (bootstrap)  % Functions from Efron and Tibshirani (1993)
+%! % library (bootstrap)  # Functions from Efron and Tibshirani (1993)
 %! % set.seed(1); 
 %! % ci4a <- bcanon (A, 19999, var.fun, alpha=c(0.05,0.95))
 %! % set.seed(1); 
