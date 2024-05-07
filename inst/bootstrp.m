@@ -39,6 +39,8 @@
 %     D1 to DN, have a different number of rows, this input argument is ignored
 %     and MATCH is enforced to have a value of false. Note that the MATLAB
 %     bootstrp function only operates in a mode equivalent to MATCH = true.
+%     One application of setting MATCH to false is to perform stratified
+%     bootstrap resampling.
 %
 %     'BOOTSTAT = bootstrp (..., 'Options', PAROPT)' specifies options that
 %     govern if and how to perform bootstrap iterations using multiple
