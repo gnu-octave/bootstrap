@@ -3,7 +3,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
   <head>
   <meta http-equiv="content-type" content="text/html; charset=utf-8" />
-  <meta name="date" content="2024-04-28"/>
+  <meta name="date" content="2024-05-07"/>
   <meta name="generator" content="generate_html 0.3.3" />
   <meta name="author" content="Andrew Penn" />
   <meta name="description" content="A package for statistical analysis using resampling methods." />
@@ -31,7 +31,8 @@
  -- Function File: BOOTSTAT = bootstrp (..., 'Weights', WEIGHTS)
  -- Function File: BOOTSTAT = bootstrp (..., 'loo', LOO)
  -- Function File: BOOTSTAT = bootstrp (..., 'seed', SEED)
- -- Function File: [BOOTSTAT, BOOTSAM] = bootstrp (...) 
+ -- Function File: [BOOTSTAT, BOOTSAM] = bootstrp (...)
+ -- Function File: [BOOTSTAT, BOOTSAM, STATS] = bootstrp (...)
 
      'BOOTSTAT = bootstrp (NBOOT, BOOTFUN, D)' draws NBOOT bootstrap resamples
      with replacement from the rows of the data D and returns the statistic
@@ -60,6 +61,8 @@
      D1 to DN, have a different number of rows, this input argument is ignored
      and MATCH is enforced to have a value of false. Note that the MATLAB
      bootstrp function only operates in a mode equivalent to MATCH = true.
+     One application of setting MATCH to false is to perform stratified
+     bootstrap resampling.
 
      'BOOTSTAT = bootstrp (..., 'Options', PAROPT)' specifies options that
      govern if and how to perform bootstrap iterations using multiple
@@ -102,6 +105,16 @@
      matrices, where each cell corresponds to the respective data argument
      D1 to DN.  To get the output samples BOOTSAM without applying a function,
      set BOOTFUN to empty (i.e. []).
+
+     '[BOOTSTAT, BOOTSAM, STATS] = bootstrp (...)' also calculates and returns
+     the following basic statistics relating to each column of BOOTSTAT: 
+        - original: the original estimate(s) calculated by BOOTFUN and the DATA
+        - bias: bootstrap bias of the estimate(s)
+        - bias_corrected: original estimate(s) after subtracting the bias
+        - var: bootstrap variance of the original estimate(s)
+        - std_error: bootstrap standard error of the original estimate(s)
+     If BOOTSTAT is not numeric, STATS only returns the 'original' field. If
+     BOOTFUN is empty, then the value of the 'original' field is also empty.
 
   Bibliography:
   [1] Efron, and Tibshirani (1993) An Introduction to the
