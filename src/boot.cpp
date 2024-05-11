@@ -154,7 +154,7 @@ void mexFunction (int nlhs, mxArray* plhs[],
 
     // Declare variables
     mwSize dims[2] = {static_cast<mwSize>(n), static_cast<mwSize>(nboot)};
-    plhs[0] = mxCreateNumericArray(2, dims, 
+    plhs[0] = mxCreateNumericArray (2, dims, 
                 mxDOUBLE_CLASS, 
                 mxREAL);           // Prepare array for bootstrap sample indices
     long long int N = n * nboot;   // Total counts of all sample indices
@@ -201,7 +201,7 @@ void mexFunction (int nlhs, mxArray* plhs[],
     double *ptr = (double *) mxGetData(plhs[0]);
 
     // Initialize pseudo-random number generator (Mersenne Twister 19937)
-    mt19937 rng (rand());
+    mt19937 rng (rand ());
     uniform_int_distribution<int> distr (0, n - 1);
 
     // Perform balanced sampling
