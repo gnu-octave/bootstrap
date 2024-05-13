@@ -552,7 +552,7 @@ function [stats, bootstat, X] = bootclust (x, nboot, bootfun, alpha, ...
           end
         end
         % Calculate empirical influence function
-        U = (nx - 1) * bsxfun (@minus, mean (T, 2), T);
+        U = (nx - 1) * bsxfun (@minus, T0, T);
         a = sum (U.^3, 2) ./ (6 * sum (U.^2, 2) .^ 1.5);
       catch
         % Revert to bias-corrected (BC) bootstrap confidence intervals
@@ -1058,8 +1058,8 @@ end
 %!   assert (stats.original, 171.534023668639, 1e-08);
 %!   assert (stats.bias, -6.916841556872669, 1e-08);
 %!   assert (stats.std_error, 42.5668171689963, 1e-08);
-%!   assert (stats.CI_lower, 117.0129329921189, 1e-08);
-%!   assert (stats.CI_upper, 269.5860065995567, 1e-08);
+%!   assert (stats.CI_lower, 117.211853429442, 1e-08);
+%!   assert (stats.CI_upper, 270.1620774419748, 1e-08);
 %! end
 %!
 %! % Exact intervals based on normal theory are 118.4 - 305.2 (Table 14.2)
@@ -1097,6 +1097,6 @@ end
 %!   assert (stats.original, 0.7763744912894071, 1e-08);
 %!   assert (stats.bias, -0.007472442917410338, 1e-08);
 %!   assert (stats.std_error, 0.1355235987517371, 1e-08);
-%!   assert (stats.CI_lower, 0.4179653612679617, 1e-08);
-%!   assert (stats.CI_upper, 0.9240227537437981, 1e-08);
+%!   assert (stats.CI_lower, 0.4193007209659811, 1e-08);
+%!   assert (stats.CI_upper, 0.9242671615802232, 1e-08);
 %! end

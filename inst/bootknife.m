@@ -752,9 +752,9 @@ function [stats, bootstat, bootsam] = bootknife (x, nboot, bootfun, alpha, ...
             % Calculate empirical influence function
             if (~ isempty (strata))
               gk = sum (g .* repmat (nk, n, 1), 2).';
-              U = bsxfun (@times, gk - 1, bsxfun (@minus, mean (T, 2), T));  
+              U = bsxfun (@times, gk - 1, bsxfun (@minus, T0, T));  
             else
-              U = (n - 1) * bsxfun (@minus, mean (T, 2), T);
+              U = (n - 1) * bsxfun (@minus, T0, T);
             end
             a = sum (U.^3, 2) ./ (6 * sum (U.^2, 2) .^ 1.5);
           catch
@@ -1443,7 +1443,7 @@ end
 %! % method                                |   0.05 |   0.95 | length | shape |
 %! % --------------------------------------|--------|--------|--------|-------|
 %! % ci2  - percentile (equal-tailed)      |   96.2 |  237.2 |  141.0 |  0.87 |
-%! % ci4  - BCa                            |  115.3 |  263.8 |  148.5 |  1.64 |
+%! % ci4  - BCa                            |  116.1 |  265.1 |  149.0 |  1.69 |
 %! % ci6a - calibrated (equal-tailed)      |   83.0 |  252.9 |  169.9 |  0.92 |
 %! % ci6b - calibrated                     |  113.2 |  282.4 |  169.2 |  1.90 |
 %! % --------------------------------------|--------|--------|--------|-------|
@@ -1458,13 +1458,14 @@ end
 %! % method                     | coverage |  lower |  upper | length | shape |
 %! % ---------------------------|----------|--------|--------|--------|-------|
 %! % percentile (equal-tailed)  |    81.9% |   1.3% |  16.8% |   0.78 |  0.91 |
-%! % BCa                        |    85.6% |   5.2% |   9.2% |   0.87 |  1.84 |
+%! % BCa                        |    85.0% |   4.6% |  10.4% |   0.85 |  1.82 |
 %! % calibrated (equal-tailed)  |    90.0% |   0.1% |   9.9% |   1.01 |  1.04 |
 %! % calibrated                 |    90.3% |   4.5% |   5.2% |   0.99 |  2.21 |
 %! % ---------------------------|----------|--------|--------|--------|-------|
 %! % parametric - exact         |    90.8% |   3.7% |   5.5% |   0.99 |  2.52 |
 %!
-%! % Summary of bias statistics from 'boot' package in R
+%! % Summary of bias statistics computed using the 'statistics-resampling'
+%! % package for Octave/Matlab
 %! %
 %! % method                             | original |    bias | bias-corrected |
 %! % -----------------------------------|----------|---------|----------------|
@@ -1607,8 +1608,8 @@ end
 %!   assert (stats.original, 171.534023668639, 1e-08);
 %!   assert (stats.bias, -6.916841556872669, 1e-08);
 %!   assert (stats.std_error, 42.5668171689963, 1e-08);
-%!   assert (stats.CI_lower, 117.0129329921189, 1e-08);
-%!   assert (stats.CI_upper, 269.5860065995567, 1e-08);
+%!   assert (stats.CI_lower, 117.211853429442, 1e-08);
+%!   assert (stats.CI_upper, 270.1620774419748, 1e-08);
 %! end
 %!
 %! % Nonparametric 90% calibrated equal-tailed percentile confidence intervals
@@ -1670,8 +1671,8 @@ end
 %!   assert (stats.original, 0.7763744912894071, 1e-08);
 %!   assert (stats.bias, -0.008589727569214833, 1e-08);
 %!   assert (stats.std_error, 0.1440139406035633, 1e-08);
-%!   assert (stats.CI_lower, 0.3954734403669555, 1e-08);
-%!   assert (stats.CI_upper, 0.9323937461477884, 1e-08);
+%!   assert (stats.CI_lower, 0.3970241602178715, 1e-08);
+%!   assert (stats.CI_upper, 0.9326378952057675, 1e-08);
 %! end
 %!
 %! % Nonparametric 90% calibrated equal-tailed percentile confidence intervals

@@ -422,9 +422,10 @@ function [ci, bootstat, bootsam] = bootci (argin1, argin2, varargin)
     otherwise
 
       % Other interval types are natively supported in bootknife function
-      % Undocumented input argument for simple bootstrap resampling
+      % Use undocumented input argument 'loo' = false for simple bootstrap
+      % resampling (instead of bootknife resampling)
       [stats, bootstat, bootsam] = bootknife (data, nboot, bootfun, alpha, ...
-                                     strata, ncpus, [], [], ISOCTAVE, true, loo);
+                                    strata, ncpus, [], [], ISOCTAVE, true, loo);
 
   end
 
@@ -763,9 +764,9 @@ end
 %! % normal               |    81.5% |   3.0% |  15.5% |   0.77 |  1.21 |
 %! % percentile           |    81.5% |   0.9% |  17.6% |   0.76 |  0.91 |
 %! % basic                |    81.1% |   2.5% |  16.4% |   0.78 |  1.09 |
-%! % BCa                  |    84.2% |   5.4% |  10.4% |   0.86 |  1.82 |
+%! % BCa                  |    83.9% |   5.2% |  10.9% |   0.83 |  1.84 |
 %! % bootstrap-t          |    89.2% |   4.3% |   6.5% |   0.99 |  2.15 |
-%! % calibrated           |    87.4% |   4.2% |   8.4% |   0.91 |  2.03 |
+%! % calibrated           |    88.9% |   3.7% |   7.4% |   0.89 |  2.04 |
 %! % ---------------------|----------|--------|--------|--------|-------|
 %! % parametric - exact   |    90.8% |   3.7% |   5.5% |   0.99 |  2.52 |
 
@@ -852,8 +853,8 @@ end
 %! ci = bootci(1999,{{@var,1},A},'alpha',0.1,'type','bca','seed',1);
 %! if (isempty (regexp (which ('boot'), 'mex$')))
 %!   % test boot m-file result
-%!   assert (ci(1), 115.3439904214919, 1e-07);
-%!   assert (ci(2), 254.8041855869813, 1e-07);
+%!   assert (ci(1), 115.9276292059273, 1e-07);
+%!   assert (ci(2), 255.789475809047, 1e-07);
 %! end
 %!
 %! % Nonparametric 90% bootstrap-t confidence intervals (double bootstrap)
@@ -883,7 +884,7 @@ end
 %! % Probability 57 (Springer)
 %! LSAT = [576 635 558 578 666 580 555 661 651 605 653 575 545 572 594].';
 %! GPA = [3.39 3.3 2.81 3.03 3.44 3.07 3 3.43 ...
-%!        3.36 3.13 3.12 2.74 2.76 2.88 2.96].'; 
+%!        3.36 3.13 3.12 2.74 2.76 2.88 2.96].';
 %!
 %! % Nonparametric 90% percentile confidence intervals (single bootstrap)
 %! % Percentile intervals on page 266 are 0.524 - 0.928
@@ -899,8 +900,8 @@ end
 %! ci = bootci(1999,{@cor,LSAT,GPA},'alpha',0.1,'type','bca','seed',1);
 %! if (isempty (regexp (which ('boot'), 'mex$')))
 %!   % test boot m-file result
-%!   assert (ci(1), 0.4107777334127511, 1e-07);
-%!   assert (ci(2), 0.9234715078308394, 1e-07);
+%!   assert (ci(1), 0.4132871532174259, 1e-07);
+%!   assert (ci(2), 0.9237685885933666, 1e-07);
 %! end
 %!
 %! % Nonparametric 90% calibrated percentile confidence intervals
