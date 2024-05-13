@@ -3,7 +3,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
   <head>
   <meta http-equiv="content-type" content="text/html; charset=utf-8" />
-  <meta name="date" content="2024-05-07"/>
+  <meta name="date" content="2024-05-13"/>
   <meta name="generator" content="generate_html 0.3.3" />
   <meta name="author" content="Andrew Penn" />
   <meta name="description" content="A package for statistical analysis using resampling methods." />
@@ -345,11 +345,11 @@ Bootstrap settings:
  Number of resamples (outer): 1999 
  Number of resamples (inner): 0 
  Confidence interval (CI) type: Bias-corrected and accelerated (BCa) 
- Nominal coverage (and the percentiles used): 90% (12.4%, 98.8%)
+ Nominal coverage (and the percentiles used): 90% (12.5%, 98.8%)
 
 Bootstrap Statistics: 
  original     bias         std_error    CI_lower     CI_upper  
- +171.5       -7.008       +42.73       +115.6       +262.8</pre>
+ +171.5       -7.008       +42.73       +115.8       +263.4</pre>
 </div>
 
 <h3><a name="6">Demonstration 6</a></h3>
@@ -442,8 +442,8 @@ Bootstrap settings:
 
 Bootstrap Statistics: 
  original     bias         std_error    CI_lower     CI_upper  
- -0.06366     -0.003129    +0.2305      -0.4772      +0.2909    
- -0.2389      +0.01182     +0.1885      -0.5011      +0.1103</pre>
+ +0.1034      -0.001186    +0.1974      -0.1832      +0.4674    
+ -0.04645     +0.004099    +0.2699      -0.3929      +0.5239</pre>
 </div>
 
 <h3><a name="9">Demonstration 9</a></h3>
@@ -470,11 +470,11 @@ Bootstrap settings:
  Number of resamples (outer): 1999 
  Number of resamples (inner): 0 
  Confidence interval (CI) type: Bias-corrected and accelerated (BCa) 
- Nominal coverage (and the percentiles used): 95% (0.3%, 91.9%)
+ Nominal coverage (and the percentiles used): 95% (0.3%, 92.0%)
 
 Bootstrap Statistics: 
  original     bias         std_error    CI_lower     CI_upper  
- +0.7764      -0.005773    +0.1423      +0.2271      +0.9389</pre>
+ +0.7764      -0.005773    +0.1423      +0.2298      +0.9392</pre>
 </div>
 
 <h3><a name="10">Demonstration 10</a></h3>
@@ -589,12 +589,12 @@ Bootstrap settings:
 Bootstrap Statistics: 
  original     bias         std_error    CI_lower     CI_upper  
  -16.69       -0.5205      +2.058       -20.17       -12.46     
- -11.72       -0.3644      +1.819       -14.92       -8.061     
- -8.061       -0.2589      +1.722       -11.13       -4.497     
- +0.1048      +0.005361    +0.09151     -0.07758     +0.2785    
- +0.01034     +0.0006530   +0.006532    -0.003002    +0.02332   
- +0.06452     +0.002386    +0.01657     +0.03330     +0.09536   
- +0.001664    +8.603e-06   +0.0007476   +0.0001655   +0.003172</pre>
+ -11.72       -0.3644      +1.819       -14.92       -8.059     
+ -8.061       -0.2589      +1.722       -11.13       -4.496     
+ +0.1048      +0.005361    +0.09151     -0.07761     +0.2784    
+ +0.01034     +0.0006530   +0.006532    -0.003006    +0.02331   
+ +0.06452     +0.002386    +0.01657     +0.03328     +0.09535   
+ +0.001664    +8.603e-06   +0.0007476   +0.0001654   +0.003172</pre>
 </div>
 
 <h3><a name="11">Demonstration 11</a></h3>
@@ -790,7 +790,7 @@ Bootstrap Statistics:
  % method                                |   0.05 |   0.95 | length | shape |
  % --------------------------------------|--------|--------|--------|-------|
  % ci2  - percentile (equal-tailed)      |   96.2 |  237.2 |  141.0 |  0.87 |
- % ci4  - BCa                            |  115.3 |  263.8 |  148.5 |  1.64 |
+ % ci4  - BCa                            |  116.1 |  265.1 |  149.0 |  1.69 |
  % ci6a - calibrated (equal-tailed)      |   83.0 |  252.9 |  169.9 |  0.92 |
  % ci6b - calibrated                     |  113.2 |  282.4 |  169.2 |  1.90 |
  % --------------------------------------|--------|--------|--------|-------|
@@ -805,13 +805,14 @@ Bootstrap Statistics:
  % method                     | coverage |  lower |  upper | length | shape |
  % ---------------------------|----------|--------|--------|--------|-------|
  % percentile (equal-tailed)  |    81.9% |   1.3% |  16.8% |   0.78 |  0.91 |
- % BCa                        |    85.6% |   5.2% |   9.2% |   0.87 |  1.84 |
+ % BCa                        |    85.0% |   4.6% |  10.4% |   0.85 |  1.82 |
  % calibrated (equal-tailed)  |    90.0% |   0.1% |   9.9% |   1.01 |  1.04 |
  % calibrated                 |    90.3% |   4.5% |   5.2% |   0.99 |  2.21 |
  % ---------------------------|----------|--------|--------|--------|-------|
  % parametric - exact         |    90.8% |   3.7% |   5.5% |   0.99 |  2.52 |
 
- % Summary of bias statistics from 'boot' package in R
+ % Summary of bias statistics computed using the 'statistics-resampling'
+ % package for Octave/Matlab
  %
  % method                             | original |    bias | bias-corrected |
  % -----------------------------------|----------|---------|----------------|
