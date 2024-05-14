@@ -364,8 +364,21 @@ function [bootstat, bootsam, stats] = bootstrp (argin1, argin2, varargin)
     w = cellfun (@(n) ones (n, 1) / n, n, 'UniformOutput', false);
     s = num2cell (ones (1, nvar), 1);
   else
-    if (isnumeric (w))
-      w = repmat (mat2cell (w, n{1}, 1), 1, nvar);
+    if (match)
+      if (isnumeric (w))
+        w = repmat (mat2cell (w, n{1}, 1), 1, nvar);
+      end
+      if (numel (w) > 1)
+        if (~ isequal (w{:}))
+          error (cat (2, 'bootstrp: Weights must be the same for each row', ...
+                          ' of matching data sets'))
+        end
+      end
+    else
+      if (~ all (bsxfun (@eq, cat (2, 1, nvar), size (w))))
+        error (cat (2, 'bootstrp: Weights must be an array of cells equal', ...
+                       ' in number to their non-matching data arguments'))
+      end
     end
     if (any (arrayfun (@(v) any (bsxfun (@lt, w{v}, 0)), 1 : nvar)))
       error ('bootstrp: Weights cannot contain negative values')
@@ -376,24 +389,18 @@ function [bootstat, bootsam, stats] = bootstrp (argin1, argin2, varargin)
     if (any (arrayfun (@(v) any (isnan(w{v})), 1 : nvar)))
       error ('bootstrp: Weights cannot contain NaN values')
     end
-    if (match)
-      if (numel (w) > 1)
-        if (~ isequal (w{:}))
-          error (cat (2, 'bootstrp: Weights must be the same for each row', ...
-                          ' of matching data sets'))
-        end
-      end
-    else
-      if (~ all (bsxfun (@eq, cat (2, 1, nvar), size (w))))
-        error (cat (2, 'bootstrp: Weights must be an array of cells equal ', ...
-                       ' equal in number to their non-matching data arguments'))
-      end
-    end
     s = arrayfun (@(v) fzero (@(s) sum (round (s * w{v} / mean (w{v}) * nboot) ...
                                 - nboot), 1), 1 : nvar, 'UniformOutput', false);
   end
   w = arrayfun (@(v) round (s{v} * w{v} / mean (w{v}) * nboot), ...
                             1 : nvar, 'UniformOutput', false);
+  if (~ isempty (w))
+    % Fail safe to guarantee that the sum of the weights equals n * nboot
+    for v = 1:nvar
+      [wmax, imax] = max (w{v});
+      w{v}(imax) = wmax + nboot * n{v} - sum (w{v});
+    end
+  end
 
   % Perform balanced bootstrap resampling
   if (match)
