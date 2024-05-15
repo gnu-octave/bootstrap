@@ -87,7 +87,8 @@
 %     '[BOOTSTAT, BOOTSAM, STATS] = bootstrp (...)' also calculates and returns
 %     the following basic statistics relating to each column of BOOTSTAT: 
 %        - original: the original estimate(s) calculated by BOOTFUN and the DATA
-%        - bias: bootstrap bias of the estimate(s)
+%        - mean: the mean of the bootstrap distribution(s)
+%        - bias: bootstrap bias estimate(s)
 %        - bias_corrected: original estimate(s) after subtracting the bias
 %        - var: bootstrap variance of the original estimate(s)
 %        - std_error: bootstrap standard error of the original estimate(s)
@@ -455,7 +456,8 @@ function [bootstat, bootsam, stats] = bootstrp (argin1, argin2, varargin)
     if (~ isempty (bootfun))
       stats.original = reshape (bootfun (x{:}), 1, []);
       try 
-        stats.bias = bsxfun (@minus, mean (bootstat), stats.original);
+        stats.mean = mean (bootstat);
+        stats.bias = bsxfun (@minus, stats.mean, stats.original);
         stats.bias_corrected = bsxfun (@minus, stats.original, stats.bias);
         stats.var = var (bootstat, 0);
         stats.std_error = sqrt (stats.var);
