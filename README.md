@@ -105,10 +105,14 @@ Below are links to demonstrations of how the bootstrap or randomization function
  
  * [One-way repeated measures ANOVA](https://gnu-octave.github.io/statistics-resampling/function/bootlm.html#4)  
  
- * [Randomization or permutation tests to compare the distributions of two independent or paired/matching samples](https://gnu-octave.github.io/statistics-resampling/function/randtest2.html#1)  
+ * [Randomization or permutation test to evaluate whether a sample comes from a population with the specified mean](https://gnu-octave.github.io/statistics-resampling/function/randtest1.html#1)  
+
+ * [Randomization or permutation test to compare the distributions of two independent or paired/matching samples](https://gnu-octave.github.io/statistics-resampling/function/randtest2.html#1)  
  
- * [Randomization or permutation tests to compare the distributions of two independent samples with clustered observations](https://gnu-octave.github.io/statistics-resampling/function/randtest2.html#5) 
+ * [Randomization or permutation test to compare the distributions of two independent samples with clustered observations](https://gnu-octave.github.io/statistics-resampling/function/randtest2.html#5) 
  
+ * [Randomization or permutation test to evaluate the statistical significance of a correlation coefficient](https://gnu-octave.github.io/statistics-resampling/function/randtest.html#3) 
+
  * [Statistically evaluate the number of modes (i.e. peaks) in a distribution](https://gnu-octave.github.io/statistics-resampling/function/bootmode.html#1)  
  
  * [Correcting sample size calculations for a two-sample test with nested design](https://gnu-octave.github.io/statistics-resampling/function/sampszcalc.html#6)  
