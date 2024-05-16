@@ -3,7 +3,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
   <head>
   <meta http-equiv="content-type" content="text/html; charset=utf-8" />
-  <meta name="date" content="2024-05-13"/>
+  <meta name="date" content="2024-05-16"/>
   <meta name="generator" content="generate_html 0.3.3" />
   <meta name="author" content="Andrew Penn" />
   <meta name="description" content="A package for statistical analysis using resampling methods." />
@@ -43,10 +43,10 @@
      cluster/block (i.e. no clustering or blocking). The means of the resamples
      are then computed and the following statistics are displayed:
         - original: the original estimate(s) calculated by BOOTFUN and the DATA
-        - bias: bootstrap bias of the estimate(s)
-        - std_error: bootstrap standard error of the estimate(s)
-        - CI_lower: lower bound(s) of the 95% bootstrap confidence interval
-        - CI_upper: upper bound(s) of the 95% bootstrap confidence interval
+        - bias: bootstrap estimate of the bias of the sampling distribution(s)
+        - std_error: bootstrap estimate(s) of the standard error(s)
+        - CI_lower: lower bound(s) of the 95% bootstrap confidence interval(s)
+        - CI_upper: upper bound(s) of the 95% bootstrap confidence interval(s)
 
      'bootclust (DATA, NBOOT)' specifies the number of bootstrap resamples,
      where NBOOT is a scalar, positive integer corresponding to the number
@@ -376,8 +376,8 @@ Bootstrap settings:
 
 Bootstrap Statistics: 
  original     bias         std_error    CI_lower     CI_upper  
- +0.3052      -0.01557     +0.2059      -0.007480    +0.6725    
- -0.1663      +0.02261     +0.1710      -0.4057      +0.1247</pre>
+ +0.3625      -0.01706     +0.2193      +0.01007     +0.7266    
+ +0.2251      +0.001246    +0.2250      -0.1672      +0.5763</pre>
 </div>
 
 <h3><a name="8">Demonstration 8</a></h3>
@@ -406,8 +406,8 @@ Bootstrap settings:
 
 Bootstrap Statistics: 
  original     bias         std_error    CI_lower     CI_upper  
- +0.1401      +0.006113    +0.2929      -0.4786      +0.5297    
- +0.04985     +0.009865    +0.1333      -0.1655      +0.2615</pre>
+ +0.1434      +0.02090     +0.1595      -0.03552     +0.4799    
+ -0.1623      +0.01750     +0.1080      -0.3331      +0.005695</pre>
 </div>
 
 <h3><a name="9">Demonstration 9</a></h3>

@@ -3,7 +3,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
   <head>
   <meta http-equiv="content-type" content="text/html; charset=utf-8" />
-  <meta name="date" content="2024-05-13"/>
+  <meta name="date" content="2024-05-16"/>
   <meta name="generator" content="generate_html 0.3.3" />
   <meta name="author" content="Andrew Penn" />
   <meta name="description" content="A package for statistical analysis using resampling methods." />
@@ -109,10 +109,11 @@
      '[BOOTSTAT, BOOTSAM, STATS] = bootstrp (...)' also calculates and returns
      the following basic statistics relating to each column of BOOTSTAT: 
         - original: the original estimate(s) calculated by BOOTFUN and the DATA
-        - bias: bootstrap bias of the estimate(s)
+        - mean: the mean of the bootstrap distribution(s)
+        - bias: bootstrap estimate of the bias of the sampling distribution(s)
         - bias_corrected: original estimate(s) after subtracting the bias
         - var: bootstrap variance of the original estimate(s)
-        - std_error: bootstrap standard error of the original estimate(s)
+        - std_error: bootstrap estimate(s) of the standard error(s)
      If BOOTSTAT is not numeric, STATS only returns the 'original' field. If
      BOOTFUN is empty, then the value of the 'original' field is also empty.
 

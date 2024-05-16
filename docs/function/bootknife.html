@@ -3,7 +3,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
   <head>
   <meta http-equiv="content-type" content="text/html; charset=utf-8" />
-  <meta name="date" content="2024-05-13"/>
+  <meta name="date" content="2024-05-16"/>
   <meta name="generator" content="generate_html 0.3.3" />
   <meta name="author" content="Andrew Penn" />
   <meta name="description" content="A package for statistical analysis using resampling methods." />
@@ -42,10 +42,10 @@
      (column vector or matrix) and compute their means and display the
      following statistics:
         - original: the original estimate(s) calculated by BOOTFUN and the DATA
-        - bias: bootstrap bias of the estimate(s)
-        - std_error: bootstrap standard error of the estimate(s)
-        - CI_lower: lower bound(s) of the 95% bootstrap confidence interval
-        - CI_upper: upper bound(s) of the 95% bootstrap confidence interval
+        - bias: bootstrap estimate of the bias of the sampling distribution(s)
+        - std_error: bootstrap estimate(s) of the standard error(s)
+        - CI_lower: lower bound(s) of the 95% bootstrap confidence interval(s)
+        - CI_upper: upper bound(s) of the 95% bootstrap confidence interval(s)
 
      'bootknife (DATA, NBOOT)' specifies the number of bootstrap resamples,
      where NBOOT can be either:
@@ -442,8 +442,8 @@ Bootstrap settings:
 
 Bootstrap Statistics: 
  original     bias         std_error    CI_lower     CI_upper  
- +0.1034      -0.001186    +0.1974      -0.1832      +0.4674    
- -0.04645     +0.004099    +0.2699      -0.3929      +0.5239</pre>
+ +0.1331      -0.01506     +0.2166      -0.2376      +0.4716    
+ -0.5121      +0.01136     +0.1966      -0.9021      -0.2342</pre>
 </div>
 
 <h3><a name="9">Demonstration 9</a></h3>
