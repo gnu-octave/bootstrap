@@ -88,10 +88,10 @@
 %     the following basic statistics relating to each column of BOOTSTAT: 
 %        - original: the original estimate(s) calculated by BOOTFUN and the DATA
 %        - mean: the mean of the bootstrap distribution(s)
-%        - bias: bootstrap bias estimate(s)
+%        - bias: bootstrap estimate of the bias of the sampling distribution(s)
 %        - bias_corrected: original estimate(s) after subtracting the bias
 %        - var: bootstrap variance of the original estimate(s)
-%        - std_error: bootstrap standard error of the original estimate(s)
+%        - std_error: bootstrap estimate(s) of the standard error(s)
 %     If BOOTSTAT is not numeric, STATS only returns the 'original' field. If
 %     BOOTFUN is empty, then the value of the 'original' field is also empty.
 %

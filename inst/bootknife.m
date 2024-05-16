@@ -20,10 +20,10 @@
 %     (column vector or matrix) and compute their means and display the
 %     following statistics:
 %        - original: the original estimate(s) calculated by BOOTFUN and the DATA
-%        - bias: bootstrap bias of the estimate(s)
-%        - std_error: bootstrap standard error of the estimate(s)
-%        - CI_lower: lower bound(s) of the 95% bootstrap confidence interval
-%        - CI_upper: upper bound(s) of the 95% bootstrap confidence interval
+%        - bias: bootstrap estimate of the bias of the sampling distribution(s)
+%        - std_error: bootstrap estimate(s) of the standard error(s)
+%        - CI_lower: lower bound(s) of the 95% bootstrap confidence interval(s)
+%        - CI_upper: upper bound(s) of the 95% bootstrap confidence interval(s)
 %
 %     'bootknife (DATA, NBOOT)' specifies the number of bootstrap resamples,
 %     where NBOOT can be either:

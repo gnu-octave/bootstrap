@@ -20,7 +20,7 @@
 %     p-values after imposing the null hypothesis (H0) [1-4]. The following
 %     statistics are printed to the standard output:
 %        - original: the mean of the data vector y
-%        - std_err: heteroscedasticity-consistent standard error(s)
+%        - std_err: heteroscedasticity-consistent standard error(s) (HC0)
 %        - CI_lower: lower bound(s) of the 95% bootstrap-t confidence interval
 %        - CI_upper: upper bound(s) of the 95% bootstrap-t confidence interval
 %        - tstat: Student's t-statistic
