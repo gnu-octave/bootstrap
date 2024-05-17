@@ -121,7 +121,7 @@
 %  [1] Efron, and Tibshirani (1993) An Introduction to the Bootstrap. 
 %        New York, NY: Chapman & Hall
 %
-%  boot1way (version 2023.10.04)
+%  boot1way (version 2024.04.24)
 %  Bootstrap tests for comparing independent groups in a one-way layout
 %  Author: Andrew Charles Penn
 %  https://www.researchgate.net/profile/Andrew_Penn/

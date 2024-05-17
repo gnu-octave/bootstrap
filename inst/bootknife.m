@@ -159,7 +159,7 @@
 %  [9] Gleason, J.R. (1988) Algorithms for Balanced Bootstrap Simulations. 
 %        The American Statistician. Vol. 42, No. 4 pp. 263-266
 %
-%  bootknife (version 2023.07.04)
+%  bootknife (version 2024.05.15)
 %  Author: Andrew Charles Penn
 %  https://www.researchgate.net/profile/Andrew_Penn/
 %

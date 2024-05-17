@@ -112,7 +112,7 @@
 %  [7] Sellke, Bayarri and Berger (2001) Calibration of p-values for Testing
 %        Precise Null Hypotheses. Am Stat. 55(1), 62-71
 %
-%  bootwild (version 2023.07.05)
+%  bootwild (version 2024.05.17)
 %  Author: Andrew Charles Penn
 %  https://www.researchgate.net/profile/Andrew_Penn/
 %
@@ -282,13 +282,12 @@ function [stats, bootstat, bootsse, bootfit] = bootwild (y, X, ...
     rand ('seed', seed);
   end
 
-  % Compute unscaled covariance matrix
+  % Compute unscaled covariance matrix by QR decomposition (instead of using
+  % the less accurate method of getting to the solution directly with normal
+  % equations)
   [Q, R] = qr (X, 0);        % Economy-sized QR decomposition
-  if ISOCTAVE
-    ucov = chol2inv (R);     % Instead of pinv (X' * X). Faster
-  else
-    ucov = inv (R' * R);     % Instead of pinv (X' * X). Slower
-  end
+  ucov = pinv (R' * R);      % Instead of pinv (X' * X)
+
 
   % Create least squares anonymous function for bootstrap
   bootfun = @(y) lmfit (X, y, ucov, clusters, L, ISOCTAVE);
@@ -306,7 +305,7 @@ function [stats, bootstat, bootsse, bootfit] = bootwild (y, X, ...
   if (~ isempty (IC))
     s = s(IC, :);  % Enforce clustering/blocking
   end
-  yf = X * (X \ y);
+  yf = X * pinv (X) * y;
   r = y - yf;
   rs = bsxfun (@times, r, s);
   Y = bsxfun (@plus, yf, rs);
@@ -383,7 +382,7 @@ function S = lmfit (X, y, ucov, clusters, L, ISOCTAVE)
 
   % Solve linear equation to minimize least squares and compute the
   % regression coefficients (b) 
-  b = X \ y;                 % Instead of inv (X' * X) * (X' * y);
+  b = pinv (X) * y;                 % Instead of inv (X' * X) * (X' * y);
 
   % Calculate heteroscedasticity-consistent (HC) or cluster robust (CR) standard 
   % errors for the regression coefficients. When the number of observations
@@ -395,10 +394,10 @@ function S = lmfit (X, y, ucov, clusters, L, ISOCTAVE)
   yf = X * b;
   u = y - yf;
   if ( (nargin < 3) || isempty (clusters) )
-    % Heteroscedasticity-Consistent (HC0) standard errors
+    % For Heteroscedasticity-Consistent (HC0) standard errors
     meat = X' * diag (u.^2) * X;
   else
-    % Cluster Robust (CR0) standard errors
+    % For Cluster Robust (CR0) standard errors
     Sigma = cellfun (@(g) X(g,:)' * u(g) * u(g)' * X(g,:), ...
                   num2cell (clusters, 1), 'UniformOutput', false);
     meat = sum (cat (3, Sigma{:}), 3);
@@ -458,9 +457,9 @@ function print_output (stats, nboot, alpha, p, L, method)
                      '************************************\n\n'));
     fprintf ('Bootstrap settings: \n');
     if ( (numel(L) > 1) || (L ~= 1) )
-      fprintf (' Function: L'' * X \\ y\n');
+      fprintf (' Function: L'' * pinv (X) * y\n');
     else
-      fprintf (' Function: X \\ y\n');
+      fprintf (' Function: pinv (X) * y\n');
     end
     fprintf (' Resampling method: Wild %sbootstrap-t\n', method)
     fprintf (' Number of resamples: %u \n', nboot)

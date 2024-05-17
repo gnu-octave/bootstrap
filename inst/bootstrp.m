@@ -106,7 +106,7 @@
 %        vs. Smoothing; Proceedings of the Section on Statistics & the 
 %        Environment. Alexandria, VA: American Statistical Association.
 %
-%  bootstrp (version 2024.04.23)
+%  bootstrp (version 2024.05.15)
 %  Author: Andrew Charles Penn
 %  https://www.researchgate.net/profile/Andrew_Penn/
 %

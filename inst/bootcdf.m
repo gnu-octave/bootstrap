@@ -27,7 +27,7 @@
 %
 %     '[x, F, P] = bootcdf (...)' also returns the distribution of P values.
 %
-%  bootcdf (version 2023.07.05)
+%  bootcdf (version 2024.04.21)
 %  Author: Andrew Charles Penn
 %  https://www.researchgate.net/profile/Andrew_Penn/
 %

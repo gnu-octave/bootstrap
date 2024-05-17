@@ -474,7 +474,7 @@
 %       installed and loaded, then these computations will be automatically
 %       accelerated by parallel processing on platforms with multiple processors
 %
-%  bootlm (version 2023.09.01)
+%  bootlm (version 2024.05.17)
 %  Author: Andrew Charles Penn
 %  https://www.researchgate.net/profile/Andrew_Penn/
 %
@@ -1732,7 +1732,7 @@ function [b, sse, resid, ucov, hat] = lmfit (X, Y, ISOCTAVE)
   % Get model coefficients by solving the linear equation. The number of free
   % parameters (i.e. intercept + coefficients) is equal to n - dfe (i.e. the
   % number of columns in X).
-  b = X \ Y;                 % Equivalent to inv (X' * X) * (X' * y);
+  b = pinv (X) * Y;                 % Equivalent to inv (X' * X) * (X' * y);
 
   % Get fitted values
   fit = X * b;
@@ -1746,12 +1746,8 @@ function [b, sse, resid, ucov, hat] = lmfit (X, Y, ISOCTAVE)
   % Calculate the unscaled covariance matrix (i.e. inv (X'*X )) and the Hat
   % matrix (i.e. X*(X'*X)^−1*X') by QR decomposition
   if (nargout > 3)
-    [Q, R] = qr (X, 0);      % Economy-sized QR decomposition
-    if ISOCTAVE
-      ucov = chol2inv (R);
-    else
-      ucov = inv (R' * R);
-    end
+    [Q, R] = qr (X, 0);     % Economy-sized QR decomposition
+    ucov = pinv (R' * R);   % Instead of pinv (X' * X)
     hat = Q * Q';
   end
 

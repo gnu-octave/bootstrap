@@ -124,7 +124,7 @@
 %  [3] Liu, Gelman & Zheng (2015). Simulation-efficient shortest probability
 %        intervals. Statistics and Computing, 25(4), 809–819. 
 %
-%  bootbayes (version 2023.07.06)
+%  bootbayes (version 2024.05.17)
 %  Author: Andrew Charles Penn
 %  https://www.researchgate.net/profile/Andrew_Penn/
 %
@@ -374,9 +374,9 @@ function [stats, bootstat] = bootbayes (Y, X, dep, nboot, prob, prior, seed, ...
     bootstat = cell2mat (cellfun (bootfun, num2cell (Y, 1)', ...
                                  'UniformOutput', false));
   else
-    bootfun = @(w) lmfit (X, Y, diag (w), L);
+    bootfun = @(w) lmfit (X, Y, w, L);
     original = bootfun (ones (n, 1) / n);
-    bootstat = cell2mat (cellfun (bootfun, num2cell (W, 1), ...
+    bootstat = cell2mat (cellfun (bootfun, num2cell (sqrt (W), 1), ...
                                   'UniformOutput', false));
   end
 
@@ -419,25 +419,30 @@ end
 
 % FUNCTION TO FIT THE LINEAR MODEL
 
-function param = lmfit (X, y, W, L)
+function param = lmfit (X, y, w, L)
 
-  % Get model coefficients by solving the linear equation by matrix arithmetic.
+  % Get model coefficients by solving the linear equation.
   % Solve the linear least squares problem using the Moore-Penrose pseudo
   % inverse (pinv) to make it more robust to the situation where X is singular.
-  % If optional arument W is provided, it should be a diagonal matrix of
-  % weights or a positive definite covariance matrix
+  % If optional arument w is provided, it should be equal to square root of the
+  % weights we want to apply to the regression.
   n = numel (y);
-  if ( (nargin < 3) || isempty (W) )
-    % If no weights are provided, create an identity matrix
-    W = eye (n);
+  if ( (nargin < 3) || isempty (w) )
+    % If no weights are provided, create a vector of ones
+    w = ones (n, 1);
   end
   if ( (nargin < 4) || isempty (L) )
     % If no hypothesis matrix (L) is provided, set L to 1
     L = 1;
   end
 
-  % Solve linear equation to minimize weighted least squares
-  b = pinv (X' * W * X) * (X' * W * y);
+  % Solve the linear equation to minimize weighted least squares, where the
+  % weights are equal to w.^2. The whitening transformation actually implemented
+  % avoids using an n * n matrix and has improved accuracy over the solution
+  % using the equivalent normal equation:
+  %   b = pinv (X' * W * X) * (X' * W * y);
+  % Where W is the diagonal matrix of weights (i.e. W = diag (w.^2))
+  b = pinv (bsxfun (@times, w, X)) * (w .* y);
   param = L' * b;
 
 end
@@ -454,7 +459,7 @@ function print_output (stats, nboot, prob, prior, p, L, method, intercept_only)
                      '******************************\n\n'));
     fprintf ('Bootstrap settings: \n');
     if (intercept_only)
-        fprintf (' Function: sum (w .* Y)\n');
+        fprintf (' Function: sum (W * Y)\n');
     else
       if ( (numel(L) > 1) || (L ~= 1) )
         fprintf (' Function: L'' * pinv (X'' * W * X) * (X'' * W * y)\n');
