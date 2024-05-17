@@ -3,7 +3,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
   <head>
   <meta http-equiv="content-type" content="text/html; charset=utf-8" />
-  <meta name="date" content="2024-05-16"/>
+  <meta name="date" content="2024-05-17"/>
   <meta name="generator" content="generate_html 0.3.3" />
   <meta name="author" content="Andrew Penn" />
   <meta name="description" content="A package for statistical analysis using resampling methods." />
@@ -496,7 +496,7 @@
        installed and loaded, then these computations will be automatically
        accelerated by parallel processing on platforms with multiple processors
 
-  bootlm (version 2023.09.01)
+  bootlm (version 2024.05.17)
   Author: Andrew Charles Penn
   https://www.researchgate.net/profile/Andrew_Penn/
 
@@ -1032,12 +1032,12 @@ MODEL ESTIMATED MARGINAL MEANS
 
 name                                   mean        CI_lower    CI_upper        N
 --------------------------------------------------------------------------------
-f, 0                                   +60.62      +57.41      +64.31          8
-m, 0                                   +66.87      +59.70      +73.74          8
+f, 0                                   +60.63      +57.41      +64.31          8
+m, 0                                   +66.88      +59.70      +73.74          8
 f, 2                                   +62.50      +57.82      +66.98          8
-m, 2                                   +66.87      +57.88      +75.75          8
+m, 2                                   +66.88      +57.88      +75.75          8
 f, 4                                   +57.50      +53.03      +62.83          8
-m, 4                                   +35.62      +28.28      +43.40          8
+m, 4                                   +35.63      +28.28      +43.40          8
 
 
 MODEL FORMULA (based on Wilkinson's notation):
@@ -1064,7 +1064,7 @@ name                                   mean        CI_lower    CI_upper    p-adj
 f, 0 - f, 2                            -1.875      -8.048      +4.133      1.000
 f, 2 - f, 4                            +5.000      -2.170      +12.04       .638
 f, 0 - f, 4                            +3.125      -3.402      +9.507       .966
-m, 0 - m, 2                            -3.553e-15  -12.03      +11.70      1.000
+m, 0 - m, 2                            +6.550e-15  -12.03      +11.70      1.000
 m, 2 - m, 4                            +31.25      +19.02      +43.41      <.001
 m, 0 - m, 4                            +31.25      +20.03      +41.98      <.001</pre>
 <p>and the following figure</p>
@@ -1532,7 +1532,7 @@ diet:drug_1                            -33.00      -53.28      -12.72       .004
 diet:drug_2                            -17.00      -37.94      +3.936       .104
 diet:feedback_1                        -16.00      -35.17      +3.172       .095
 drug:feedback_1                        -24.00      -42.08      -5.922       .011
-drug:feedback_2                        -7.061e-14  -19.93      +19.93      1.000
+drug:feedback_2                        -4.475e-14  -19.93      +19.93      1.000
 diet:drug:feedback_1                   +35.00      +7.926      +62.07       .013
 diet:drug:feedback_2                   +5.000      -24.39      +34.39       .737
 

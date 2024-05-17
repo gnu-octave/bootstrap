@@ -3,7 +3,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
   <head>
   <meta http-equiv="content-type" content="text/html; charset=utf-8" />
-  <meta name="date" content="2024-05-16"/>
+  <meta name="date" content="2024-05-17"/>
   <meta name="generator" content="generate_html 0.3.3" />
   <meta name="author" content="Andrew Penn" />
   <meta name="description" content="A package for statistical analysis using resampling methods." />
@@ -146,7 +146,7 @@
   [3] Liu, Gelman & Zheng (2015). Simulation-efficient shortest probability
         intervals. Statistics and Computing, 25(4), 809–819. 
 
-  bootbayes (version 2023.07.06)
+  bootbayes (version 2024.05.17)
   Author: Andrew Charles Penn
   https://www.researchgate.net/profile/Andrew_Penn/
 
@@ -182,7 +182,7 @@
 *******************************************************************************
 
 Bootstrap settings: 
- Function: sum (w .* Y)
+ Function: sum (W * Y)
  Resampling method: Bayesian bootstrap
  Prior: Symmetric Dirichlet distribution (a = 0.8)
  Number of resamples: 1999 
@@ -191,7 +191,7 @@ Bootstrap settings:
 
 Posterior Statistics: 
  original     bias         median       stdev       CI_lower      CI_upper
- +184.5       -0.02210     +184.5       1.240       +182.1        +186.9</pre>
+ +184.5       +0.03471     +184.5       1.278       +182.0        +187.1</pre>
 </div>
 
 <h3><a name="2">Demonstration 2</a></h3>
@@ -228,8 +228,8 @@ Bootstrap settings:
 
 Posterior Statistics: 
  original     bias         median       stdev       CI_lower      CI_upper
- +175.5       +0.03532     +175.5       2.384       +171.1        +180.3    
- +0.1904      -0.001074    +0.1909      0.07912     +0.04160      +0.3442</pre>
+ +175.5       +0.02190     +175.5       2.359       +171.3        +180.6    
+ +0.1904      -0.001762    +0.1898      0.07905     +0.02674      +0.3372</pre>
 </div>
 
 <p>Package: <a href="../index.html">statistics-resampling</a></p>
