@@ -74,6 +74,30 @@
   along with this program.  If not, see http://www.gnu.org/licenses/
 </pre>
 
+<h3><a name="1">Demonstration 1</a></h3>
+<div class="demo">
+<p>The following code</p>
+<pre class="example">
+
+ % Input univariate dataset
+ heights = [183, 192, 182, 183, 177, 185, 188, 188, 182, 185].';
+
+ % 95% credible interval for the mean 
+ [stats, bootstat] = bootbayes (heights);
+ CI = credint (bootstat,0.95)           % 95% shortest probability interval
+ CI = credint (bootstat,[0.025,0.975])  % 95% equal-tailed interval
+
+ % Please be patient, the calculations will be completed soon...</pre>
+<p>Produces the following output</p>
+<pre class="example">CI =
+
+       181.92       187.09
+
+CI =
+
+        181.9       187.08</pre>
+</div>
+
 <p>Package: <a href="../index.html">statistics-resampling</a></p>
 </div>
 </body>
