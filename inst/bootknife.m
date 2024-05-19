@@ -790,7 +790,7 @@ function [stats, bootstat, bootsam] = bootknife (x, nboot, bootfun, alpha, ...
             ci(j, :) = parsubfun.kdeinv (l(j, :), bootstat(j, :), ...
                                    se(j) * sqrt (1 / (n - K)), 1 - 1 / (n - K));
           else
-            error ('Invoke linear interpolation method.')
+            error ('bootknife: Invoke linear interpolation method.')
           end
         catch
           % Linear interpolation (legacy) when LOO is false and for corner cases

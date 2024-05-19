@@ -8,10 +8,9 @@
 %     matrix, compute the univariate smoothed median value for each column and
 %     return them in a row vector.  If the optional argument DIM is given,
 %     operate along this dimension. Arrays of more than two dimensions are not
-%     NaN values currently supported. The MEX file versions of this function
-%     ignore (omit) whereas the m-file includes NaN in it's calculations. Use
-%     the 'which' command to establish which version of the function is being
-%     used.
+%     currently supported. The MEX file versions of this function ignore (omit)
+%     NaN values whereas the m-file includes NaN in it's calculations. Use the
+%     'which' command to establish which version of the function is being used.
 %
 %     The smoothed median is a slightly smoothed version of the ordinary median
 %     and is an M-estimator that is both robust and efficient:

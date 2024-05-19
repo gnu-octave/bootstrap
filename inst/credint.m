@@ -1,23 +1,24 @@
-% Computes credible interval(s) from a vector (or row-major matrix) of the
-% posterior(s) obtained by bayesian bootstrap.
+% Computes credible interval(s) directly from a vector (or row-major matrix) of
+% the posterior(s) obtained by bayesian bootstrap.
 %
-% -- Function File: CI = credint (Y)
-% -- Function File: CI = credint (Y, PROB)
+% -- Function File: CI = credint (BOOTSTAT)
+% -- Function File: CI = credint (BOOTSTAT, PROB)
 %
-%     'CI = credint (Y)' computes 95% credible intervals from the vector, or
-%     rows* of the matrix, Y, where Y contains posterior (or Bayesian bootstrap)
-%     statistics, such as those generated using the `bootbayes` function. The
-%     credible intervals are shortest probability intervals (SPI), which
-%     represent a more computationally stable version of the highest posterior
-%     density interval [1,2].
+%     'CI = credint (BOOTSTAT)' computes 95% credible intervals directly from
+%     the vector, or rows* of the matrix in BOOTSTAT, where BOOTSTAT contains
+%     posterior (or Bayesian bootstrap) statistics, such as those generated
+%     using the `bootbayes` function (or the `bootlm` function with the method
+%     set to 'bayesian'). The credible intervals are shortest probability
+%     intervals (SPI), which represent a more computationally stable version
+%     of the highest posterior density interval [1,2].
 %
 %        * The matrix should have dimensions P * NBOOT, where P corresponds to
 %          the number of parameter estimates and NBOOT corresponds to the number
 %          of posterior (or Bayesian bootstrap) samples.
 %
-%     'CI = credint (Y, PROB)' returns credible intervals, where PROB is numeric
-%     and sets the lower and upper bounds of the credible interval(s). The
-%     value(s) of PROB must be between 0 and 1. PROB can either be:
+%     'CI = credint (BOOTSTAT, PROB)' returns credible intervals, where PROB is
+%     numeric and sets the lower and upper bounds of the credible interval(s).
+%     The value(s) of PROB must be between 0 and 1. PROB can either be:
 %       <> scalar: To set the central mass of shortest probability intervals
 %                  to 100*PROB%
 %       <> vector: A pair of probabilities defining the lower and upper
