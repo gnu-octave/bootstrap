@@ -145,12 +145,26 @@ function CI = credint (Y, PROB)
 
 end
 
-%!test
+%!demo
 %!
-%! % Simulate (log-normal) data
-%! randn ('seed', 1);
-%! Y = exp (randn (5, 999));
+%! % Input univariate dataset
+%! heights = [183, 192, 182, 183, 177, 185, 188, 188, 182, 185].';
 %!
 %! % 95% credible interval for the mean 
-%! CI = credint (Y,0.95);          # 95% shortest probability interval
-%! CI = credint (Y,[0.025,0.975]); # 95% equal-tailed interval
+%! [stats, bootstat] = bootbayes (heights);
+%! CI = credint (bootstat,0.95)           % 95% shortest probability interval
+%! CI = credint (bootstat,[0.025,0.975])  % 95% equal-tailed interval
+%!
+%! % Please be patient, the calculations will be completed soon...
+
+%!test
+%!
+%! % Input univariate dataset
+%! heights = [183, 192, 182, 183, 177, 185, 188, 188, 182, 185].';
+%!
+%! % 95% credible interval for the mean 
+%! [stats, bootstat] = bootbayes (heights);
+%!
+%! % 95% credible interval for the mean 
+%! CI = credint (bootstat,0.95);          % 95% shortest probability interval
+%! CI = credint (bootstat,[0.025,0.975]); % 95% equal-tailed interval

@@ -764,16 +764,23 @@ try
   pval7 = randtest2 (X, Y, false, [], @(A, B) log (var (A) ./ var (B)), 1);
  
   % credint:test:1
-  randn ('seed', 1);
-  Y = exp (randn (5, 999));
-  CI = credint (Y,0.95);          % 95% shortest probability interval
-  CI = credint (Y,[0.025,0.975]); % 95% equal-tailed interval
+  heights = [183, 192, 182, 183, 177, 185, 188, 188, 182, 185].';
+  [stats, bootstat] = bootbayes (heights);
+  CI_1 = credint (bootstat,0.95);          % 95% shortest probability interval
+  CI_2 = credint (bootstat,[0.025,0.975]); % 95% equal-tailed interval
 
   % bootint:test:1
-  randn ('seed', 1);
-  Y = exp (randn (5, 999));
-  CI = bootint (Y,0.95);          % 95% percentile interval
-  CI = bootint (Y,[0.025,0.975]); % 95% percentile interval
+  data = [576, 3.39; 635, 3.30; 558, 2.81; 578, 3.03; 666, 3.44; ...
+          580, 3.07; 555, 3.00; 661, 3.43; 661, 3.36; 605, 3.13; ...
+          653, 3.12; 575, 2.74; 545, 2.76; 572, 2.88; 594, 2.96];
+  x = data(:, 1);
+  y = data(:, 2);
+  r = cor (x, y);
+  bootstat = bootstrp (4999, @cor, x, y);
+  CI_1 = bootint (bootstat,0.95);             % 95% percentile interval
+  CI_2 = bootint (bootstat,[0.025,0.975]);    % 95% percentile interval
+  CI_3 = bootint (bootstat,0.95,r);           % 95% bias-corrected interval
+  CI_4 = bootint (bootstat,[0.025,0.975],r);  % 95% bias-corrected interval
 
   % sampszcalc:test:1
   ns = sampszcalc ('t', 0.20, 0.80, 0.05, 2);
