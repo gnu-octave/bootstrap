@@ -148,10 +148,10 @@ end
 %!demo
 %!
 %! % Input univariate dataset
-%! heights = [183, 192, 182, 183, 177, 185, 188, 188, 182, 185].';
+%! y = [5.18 2.71 2.69 6.09 4.23 10.7 3.71 13.13 19.28 6.61].';
 %!
 %! % 95% credible interval for the mean 
-%! [stats, bootstat] = bootbayes (heights);
+%! [stats, bootstat] = bootbayes (y);
 %! CI = credint (bootstat,0.95)           % 95% shortest probability interval
 %! CI = credint (bootstat,[0.025,0.975])  % 95% equal-tailed interval
 %!
@@ -160,10 +160,10 @@ end
 %!test
 %!
 %! % Input univariate dataset
-%! heights = [183, 192, 182, 183, 177, 185, 188, 188, 182, 185].';
+%! y = [5.18 2.71 2.69 6.09 4.23 10.7 3.71 13.13 19.28 6.61].';
 %!
 %! % 95% credible interval for the mean 
-%! [stats, bootstat] = bootbayes (heights);
+%! [stats, bootstat] = bootbayes (y);
 %!
 %! % 95% credible interval for the mean 
 %! CI = credint (bootstat,0.95);          % 95% shortest probability interval
