@@ -14,26 +14,26 @@
 %
 %        TESTTYPE can be:
 %
-%          't2' (default) : two-sample unpaired t-test
+%          't2' : two-sample unpaired t-test
 %
-%          't' : paired t-test or one-sample t-test
+%          't'  : paired t-test or one-sample t-test
 %
-%          'z2' (default) : two-sample unpaired z-test (Normal approximation)
+%          'z2' : two-sample unpaired z-test (Normal approximation)
 %
-%          'z' : paired z-test or one-sample z-test (Normal approximation)
+%          'z'  : paired z-test or one-sample z-test (Normal approximation)
 %
-%          'r' : significance test for correlation
+%          'r'  : significance test for correlation
 %
 %        EFFSZ can be numeric value corresponding to the standardized effect
-%        size: Cohen's d or h (when TESTTYPE is 't2', 't', 'z' or 'z'), or 
+%        size: Cohen's d or h (when TESTTYPE is 't2', 't', 'z2' or 'z'), or 
 %        Pearson's correlation coefficient (when TESTTYPE is 'r'). For
 %        convenience, EFFSZ can also be one of the following strings:
 %
-%          'small' : which is 0.2 for Cohen's d (or h), or 0.1 for Pearson's r.
+%          'small'  : which is 0.2 for Cohen's d (or h), or 0.1 for Pearson's r.
 %
 %          'medium' : which is 0.5 for Cohen's d (or h), or 0.3 for Pearson's r.
 %
-%          'large' : which is 0.8 for Cohen's d (or h), or 0.5 for Pearson's r.
+%          'large'  : which is 0.8 for Cohen's d (or h), or 0.5 for Pearson's r.
 %
 %       'N = sampszcalc (TESTTYPE, EFFSZ, POW)' also sets the desired power of
 %       the test. The power corresponds to 1 - beta, where beta is the type II
