@@ -10,7 +10,8 @@
 %      'N = sampszcalc (TESTTYPE, EFFSZ)' returns the required sample size to
 %      reach the significance level (alpha) of 0.05 in a two-tailed version of
 %      the test specified in TESTTYPE for the specified effect size, EFFSZ,
-%      with a power of 0.8 (i.e. a type II error rate of 1 - 0.8 = 0.2)
+%      with a power of 0.8 (i.e. a type II error rate of 1 - 0.8 = 0.2). For
+%      two-sample tests, N corresponds to the size of each sample.
 %
 %        TESTTYPE can be:
 %
@@ -200,14 +201,13 @@ end
 %! % The difference between a sample mean from a zero constant (one sample test)
 %! % or the difference between two dependent means (matched pair). Sample size
 %! % determined for Cohen's d = 0.8.
-%! % d effect size
 %!
 %! n = sampszcalc ('t', 0.8)
 
 %!demo
 %!
 %! % The difference between two independent means (two groups). Sample size
-%! % determined for Cohen's d = 0.8.
+%! % for each group determined for Cohen's d = 0.8.
 %!
 %! n = sampszcalc ('t2', 0.8)
 
