@@ -26,11 +26,11 @@
 %        - tstat: Student's t-statistic
 %        - pval: two-tailed p-value(s) for the parameter(s) being equal to 0
 %        - fpr: minimum false positive risk for the corresponding p-value
-%          By default, the confidence intervals are symmetric, two-sided
-%          bootstrap-t confidence intervals. The p-values are computed
-%          following both of the guidelines by Hall and Wilson [5]. The minimum
-%          false positive risk (FPR) is computed according to the Sellke-Berger
-%          approach as described in [6,7].
+%          By default, the confidence intervals are asymmetric bootstrap-t
+%          confidence intervals. The p-values are computed following both of
+%          the guidelines by Hall and Wilson [5]. The minimum false positive
+%          risk (FPR) is computed according to the Sellke-Berger approach as
+%          as described in [6,7].
 %
 %     'bootwild (y, X)' also specifies the design matrix (X) for least squares
 %     regression of y on X. X should be a column vector or matrix the same
@@ -69,8 +69,8 @@
 %                  upper bounds of ASYMMETRIC bootstrap-t confidence interval(s)
 %                  as 100*(ALPHA(1))% and 100*(ALPHA(2))% respectively. For
 %                  example, [.025, .975] for a 95% confidence interval.
-%        The default value of ALPHA is the scalar: 0.05, for a symmetric 95%
-%        bootstrap-t confidence interval.
+%        The default value of ALPHA is the vector: [.025, .975], for asymmetric
+%        95% bootstrap-t confidence interval(s).
 %
 %     'bootwild (y, X, ..., NBOOT, ALPHA, SEED)' initialises the Mersenne
 %     Twister random number generator using an integer SEED value so that
@@ -253,8 +253,8 @@ function [stats, bootstat, bootsse, bootfit] = bootwild (y, X, ...
 
   % Evaluate alpha
   if ( (nargin < 5) || isempty (alpha) )
-    alpha = 0.05;
-    nalpha = 1;
+    alpha = [0.025, 0.975];
+    nalpha = 2;
   else
     nalpha = numel (alpha);
     if (~ isa (alpha, 'numeric') || (nalpha > 2))
@@ -523,7 +523,7 @@ end
 %! % Input univariate dataset
 %! heights = [183, 192, 182, 183, 177, 185, 188, 188, 182, 185].';
 %!
-%! % Test statistics and p-values (H0 = 0)
+%! % Compute test statistics, confidence intervals and p-values (H0 = 0)
 %! bootwild (heights);
 %!
 %! % Please be patient, the calculations will be completed soon...
@@ -541,7 +541,7 @@ end
 %!     168.0,170.0,178.0,182.0,180.0,183.0,178.0,182.0,188.0,175.0,179.0,...
 %!     183.0,192.0,182.0,183.0,177.0,185.0,188.0,188.0,182.0,185.0]';
 %!
-%! % Compute test statistics and p-values
+%! % Compute test statistics, confidence intervals and p-values (H0 = 0)
 %! bootwild (y, X);
 %!
 %! % Please be patient, the calculations will be completed soon...
