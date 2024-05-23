@@ -112,7 +112,7 @@
 %  [7] Sellke, Bayarri and Berger (2001) Calibration of p-values for Testing
 %        Precise Null Hypotheses. Am Stat. 55(1), 62-71
 %
-%  bootwild (version 2024.05.17)
+%  bootwild (version 2024.05.23)
 %  Author: Andrew Charles Penn
 %  https://www.researchgate.net/profile/Andrew_Penn/
 %
