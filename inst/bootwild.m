@@ -16,9 +16,9 @@
 %
 %     'bootwild (y)' performs a null hypothesis significance test for the
 %     mean of y being equal to 0. This function implements wild bootstrap-t
-%     resampling of Webb's 6-point distribution of the residuals, and computes
-%     p-values after imposing the null hypothesis (H0) [1-4]. The following
-%     statistics are printed to the standard output:
+%     resampling of Webb's 6-point distribution of the residuals and computes
+%     confidence intervals and p-values [1-4]. The following statistics are
+%     printed to the standard output:
 %        - original: the mean of the data vector y
 %        - std_err: heteroscedasticity-consistent standard error(s) (HC0)
 %        - CI_lower: lower bound(s) of the 95% bootstrap-t confidence interval
@@ -26,7 +26,7 @@
 %        - tstat: Student's t-statistic
 %        - pval: two-tailed p-value(s) for the parameter(s) being equal to 0
 %        - fpr: minimum false positive risk for the corresponding p-value
-%          By default, the confidence intervals are asymmetric bootstrap-t
+%          By default, the confidence intervals are symmetric bootstrap-t
 %          confidence intervals. The p-values are computed following both of
 %          the guidelines by Hall and Wilson [5]. The minimum false positive
 %          risk (FPR) is computed according to the Sellke-Berger approach as
@@ -69,8 +69,8 @@
 %                  upper bounds of ASYMMETRIC bootstrap-t confidence interval(s)
 %                  as 100*(ALPHA(1))% and 100*(ALPHA(2))% respectively. For
 %                  example, [.025, .975] for a 95% confidence interval.
-%        The default value of ALPHA is the vector: [.025, .975], for asymmetric
-%        95% bootstrap-t confidence interval(s).
+%        The default value of ALPHA is the scalar: 0.05, for symmetric 95% 
+%        bootstrap-t confidence interval(s).
 %
 %     'bootwild (y, X, ..., NBOOT, ALPHA, SEED)' initialises the Mersenne
 %     Twister random number generator using an integer SEED value so that
@@ -253,8 +253,8 @@ function [stats, bootstat, bootsse, bootfit] = bootwild (y, X, ...
 
   % Evaluate alpha
   if ( (nargin < 5) || isempty (alpha) )
-    alpha = [0.025, 0.975];
-    nalpha = 2;
+    alpha = 0.05;
+    nalpha = 1;
   else
     nalpha = numel (alpha);
     if (~ isa (alpha, 'numeric') || (nalpha > 2))
