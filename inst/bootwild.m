@@ -476,7 +476,7 @@ function print_output (stats, nboot, alpha, p, L, method)
                        ' bootstrap-t interval\n'));
       coverage = 100 * abs (alpha(2) - alpha(1));
       fprintf (cat (2, ' Nominal coverage (and the percentiles used):', ...
-                       ' %.3g%% (%.1f%%, %.1f%%)\n', coverage, 100 * alpha(:)));
+                       ' %.3g%% (%.1f%%, %.1f%%)\n'), coverage, 100 * alpha(:)');
     else
       % prob is a two-tailed probability
       fprintf (cat (2, ' Confidence interval (CI) type: Symmetric', ...
