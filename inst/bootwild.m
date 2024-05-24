@@ -20,7 +20,7 @@
 %     confidence intervals and p-values [1-4]. The following statistics are
 %     printed to the standard output:
 %        - original: the mean of the data vector y
-%        - std_err: heteroscedasticity-consistent standard error(s) (HC0)
+%        - std_err: heteroscedasticity-consistent standard error(s) (HC1)
 %        - CI_lower: lower bound(s) of the 95% bootstrap-t confidence interval
 %        - CI_upper: upper bound(s) of the 95% bootstrap-t confidence interval
 %        - tstat: Student's t-statistic
@@ -229,6 +229,9 @@ function [stats, bootstat, bootsse, bootfit] = bootwild (y, X, ...
     clusters = [];
     method = '';
   end
+  % Calculate scale factor for HC1 or CR1 estimates
+  % See MacKinnon & Webb (2020) QED Working Paper Number 1421
+  scale = (G * (n - 1)) / ((G - 1) * (n - k));
 
   % Evaluate number of bootstrap resamples
   if ( (nargin < 4) || (isempty (nboot)) )
@@ -290,7 +293,7 @@ function [stats, bootstat, bootsse, bootfit] = bootwild (y, X, ...
 
 
   % Create least squares anonymous function for bootstrap
-  bootfun = @(y) lmfit (X, y, ucov, clusters, L, ISOCTAVE);
+  bootfun = @(y) lmfit (X, y, ucov, clusters, scale, L, ISOCTAVE);
 
   % Calculate estimate(s)
   S = bootfun (y);
@@ -376,7 +379,7 @@ end
 
 % FUNCTION TO FIT THE LINEAR MODEL
 
-function S = lmfit (X, y, ucov, clusters, L, ISOCTAVE)
+function S = lmfit (X, y, ucov, clusters, scale, L, ISOCTAVE)
 
   % Get model coefficients by solving the linear equation by matrix arithmetic
 
@@ -394,15 +397,17 @@ function S = lmfit (X, y, ucov, clusters, L, ISOCTAVE)
   yf = X * b;
   u = y - yf;
   if ( (nargin < 3) || isempty (clusters) )
-    % For Heteroscedasticity-Consistent (HC0) standard errors
+    % For Heteroscedasticity-Consistent (HC) standard errors
     meat = X' * diag (u.^2) * X;
   else
-    % For Cluster Robust (CR0) standard errors
+    % For Cluster Robust (CR) standard errors
     Sigma = cellfun (@(g) X(g,:)' * u(g) * u(g)' * X(g,:), ...
                   num2cell (clusters, 1), 'UniformOutput', false);
     meat = sum (cat (3, Sigma{:}), 3);
   end
-  vcov = ucov * meat * ucov;
+  % Calculate variance-covariacnce matrix including a scale factor to
+  % give HC1 or CR1 estimates
+  vcov = scale * ucov * meat * ucov;
   S = struct; 
   if ( (nargin < 4) || isempty (L) )
     S.b = b;
@@ -465,9 +470,9 @@ function print_output (stats, nboot, alpha, p, L, method)
     fprintf (' Number of resamples: %u \n', nboot)
     fprintf (' Standard error calculations:');
     if (isempty (method))
-      fprintf (' Heteroscedasticity-Consistent (HC0)\n');
+      fprintf (' Heteroscedasticity-Consistent (HC1)\n');
     else
-      fprintf (' Cluster Robust (CR0)\n');
+      fprintf (' Cluster Robust (CR1)\n');
     end
     nalpha = numel (alpha);
     if (nalpha > 1)
@@ -568,35 +573,35 @@ end
 %! stats = bootwild(heights-H0,[],[],[],[],[],[]);
 %! stats = bootwild(heights-H0,[],[],[],0.05,1);
 %! assert (stats.original, 3.0, 1e-06);
-%! assert (stats.std_err, 1.242980289465605, 1e-06);
+%! assert (stats.std_err, 1.310216267135569, 1e-06);
 %! assert (stats.CI_lower, 0.1338910532454438, 1e-06);
 %! assert (stats.CI_upper, 5.866108946754555, 1e-06);
-%! assert (stats.tstat, 2.413553960127389, 1e-06);
+%! assert (stats.tstat, 2.28969833091653, 1e-06);
 %! assert (stats.pval, 0.04363142391272781, 1e-06);
 %! assert (stats.fpr, 0.2708502563156392, 1e-06);
 %! % ttest gives a p-value of 0.0478
 %! stats = bootwild(heights-H0,[],[],[],[0.025,0.975],1);
 %! assert (stats.original, 3.0, 1e-06);
-%! assert (stats.std_err, 1.242980289465605, 1e-06);
+%! assert (stats.std_err, 1.310216267135569, 1e-06);
 %! assert (stats.CI_lower, 0.01340070207731392, 1e-06);
 %! assert (stats.CI_upper, 5.801890495593613, 1e-06);
-%! assert (stats.tstat, 2.413553960127389, 1e-06);
+%! assert (stats.tstat, 2.28969833091653, 1e-06);
 %! assert (stats.pval, 0.04363142391272781, 1e-06);
 %! assert (stats.fpr, 0.2708502563156392, 1e-06);
 %! stats = bootwild(heights-H0,[],2,[],0.05,1);
 %! assert (stats.original, 3.0, 1e-06);
-%! assert (stats.std_err, 1.240967364599086, 1e-06);
+%! assert (stats.std_err, 1.38744369255116, 1e-06);
 %! assert (stats.CI_lower, -2.816060435625108, 1e-06);
 %! assert (stats.CI_upper, 8.816060435625108, 1e-06);
-%! assert (stats.tstat, 2.41746889207614, 1e-06);
+%! assert (stats.tstat, 2.162249910469342, 1e-06);
 %! assert (stats.pval, 0.1297336562664251, 1e-06);
 %! assert (stats.fpr, 0.4186764774953166, 1e-06);
 %! stats = bootwild(heights-H0,[],[1;1;2;2;3;3;4;4;5;5],[],0.05,1);
 %! assert (stats.original, 3.0, 1e-06);
-%! assert (stats.std_err, 1.240967364599086, 1e-06);
+%! assert (stats.std_err, 1.38744369255116, 1e-06);
 %! assert (stats.CI_lower, -2.816060435625108, 1e-06);
 %! assert (stats.CI_upper, 8.816060435625108, 1e-06);
-%! assert (stats.tstat, 2.41746889207614, 1e-06);
+%! assert (stats.tstat, 2.162249910469342, 1e-06);
 %! assert (stats.pval, 0.1297336562664251, 1e-06);
 %! assert (stats.fpr, 0.4186764774953166, 1e-06);
 
@@ -627,26 +632,26 @@ end
 %! stats = bootwild(y,X,[],[],[],[],[]);
 %! stats = bootwild(y,X,[],[],0.05,1);
 %! assert (stats.original(2), 0.1904211996616223, 1e-06);
-%! assert (stats.std_err(2), 0.08261019852213342, 1e-06);
+%! assert (stats.std_err(2), 0.08460109131139544, 1e-06);
 %! assert (stats.CI_lower(2), -0.0008180267754335224, 1e-06);
 %! assert (stats.CI_upper(2), 0.3816604260986781, 1e-06);
-%! assert (stats.tstat(2), 2.305056797685863, 1e-06);
+%! assert (stats.tstat(2), 2.250812568844188, 1e-06);
 %! assert (stats.pval(2), 0.05133180571394391, 1e-06);
 %! assert (stats.fpr(2), 0.2929561493533854, 1e-06);
 %! % fitlm gives a CI of [0.0333, 0.34753] and a p-value of 0.018743
 %! stats = bootwild(y,X,[],[],[0.025,0.975],1);
 %! assert (stats.original(2), 0.1904211996616223, 1e-06);
-%! assert (stats.std_err(2), 0.08261019852213342, 1e-06);
+%! assert (stats.std_err(2), 0.08460109131139544, 1e-06);
 %! assert (stats.CI_lower(2), -0.0008180267754335224, 1e-06);
 %! assert (stats.CI_upper(2), 0.3831445183919875, 1e-06);
-%! assert (stats.tstat(2), 2.305056797685863, 1e-06);
+%! assert (stats.tstat(2), 2.250812568844188, 1e-06);
 %! assert (stats.pval(2), 0.05133180571394391, 1e-06);
 %! assert (stats.fpr(2), 0.2929561493533854, 1e-06);
 %! stats = bootwild(y,X,3,[],0.05,1);
 %! assert (stats.original(2), 0.1904211996616223, 1e-06);
-%! assert (stats.std_err(2), 0.07170701459665534, 1e-06);
+%! assert (stats.std_err(2), 0.07512352712024187, 1e-06);
 %! assert (stats.CI_lower(2), -0.0242385109696315, 1e-06);
 %! assert (stats.CI_upper(2), 0.4050809102928761, 1e-06);
-%! assert (stats.tstat(2), 2.655544938423697, 1e-06);
+%! assert (stats.tstat(2), 2.534774483589378, 1e-06);
 %! assert (stats.pval(2), 0.07716525989964551, 1e-06);
 %! assert (stats.fpr(2), 0.3495327983695262, 1e-06);
