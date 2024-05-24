@@ -106,7 +106,7 @@
 %        vs. Smoothing; Proceedings of the Section on Statistics & the 
 %        Environment. Alexandria, VA: American Statistical Association.
 %
-%  bootstrp (version 2024.05.15)
+%  bootstrp (version 2024.05.24)
 %  Author: Andrew Charles Penn
 %  https://www.researchgate.net/profile/Andrew_Penn/
 %
@@ -435,7 +435,7 @@ function [bootstat, bootsam, stats] = bootstrp (argin1, argin2, varargin)
       if (vectorized)
         % Fast: Vectorized evaluation of bootfun on the resamples
         XR = arrayfun (@(v) x{v}(bootsam{v}), 1 : nvar, 'UniformOutput', false);
-        bootstat = num2cell (bootfun (XR{:}), 2);
+        bootstat = num2cell (bootfun (XR{:}), 1);
       else
         % Slow: Looped evaluation of bootfun on the resamples
         bootstat = cellfun (@(i) booteval (x, i, bootfun, n, nvar), ...
