@@ -1007,8 +1007,7 @@ function [STATS, BOOTSTAT, AOVSTAT, PRED_ERR] = bootlm (Y, GROUP, varargin)
           % Perform regression on full model using the specified contrasts
           [STATS, BOOTSTAT] = bootwild (Y, X, DEP, NBOOT, ALPHA, SEED, [], ...
                                         ISOCTAVE);
-          % Tidy up
-          STATS = rmfield (STATS, {'std_err', 'tstat', 'sse'});
+          % Create additional fields in STATS structure
           STATS.N = N;
           STATS.prior = [];
           if (nargout > 2)
@@ -1027,8 +1026,7 @@ function [STATS, BOOTSTAT, AOVSTAT, PRED_ERR] = bootlm (Y, GROUP, varargin)
           [STATS, BOOTSTAT] = bootbayes (Y, X, DEP, NBOOT, ...
                                          fliplr (1 - ALPHA), PRIOR, SEED, ...
                                          [], ISOCTAVE);
-          % Clean-up
-          STATS = rmfield (STATS, {'median', 'bias', 'stdev'});
+          % Create additional fields in STATS structure
           STATS.pval = [];
           STATS.fpr = [];
           STATS.N = N;
@@ -1107,8 +1105,7 @@ function [STATS, BOOTSTAT, AOVSTAT, PRED_ERR] = bootlm (Y, GROUP, varargin)
             case 'wild'
               [STATS, BOOTSTAT] = bootwild (Y, X, DEP, NBOOT, ALPHA, SEED, ...
                                             L, ISOCTAVE);
-              % Clean-up
-              STATS = rmfield (STATS, {'std_err', 'tstat', 'sse'});
+              % Create additional fields in STATS structure
               STATS.prior = [];
             case {'bayes', 'bayesian'}
               switch (lower (PRIOR))
@@ -1143,8 +1140,7 @@ function [STATS, BOOTSTAT, AOVSTAT, PRED_ERR] = bootlm (Y, GROUP, varargin)
                                          fliplr (1 - ALPHA), PRIOR, SEED, ...
                                          L, ISOCTAVE);
               end
-              % Clean-up
-              STATS = rmfield (STATS, {'median', 'bias', 'stdev'});
+              % Create additional fields in STATS structure
               STATS.pval = [];
               STATS.fpr = [];
             otherwise
@@ -1198,8 +1194,7 @@ function [STATS, BOOTSTAT, AOVSTAT, PRED_ERR] = bootlm (Y, GROUP, varargin)
               STATS.pval = holm (STATS.pval);
               % Update minimum false positive risk after multiple comparisons
               STATS.fpr = pval2fpr (STATS.pval);
-              % Clean-up
-              STATS = rmfield (STATS, {'tstat', 'sse'});
+              % Create additional fields in STATS structure
               STATS.prior = [];
             case {'bayes', 'bayesian'}
               switch (lower (PRIOR))
@@ -1235,8 +1230,7 @@ function [STATS, BOOTSTAT, AOVSTAT, PRED_ERR] = bootlm (Y, GROUP, varargin)
                   [STATS, BOOTSTAT] = bootbayes (Y, X, DEP, NBOOT, ...
                             fliplr (1 - ALPHA), PRIOR, SEED, L, ISOCTAVE);
               end
-              % Clean-up
-              STATS = rmfield (STATS, {'median', 'bias', 'stdev'});
+              % Create additional fields in STATS structure
               STATS.pval = [];
               STATS.fpr = [];
             otherwise
@@ -1256,7 +1250,6 @@ function [STATS, BOOTSTAT, AOVSTAT, PRED_ERR] = bootlm (Y, GROUP, varargin)
               case 'wild'
                 % Use the HC1 standard errors
                 SED = STATS.std_err;
-                STATS = rmfield (STATS, 'std_err');
               case {'bayes', 'bayesian'}
                 % Use the standard deviation of the posterior distribution
                 SED = std (BOOTSTAT, 0, 2);
@@ -1304,13 +1297,6 @@ function [STATS, BOOTSTAT, AOVSTAT, PRED_ERR] = bootlm (Y, GROUP, varargin)
             STATS.CI_lower = STATS.CI_lower ./ pSD;
             STATS.CI_upper = STATS.CI_upper ./ pSD;
             BOOTSTAT = bsxfun (@rdivide, BOOTSTAT, pSD); 
-          else
-            switch (lower (METHOD))
-              case 'wild'
-                STATS = rmfield (STATS, 'std_err');
-              case {'bayes', 'bayesian'}
-                % Do nothing
-            end
           end
 
           % Create names of posthoc comparisons and assign to the output
@@ -1321,6 +1307,14 @@ function [STATS, BOOTSTAT, AOVSTAT, PRED_ERR] = bootlm (Y, GROUP, varargin)
 
       end
 
+    end
+
+    % Clean up
+    switch (lower (METHOD))
+      case 'wild'
+        STATS = rmfield (STATS, {'std_err', 'tstat', 'sse'});
+      case {'bayes', 'bayesian'}
+        STATS = rmfield (STATS, {'median', 'bias', 'stdev'});
     end
 
     % Reorder fields in the STATS structure
