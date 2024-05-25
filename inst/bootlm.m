@@ -1255,11 +1255,11 @@ function [STATS, BOOTSTAT, AOVSTAT, PRED_ERR] = bootlm (Y, GROUP, varargin)
             switch (lower (METHOD))
               case 'wild'
                 % Use the HC1 standard errors
-                SED = STATS.std_err
+                SED = STATS.std_err;
                 STATS = rmfield (STATS, 'std_err');
               case {'bayes', 'bayesian'}
                 % Use the standard deviation of the posterior distribution
-                SED = std (BOOTSTAT, 0, 2)
+                SED = std (BOOTSTAT, 0, 2);
             end
             % We would like to estimate standard deviation of the difference for
             % each comparison using the bootstrap standard error (rather than
