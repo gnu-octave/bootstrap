@@ -373,10 +373,11 @@
 %          bootstrap statistics for the comparisons are converted to estimates
 %          of Cohen's d standardized effect sizes. Cohen's d here is calculated
 %          from the residual standard deviation, which is estimated from the
-%          bootstrap standard errors and the sample sizes. As such, the effect
-%          sizes calculated exclude variability attributed to other predictors
-%          in the model. To avoid small sample bias inflating effect sizes for
-%          posthoc comparisons, use the 'bayesian' method with an 'auto' prior.
+%          standard errors and the sample sizes. As such, the effect sizes
+%          calculated exclude variability attributed to other predictors in
+%          the model. To avoid small sample bias inflating effect sizes for
+%          posthoc comparisons when use the 'bayesian' method, use the 'auto'
+%          setting for the prior.
 %
 %     '[...] = bootlm (Y, GROUP, ..., 'seed', SEED)' initialises the Mersenne
 %     Twister random number generator using an integer SEED value so that
@@ -1198,7 +1199,7 @@ function [STATS, BOOTSTAT, AOVSTAT, PRED_ERR] = bootlm (Y, GROUP, varargin)
               % Update minimum false positive risk after multiple comparisons
               STATS.fpr = pval2fpr (STATS.pval);
               % Clean-up
-              STATS = rmfield (STATS, {'std_err', 'tstat', 'sse'});
+              STATS = rmfield (STATS, {'tstat', 'sse'});
               STATS.prior = [];
             case {'bayes', 'bayesian'}
               switch (lower (PRIOR))
@@ -1250,7 +1251,16 @@ function [STATS, BOOTSTAT, AOVSTAT, PRED_ERR] = bootlm (Y, GROUP, varargin)
           % If requested, estimate Cohen's d standardized effect sizes having
           % accounted for other predictors in the model.
           if STANDARDIZE
-            SED = std (BOOTSTAT, 0, 2);
+            % Get estimates of the standard error of the differences
+            switch (lower (METHOD))
+              case 'wild'
+                % Use the HC1 standard errors
+                SED = STATS.std_err
+                STATS = rmfield (STATS, 'std_err');
+              case {'bayes', 'bayesian'}
+                % Use the standard deviation of the posterior distribution
+                SED = std (BOOTSTAT, 0, 2)
+            end
             % We would like to estimate standard deviation of the difference for
             % each comparison using the bootstrap standard error (rather than
             % calculate it directly from the samples) because this will allow
@@ -1294,6 +1304,13 @@ function [STATS, BOOTSTAT, AOVSTAT, PRED_ERR] = bootlm (Y, GROUP, varargin)
             STATS.CI_lower = STATS.CI_lower ./ pSD;
             STATS.CI_upper = STATS.CI_upper ./ pSD;
             BOOTSTAT = bsxfun (@rdivide, BOOTSTAT, pSD); 
+          else
+            switch (lower (METHOD))
+              case 'wild'
+                STATS = rmfield (STATS, 'std_err');
+              case {'bayes', 'bayesian'}
+                % Do nothing
+            end
           end
 
           % Create names of posthoc comparisons and assign to the output
