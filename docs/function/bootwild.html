@@ -3,7 +3,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
   <head>
   <meta http-equiv="content-type" content="text/html; charset=utf-8" />
-  <meta name="date" content="2024-05-24"/>
+  <meta name="date" content="2024-05-25"/>
   <meta name="generator" content="generate_html 0.3.3" />
   <meta name="author" content="Andrew Penn" />
   <meta name="description" content="A package for statistical analysis using resampling methods." />
@@ -42,7 +42,7 @@
      confidence intervals and p-values [1-4]. The following statistics are
      printed to the standard output:
         - original: the mean of the data vector y
-        - std_err: heteroscedasticity-consistent standard error(s) (HC0)
+        - std_err: heteroscedasticity-consistent standard error(s) (HC1)
         - CI_lower: lower bound(s) of the 95% bootstrap-t confidence interval
         - CI_upper: upper bound(s) of the 95% bootstrap-t confidence interval
         - tstat: Student's t-statistic
@@ -173,14 +173,14 @@ Bootstrap settings:
  Function: pinv (X) * y
  Resampling method: Wild bootstrap-t
  Number of resamples: 1999 
- Standard error calculations: Heteroscedasticity-Consistent (HC0)
+ Standard error calculations: Heteroscedasticity-Consistent (HC1)
  Confidence interval (CI) type: Symmetric bootstrap-t interval
  Nominal central coverage: 95%
  Null value (H0) used for hypothesis testing (p-values): 0 
 
 Test Statistics: 
  original     std_err      CI_lower     CI_upper     t-stat      p-val     FPR
- +184.5       +1.243       +181.6       +187.4       +148.       <.001    .010</pre>
+ +184.5       +1.310       +181.6       +187.4       +141.       <.001    .010</pre>
 </div>
 
 <h3><a name="2">Demonstration 2</a></h3>
@@ -211,15 +211,15 @@ Bootstrap settings:
  Function: pinv (X) * y
  Resampling method: Wild bootstrap-t
  Number of resamples: 1999 
- Standard error calculations: Heteroscedasticity-Consistent (HC0)
+ Standard error calculations: Heteroscedasticity-Consistent (HC1)
  Confidence interval (CI) type: Symmetric bootstrap-t interval
  Nominal central coverage: 95%
  Null value (H0) used for hypothesis testing (p-values): 0 
 
 Test Statistics: 
  original     std_err      CI_lower     CI_upper     t-stat      p-val     FPR
- +175.5       +2.502       +169.9       +181.1       +70.1       <.001    .010
- +0.1904      +0.08261     +0.005723    +0.3751      +2.31        .046    .277</pre>
+ +175.5       +2.563       +169.8       +181.2       +68.5       <.001    .010
+ +0.1904      +0.08460     +0.003534    +0.3773      +2.25        .047    .280</pre>
 </div>
 
 <p>Package: <a href="../index.html">statistics-resampling</a></p>

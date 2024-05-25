@@ -3,7 +3,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
   <head>
   <meta http-equiv="content-type" content="text/html; charset=utf-8" />
-  <meta name="date" content="2024-05-24"/>
+  <meta name="date" content="2024-05-25"/>
   <meta name="generator" content="generate_html 0.3.3" />
   <meta name="author" content="Andrew Penn" />
   <meta name="description" content="A package for statistical analysis using resampling methods." />
@@ -395,10 +395,11 @@
           bootstrap statistics for the comparisons are converted to estimates
           of Cohen's d standardized effect sizes. Cohen's d here is calculated
           from the residual standard deviation, which is estimated from the
-          bootstrap standard errors and the sample sizes. As such, the effect
-          sizes calculated exclude variability attributed to other predictors
-          in the model. To avoid small sample bias inflating effect sizes for
-          posthoc comparisons, use the 'bayesian' method with an 'auto' prior.
+          standard errors and the sample sizes. As such, the effect sizes
+          calculated exclude variability attributed to other predictors in
+          the model. To avoid small sample bias inflating effect sizes for
+          posthoc comparisons when use the 'bayesian' method, use the 'auto'
+          setting for the prior.
 
      '[...] = bootlm (Y, GROUP, ..., 'seed', SEED)' initialises the Mersenne
      Twister random number generator using an integer SEED value so that
