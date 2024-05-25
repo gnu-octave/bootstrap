@@ -1007,7 +1007,7 @@ function [STATS, BOOTSTAT, AOVSTAT, PRED_ERR] = bootlm (Y, GROUP, varargin)
           % Perform regression on full model using the specified contrasts
           [STATS, BOOTSTAT] = bootwild (Y, X, DEP, NBOOT, ALPHA, SEED, [], ...
                                         ISOCTAVE);
-          % Create additional fields in STATS structure
+          % Create empty fields in STATS structure
           STATS.N = N;
           STATS.prior = [];
           if (nargout > 2)
@@ -1026,7 +1026,7 @@ function [STATS, BOOTSTAT, AOVSTAT, PRED_ERR] = bootlm (Y, GROUP, varargin)
           [STATS, BOOTSTAT] = bootbayes (Y, X, DEP, NBOOT, ...
                                          fliplr (1 - ALPHA), PRIOR, SEED, ...
                                          [], ISOCTAVE);
-          % Create additional fields in STATS structure
+          % Create empty fields in STATS structure
           STATS.pval = [];
           STATS.fpr = [];
           STATS.N = N;
@@ -1105,7 +1105,7 @@ function [STATS, BOOTSTAT, AOVSTAT, PRED_ERR] = bootlm (Y, GROUP, varargin)
             case 'wild'
               [STATS, BOOTSTAT] = bootwild (Y, X, DEP, NBOOT, ALPHA, SEED, ...
                                             L, ISOCTAVE);
-              % Create additional fields in STATS structure
+              % Create empty fields in STATS structure
               STATS.prior = [];
             case {'bayes', 'bayesian'}
               switch (lower (PRIOR))
@@ -1140,7 +1140,7 @@ function [STATS, BOOTSTAT, AOVSTAT, PRED_ERR] = bootlm (Y, GROUP, varargin)
                                          fliplr (1 - ALPHA), PRIOR, SEED, ...
                                          L, ISOCTAVE);
               end
-              % Create additional fields in STATS structure
+              % Create empty fields in STATS structure
               STATS.pval = [];
               STATS.fpr = [];
             otherwise
@@ -1194,7 +1194,7 @@ function [STATS, BOOTSTAT, AOVSTAT, PRED_ERR] = bootlm (Y, GROUP, varargin)
               STATS.pval = holm (STATS.pval);
               % Update minimum false positive risk after multiple comparisons
               STATS.fpr = pval2fpr (STATS.pval);
-              % Create additional fields in STATS structure
+              % Create empty fields in STATS structure
               STATS.prior = [];
             case {'bayes', 'bayesian'}
               switch (lower (PRIOR))
@@ -1230,7 +1230,7 @@ function [STATS, BOOTSTAT, AOVSTAT, PRED_ERR] = bootlm (Y, GROUP, varargin)
                   [STATS, BOOTSTAT] = bootbayes (Y, X, DEP, NBOOT, ...
                             fliplr (1 - ALPHA), PRIOR, SEED, L, ISOCTAVE);
               end
-              % Create additional fields in STATS structure
+              % Create empty fields in STATS structure
               STATS.pval = [];
               STATS.fpr = [];
             otherwise
