@@ -229,9 +229,13 @@ function [stats, bootstat, bootsse, bootfit] = bootwild (y, X, ...
     clusters = [];
     method = '';
   end
-  % Calculate scale factor for HC1 or CR1 estimates
-  % See MacKinnon & Webb (2020) QED Working Paper Number 1421
-  scale = (G * (n - 1)) / ((G - 1) * (n - k));
+
+  % Calculate the finite sample correction for HC1 and CR1 estimates of sampling
+  % variance, which are required for the bootstrap-t method
+  % References:
+  %   MacKinnon & Webb (2020) QED Working Paper Number 1421
+  %   Cameron and Miller (2015) 50 (2) J Hum Resour 317-372 
+  c = (G / (G - 1)) * ((n - 1) / (n - k));
 
   % Evaluate number of bootstrap resamples
   if ( (nargin < 4) || (isempty (nboot)) )
@@ -293,7 +297,7 @@ function [stats, bootstat, bootsse, bootfit] = bootwild (y, X, ...
 
 
   % Create least squares anonymous function for bootstrap
-  bootfun = @(y) lmfit (X, y, ucov, clusters, scale, L, ISOCTAVE);
+  bootfun = @(y) lmfit (X, y, ucov, clusters, c, L, ISOCTAVE);
 
   % Calculate estimate(s)
   S = bootfun (y);
@@ -379,7 +383,7 @@ end
 
 % FUNCTION TO FIT THE LINEAR MODEL
 
-function S = lmfit (X, y, ucov, clusters, scale, L, ISOCTAVE)
+function S = lmfit (X, y, ucov, clusters, c, L, ISOCTAVE)
 
   % Get model coefficients by solving the linear equation by matrix arithmetic
 
@@ -405,9 +409,9 @@ function S = lmfit (X, y, ucov, clusters, scale, L, ISOCTAVE)
                   num2cell (clusters, 1), 'UniformOutput', false);
     meat = sum (cat (3, Sigma{:}), 3);
   end
-  % Calculate variance-covariacnce matrix including a scale factor to
-  % give HC1 or CR1 estimates
-  vcov = scale * ucov * meat * ucov;
+  % Calculate variance-covariacnce matrix including a finite sample correction
+  % factor to give HC1 or CR1 estimates
+  vcov = c * ucov * meat * ucov;
   S = struct; 
   if ( (nargin < 4) || isempty (L) )
     S.b = b;
