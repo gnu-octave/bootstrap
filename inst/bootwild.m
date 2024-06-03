@@ -450,7 +450,7 @@ function fpr = pval2fpr (p)
   % Calculate the false-positive risk from the minumum Bayes Factor
   L10 = 1 ./ minBF;      % Convert to Maximum Likelihood ratio L10 (P(H1)/P(H0))
   fpr = max (0, 1 ./ (1 + L10));  % Calculate minimum false positive risk 
-  fpr(isnan(p)) = NaN; 
+  fpr(isnan (p)) = NaN; 
 
 end
 

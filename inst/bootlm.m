@@ -377,7 +377,7 @@
 %          calculated exclude variability attributed to other predictors in
 %          the model. To avoid small sample bias inflating effect sizes for
 %          posthoc comparisons when use the 'bayesian' method, use the 'auto'
-%          setting for the prior.
+%          setting for the prior. 
 %
 %     '[...] = bootlm (Y, GROUP, ..., 'seed', SEED)' initialises the Mersenne
 %     Twister random number generator using an integer SEED value so that
@@ -393,8 +393,11 @@
 %       - 'CI_upper': The upper bound(s) of the confidence/credible interval(s)
 %       - 'pval': The p-value(s) for the hypothesis that the estimate(s) == 0
 %       - 'fpr': The minimum false positive risk (FPR) for each p-value
-%       - 'N': The number of independnet sampling units used to compute CIs
-%       - 'prior': The prior used for Bayesian bootstrap
+%       - 'N': The number of independent sampling units used to compute CIs
+%       - 'prior': The prior used for Bayesian bootstrap. This will return a
+%                  scalar for regression coeefficients, or a P x 1 or P x 2
+%                  matrix for estimated marginal means or posthoc tests
+%                  respectively, where P is the number of parameter estimates.
 %       - 'levels': A cell array with the levels of each predictor.
 %       - 'contrasts': A cell array of contrasts associated with each predictor.
 %
@@ -680,7 +683,7 @@ function [STATS, BOOTSTAT, AOVSTAT, PRED_ERR] = bootlm (Y, GROUP, varargin)
       GROUP(excl,:) = [];
     end
     Y(excl) = [];
-    if ((~ isempty(DEP)) && (~ isscalar(DEP)))
+    if ((~ isempty (DEP)) && (~ isscalar (DEP)))
       DEP(excl) = [];
     end
     n = numel (Y);     % Recalculate total number of observations
@@ -1111,34 +1114,43 @@ function [STATS, BOOTSTAT, AOVSTAT, PRED_ERR] = bootlm (Y, GROUP, varargin)
               switch (lower (PRIOR))
                 case 'auto'
                   PRIOR = 1 - 2 ./ N_dim;
-                  % Use parallel processing if it is available to accelerate
-                  % bootstrap computation for each column of the hypothesis
-                  % matrix.
-                  if (PARALLEL)
-                    if (ISOCTAVE)
-                      [STATS, BOOTSTAT] = pararrayfun (inf, @(i) bootbayes ( ...
-                                Y, X, DEP, NBOOT, fliplr (1 - ALPHA), ...
-                                PRIOR(i), SEED, L(:, i), ISOCTAVE), (1:Np)', ...
-                                'UniformOutput', false);
-                    else
-                      STATS = cell (Np, 1); BOOTSTAT = cell (Np, 1);
-                      parfor i = 1:Np
-                        [STATS{i}, BOOTSTAT{i}] =  bootbayes (Y, X, DEP, ...
-                                         NBOOT, fliplr (1 - ALPHA), ...
-                                         PRIOR(i), SEED, L(:, i), ISOCTAVE);
-                      end
-                    end
+                  if (all (PRIOR == PRIOR(1)))
+                    [STATS, BOOTSTAT] = bootbayes (Y, X, DEP, NBOOT, ...
+                             fliplr (1 - ALPHA), PRIOR(1), SEED, L, ISOCTAVE);
+                    STATS.prior = PRIOR;
                   else
-                    [STATS, BOOTSTAT] = arrayfun (@(i) bootbayes (Y, X, ...
-                           DEP, NBOOT, fliplr (1 - ALPHA), PRIOR(i), SEED, ...
-                           L(:, i), ISOCTAVE), (1:Np)', 'UniformOutput', false);
+                    % If the prior is not the same across all the samples then
+                    % we need to perform a separate simulation for each sample.
+                    % Use parallel processing if it is available to accelerate
+                    % bootstrap computation for each column of the hypothesis
+                    % matrix.
+                    if (PARALLEL)
+                      if (ISOCTAVE)
+                        [STATS, BOOTSTAT] = pararrayfun (inf, @(i) bootbayes ( ...
+                                  Y, X, DEP, NBOOT, fliplr (1 - ALPHA), ...
+                                  PRIOR(i), SEED, L(:, i), ISOCTAVE), (1:Np)', ...
+                                  'UniformOutput', false);
+                      else
+                        STATS = cell (Np, 1); BOOTSTAT = cell (Np, 1);
+                        parfor i = 1:Np
+                          [STATS{i}, BOOTSTAT{i}] =  bootbayes (Y, X, DEP, ...
+                                           NBOOT, fliplr (1 - ALPHA), ...
+                                           PRIOR(i), SEED, L(:, i), ISOCTAVE);
+                        end
+                      end
+                    else
+                      [STATS, BOOTSTAT] = arrayfun (@(i) bootbayes (Y, X, ...
+                             DEP, NBOOT, fliplr (1 - ALPHA), PRIOR(i), SEED, ...
+                             L(:, i), ISOCTAVE), (1:Np)', 'UniformOutput', false);
+                    end
+                    STATS = flatten_struct (cell2mat (STATS));
+                    BOOTSTAT = cell2mat (BOOTSTAT);
                   end
-                  STATS = flatten_struct (cell2mat (STATS));
-                  BOOTSTAT = cell2mat (BOOTSTAT);
                 otherwise
                   [STATS, BOOTSTAT] = bootbayes (Y, X, DEP, NBOOT, ...
                                          fliplr (1 - ALPHA), PRIOR, SEED, ...
                                          L, ISOCTAVE);
+                  STATS.prior = PRIOR * ones (Np, 1);
               end
               % Create empty fields in STATS structure
               STATS.pval = [];
@@ -1166,7 +1178,6 @@ function [STATS, BOOTSTAT, AOVSTAT, PRED_ERR] = bootlm (Y, GROUP, varargin)
                                ' control group for ''trt_vs_ctrl'''))
               end
               pairs = feval (POSTHOC{1}, L, POSTHOC{2:end});
-              L = make_test_matrix (L, pairs);
               POSTHOC = POSTHOC{1};
             case 'char'
               if (strcmp (POSTHOC, 'trt.vs.ctrl'))
@@ -1176,18 +1187,18 @@ function [STATS, BOOTSTAT, AOVSTAT, PRED_ERR] = bootlm (Y, GROUP, varargin)
                                ' ''pairwise'' and ''trt_vs_ctrl'''))
               end
               pairs = feval (POSTHOC, L);
-              L = make_test_matrix (L, pairs);
             otherwise
               pairs = unique_stable (POSTHOC, 'rows');
               if (size (pairs, 2) > 2)
                 error (cat (2, 'bootlm: pairs matrix defining posthoc', ...
                                ' comparisons must have exactly two columns'))
               end
-              L = make_test_matrix (L, pairs);
           end
-          Np = size (pairs, 1);  % Update the number of parameters
           switch (lower (METHOD))
             case 'wild'
+              % Modifying the hypothesis matrix (L) to perform the desired tests
+              L = make_test_matrix (L, pairs);
+              Np = size (pairs, 1);    % Update the number of parameters
               [STATS, BOOTSTAT] = bootwild (Y, X, DEP, NBOOT, ALPHA, SEED, ...
                                             L, ISOCTAVE);
               % Control the type 1 error rate across multiple comparisons
@@ -1199,40 +1210,70 @@ function [STATS, BOOTSTAT, AOVSTAT, PRED_ERR] = bootlm (Y, GROUP, varargin)
             case {'bayes', 'bayesian'}
               switch (lower (PRIOR))
                 case 'auto'
-                  wgt = bsxfun (@rdivide, N_dim(pairs')', ...
-                                sum (N_dim(pairs')', 2));
-                  PRIOR = sum ((1 - wgt) .* (1 - 2 ./ N_dim(pairs')'), 2);
-                  % Use parallel processing if it is available to accelerate
-                  % bootstrap computation for each column of the hypothesis
-                  % matrix.
-                  if (PARALLEL)
-                    if (ISOCTAVE)
-                      [STATS, BOOTSTAT] = pararrayfun (inf, @(i) bootbayes ( ...
-                                Y, X, DEP, NBOOT, fliplr (1 - ALPHA), ...
-                                PRIOR(i), SEED, L(:, i), ISOCTAVE), (1:Np)', ...
-                                'UniformOutput', false);
-                    else
-                      STATS = cell (Np, 1); BOOTSTAT = cell (Np, 1);
-                      parfor i = 1:Np
-                        [STATS{i}, BOOTSTAT{i}] =  bootbayes (Y, X, DEP, ...
-                                         NBOOT, fliplr (1 - ALPHA), ...
-                                         PRIOR(i), SEED, L(:, i), ISOCTAVE);
-                      end
-                    end
+                  % To enable the 'auto' prior to be set independently on each
+                  % sample, we use the hypothesis matrix (L) already generated
+                  % to compute the posterior distributions for the estimated
+                  % marginal means each with their own prior. Later, we will
+                  % perform elementwise subtraction for each pair of posterior
+                  % distributions to find the differences
+                  PRIOR = 1 - 2 ./ N_dim;
+                  if (all (PRIOR == PRIOR(1)))
+                    [STATS, BOOTSTAT] = bootbayes (Y, X, DEP, NBOOT, ...
+                             fliplr (1 - ALPHA), PRIOR(1), SEED, L, ISOCTAVE);
                   else
-                    [STATS, BOOTSTAT] = arrayfun (@(i) bootbayes (Y, X, ...
-                           DEP, NBOOT, fliplr (1 - ALPHA), PRIOR(i), SEED, ...
-                           L(:, i), ISOCTAVE), (1:Np)', 'UniformOutput', false);
+                    % If the prior is not the same across all the samples then
+                    % we need to perform a separate simulation for each sample.
+                    % Use parallel processing if it is available to accelerate
+                    % bootstrap computation for each column of the hypothesis
+                    % matrix.
+                    if (PARALLEL)
+                      if (ISOCTAVE)
+                        [STATS, BOOTSTAT] = pararrayfun (inf, @(i) bootbayes ( ...
+                                  Y, X, DEP, NBOOT, fliplr (1 - ALPHA), ...
+                                  PRIOR(i), SEED, L(:, i), ISOCTAVE), (1:Np)', ...
+                                  'UniformOutput', false);
+                      else
+                        STATS = cell (Np, 1); BOOTSTAT = cell (Np, 1);
+                        parfor i = 1:Np
+                          [STATS{i}, BOOTSTAT{i}] =  bootbayes (Y, X, DEP, ...
+                                           NBOOT, fliplr (1 - ALPHA), ...
+                                           PRIOR(i), SEED, L(:, i), ISOCTAVE);
+                        end
+                      end
+                    else
+                      [STATS, BOOTSTAT] = arrayfun (@(i) bootbayes (Y, X, ...
+                             DEP, NBOOT, fliplr (1 - ALPHA), PRIOR(i), SEED, ...
+                             L(:, i), ISOCTAVE), (1:Np)', 'UniformOutput', false);
+                    end
+                    STATS = flatten_struct (cell2mat (STATS));
+                    BOOTSTAT = cell2mat (BOOTSTAT);
                   end
-                  STATS = flatten_struct (cell2mat (STATS));
-                  BOOTSTAT = cell2mat (BOOTSTAT);
                 otherwise
+                  % Compute the posterior distributions for the estimated
+                  % marginal means each with the PRIOR. Later, we will perform
+                  % elementwise subtraction for each pair of posterior
+                  % distributions to find the differences
                   [STATS, BOOTSTAT] = bootbayes (Y, X, DEP, NBOOT, ...
-                            fliplr (1 - ALPHA), PRIOR, SEED, L, ISOCTAVE);
+                                         fliplr (1 - ALPHA), PRIOR, SEED, ...
+                                         L, ISOCTAVE);
               end
               % Create empty fields in STATS structure
               STATS.pval = [];
               STATS.fpr = [];
+              % Calculate estimates and credible intervals from the estimated
+              % marginal means and their associated posterior distributions
+              Np = size (pairs, 1);    % Update the number of parameters
+              STATS.original = bsxfun (@minus, STATS.original(pairs(:, 1), :), ...
+                                               STATS.original(pairs(:, 2), :));
+              BOOTSTAT = bsxfun (@minus, BOOTSTAT(pairs(:, 1),:), ...
+                                         BOOTSTAT(pairs(:, 2),:));
+              CI = credint (BOOTSTAT, fliplr (1 - ALPHA));
+              STATS.CI_lower = CI(:,1); STATS.CI_upper = CI(:,2);
+              if (isscalar (PRIOR))
+                STATS.prior = PRIOR * ones (Np, 2);
+              else
+                STATS.prior = cat (2, PRIOR(pairs(:, 1)), PRIOR(pairs(:, 2)));
+              end
             otherwise
               error (cat (2, 'bootlm: unrecignised bootstrap method.', ...
                              ' Use ''wild'' or ''bayesian''.'))
@@ -1347,9 +1388,16 @@ function [STATS, BOOTSTAT, AOVSTAT, PRED_ERR] = bootlm (Y, GROUP, varargin)
         % If applicable, print parameter estimates (a.k.a contrasts) for fixed
         % effects. Parameter estimates correspond to the contrasts we set.
         if (isempty (DIM))
+          switch (lower (METHOD))
+            case 'wild'
+              p_str = 'p-val';
+            case {'bayes', 'bayesian'}
+              p_str = '     ';
+          end
           fprintf ('\nMODEL COEFFICIENTS\n\n');
+          
           fprintf (cat (2, 'name                                   coeff', ...
-                           '       CI_lower    CI_upper    p-val\n'));
+                           '       CI_lower    CI_upper    %s\n'), p_str);
           fprintf (cat (2, '--------------------------------------------', ...
                            '------------------------------------\n'));
         else
@@ -1361,9 +1409,15 @@ function [STATS, BOOTSTAT, AOVSTAT, PRED_ERR] = bootlm (Y, GROUP, varargin)
               fprintf (cat (2, '---------------------------------------', ...
                                '-----------------------------------------\n'));
             otherwise
+              switch (lower (METHOD))
+                case 'wild'
+                  p_str = 'p-adj';
+                case {'bayes', 'bayesian'}
+                  p_str = '     ';
+              end
               fprintf ('\nMODEL POSTHOC COMPARISONS\n\n');
               fprintf (cat (2, 'name                                   ', ...
-                               'mean        CI_lower    CI_upper    p-adj\n'));
+                            'mean        CI_lower    CI_upper   %s\n'), p_str);
               fprintf (cat (2, '---------------------------------------', ...
                                '-----------------------------------------\n'));
           end
