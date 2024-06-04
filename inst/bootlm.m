@@ -2773,8 +2773,7 @@ end
 %! % a big effect on standard errors, confidence intervals and p-values for the
 %! % parameters. One way to estimate p-values and the precision of parameter
 %! % estimates for fixed effects in nested designs is to fit a mixed linear
-%! % model. Another way, as we do so here, is to fit a linear model but
-%! % calculate standard errors, confidence intervals and p-values using
+%! % model. Another way, as we do so here, is to fit a linear model using
 %! % bootstrap with clustered resampling.
 %!
 %! % Nested model example from:
@@ -2798,17 +2797,7 @@ end
 %! fprintf ('F(%u,%u) = %.2f, p = %.3g for the model: %s\n', ...
 %!            AOVSTAT.DF(1), AOVSTAT.DFE, AOVSTAT.F(1), ...
 %!            AOVSTAT.PVAL(1), AOVSTAT.MODEL{1});
-%!
-%! % Note that with only two clusters per factor wild bootstrap will give very
-%! % unstable confidence intervals, but we can instead use Bayesian bootstrap
-%! % with the 'auto' prior to get credible intervals for the group comparisons.
-%! STATS = bootlm (data, {group}, 'clustid', clustid, 'display', 'on', ...
-%!                                'dim', 1, 'posthoc', 'pairwise', ...
-%!                                'method', 'bayesian', 'prior', 'auto');
-%!
-%! % And similarly for the estimated marginal means.
-%! STATS = bootlm (data, {group}, 'clustid', clustid, 'display', 'on', ...
-%!                      'dim', 1, 'method', 'bayesian', 'prior', 'auto');
+
 
 %!demo
 %!
