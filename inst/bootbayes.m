@@ -358,6 +358,8 @@ function [stats, bootstat] = bootbayes (Y, X, dep, nboot, prob, prior, seed, ...
     end
   else
     % Haldane prior
+    warning (cat (2, 'bootbayes: PRIOR value has been set to 0 - the', ...
+                     ' posterior will contain relatively few unique values.'))
     r = zeros (N, nboot);
     idx = fix (rand (1, nboot) * N + (1:N:(nboot * N)));
     r(idx)=1;
