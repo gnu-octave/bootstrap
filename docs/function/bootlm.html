@@ -3,7 +3,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
   <head>
   <meta http-equiv="content-type" content="text/html; charset=utf-8" />
-  <meta name="date" content="2024-05-25"/>
+  <meta name="date" content="2024-06-04"/>
   <meta name="generator" content="generate_html 0.3.3" />
   <meta name="author" content="Andrew Penn" />
   <meta name="description" content="A package for statistical analysis using resampling methods." />
@@ -399,7 +399,7 @@
           calculated exclude variability attributed to other predictors in
           the model. To avoid small sample bias inflating effect sizes for
           posthoc comparisons when use the 'bayesian' method, use the 'auto'
-          setting for the prior.
+          setting for the prior. 
 
      '[...] = bootlm (Y, GROUP, ..., 'seed', SEED)' initialises the Mersenne
      Twister random number generator using an integer SEED value so that
@@ -415,8 +415,11 @@
        - 'CI_upper': The upper bound(s) of the confidence/credible interval(s)
        - 'pval': The p-value(s) for the hypothesis that the estimate(s) == 0
        - 'fpr': The minimum false positive risk (FPR) for each p-value
-       - 'N': The number of independnet sampling units used to compute CIs
-       - 'prior': The prior used for Bayesian bootstrap
+       - 'N': The number of independent sampling units used to compute CIs
+       - 'prior': The prior used for Bayesian bootstrap. This will return a
+                  scalar for regression coeefficients, or a P x 1 or P x 2
+                  matrix for estimated marginal means or posthoc tests
+                  respectively, where P is the number of parameter estimates.
        - 'levels': A cell array with the levels of each predictor.
        - 'contrasts': A cell array of contrasts associated with each predictor.
 
@@ -554,7 +557,7 @@ score ~ 1 + gender
 
 MODEL POSTHOC COMPARISONS
 
-name                                   mean        CI_lower    CI_upper    p-adj
+name                                   mean        CI_lower    CI_upper   p-adj
 --------------------------------------------------------------------------------
 female - male                          +10.80      -8.779      +30.38       .239
 
@@ -565,11 +568,11 @@ score ~ 1 + gender
 
 MODEL POSTHOC COMPARISONS
 
-name                                   mean        CI_lower    CI_upper    p-adj
+name                                   mean        CI_lower    CI_upper        
 --------------------------------------------------------------------------------
-female - male                          +0.7425     -0.4456     +1.888           
+female - male                          +0.7385     -0.4357     +1.896           
 
-Cohen's d [95% CI] = 0.74 [-0.45, 1.89] (N = 11)
+Cohen's d [95% CI] = 0.74 [-0.44, 1.90] (N = 11)
 
 
 MODEL FORMULA (based on Wilkinson's notation):
@@ -650,7 +653,7 @@ score ~ 1 + subject + treatment
 
 MODEL POSTHOC COMPARISONS
 
-name                                   mean        CI_lower    CI_upper    p-adj
+name                                   mean        CI_lower    CI_upper   p-adj
 --------------------------------------------------------------------------------
 after - before                         +1.460      +0.6601     +2.260       .002
 
@@ -661,7 +664,7 @@ score ~ 1 + treatment
 
 MODEL POSTHOC COMPARISONS
 
-name                                   mean        CI_lower    CI_upper    p-adj
+name                                   mean        CI_lower    CI_upper        
 --------------------------------------------------------------------------------
 after - before                         +2.377      +1.160      +3.552           
 
@@ -730,7 +733,7 @@ strength ~ 1 + alloy
 
 MODEL POSTHOC COMPARISONS
 
-name                                   mean        CI_lower    CI_upper    p-adj
+name                                   mean        CI_lower    CI_upper   p-adj
 --------------------------------------------------------------------------------
 st - al1                               +7.000      +3.837      +10.19      <.001
 st - al2                               +5.000      +2.563      +7.519      <.001
@@ -816,7 +819,7 @@ words ~ 1 + subject + seconds
 
 MODEL POSTHOC COMPARISONS
 
-name                                   mean        CI_lower    CI_upper    p-adj
+name                                   mean        CI_lower    CI_upper   p-adj
 --------------------------------------------------------------------------------
 1 - 2                                  -2.000      -2.715      -1.268      <.001
 1 - 5                                  -3.200      -3.864      -2.564      <.001
@@ -919,7 +922,7 @@ popcorn ~ 1 + brands + popper + brands:popper
 
 MODEL POSTHOC COMPARISONS
 
-name                                   mean        CI_lower    CI_upper    p-adj
+name                                   mean        CI_lower    CI_upper   p-adj
 --------------------------------------------------------------------------------
 Gourmet - National                     +1.500      +1.128      +1.872      <.001
 Gourmet - Generic                      +2.250      +1.700      +2.800      <.001
@@ -945,7 +948,7 @@ popcorn ~ 1 + brands + popper + brands:popper
 
 MODEL POSTHOC COMPARISONS
 
-name                                   mean        CI_lower    CI_upper    p-adj
+name                                   mean        CI_lower    CI_upper   p-adj
 --------------------------------------------------------------------------------
 oil - air                              -1.000      -1.387      -0.6126     <.001
 
@@ -1047,7 +1050,7 @@ score ~ 1 + gender + score + gender:score
 
 MODEL POSTHOC COMPARISONS
 
-name                                   mean        CI_lower    CI_upper    p-adj
+name                                   mean        CI_lower    CI_upper   p-adj
 --------------------------------------------------------------------------------
 f, 0 - m, 0                            -6.250      -15.29      +2.670       .291
 f, 2 - m, 2                            -4.375      -15.22      +6.147       .398
@@ -1060,7 +1063,7 @@ score ~ 1 + gender + score + gender:score
 
 MODEL POSTHOC COMPARISONS
 
-name                                   mean        CI_lower    CI_upper    p-adj
+name                                   mean        CI_lower    CI_upper   p-adj
 --------------------------------------------------------------------------------
 f, 0 - f, 2                            -1.875      -8.048      +4.133      1.000
 f, 2 - f, 4                            +5.000      -2.170      +12.04       .638
@@ -1228,7 +1231,7 @@ salary ~ 1 + gender + degree + gender:degree
 
 MODEL COEFFICIENTS
 
-name                                   coeff       CI_lower    CI_upper    p-val
+name                                   coeff       CI_lower    CI_upper         
 --------------------------------------------------------------------------------
 (Intercept)                            +25.00      +24.11      +25.92           
 gender_1                               +2.000      +0.2268     +3.812           
@@ -1422,7 +1425,7 @@ pulse ~ 1 + temp + species
 
 MODEL POSTHOC COMPARISONS
 
-name                                   mean        CI_lower    CI_upper    p-adj
+name                                   mean        CI_lower    CI_upper   p-adj
 --------------------------------------------------------------------------------
 niv - ex                               -10.07      -11.41      -8.716      <.001
 
@@ -1544,7 +1547,7 @@ BP ~ 1 + diet + drug + feedback + diet:drug + diet:feedback + drug:feedback + di
 
 MODEL POSTHOC COMPARISONS
 
-name                                   mean        CI_lower    CI_upper    p-adj
+name                                   mean        CI_lower    CI_upper   p-adj
 --------------------------------------------------------------------------------
 1, X, 1 - 0, X, 1                      +1.000      -15.45      +17.45      1.000
 0, Y, 1 - 0, X, 1                      +36.00      +21.52      +50.48       .002
@@ -1690,7 +1693,7 @@ score ~ 1 + age + exercise + treatment + exercise:treatment
 
 MODEL POSTHOC COMPARISONS
 
-name                                   mean        CI_lower    CI_upper    p-adj
+name                                   mean        CI_lower    CI_upper   p-adj
 --------------------------------------------------------------------------------
 mid, yes - lo, yes                     +0.01746    -5.617      +5.652      1.000
 hi, yes - lo, yes                      -13.70      -18.46      -8.949      <.001
@@ -1802,8 +1805,7 @@ name                                   mean        CI_lower    CI_upper        N
  % a big effect on standard errors, confidence intervals and p-values for the
  % parameters. One way to estimate p-values and the precision of parameter
  % estimates for fixed effects in nested designs is to fit a mixed linear
- % model. Another way, as we do so here, is to fit a linear model but
- % calculate standard errors, confidence intervals and p-values using
+ % model. Another way, as we do so here, is to fit a linear model using
  % bootstrap with clustered resampling.
 
  % Nested model example from:
@@ -1826,54 +1828,10 @@ name                                   mean        CI_lower    CI_upper        N
  fprintf ('ANOVA SUMMARY\n')
  fprintf ('F(%u,%u) = %.2f, p = %.3g for the model: %s\n', ...
             AOVSTAT.DF(1), AOVSTAT.DFE, AOVSTAT.F(1), ...
-            AOVSTAT.PVAL(1), AOVSTAT.MODEL{1});
-
- % Note that with only two clusters per factor wild bootstrap will give very
- % unstable confidence intervals, but we can instead use Bayesian bootstrap
- % with the 'auto' prior to get credible intervals for the group comparisons.
- STATS = bootlm (data, {group}, 'clustid', clustid, 'display', 'on', ...
-                                'dim', 1, 'posthoc', 'pairwise', ...
-                                'method', 'bayesian', 'prior', 'auto');
-
- % And similarly for the estimated marginal means.
- STATS = bootlm (data, {group}, 'clustid', clustid, 'display', 'on', ...
-                      'dim', 1, 'method', 'bayesian', 'prior', 'auto');</pre>
+            AOVSTAT.PVAL(1), AOVSTAT.MODEL{1});</pre>
 <p>Produces the following output</p>
 <pre class="example">ANOVA SUMMARY
-F(2,21) = 17.08, p = 0.018 for the model: data ~ 1 + X1
-
-MODEL FORMULA (based on Wilkinson's notation):
-
-data ~ 1 + X1
-
-MODEL POSTHOC COMPARISONS
-
-name                                   mean        CI_lower    CI_upper    p-adj
---------------------------------------------------------------------------------
-A - B                                  -6.650      -13.50      +0.1989          
-A - C                                  -13.65      -22.60      -4.702           
-B - C                                  -6.999      -22.18      +8.184           
-
-
-MODEL FORMULA (based on Wilkinson's notation):
-
-data ~ 1 + X1
-
-MODEL ESTIMATED MARGINAL MEANS
-
-name                                   mean        CI_lower    CI_upper        N
---------------------------------------------------------------------------------
-A                                      +3.835      -2.475      +10.14          2
-B                                      +10.48      +3.805      +17.16          2
-C                                      +17.48      +2.735      +32.23          2</pre>
-<p>and the following figure</p>
-<p><table class="images">
-<tr>
-<th class="images">Figure 1</th>
-</tr><tr>
-<td class="images"><img src="images/bootlm_1301.png" class="demo"/></td>
-</tr></table>
-</p>
+F(2,21) = 17.08, p = 0.018 for the model: data ~ 1 + X1</pre>
 </div>
 
 <h3><a name="14">Demonstration 14</a></h3>
