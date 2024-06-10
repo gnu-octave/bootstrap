@@ -464,6 +464,7 @@
 %       - 'PE': Bootstrap estimate of prediction error
 %       - 'PRESS': Bootstrap estimate of predicted residual error sum of squares
 %       - 'RSQ_pred': Bootstrap estimate of predicted R-squared
+%       - 'RL': Relative likelihood compared to the intercept-only model
 %
 %       The linear models evaluated are the same as for AOVSTAT, except that the 
 %       output also includes the statistics for the intercept-only model. Note
@@ -478,7 +479,7 @@
 %       installed and loaded, then these computations will be automatically
 %       accelerated by parallel processing on platforms with multiple processors
 %
-%  bootlm (version 2024.05.17)
+%  bootlm (version 2024.06.10)
 %  Author: Andrew Charles Penn
 %  https://www.researchgate.net/profile/Andrew_Penn/
 %
@@ -2131,9 +2132,12 @@ function PRED_ERR = booterr (Y, X, DF, n, DEP, NBOOT, ALPHA, SEED, ...
   SST = RSS{1};                               % Total sum of squares
   PE_RSQ = 1 - PRESS / SST;                   % Predicted R-squared calculated 
                                               % by refined bootstrap
+  RL = exp (-0.5 * (PE - PE(1)));             % Relative likelihood (compared
+                                              % to the intercept-only model)
 
   % Prepare output
-  PRED_ERR = struct ('MODEL', [], 'PE', PE, 'PRESS', PRESS, 'RSQ_pred', PE_RSQ);
+  PRED_ERR = struct ('MODEL', [], 'PE', PE, 'PRESS', PRESS, 'RSQ_pred', ...
+                     PE_RSQ, 'RL', RL);
 
 end
 
