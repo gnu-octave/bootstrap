@@ -464,6 +464,9 @@
 %       - 'PE': Bootstrap estimate of prediction error
 %       - 'PRESS': Bootstrap estimate of predicted residual error sum of squares
 %       - 'RSQ_pred': Bootstrap estimate of predicted R-squared
+%       - 'EIC': Extended (Efron) Information Criterion
+%       - 'RL': Relative likelihood (compared to the intercept-only model)
+%       - 'Wt': Prediction error expressed as weights
 %
 %       The linear models evaluated are the same as for AOVSTAT, except that the 
 %       output also includes the statistics for the intercept-only model. Note
@@ -2125,6 +2128,20 @@ function PRED_ERR = booterr (Y, X, DF, n, DEP, NBOOT, ALPHA, SEED, ...
   OPTIM = S_ERR - A_ERR;                      % Optimism in apparent error
   PE = cell2mat (RSS) / n + sum (OPTIM, 2) / NBOOT;
 
+  % Compute the Extended (Efron) Information Criterion, weights and relative
+  % liklihood
+  % See Konishi & Kitagawa, "Bootstrap Information Criterion". In: Information 
+  % Criteria and Statistical Modeling. Springer Series in Statistics. Springer, NY.
+  LogLik = @(var) -n / 2 * log (2 * pi) - n / 2 * log (var) - n / 2;
+  S_LL = LogLik (S_ERR);            % Simple estimate of expected log-likelihood
+  A_LL = LogLik (A_ERR);            % Apparent estimates of log-likelihood
+  b = sum (A_LL - S_LL, 2) / NBOOT; % Bootstrap bias estimate of log-likelihood
+  LL = LogLik (cell2mat (RSS) / n); % Log-likelihood of model on original sample
+  EIC = -2 * LL + 2 * b;            % Extended (Efron) Information Criterion
+  RL = exp (0.5 * (EIC(1) - EIC));  % Relative likelihood compared to intercept-
+                                    % only model: exp (0.5 * (EIC[H0] - EIC[H1]))
+  Wt = RL / sum (RL);               % EIC weights
+
   % Transform prediction errors to predicted R-squared statistics
   PRESS = PE * n;                             % Bootstrap estimate of predicted 
                                               % residual error sum of squares
@@ -2133,7 +2150,8 @@ function PRED_ERR = booterr (Y, X, DF, n, DEP, NBOOT, ALPHA, SEED, ...
                                               % by refined bootstrap
 
   % Prepare output
-  PRED_ERR = struct ('MODEL', [], 'PE', PE, 'PRESS', PRESS, 'RSQ_pred', PE_RSQ);
+  PRED_ERR = struct ('MODEL', [], 'PE', PE, 'PRESS', PRESS, ...
+                     'RSQ_pred', PE_RSQ, 'EIC', EIC, 'RL', RL, 'Wt', Wt);
 
 end
 
@@ -2801,8 +2819,9 @@ end
 
 %!demo
 %!
-%! % Prediction errors of linear models. Data from Table 9.1, on page 107 of
-%! % Efron and Tibshirani (1993) An Introduction to the Bootstrap.
+%! % Prediction errors and information criteria of linear models.
+%! % Data from Table 9.1, on page 107 of Efron and Tibshirani (1993)
+%! % An Introduction to the Bootstrap.
 %!
 %! amount = [25.8; 20.5; 14.3; 23.2; 20.6; 31.1; 20.9; 20.9; 30.4; ...
 %!          16.3; 11.6; 11.8; 32.5; 32.0; 18.0; 24.1; 26.5; 25.8; ...
@@ -2828,6 +2847,17 @@ end
 %! % Efron and Tibhirani (1993) using the same refined bootstrap procedure,
 %! % because they have used case resampling whereas we have used wild bootstrap
 %! % resampling. The equivalent value of Cp (eq. to AIC) statistic is 2.96.
+%!
+%! PRED_ERR
+%!
+%! % The results from the bootstrap are broadly consistent to the results
+%! % obtained for Akaike's Information Criterion (AIC, computed in R with the
+%! % AIC function from the 'stats' package):
+%! %
+%! %     MODEL                                     AIC       EIC
+%! %     amount ~ 1                             180.17    178.41
+%! %     amount ~ 1 + hrs                       127.33    125.00
+%! %     amount ~ 1 + hrs + lot                 107.85    106.36
 
 %!demo
 %!
@@ -2884,12 +2914,15 @@ end
 %! % The results from the bootstrap are broadly consistent to the results
 %! % obtained for PE, PRESS and RSQ_pred using cross-validation:
 %! %
-%! %     MODEL                                  PE-CV    PRESS-CV  RSQ_pred-CV
+%! %     MODEL                                   PE-CV    PRESS-CV  RSQ_pred-CV
 %! %     sr ~ 1                                  20.48    1024.186       -0.041
 %! %     sr ~ 1 + pop15                          16.88     843.910       +0.142
 %! %     sr ~ 1 + pop15 + pop75                  16.62     830.879       +0.155
 %! %     sr ~ 1 + pop15 + pop75 + dpi            16.54     827.168       +0.159
 %! %     sr ~ 1 + pop15 + pop75 + dpi + ddpi     15.98     798.939       +0.188
+%!
+%! % Relative likelihood of the nested models (exluding intercept-only model)
+%! PRED_ERR.RL(2:end) ./ PRED_ERR.RL(1:end-1)
 
 %!test
 %!
