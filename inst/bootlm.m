@@ -436,7 +436,7 @@
 %       model used for comparison for each model is the model listed directly
 %       above it in AOVSTAT; for the first model, the null model is the
 %       intercept-only model. Note that ANOVA statistics are only returned when
-%       the method used is wild bootstrap AND when no other statistics are
+%       the method used is 'wild' bootstrap AND when no other statistics are
 %       requested (i.e. estimated marginal means or posthoc tests). The
 %       bootstrap is achieved by wild bootstrap of the residuals from the full
 %       model. Computations of the statistics in AOVSTAT are compatible with
@@ -466,16 +466,16 @@
 %       - 'RSQ_pred': Bootstrap estimate of predicted R-squared
 %       - 'EIC': Extended (Efron) Information Criterion
 %       - 'RL': Relative likelihood (compared to the intercept-only model)
-%       - 'Wt': Prediction error expressed as weights
+%       - 'Wt': EIC expressed as weights
 %
 %       The linear models evaluated are the same as for AOVSTAT, except that the 
 %       output also includes the statistics for the intercept-only model. Note
-%       that PRED_ERR statistics are only returned when the method used is wild
-%       bootstrap AND when no other statistics are requested (i.e. estimated
-%       marginal means or posthoc tests). Computations of the statistics in
-%       PRED_ERR are compatible with the 'clustid' and 'blocksz' options. Note
-%       that it is possible (and not unusual) to get a negative value for RSQ-
-%       pred, particularly for the intercept-only (i.e. first) model.
+%       that PRED_ERR statistics are only returned when the method used is
+%       'wild' bootstrap AND when no other statistics are requested (i.e.
+%       estimated marginal means or posthoc tests). Computations of the
+%       statistics in PRED_ERR are compatible with the 'clustid' and 'blocksz'
+%        options. Note that it is possible (and not unusual) to get a negative
+%       value for RSQ-pred, particularly for the intercept-only model.
 %
 %     * If the parallel computing toolbox (Matlab) or package (Octave) is
 %       installed and loaded, then these computations will be automatically
