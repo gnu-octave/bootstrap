@@ -2129,10 +2129,11 @@ function PRED_ERR = booterr (Y, X, DF, n, DEP, NBOOT, ALPHA, SEED, ...
   PE = cell2mat (RSS) / n + sum (OPTIM, 2) / NBOOT;
 
   % Compute the Extended (Efron) Information Criterion, weights and relative
-  % liklihood
+  % liklihood. Uses simplified formula to calculate the log-likelihood from the
+  % variance (with denominator n) of the the residuals from a fitted linear model.
   % See Konishi & Kitagawa, "Bootstrap Information Criterion". In: Information 
   % Criteria and Statistical Modeling. Springer Series in Statistics. Springer, NY.
-  LogLik = @(var) -n / 2 * log (2 * pi) - n / 2 * log (var) - n / 2;
+  LogLik = @(var) 0.5 * (-n * (log (2 * pi) + log (var) + 1));
   S_LL = LogLik (S_ERR);            % Simple estimate of expected log-likelihood
   A_LL = LogLik (A_ERR);            % Apparent estimates of log-likelihood
   b = sum (A_LL - S_LL, 2) / NBOOT; % Bootstrap bias estimate of log-likelihood
