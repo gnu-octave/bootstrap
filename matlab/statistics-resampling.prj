@@ -1,5 +1,5 @@
 <deployment-project plugin="plugin.toolbox" plugin-version="1.0">
-  <configuration build-checksum="1289251195" file="Y:\Documents\GitHub\statistics-resampling\matlab\statistics-resampling.prj" location="Y:\Documents\GitHub\statistics-resampling\matlab" name="statistics-resampling" target="target.toolbox" target-name="Package Toolbox">
+  <configuration build-checksum="3757329451" file="Y:\Documents\GitHub\statistics-resampling\matlab\statistics-resampling.prj" location="Y:\Documents\GitHub\statistics-resampling\matlab" name="statistics-resampling" target="target.toolbox" target-name="Package Toolbox">
     <param.appname>statistics-resampling</param.appname>
     <param.authnamewatermark>Andrew Penn</param.authnamewatermark>
     <param.email>andy.c.penn@gmail.com</param.email>
@@ -53,11 +53,6 @@
     </fileset.rootdir>
     <fileset.rootfiles>
       <file>Y:\Documents\GitHub\statistics-resampling\inst\boot.m</file>
-      <file>Y:\Documents\GitHub\statistics-resampling\inst\boot.mexa64</file>
-      <file>Y:\Documents\GitHub\statistics-resampling\inst\boot.mexmaca64</file>
-      <file>Y:\Documents\GitHub\statistics-resampling\inst\boot.mexmaci64</file>
-      <file>Y:\Documents\GitHub\statistics-resampling\inst\boot.mexw32</file>
-      <file>Y:\Documents\GitHub\statistics-resampling\inst\boot.mexw64</file>
       <file>Y:\Documents\GitHub\statistics-resampling\inst\boot1way.m</file>
       <file>Y:\Documents\GitHub\statistics-resampling\inst\bootbayes.m</file>
       <file>Y:\Documents\GitHub\statistics-resampling\inst\bootcdf.m</file>
@@ -79,11 +74,6 @@
       <file>Y:\Documents\GitHub\statistics-resampling\inst\sampszcalc.m</file>
       <file>Y:\Documents\GitHub\statistics-resampling\inst\smoothmad.m</file>
       <file>Y:\Documents\GitHub\statistics-resampling\inst\smoothmedian.m</file>
-      <file>Y:\Documents\GitHub\statistics-resampling\inst\smoothmedian.mexa64</file>
-      <file>Y:\Documents\GitHub\statistics-resampling\inst\smoothmedian.mexmaca64</file>
-      <file>Y:\Documents\GitHub\statistics-resampling\inst\smoothmedian.mexmaci64</file>
-      <file>Y:\Documents\GitHub\statistics-resampling\inst\smoothmedian.mexw32</file>
-      <file>Y:\Documents\GitHub\statistics-resampling\inst\smoothmedian.mexw64</file>
     </fileset.rootfiles>
     <fileset.depfun.included />
     <fileset.depfun.excluded />
