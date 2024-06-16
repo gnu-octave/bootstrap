@@ -18,7 +18,7 @@ If you use this package, please include the following citation(s):
 
 ### Description
 
-The statistics-resampling package is an Octave package and Matlab toolbox that can be used to perform a wide variety of statistics tasks using non-parametric resampling methods. In particular, the functions included can be used to estimate bias, uncertainty (standard errors and confidence intervals), prediction error, and calculate *p*-values for null hypothesis significance tests. Variations of the resampling methods are included that improve the accuracy of the statistics for small samples and samples with complex dependence structures.  
+The statistics-resampling package is an Octave package and Matlab toolbox that can be used to perform a wide variety of statistics tasks using non-parametric resampling methods. In particular, the functions included can be used to estimate bias, uncertainty (standard errors and confidence intervals), prediction error, information criteria, and calculate *p*-values for null hypothesis significance tests. Variations of the resampling methods are included that improve the accuracy of the statistics for small samples and samples with complex dependence structures.  
   
 ### Using the statistics-resampling package online
   
@@ -116,7 +116,9 @@ Below are links to demonstrations of how the bootstrap or randomization function
  * [Statistically evaluate the number of modes (i.e. peaks) in a distribution](https://gnu-octave.github.io/statistics-resampling/function/bootmode.html#1)  
  
  * [Correcting sample size calculations for a two-sample test with nested design](https://gnu-octave.github.io/statistics-resampling/function/sampszcalc.html#6)  
-  
+
+ * [Comparing linear models using bootstrap estimates of prediction error, information criteria and relative likelihood](https://gnu-octave.github.io/statistics-resampling/function/bootlm.html#15)  
+ 
 For examples of how to import data sets from a human-readable text file, like a tab-separated-value (TSV) and comma-separated-value (CSV) file, see the examples in the JupyterLab Notebook at [statistics-resampling-online](https://mybinder.org/v2/gh/acpennlab/statistics-resampling-online/jammy-docker?urlpath=/lab/tree/statistics-resampling.ipynb) [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/acpennlab/statistics-resampling-online/jammy-docker?urlpath=/lab/tree/statistics-resampling.ipynb) and the last demonstration listed on [this page](https://gnu-octave.github.io/statistics-resampling/function/randtest2.html#5)
  
 ### Issues
