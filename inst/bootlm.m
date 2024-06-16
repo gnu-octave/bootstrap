@@ -2923,7 +2923,7 @@ end
 %! %     sr ~ 1 + pop15 + pop75 + dpi            16.54     827.168       +0.159
 %! %     sr ~ 1 + pop15 + pop75 + dpi + ddpi     15.98     798.939       +0.188
 %!
-%! % Relative likelihood of the nested models (exluding intercept-only model)
+%! % Relative likelihood of the nested models (except for intercept-only model)
 %! PRED_ERR.RL(2:end) ./ PRED_ERR.RL(1:end-1)
 
 %!test
