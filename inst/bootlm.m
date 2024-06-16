@@ -2093,8 +2093,8 @@ function PRED_ERR = booterr (Y, X, DF, n, DEP, NBOOT, ALPHA, SEED, ...
 
   % Compute observed statistics
   Nt = numel (DF) - 1;
-  [jnk, RSS, RESID] = arrayfun (@(j) lmfit (X(:,1:sum (DF(1:j))), Y, ...
-                                ISOCTAVE), (1:Nt + 1)', 'UniformOutput', false);
+  [jnk, RSS] = arrayfun (@(j) lmfit (X(:,1:sum (DF(1:j))), Y, ISOCTAVE), ...
+                                     (1:Nt + 1)', 'UniformOutput', false);
 
   % Compute refined bootstrap estimates of prediction error (PE)
   % See Efron and Tibshirani (1993) An Introduction to the Bootstrap. pg 247-252
