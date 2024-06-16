@@ -386,17 +386,20 @@ function [stats, bootstat] = bootbayes (Y, X, dep, nboot, prob, prior, seed, ...
   bias = mean (bootstat, 2) - original;
 
   % Compute credible intervals
-  if (prior > 0)
-    ci = credint (bootstat, prob);
-  else
-    stdnorminv = @(p) sqrt (2) * erfinv (2 * p - 1);
-    switch nprob
-      case 1
-        z = stdnorminv (1 - (1 - prob) / 2);
-        ci = original + std (bootstat, 1 , 2) * z * [-1, 1];
-      case 2
-        z = stdnorminv (prob);
-        ci = original + std (bootstat, 1 , 2) * z;
+  ci = nan (p, 2);
+  if (any (~ isnan (prob)))
+    if (prior > 0)
+      ci = credint (bootstat, prob);
+    else
+      stdnorminv = @(p) sqrt (2) * erfinv (2 * p - 1);
+      switch nprob
+        case 1
+          z = stdnorminv (1 - (1 - prob) / 2);
+          ci = original + std (bootstat, 1 , 2) * z * [-1, 1];
+        case 2
+          z = stdnorminv (prob);
+          ci = original + std (bootstat, 1 , 2) * z;
+      end
     end
   end
 
