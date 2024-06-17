@@ -545,7 +545,7 @@ end
 %! stats = bootbayes(repmat(heights,1,5));
 %! stats = bootbayes(heights,ones(10,1));
 %! stats = bootbayes(heights,[],2);
-%! stats = bootbayes(heights,[],[1;1;1;1;1;2;2;2;2;2]);
+%! stats = bootbayes(heights,[],[1;1;1;1;2;2;2;3;3;3]);
 %! stats = bootbayes(heights,[],[],1999);
 %! stats = bootbayes(heights,[],[],[],0.05);
 %! stats = bootbayes(heights,[],[],[],[0.025,0.975]);
