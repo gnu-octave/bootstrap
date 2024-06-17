@@ -3,7 +3,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
   <head>
   <meta http-equiv="content-type" content="text/html; charset=utf-8" />
-  <meta name="date" content="2024-06-04"/>
+  <meta name="date" content="2024-06-17"/>
   <meta name="generator" content="generate_html 0.3.3" />
   <meta name="author" content="Andrew Penn" />
   <meta name="description" content="A package for statistical analysis using resampling methods." />
@@ -458,7 +458,7 @@
        model used for comparison for each model is the model listed directly
        above it in AOVSTAT; for the first model, the null model is the
        intercept-only model. Note that ANOVA statistics are only returned when
-       the method used is wild bootstrap AND when no other statistics are
+       the method used is 'wild' bootstrap AND when no other statistics are
        requested (i.e. estimated marginal means or posthoc tests). The
        bootstrap is achieved by wild bootstrap of the residuals from the full
        model. Computations of the statistics in AOVSTAT are compatible with
@@ -486,15 +486,18 @@
        - 'PE': Bootstrap estimate of prediction error
        - 'PRESS': Bootstrap estimate of predicted residual error sum of squares
        - 'RSQ_pred': Bootstrap estimate of predicted R-squared
+       - 'EIC': Extended (Efron) Information Criterion
+       - 'RL': Relative likelihood (compared to the intercept-only model)
+       - 'Wt': EIC expressed as weights
 
        The linear models evaluated are the same as for AOVSTAT, except that the 
        output also includes the statistics for the intercept-only model. Note
-       that PRED_ERR statistics are only returned when the method used is wild
-       bootstrap AND when no other statistics are requested (i.e. estimated
-       marginal means or posthoc tests). Computations of the statistics in
-       PRED_ERR are compatible with the 'clustid' and 'blocksz' options. Note
-       that it is possible (and not unusual) to get a negative value for RSQ-
-       pred, particularly for the intercept-only (i.e. first) model.
+       that PRED_ERR statistics are only returned when the method used is
+       'wild' bootstrap AND when no other statistics are requested (i.e.
+       estimated marginal means or posthoc tests). Computations of the
+       statistics in PRED_ERR are compatible with the 'clustid' and 'blocksz'
+        options. Note that it is possible (and not unusual) to get a negative
+       value for RSQ-pred, particularly for the intercept-only model.
 
      * If the parallel computing toolbox (Matlab) or package (Octave) is
        installed and loaded, then these computations will be automatically
@@ -1839,8 +1842,9 @@ F(2,21) = 17.08, p = 0.018 for the model: data ~ 1 + X1</pre>
 <p>The following code</p>
 <pre class="example">
 
- % Prediction errors of linear models. Data from Table 9.1, on page 107 of
- % Efron and Tibshirani (1993) An Introduction to the Bootstrap.
+ % Prediction errors and information criteria of linear models.
+ % Data from Table 9.1, on page 107 of Efron and Tibshirani (1993)
+ % An Introduction to the Bootstrap.
 
  amount = [25.8; 20.5; 14.3; 23.2; 20.6; 31.1; 20.9; 20.9; 30.4; ...
           16.3; 11.6; 11.8; 32.5; 32.0; 18.0; 24.1; 26.5; 25.8; ...
@@ -1865,7 +1869,18 @@ F(2,21) = 17.08, p = 0.018 for the model: data ~ 1 + X1</pre>
  % Note: The value of prediction error is lower than the 3.00 calculated by
  % Efron and Tibhirani (1993) using the same refined bootstrap procedure,
  % because they have used case resampling whereas we have used wild bootstrap
- % resampling. The equivalent value of Cp (eq. to AIC) statistic is 2.96.</pre>
+ % resampling. The equivalent value of Cp (eq. to AIC) statistic is 2.96.
+
+ PRED_ERR
+
+ % The results from the bootstrap are broadly consistent to the results
+ % obtained for Akaike's Information Criterion (AIC, computed in R with the
+ % AIC function from the 'stats' package):
+ %
+ %     MODEL                                     AIC       EIC
+ %     amount ~ 1                             180.17    178.41
+ %     amount ~ 1 + hrs                       127.33    125.00
+ %     amount ~ 1 + hrs + lot                 107.85    106.36</pre>
 <p>Produces the following output</p>
 <pre class="example">MODEL FORMULA (based on Wilkinson's notation):
 
@@ -1880,7 +1895,53 @@ hrs                                    -0.06014    -0.06841    -0.05186    <.001
 lot_1                                  +3.973      +2.172      +5.775      <.001
 lot_2                                  +3.466      +1.962      +4.970      <.001
 
-PREDICTION ERROR of the FULL MODEL = 2.86</pre>
+PREDICTION ERROR of the FULL MODEL = 2.86
+PRED_ERR =
+
+  scalar structure containing the fields:
+
+    MODEL =
+    {
+      [1,1] = amount ~ 1
+      [2,1] = amount ~ 1 + hrs
+      [3,1] = amount ~ 1 + hrs + lot
+    }
+
+    PE =
+
+           42.937
+           5.9086
+           2.8582
+
+    PRESS =
+
+           1159.3
+           159.53
+           77.171
+
+    RSQ_pred =
+
+        -0.075489
+            0.852
+          0.92841
+
+    EIC =
+
+           178.41
+              125
+           106.36
+
+    RL =
+
+                1
+        3.968e+11
+       4.4286e+15
+
+    Wt =
+
+       2.2578e-16
+       8.9592e-05
+          0.99991</pre>
 <p>and the following figure</p>
 <p><table class="images">
 <tr>
@@ -1939,22 +2000,29 @@ PREDICTION ERROR of the FULL MODEL = 2.86</pre>
          16.71;05.08];
 
   [STATS, BOOTSTAT, AOVSTAT, PRED_ERR] = bootlm (sr, {pop15, pop75, ...
-                                     dpi, ddpi}, 'seed', 1, 'continuous', [1:4], ...
-                                     'model', 'linear', 'display', 'off', ...
-                                     'varnames', {'pop15','pop75','dpi','ddpi'},
-                                     'contrasts', 'treatment');
+                               dpi, ddpi}, 'seed', 1, 'continuous', [1:4], ...
+                               'model', 'linear', 'display', 'off', ...
+                               'varnames', {'pop15','pop75','dpi','ddpi'},
+                               'contrasts', 'treatment');
 
  PRED_ERR
  
  % The results from the bootstrap are broadly consistent to the results
  % obtained for PE, PRESS and RSQ_pred using cross-validation:
  %
- %     MODEL                                  PE-CV    PRESS-CV  RSQ_pred-CV
+ %     MODEL                                   PE-CV    PRESS-CV  RSQ_pred-CV
  %     sr ~ 1                                  20.48    1024.186       -0.041
  %     sr ~ 1 + pop15                          16.88     843.910       +0.142
  %     sr ~ 1 + pop15 + pop75                  16.62     830.879       +0.155
  %     sr ~ 1 + pop15 + pop75 + dpi            16.54     827.168       +0.159
- %     sr ~ 1 + pop15 + pop75 + dpi + ddpi     15.98     798.939       +0.188</pre>
+ %     sr ~ 1 + pop15 + pop75 + dpi + ddpi     15.98     798.939       +0.188
+
+
+ % ANOVA p-values of the nested models
+ AOVSTAT.PVAL
+
+ % Relative likelihood of the nested models
+ PRED_ERR.RL(2:end) ./ PRED_ERR.RL(1:end-1)</pre>
 <p>Produces the following output</p>
 <pre class="example">PRED_ERR =
 
@@ -1991,7 +2059,46 @@ PREDICTION ERROR of the FULL MODEL = 2.86</pre>
           0.14602
           0.16939
           0.17548
-          0.22783</pre>
+          0.22783
+
+    EIC =
+
+           293.13
+           283.41
+           282.22
+           281.92
+           278.87
+
+    RL =
+
+                1
+           129.42
+           234.65
+           271.81
+           1254.4
+
+    Wt =
+
+       0.00052875
+         0.068431
+          0.12407
+          0.14372
+          0.66325
+
+
+ans =
+
+   0.00047443
+     0.060263
+      0.11655
+     0.022759
+
+ans =
+
+       129.42
+       1.8131
+       1.1583
+       4.6149</pre>
 </div>
 
 <p>Package: <a href="../index.html">statistics-resampling</a></p>
