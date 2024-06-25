@@ -2240,13 +2240,7 @@ end
 %!
 %! % Standardized effect size (Cohen's d) with 95% credible intervals and 
 %! % total sample size for the difference in mean score before and after
-%! % treatment (computed by bayesian bootstrap). In this particular case,
-%! % rather than the full model, we have opted for an estimate of the classic
-%! % Cohen's d by refitting the model as a between-subjects design. (It is
-%! % possible to get the standardized effect size from the full model instead,
-%! % but this does change the interpretation of the effect size - ensure that
-%! % your methods are properly documented with reports of standardized effect
-%! % sizes)
+%! % treatment (computed by bayesian bootstrap).
 %! STATS = bootlm (score, {treatment}, 'standardize', true, 'model', 'linear', ...
 %!                            'display', 'on', 'varnames', 'treatment',  ...
 %!                            'dim', 1, 'posthoc','trt_vs_ctrl', ...
