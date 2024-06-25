@@ -375,9 +375,7 @@
 %          from the residual standard deviation, which is estimated from the
 %          standard errors and the sample sizes. As such, the effect sizes
 %          calculated exclude variability attributed to other predictors in
-%          the model. To avoid small sample bias inflating effect sizes for
-%          posthoc comparisons when use the 'bayesian' method, use the 'auto'
-%          setting for the prior. 
+%          the model.
 %
 %     '[...] = bootlm (Y, GROUP, ..., 'seed', SEED)' initialises the Mersenne
 %     Twister random number generator using an integer SEED value so that
@@ -2172,6 +2170,16 @@ end
 %! STATS = bootlm (score, gender, 'display', 'on', 'varnames', 'gender', ...
 %!                 'dim', 1, 'posthoc','trt_vs_ctrl');
 %!
+%! % Standardized effect size (Cohen's d) with 95% confidence intervals and 
+%! % total sample size for the difference in mean score between males and
+%! % females (computed by wild bootstrap)
+%! STATS = bootlm (score, gender, 'display', 'on', 'varnames', 'gender', ...
+%!                 'dim', 1, 'posthoc','trt_vs_ctrl', 'standardize', true, ...
+%!                 'method', 'wild');
+%!
+%! fprintf ('Cohen''s d [95%% CI] = %.2f [%.2f, %.2f] (N = %u)\n\n', ...
+%!          STATS.estimate, STATS.CI_lower, STATS.CI_upper, STATS.N)
+%!
 %! % Standardized effect size (Cohen's d) with 95% credible intervals and 
 %! % total sample size for the difference in mean score between males and
 %! % females (computed by bayesian bootstrap)
@@ -2212,6 +2220,23 @@ end
 %!                            'model', 'linear', 'display', 'on', ...
 %!                            'varnames', {'subject','treatment'}, ...
 %!                            'dim', 2, 'posthoc','trt_vs_ctrl');
+%!
+%! % Standardized effect size (Cohen's d) with 95% confidence intervals and 
+%! % total sample size for the difference in mean score before and after
+%! % treatment (computed by wild bootstrap). In this particular case,
+%! % rather than the full model, we have opted for an estimate of the classic
+%! % Cohen's d by refitting the model as a between-subjects design. (It is
+%! % possible to get the standardized effect size from the full model instead,
+%! % but this does change the interpretation of the effect size - ensure that
+%! % your methods are properly documented with reports of standardized effect
+%! % sizes)
+%! STATS = bootlm (score, {treatment}, 'standardize', true, 'model', 'linear', ...
+%!                            'display', 'on', 'varnames', 'treatment',  ...
+%!                            'dim', 1, 'posthoc','trt_vs_ctrl', ...
+%!                            'method', 'wild');
+%!
+%! fprintf ('Cohen''s d [95%% CI] = %.2f [%.2f, %.2f] (N = %u)\n\n', ...
+%!          STATS.estimate, STATS.CI_lower, STATS.CI_upper, STATS.N)
 %!
 %! % Standardized effect size (Cohen's d) with 95% credible intervals and 
 %! % total sample size for the difference in mean score before and after
