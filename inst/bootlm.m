@@ -23,6 +23,7 @@
 % -- Function File: [STATS, BOOTSTAT] = bootlm (...)
 % -- Function File: [STATS, BOOTSTAT, AOVSTAT] = bootlm (...)
 % -- Function File: [STATS, BOOTSTAT, AOVSTAT, PRED_ERR] = bootlm (...)
+% -- Function File: [STATS, BOOTSTAT, AOVSTAT, PRED_ERR, X] = bootlm (...)
 %
 %        Fits a linear model with categorical and/or continuous predictors (i.e.
 %     independent variables) on a continuous outcome (i.e. dependent variable)
@@ -479,7 +480,12 @@
 %       installed and loaded, then these computations will be automatically
 %       accelerated by parallel processing on platforms with multiple processors
 %
-%  bootlm (version 2024.05.17)
+%     '[STATS, BOOTSTAT, AOVSTAT, PRED_ERR, MAT] = bootlm (...)' also returns
+%     a structure containing the design matrix of the predictors (X), the
+%     regression coefficients (b), the hypothesis matrix (L) and the outcome (Y)
+%     for the linear model.
+%
+%  bootlm (version 2024.07.08)
 %  Author: Andrew Charles Penn
 %  https://www.researchgate.net/profile/Andrew_Penn/
 %
@@ -497,7 +503,7 @@
 %  You should have received a copy of the GNU General Public License
 %  along with this program.  If not, see http://www.gnu.org/licenses/
 
-function [STATS, BOOTSTAT, AOVSTAT, PRED_ERR] = bootlm (Y, GROUP, varargin)
+function [STATS, BOOTSTAT, AOVSTAT, PRED_ERR, MAT] = bootlm (Y, GROUP, varargin)
 
     if (nargin < 2)
       error (cat (2, 'bootlm usage: ''bootlm (Y, GROUP)''; ', ...
@@ -1275,6 +1281,8 @@ function [STATS, BOOTSTAT, AOVSTAT, PRED_ERR] = bootlm (Y, GROUP, varargin)
               else
                 STATS.prior = cat (2, PRIOR(pairs(:, 1)), PRIOR(pairs(:, 2)));
               end
+              % Modifying the hypothesis matrix (L) to represent the desired tests
+              L = make_test_matrix (L, pairs); % In case it is requested
             otherwise
               error (cat (2, 'bootlm: unrecignised bootstrap method.', ...
                              ' Use ''wild'' or ''bayesian''.'))
@@ -1375,6 +1383,11 @@ function [STATS, BOOTSTAT, AOVSTAT, PRED_ERR] = bootlm (Y, GROUP, varargin)
     else
       STATS = orderfields (STATS, {'method','name', 'estimate', 'CI_lower', ...
                                   'CI_upper', 'pval', 'fpr', 'N', 'prior'});
+    end
+
+    % Create MAT return value
+    if (nargout > 4)
+      MAT = struct ('X', X, 'b', b, 'L', L, 'Y', Y);
     end
 
     % Print table of model coefficients and make figure of diagnostic plots
