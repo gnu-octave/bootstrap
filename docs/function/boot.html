@@ -3,7 +3,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
   <head>
   <meta http-equiv="content-type" content="text/html; charset=utf-8" />
-  <meta name="date" content="2024-06-25"/>
+  <meta name="date" content="2024-09-02"/>
   <meta name="generator" content="generate_html 0.3.3" />
   <meta name="author" content="Andrew Penn" />
   <meta name="description" content="A package for statistical analysis using resampling methods." />
@@ -116,17 +116,29 @@
 <p>Produces the following output</p>
 <pre class="example">ans =
 
- Columns 1 through 12:
+ Columns 1 through 6:
 
-            2            3            3            2            2            2            1            1            3            1            3            3
-            3            1            3            1            2            3            2            2            2            1            2            1
-            2            1            3            3            2            1            2            3            1            2            1            2
+            3            1            3            1            1            1
+            3            1            3            2            1            1
+            3            2            2            2            1            3
 
- Columns 13 through 20:
+ Columns 7 through 12:
 
-            2            1            2            2            3            3            1            1
-            2            2            3            3            1            1            3            3
-            3            1            1            1            2            3            3            1</pre>
+            3            3            3            1            3            2
+            2            3            1            2            3            1
+            2            3            2            1            3            2
+
+ Columns 13 through 18:
+
+            2            2            2            3            1            1
+            2            2            1            1            3            3
+            3            2            1            3            3            1
+
+ Columns 19 and 20:
+
+            2            1
+            2            2
+            1            2</pre>
 </div>
 
 <h3><a name="2">Demonstration 2</a></h3>
@@ -139,17 +151,29 @@
 <p>Produces the following output</p>
 <pre class="example">ans =
 
- Columns 1 through 12:
+ Columns 1 through 6:
 
-            2            3            2            2            3            1            3            1            2            2            1            2
-            2            1            1            2            3            2            2            1            1            3            3            1
-            3            3            1            2            3            1            3            1            2            2            3            2
+            2            3            1            2            1            2
+            3            1            2            2            1            2
+            3            3            1            3            1            2
 
- Columns 13 through 20:
+ Columns 7 through 12:
 
-            2            3            1            2            1            2            3            3
-            3            3            1            2            1            1            1            2
-            3            1            1            3            3            1            3            2</pre>
+            3            1            2            3            1            1
+            3            1            1            3            1            2
+            3            3            2            2            1            2
+
+ Columns 13 through 18:
+
+            3            3            2            2            1            2
+            2            3            2            3            1            1
+            3            1            1            3            1            2
+
+ Columns 19 and 20:
+
+            2            2
+            3            1
+            3            3</pre>
 </div>
 
 <h3><a name="3">Demonstration 3</a></h3>
@@ -164,45 +188,81 @@
 <p>Produces the following output</p>
 <pre class="example">ans =
 
- Columns 1 through 12:
+ Columns 1 through 6:
 
-            3            3            3            3            1            2            3            3            1            1            2            2
-            3            1            2            2            3            1            3            1            2            2            3            3
-            3            2            3            1            3            1            1            1            3            1            2            3
+            3            3            3            3            1            2
+            3            1            2            2            3            1
+            3            2            3            1            3            1
 
- Columns 13 through 20:
+ Columns 7 through 12:
 
-            1            2            2            2            1            2            1            1
-            2            3            3            3            3            1            1            2
-            2            1            2            2            2            1            2            1
+            3            3            1            1            2            2
+            3            1            2            2            3            3
+            1            1            3            1            2            3
 
-ans =
+ Columns 13 through 18:
 
- Columns 1 through 12:
+            1            2            2            2            1            2
+            2            3            3            3            3            1
+            2            1            2            2            2            1
 
-            3            3            3            3            1            2            3            3            1            1            2            2
-            3            1            2            2            3            1            3            1            2            2            3            3
-            3            2            3            1            3            1            1            1            3            1            2            3
+ Columns 19 and 20:
 
- Columns 13 through 20:
-
-            1            2            2            2            1            2            1            1
-            2            3            3            3            3            1            1            2
-            2            1            2            2            2            1            2            1
+            1            1
+            1            2
+            2            1
 
 ans =
 
- Columns 1 through 12:
+ Columns 1 through 6:
 
-            3            2            2            3            2            3            1            2            2            3            1            2
-            1            3            1            1            2            3            3            3            1            2            1            1
-            1            3            3            1            1            1            2            3            2            2            2            1
+            3            3            3            3            1            2
+            3            1            2            2            3            1
+            3            2            3            1            3            1
 
- Columns 13 through 20:
+ Columns 7 through 12:
 
-            3            1            2            3            2            3            2            3
-            2            1            3            1            1            3            3            2
-            2            3            3            1            1            2            2            1</pre>
+            3            3            1            1            2            2
+            3            1            2            2            3            3
+            1            1            3            1            2            3
+
+ Columns 13 through 18:
+
+            1            2            2            2            1            2
+            2            3            3            3            3            1
+            2            1            2            2            2            1
+
+ Columns 19 and 20:
+
+            1            1
+            1            2
+            2            1
+
+ans =
+
+ Columns 1 through 6:
+
+            3            2            2            3            2            3
+            1            3            1            1            2            3
+            1            3            3            1            1            1
+
+ Columns 7 through 12:
+
+            1            2            2            3            1            2
+            3            3            1            2            1            1
+            2            3            2            2            2            1
+
+ Columns 13 through 18:
+
+            3            1            2            3            2            3
+            2            1            3            1            1            3
+            2            3            3            1            1            2
+
+ Columns 19 and 20:
+
+            2            3
+            3            2
+            2            1</pre>
 </div>
 
 <h3><a name="4">Demonstration 4</a></h3>
@@ -217,15 +277,31 @@ ans =
 <p>Produces the following output</p>
 <pre class="example">ans =
 
-           44           23           23           36           44           23           44           36           36           23
-           36           23           36           23           44           36           36           23           44           44
-           36           36           23           44           23           44           23           36           44           44
+ Columns 1 through 6:
+
+           44           23           23           36           44           23
+           36           23           36           23           44           36
+           36           36           23           44           23           44
+
+ Columns 7 through 10:
+
+           44           36           36           23
+           36           23           44           44
+           23           36           44           44
 
 ans =
 
-           23           23           23           36           23           23           23           36           36           23
-           36           23           36           23           23           36           36           23           23           23
-           36           36           23           23           23           23           23           36           23           23</pre>
+ Columns 1 through 6:
+
+           23           23           23           36           23           23
+           36           23           36           23           23           36
+           36           36           23           23           23           23
+
+ Columns 7 through 10:
+
+           23           36           36           23
+           36           23           23           23
+           23           36           23           23</pre>
 </div>
 
 <h3><a name="5">Demonstration 5</a></h3>

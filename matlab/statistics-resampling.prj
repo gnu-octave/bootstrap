@@ -1,5 +1,5 @@
 <deployment-project plugin="plugin.toolbox" plugin-version="1.0">
-  <configuration build-checksum="3658981816" file="Y:\Documents\GitHub\statistics-resampling\matlab\statistics-resampling.prj" location="Y:\Documents\GitHub\statistics-resampling\matlab" name="statistics-resampling" target="target.toolbox" target-name="Package Toolbox">
+  <configuration build-checksum="3728346821" file="Y:\Documents\GitHub\statistics-resampling\matlab\statistics-resampling.prj" location="Y:\Documents\GitHub\statistics-resampling\matlab" name="statistics-resampling" target="target.toolbox" target-name="Package Toolbox">
     <param.appname>statistics-resampling</param.appname>
     <param.authnamewatermark>Andrew Penn</param.authnamewatermark>
     <param.email>andy.c.penn@gmail.com</param.email>
