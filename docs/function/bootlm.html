@@ -45,6 +45,7 @@
  -- Function File: [STATS, BOOTSTAT] = bootlm (...)
  -- Function File: [STATS, BOOTSTAT, AOVSTAT] = bootlm (...)
  -- Function File: [STATS, BOOTSTAT, AOVSTAT, PRED_ERR] = bootlm (...)
+ -- Function File: [STATS, BOOTSTAT, AOVSTAT, PRED_ERR, X] = bootlm (...)
 
         Fits a linear model with categorical and/or continuous predictors (i.e.
      independent variables) on a continuous outcome (i.e. dependent variable)
@@ -57,7 +58,7 @@
         By default, confidence intervals and Null Hypothesis Significance Tests
      (NHSTs) for the regression coefficients (H0 = 0) are calculated by wild
      bootstrap-t and are robust when normality and homoscedasticity cannot be
-     assumed.
+     assumed [1].
 
         Usage of this function is very similar to that of 'anovan'. Data (Y)
      is a numeric variable, and the predictor(s) are specified in GROUP (a.k.a.
@@ -136,11 +137,11 @@
 
              o 'wild' (default): Wild bootstrap-t, using the 'bootwild'
                function. Please see the help documentation below and in the
-               function 'bootwild' for more information about this method.
+               function 'bootwild' for more information about this method [1].
 
              o 'bayesian': Bayesian bootstrap, using the 'bootbayes' function.
                 Please see the help documentation below and in the function
-               'bootbayes' for more information about this method.
+               'bootbayes' for more information about this method [2].
 
              Note that p-values are a frequentist concept and are only computed
              and returned from bootlm when the METHOD is 'wild'. Since the wild
@@ -165,7 +166,7 @@
 
              o 'auto': Sets a value for PRIOR that effectively incorporates
                   Bessel's correction a priori such that the variance of the
-                  posterior (i.e. the rows of BOOTSTAT) becomes an unbiased
+                  posterior (i.e. of the rows of BOOTSTAT) becomes an unbiased
                   estimator of the sampling variance*. The calculation used for
                   'auto' is as follows:
  
@@ -187,7 +188,7 @@
                to Bayes rule: a uniform (or flat) Dirichlet distribution
                (over all points in its support). Please see the help
                documentation for the function 'bootbayes' for more information
-               about the prior.
+               about the prior [2].
 
      '[...] = bootlm (Y, GROUP, ..., 'alpha', ALPHA)'
 
@@ -198,16 +199,16 @@
              o scalar: Set the central mass of the intervals to 100*(1-ALPHA)%.
                   For example, 0.05 for a 95% interval. If METHOD is 'wild',
                   then the intervals are symmetric bootstrap-t confidence
-                  intervals. If METHOD is 'bayesian', then the intervals are
-                  shortest probability credible intervals.
+                  intervals [1]. If METHOD is 'bayesian', then the intervals
+                  are shortest probability credible intervals [2].
 
              o vector: A pair of probabilities defining the lower and upper
                   and upper bounds of the interval(s) as 100*(ALPHA(1))% and 
                   100*(ALPHA(2))% respectively. For example, [.025, .975] for
                   a 95% interval. If METHOD is 'wild', then the intervals are
-                  asymmetric bootstrap-t confidence intervals. If METHOD is
+                  asymmetric bootstrap-t confidence intervals [1]. If METHOD is
                   'bayesian', then the intervals are simple percentile credible
-                  intervals.
+                  intervals [2].
 
                The default value of ALPHA is the scalar: 0.05.
 
@@ -412,7 +413,7 @@
        - 'CI_lower': The lower bound(s) of the confidence/credible interval(s)
        - 'CI_upper': The upper bound(s) of the confidence/credible interval(s)
        - 'pval': The p-value(s) for the hypothesis that the estimate(s) == 0
-       - 'fpr': The minimum false positive risk (FPR) for each p-value
+       - 'fpr': The minimum false positive risk (FPR) for each p-value [3].
        - 'N': The number of independent sampling units used to compute CIs
        - 'prior': The prior used for Bayesian bootstrap. This will return a
                   scalar for regression coefficients, or a P x 1 or P x 2
@@ -445,7 +446,7 @@
        - 'MS': Mean-squares
        - 'F': F-Statistic
        - 'PVAL': p-values
-       - 'FPR': The minimum false positive risk for each p-value
+       - 'FPR': The minimum false positive risk for each p-value [3]
        - 'SSE': Sum-of-Squared Error
        - 'DFE': Degrees of Freedom for Error
        - 'MSE': Mean Squared Error
@@ -459,8 +460,8 @@
        the method used is 'wild' bootstrap AND when no other statistics are
        requested (i.e. estimated marginal means or posthoc tests). The
        bootstrap is achieved by wild bootstrap of the residuals from the full
-       model. Computations of the statistics in AOVSTAT are compatible with
-       the 'clustid' and 'blocksz' options.
+       model [1,4]. Computations of the statistics in AOVSTAT are compatible
+       with the 'clustid' and 'blocksz' options.
 
        The bootlm function treats all model predictors as fixed effects during
        ANOVA tests. While any type of predictor, be it a fixed effect or
@@ -478,13 +479,13 @@
           sample sizes are equal or not.
 
      '[STATS, BOOTSTAT, AOVSTAT, PRED_ERR] = bootlm (...)' also computes
-     refined bootstrap estimates of prediction error* and returns the derived
-     statistics in a structure with the following fields:
+     refined bootstrap estimates of prediction error* and returns statistics
+     derived from it in a structure containing the following fields:
        - 'MODEL': The formula of the linear model(s) in Wilkinson's notation
-       - 'PE': Bootstrap estimate of prediction error
+       - 'PE': Bootstrap estimate of prediction error [5]
        - 'PRESS': Bootstrap estimate of predicted residual error sum of squares
        - 'RSQ_pred': Bootstrap estimate of predicted R-squared
-       - 'EIC': Extended (Efron) Information Criterion
+       - 'EIC': Extended (Efron) Information Criterion [6]
        - 'RL': Relative likelihood (compared to the intercept-only model)
        - 'Wt': EIC expressed as weights
 
@@ -501,7 +502,30 @@
        installed and loaded, then these computations will be automatically
        accelerated by parallel processing on platforms with multiple processors
 
-  bootlm (version 2024.05.17)
+     '[STATS, BOOTSTAT, AOVSTAT, PRED_ERR, MAT] = bootlm (...)' also returns
+     a structure containing the design matrix of the predictors (X), the
+     regression coefficients (b), the hypothesis matrix (L) and the outcome (Y)
+     for the linear model.
+
+  Bibliography:
+  [1] Penn, A.C. statistics-resampling manual: `bootwild` function reference.
+        https://gnu-octave.github.io/statistics-resampling/function/bootwild.html 
+        and references therein. Last accessed 02 Sept 2024.
+  [2] Penn, A.C. statistics-resampling manual: `bootbayes` function reference.
+        https://gnu-octave.github.io/statistics-resampling/function/bootbayes.html
+        and references therein. Last accessed 02 Sept 2024.
+  [3] David Colquhoun (2019) The False Positive Risk: A Proposal Concerning
+        What to Do About p-Values, The American Statistician, 73:sup1, 192-201
+  [4] ter Braak (1992) Permutation versus bootstrap significance test in
+        multiple regression and ANOVA. In Jockel et al (Eds.) Bootstrapping
+        and Related Techniques. Springer-Verlag, Berlin, pg 79-86
+  [5] Efron and Tibshirani (1993) An Introduction to the Bootstrap. 
+        New York, NY: Chapman & Hall. pg 247-252
+  [6] Konishi & Kitagawa (2008), "Bootstrap Information Criterion" In: 
+        Information Criteria and Statistical Modeling. Springer Series in
+        Statistics. Springer, NY.
+
+  bootlm (version 2024.07.08)
   Author: Andrew Charles Penn
   https://www.researchgate.net/profile/Andrew_Penn/
 
