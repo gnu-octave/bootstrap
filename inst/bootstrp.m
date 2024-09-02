@@ -451,6 +451,8 @@ function [bootstat, bootsam, stats] = bootstrp (argin1, argin2, varargin)
   else
     bootsam = bootsam';
   end
+
+  % Compute and return statistics that characterize the bootstrap distribution
   if (nargout > 2)
     stats = struct;
     if (~ isempty (bootfun))
